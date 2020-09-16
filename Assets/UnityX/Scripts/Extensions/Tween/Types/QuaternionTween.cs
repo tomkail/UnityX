@@ -2,7 +2,6 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-[System.Serializable]
 public class QuaternionTween : TypeTween<Quaternion> {
 
 	public QuaternionTween () : base () {}

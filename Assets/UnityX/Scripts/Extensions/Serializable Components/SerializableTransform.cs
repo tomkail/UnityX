@@ -319,23 +319,21 @@ public struct SerializableTransform {
 	//
 	// Methods
 	//
-	public void Rotate (float xAngle, float yAngle, float zAngle, Space relativeTo = Space.Self)
-	{
+	public void Rotate (float xAngle, float yAngle, float zAngle, Space relativeTo = Space.Self) {
 		this.Rotate (new Vector3 (xAngle, yAngle, zAngle), relativeTo);
 	}
 	
-	public void Rotate (Vector3 axis, float angle, Space relativeTo = Space.Self)
-	{
-		rotation = rotation.Rotate(Quaternion.AngleAxis (angle, axis), relativeTo);
+	public void Rotate (Vector3 axis, float angle, Space relativeTo = Space.Self) {
+		if(relativeTo == Space.World) rotation = Quaternion.AngleAxis (angle, axis) * rotation;
+		else rotation = rotation * Quaternion.AngleAxis (angle, axis);
 	}
 	
-	public void Rotate (Vector3 eulerAngles, Space relativeTo = Space.Self)
-	{
-		rotation = rotation.Rotate(Quaternion.Euler(eulerAngles), relativeTo);
+	public void Rotate (Vector3 eulerAngles, Space relativeTo = Space.Self) {
+		if(relativeTo == Space.World) rotation = Quaternion.Euler(eulerAngles) * rotation;
+		else rotation = rotation * Quaternion.Euler(eulerAngles);
 	}
-	
-	public void RotateAround (Vector3 point, Vector3 axis, float angle)
-	{
+
+	public void RotateAround (Vector3 point, Vector3 axis, float angle) {
 		Vector3 vector = position;
 		Quaternion rotation = Quaternion.AngleAxis (angle, axis);
 		Vector3 vector2 = vector - point;

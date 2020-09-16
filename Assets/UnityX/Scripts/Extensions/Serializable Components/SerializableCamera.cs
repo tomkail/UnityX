@@ -142,23 +142,47 @@ public struct SerializableCamera  {
     }
 	public float aspect {
         get {
-            return (Screen.width * clampedRect.width)/(Screen.height * clampedRect.height);
+            return (screenWidth * clampedRect.width)/(screenHeight * clampedRect.height);
         }
     }
 
 
     public int pixelWidth {
         get {
-            return Mathf.RoundToInt(Screen.width * clampedRect.width);
+            return Mathf.RoundToInt(screenWidth * clampedRect.width);
         }
     }
     public int pixelHeight {
         get {
-            return Mathf.RoundToInt(Screen.height * clampedRect.height);
+            return Mathf.RoundToInt(screenHeight * clampedRect.height);
         }
     }
 
-
+	// ARGH I hate this. It's necessary because screen/display don't return the values for game view in some editor contexts (using inspector windows, for example)
+	static int screenWidth {
+		get {
+			#if UNITY_EDITOR
+			var res = UnityEditor.UnityStats.screenRes.Split('x');
+			return int.Parse(res[0]);
+			#else
+			// Consider adding target displays, then replace with this.
+			// Display.displays[0].renderingWidth
+			return Screen.width;
+			#endif
+		}
+	}
+	static int screenHeight {
+		get {
+			#if UNITY_EDITOR
+			var res = UnityEditor.UnityStats.screenRes.Split('x');
+			return int.Parse(res[1]);
+			#else
+			// Consider adding target displays, then replace with this.
+			// Display.displays[0].renderingHeight
+			return Screen.height;
+			#endif
+		}
+	}
 
 
 	// https://docs.unity3d.com/ScriptReference/Camera-worldToCameraMatrix
@@ -185,7 +209,7 @@ public struct SerializableCamera  {
     // Not currently used since what screen conversion code is very tested, and this is less so - kept since handy for passing to shaders. 
     public Matrix4x4 worldToCameraPixelRectMatrix {
         get {
-            var viewportToScreenMatrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(Screen.width, Screen.height, 1));
+            var viewportToScreenMatrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(screenWidth, screenHeight, 1));
             return viewportToScreenMatrix * worldToCameraViewportMatrix;
         }
     }
@@ -201,7 +225,7 @@ public struct SerializableCamera  {
     // Not currently used since what screen conversion code is very tested, and this is less so - kept since handy for passing to shaders. 
     public Matrix4x4 worldToScreenMatrix {
         get {
-            var viewportToScreenMatrix = Matrix4x4.TRS(Vector3.one, Quaternion.identity, new Vector3(Screen.width, Screen.height, 1));
+            var viewportToScreenMatrix = Matrix4x4.TRS(Vector3.one, Quaternion.identity, new Vector3(screenWidth, screenHeight, 1));
             return viewportToScreenMatrix * worldToScreenViewportMatrix;
         }
     }
@@ -358,20 +382,46 @@ public struct SerializableCamera  {
 		point = transform.localToWorldDirectionMatrix.MultiplyPoint(point);
 		return point;
 	}
-	
-	public Vector2 ScreenToWorldPoint (Vector3 worldPoint) {
-		return ViewportToWorldPoint(Vector2.Scale(worldPoint, new Vector2(1f/Screen.width, 1f/Screen.height)));
+
+	public Ray ViewportPointToRay (Vector3 viewportPoint) {
+		viewportPoint.x = (viewportPoint.x - 0.5f) * 2;
+		viewportPoint.y = (viewportPoint.y - 0.5f) * 2;
+		
+        Vector3 p1 = new Vector3(viewportPoint.x, viewportPoint.y, -1);
+		Vector3 p2 = new Vector3(viewportPoint.x, viewportPoint.y, 1);
+		
+		Vector3 worldPointNear = inverseProjectionMatrix.MultiplyPoint(p1);
+		Vector3 worldPointFar = inverseProjectionMatrix.MultiplyPoint(p2);
+		// Compensate for Unity's inverted z
+        worldPointNear.z = -worldPointNear.z;
+        worldPointFar.z = -worldPointFar.z;
+		
+		// Create a direction that can be projected forward in world space.
+		Vector3 dir = worldPointFar-worldPointNear;
+		Vector3 normalizedDir = dir.normalized;
+
+		return new Ray(transform.localToWorldDirectionMatrix.MultiplyPoint(worldPointNear), transform.localToWorldDirectionMatrix.MultiplyVector(normalizedDir));
 	}
 	
+	public Vector2 ScreenToWorldPoint (Vector3 screenPoint) {
+		return ViewportToWorldPoint(Vector2.Scale(screenPoint, new Vector2(1f/screenWidth, 1f/screenHeight)));
+	}
+	
+	public Ray ScreenPointToRay (Vector3 screenPoint) {
+		return ViewportPointToRay(Vector2.Scale(screenPoint, new Vector2(1f/screenWidth, 1f/screenHeight)));
+	}
 
     public Vector3 ScreenToViewportPoint (Vector3 screenPoint) {
-        var x = MathX.InverseLerpUnclamped(Screen.width * clampedRect.xMin, Screen.width * clampedRect.xMax, screenPoint.x);
-        var y = MathX.InverseLerpUnclamped(Screen.height * clampedRect.yMin, Screen.height * clampedRect.yMax, screenPoint.y);
+		float InverseLerpUnclamped (float from, float to, float value) {
+			return (value - from) / (to - from);
+		}
+        var x = InverseLerpUnclamped(screenWidth * clampedRect.xMin, screenWidth * clampedRect.xMax, screenPoint.x);
+        var y = InverseLerpUnclamped(screenHeight * clampedRect.yMin, screenHeight * clampedRect.yMax, screenPoint.y);
 		return new Vector3(x, y, screenPoint.z);
 	}
     public Vector3 ViewportToScreenPoint (Vector3 viewportPoint) {
-        var x = Mathf.LerpUnclamped(Screen.width * clampedRect.xMin, Screen.width * clampedRect.xMax, viewportPoint.x);
-        var y = Mathf.LerpUnclamped(Screen.height * clampedRect.yMin, Screen.height * clampedRect.yMax, viewportPoint.y);
+        var x = Mathf.LerpUnclamped(screenWidth * clampedRect.xMin, screenWidth * clampedRect.xMax, viewportPoint.x);
+        var y = Mathf.LerpUnclamped(screenHeight * clampedRect.yMin, screenHeight * clampedRect.yMax, viewportPoint.y);
 		return new Vector3(x, y, viewportPoint.z);
 	}
 	
@@ -423,7 +473,9 @@ public struct SerializableCamera  {
 
 
     public Rect ViewportToScreenRect (Rect rect) {
-		return RectX.MinMaxRect(ViewportToScreenPoint(rect.TopLeft()), ViewportToScreenPoint(rect.BottomRight()));
+		var min = ViewportToScreenPoint(rect.min);
+		var max = ViewportToScreenPoint(rect.max);
+		return Rect.MinMaxRect(min.x, min.y, max.x, max.y);
 	}
 	public Vector3 ViewportToScreenVector (Vector2 vector) {
 		return ViewportToScreenPoint(vector) - ViewportToScreenPoint(Vector2.zero);
@@ -435,7 +487,9 @@ public struct SerializableCamera  {
 
 
     public Rect ScreenToViewportRect (Rect rect) {
-		return RectX.MinMaxRect(ScreenToViewportPoint(rect.TopLeft()), ScreenToViewportPoint(rect.BottomRight()));
+		var min = ScreenToViewportPoint(rect.min);
+		var max = ScreenToViewportPoint(rect.max);
+		return Rect.MinMaxRect(min.x, min.y, max.x, max.y);
 	}
 	public Vector3 ScreenToWorldVector (Vector2 vector, float distance) {
 		return ScreenToWorldPoint(new Vector3(0,0,distance)) - ScreenToWorldPoint(new Vector3(vector.x, vector.y, distance));
@@ -491,15 +545,19 @@ public struct SerializableCamera  {
 	}
 	
 	public void DrawGizmos () {
+		var cachedMatrix = Gizmos.matrix;
+		Gizmos.matrix = Matrix4x4.TRS(position, rotation, Vector3.one);
 		if(orthographic) {
-			GizmosX.DrawOrthographicFrustum(position, rotation, orthographicSize, aspect, nearClipPlane, farClipPlane);
+			float spread = farClipPlane - nearClipPlane;
+			float center = (farClipPlane + nearClipPlane)*0.5f;
+			Gizmos.DrawWireCube(new Vector3(0,0,center), new Vector3(orthographicSize*2*aspect, orthographicSize*2, spread));
 		} else {
-			GizmosX.DrawFrustum(position, rotation, fieldOfView, aspect, nearClipPlane, farClipPlane);
+			Gizmos.DrawFrustum(Vector3.zero, fieldOfView, farClipPlane, nearClipPlane, aspect);
 		}
+		Gizmos.matrix = cachedMatrix;
 	}
 
-	public override string ToString ()
-	{
+	public override string ToString () {
 		return string.Format ("[SerializableCamera: position={0}, rotation={1}, field of view={2}, aspect={3}, near={4}, far={5}, rect={6}, orthSize={7}]", position, rotation, fieldOfView, aspect, nearClipPlane, farClipPlane, rect, orthographicSize);
 	}
 }
