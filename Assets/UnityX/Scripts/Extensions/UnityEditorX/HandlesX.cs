@@ -65,7 +65,6 @@ public static class HandlesX {
 		Event current = Event.current;
 
 		Vector2 screenPosition = Camera.current.WorldToScreenPoint(position);
-//		screenPosition = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
 
 		float newAngle = angle;
 		float deltaAngle = 0;
@@ -128,12 +127,10 @@ public static class HandlesX {
 			case EventType.MouseDrag:
 		    if (GUIUtility.hotControl == id)
 		    {
-//				Debug.Log(Camera.current+" "+Screen.width+" "+Screen.height+" "+position+" "+position2+" "+screenPosition+" "+current.mousePosition);
 				float inputAngle = MathX.WrapDegrees(Vector2X.DegreesBetween(screenPosition, current.mousePosition));
 				deltaAngle = Mathf.DeltaAngle(lastAngle,inputAngle);
 				newAngle += deltaAngle;
 				lastAngle = inputAngle;
-//				newAngle = inputAngle;
 
 				GUI.changed = true;
 				current.Use();

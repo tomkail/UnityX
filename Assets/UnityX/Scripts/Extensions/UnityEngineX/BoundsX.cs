@@ -25,6 +25,24 @@ public static class BoundsX {
 	/// Creates new bounds that encapsulates a list of vectors.
 	/// </summary>
 	/// <param name="vectors">Vectors.</param>
+	public static Bounds CreateEncapsulating (params Vector3[] vectors) {
+		if(vectors == null || !vectors.Any()) return new Bounds(Vector3.zero, Vector3.zero);
+		Bounds bounds = new Bounds(vectors.First(), Vector3.zero);
+        Vector3 min = bounds.min;
+        Vector3 max = bounds.max;
+		foreach(var vector in vectors) {
+            if(vector.x < min.x) min.x = vector.x;
+            else if(vector.x > max.x) max.x = vector.x;
+
+            if(vector.y < min.y) min.y = vector.y;
+            else if(vector.y > max.y) max.y = vector.y;
+
+            if(vector.z < min.z) min.z = vector.z;
+            else if(vector.z > max.z) max.z = vector.z;
+        }
+        bounds.SetMinMax(min, max);
+		return bounds;
+	}
 	public static Bounds CreateEncapsulating (IEnumerable<Vector3> vectors) {
 		if(vectors == null || !vectors.Any()) return new Bounds(Vector3.zero, Vector3.zero);
 		Bounds bounds = new Bounds(vectors.First(), Vector3.zero);
@@ -52,21 +70,21 @@ public static class BoundsX {
 		return bounds;
 	}
 
-	public static Vector3[] GetVertices(this Bounds bounds) {
-		Vector3[] vertices = new Vector3[8];
-		vertices[0] = bounds.min;
-		vertices[1] = bounds.max;
-		vertices[2] = new Vector3(vertices[0].x, vertices[0].y, vertices[1].z);
-		vertices[3] = new Vector3(vertices[0].x, vertices[1].y, vertices[0].z);
-		vertices[4] = new Vector3(vertices[1].x, vertices[0].y, vertices[0].z);
-		vertices[5] = new Vector3(vertices[0].x, vertices[1].y, vertices[1].z);
-		vertices[6] = new Vector3(vertices[1].x, vertices[0].y, vertices[1].z);
-		vertices[7] = new Vector3(vertices[1].x, vertices[1].y, vertices[0].z);
-		return vertices;
+	public static IEnumerable<Vector3> GetVertices(this Bounds bounds) {
+		var min = bounds.min;
+		var max = bounds.max;
+		yield return min;
+		yield return max;
+		yield return new Vector3(min.x, min.y, max.z);
+		yield return new Vector3(min.x, max.y, min.z);
+		yield return new Vector3(max.x, min.y, min.z);
+		yield return new Vector3(min.x, max.y, max.z);
+		yield return new Vector3(max.x, min.y, max.z);
+		yield return new Vector3(max.x, max.y, min.z);
 	}
 
-	static Vector3 MinOrMax (this Bounds bounds, int minOrMax) {
-		return minOrMax == 0 ? bounds.min : bounds.max;
+	public static Vector3 GetRandomPointInBounds (this Bounds bounds) {
+		return new Vector3(Random.Range(bounds.min.x, bounds.max.x), Random.Range(bounds.min.y, bounds.max.y), Random.Range(bounds.min.z, bounds.max.z));
 	}
 
 	// From https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection

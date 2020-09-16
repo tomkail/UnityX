@@ -33,6 +33,8 @@ public class BaseEditor<T> : Editor where T : UnityEngine.Object {
 		if(GUI.changed && target != null) {         
 			EditorUtility.SetDirty(target);
 		}
+		
+		serializedObject.ApplyModifiedProperties();
 	}
 	
 	protected void SetData () {

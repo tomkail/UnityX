@@ -192,13 +192,13 @@ using System.Collections.Generic;
 			
 			public static PointRect Clamp(PointRect r, PointRect container) {
 				PointRect ret = new PointRect(0,0,0,0);
-				ret.x = MathX.Clamp0Infinity(Mathf.Max(r.x, container.x));
-				ret.y = MathX.Clamp0Infinity(Mathf.Max(r.y, container.y));
-				ret.width = MathX.Clamp0Infinity(Mathf.Min(r.x + r.width, container.x + container.width) - ret.x);
-				ret.height = MathX.Clamp0Infinity(Mathf.Min(r.y + r.height, container.y + container.height) - ret.y);
+				ret.x = Mathf.Clamp(Mathf.Max(r.x, container.x), 0, int.MaxValue);
+				ret.y = Mathf.Clamp(Mathf.Max(r.y, container.y), 0, int.MaxValue);
+				ret.width = Mathf.Clamp(Mathf.Min(r.x + r.width, container.x + container.width) - ret.x, 0, int.MaxValue);
+				ret.height = Mathf.Clamp(Mathf.Min(r.y + r.height, container.y + container.height) - ret.y, 0, int.MaxValue);
 				
-				int offsetX = MathX.Clamp0Infinity(r.x - Mathf.Max(ret.width, container.width));
-				int offsetY = MathX.Clamp0Infinity(r.y - Mathf.Max(ret.height, container.height));
+				int offsetX = Mathf.Clamp(r.x - Mathf.Max(ret.width, container.width), 0, int.MaxValue);
+				int offsetY = Mathf.Clamp(r.y - Mathf.Max(ret.height, container.height), 0, int.MaxValue);
 				ret.x -= offsetX;
 				ret.y -= offsetY;
 				return ret;
@@ -206,13 +206,13 @@ using System.Collections.Generic;
 			
 			public static Rect ClampKeepSize(PointRect r, PointRect container) {
 				Rect ret = new Rect();
-				ret.x = MathX.Clamp0Infinity(Mathf.Max(r.x, container.x));
-				ret.y = MathX.Clamp0Infinity(Mathf.Max(r.y, container.y));
+				ret.x = Mathf.Clamp(Mathf.Max(r.x, container.x), 0, int.MaxValue);
+				ret.y = Mathf.Clamp(Mathf.Max(r.y, container.y), 0, int.MaxValue);
 				ret.width = Mathf.Min(r.width, container.width);
 				ret.height = Mathf.Min(r.height, container.height);
 				
-				int offsetX = MathX.Clamp0Infinity((r.x + r.width) - (container.x + container.width));
-				int offsetY = MathX.Clamp0Infinity((r.y + r.height) - (container.y + container.height));
+				int offsetX = Mathf.Clamp((r.x + r.width) - (container.x + container.width), 0, int.MaxValue);
+				int offsetY = Mathf.Clamp((r.y + r.height) - (container.y + container.height), 0, int.MaxValue);
 				ret.x -= Mathf.Min(offsetX, ret.x);
 				ret.y -= Mathf.Min(offsetY, ret.y);
 				

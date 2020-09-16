@@ -171,9 +171,9 @@ public class Timer {
 	/// Returns the normalized time, between the range 0,1. Does not take repeats into account.
 	/// </summary>
 	public virtual float GetNormalizedTime () {
+		if(targetTime == 0) return 1;
 		if(_targetTimeReciprocal == null) {
-			if(targetTime == 0) _targetTimeReciprocal = 1;
-			else _targetTimeReciprocal = 1f/targetTime;
+			_targetTimeReciprocal = 1f/targetTime;
 		}
 		return Mathf.Clamp01((float)_targetTimeReciprocal * currentTime);
 	}

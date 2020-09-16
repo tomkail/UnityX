@@ -20,6 +20,7 @@ public enum LoadTaskMode {
 /// Scene loader class. Loads a RuntimeSceneSet, removing the previous set of scenes.
 /// </summary>
 public class RuntimeSceneSetLoader : MonoSingleton<RuntimeSceneSetLoader> {
+	#if UNITY_EDITOR
 	public static bool _debugLogging = false;
 	public static bool debugLogging {
         get {
@@ -28,6 +29,13 @@ public class RuntimeSceneSetLoader : MonoSingleton<RuntimeSceneSetLoader> {
             UnityEditor.EditorPrefs.SetBool(pathPlayerPrefsKey, value);
         }
     }
+	#else
+	public static bool debugLogging {
+        get {
+            return false;
+        }
+    }
+	#endif
     public const string pathPlayerPrefsKeyPrefix = "RuntimeSceneSetLoader DebugLogging";
     public static string pathPlayerPrefsKey {
         get {
@@ -43,6 +51,7 @@ public class RuntimeSceneSetLoader : MonoSingleton<RuntimeSceneSetLoader> {
 		}
 	}
 
+	private RuntimeSceneSetLoadTask _lastLevelSetLoadTask;
 	private RuntimeSceneSetLoadTask _currentLevelSetLoadTask;
 	public RuntimeSceneSetLoadTask currentLevelSetLoadTask {
 		get {
@@ -50,6 +59,7 @@ public class RuntimeSceneSetLoader : MonoSingleton<RuntimeSceneSetLoader> {
 		} private set {
 			if(_currentLevelSetLoadTask == value)
 				return;
+			if(_currentLevelSetLoadTask != null) _lastLevelSetLoadTask = _currentLevelSetLoadTask;
 			_currentLevelSetLoadTask = value;
 		}
 	}
@@ -87,6 +97,7 @@ public class RuntimeSceneSetLoader : MonoSingleton<RuntimeSceneSetLoader> {
 	}
 
 	public void LoadSceneSetup(RuntimeSceneSetLoadTask newLevelSetLoadTask) {
+		Debug.Log("LoadSceneSetup "+newLevelSetLoadTask.sceneSet.name);
 		if(RuntimeSceneSetLoader.debugLogging) DebugX.Log(this, "Add scene set load task to queue "+newLevelSetLoadTask);
 		if(OnAddTask != null) OnAddTask(newLevelSetLoadTask);
 		if(currentLevelSetLoadTask == null) {
@@ -133,15 +144,16 @@ public class RuntimeSceneSetLoader : MonoSingleton<RuntimeSceneSetLoader> {
 			if(!currentLevelSetLoadTask.cancelled) {
 				if (OnCompleteTask != null) OnCompleteTask(currentLevelSetLoadTask);
 			}
+        	OnPreCompleteSceneSetLoad();
 		}));
-        OnCompleteSceneSetLoad();
+		OnPostCompleteSceneSetLoad();
     }
 
 
     /// <summary>
 	/// When a scene set is loaded, this starts the next load in the queue if one exists, or else calls CompleteLoadQueue.
     /// </summary>
-	private void OnCompleteSceneSetLoad() {
+	private void OnPreCompleteSceneSetLoad() {
 		_tasksCompletedSinceQueue.Add(currentLevelSetLoadTask);
 		if(!pendingLevelSetLoadTasks.IsEmpty()) {
 			currentLevelSetLoadTask = pendingLevelSetLoadTasks[0];
@@ -151,9 +163,17 @@ public class RuntimeSceneSetLoader : MonoSingleton<RuntimeSceneSetLoader> {
 		} else {
 			RuntimeSceneSetLoadTask lastLoadTask = currentLevelSetLoadTask;
 			currentLevelSetLoadTask = null;
+			Debug.Log("OnPreCompleteSceneSetLoad");
 			OnCompleteLoadQueue(lastLoadTask);
 		}
     }
+	private void OnPostCompleteSceneSetLoad() {
+		if(currentLevelSetLoadTask == null && pendingLevelSetLoadTasks.IsEmpty()) {
+			Debug.Log("OnPostCompleteSceneSetLoad");
+			OnCompleteLoadQueue(_lastLevelSetLoadTask);
+			_lastLevelSetLoadTask = null;
+		}
+	}
 
     /// <summary>
     /// Called when the load queue is completed.

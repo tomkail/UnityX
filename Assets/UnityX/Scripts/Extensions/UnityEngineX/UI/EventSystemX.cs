@@ -6,9 +6,10 @@ using System.Collections.Generic;
 using System.Linq;
 
 public static class EventSystemX {
-
+	static List<RaycastResult> staticResults;
 	public static RaycastResult Raycast (Vector2 screenPos) {
-		return RaycastAll (screenPos).FirstOrDefault();
+		RaycastAllNonAlloc (screenPos, ref staticResults);
+		return staticResults.FirstOrDefault();
 	}
 	
 	public static RaycastResult Raycast (Vector2 screenPos, LayerMask layerMask) {
@@ -61,6 +62,18 @@ public static class EventSystemX {
 		List<RaycastResult> hits = new List<RaycastResult> ();
 		EventSystem.current.RaycastAll (eventData, hits);
 		return hits;
+	}
+	public static void RaycastAllNonAlloc (Vector2 screenPos, ref List<RaycastResult> hits) {
+		if(hits == null) hits = new List<RaycastResult> ();
+		if(EventSystem.current == null) {
+			Debug.LogWarning("Tried to raycast into the event system, but no event system exists.");
+			hits.Clear();
+			return;
+		}
+
+		PointerEventData eventData = new PointerEventData (null);
+		eventData.position = screenPos;
+		EventSystem.current.RaycastAll (eventData, hits);
 	}
 	
 	/// <summary>

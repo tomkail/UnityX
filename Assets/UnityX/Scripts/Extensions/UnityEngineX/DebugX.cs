@@ -242,10 +242,10 @@ public static class DebugX {
 		foreach(var item in dictionary) {
 			if(toString != null) sb.AppendLine(toString(item));
 			else {
-				sb.AppendLine("KEY: ");
+				sb.Append("KEY: ");
 				sb.Append(item.Key.ToString());
 				sb.Append(", VALUE: ");
-				sb.Append(item.Value.ToString());
+				sb.AppendLine(item.Value.ToString());
 			}
 			if(first) first = false;
 		}

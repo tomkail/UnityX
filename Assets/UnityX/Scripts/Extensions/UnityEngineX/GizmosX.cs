@@ -85,11 +85,7 @@ public static class GizmosX {
 		GizmosX.EndMatrix();
 	}
 
-	public static void DrawPolygon (Vector2[] points, bool doubleSided = false) {
-		DrawPolygon(Vector3.zero, Quaternion.identity, Vector3.one, points, doubleSided);
-	}
-	public static void DrawPolygon (Vector3 position, Quaternion rotation, Vector3 scale, Vector2[] points, bool doubleSided = false) {
-		GizmosX.BeginMatrix(Matrix4x4.TRS(position, rotation, scale));
+	static Mesh CreatePolygonMesh (Vector2[] points, bool doubleSided = false) {
 		// if(mesh == null) 
 		var mesh = CreateMesh();
 		// else mesh.Clear();
@@ -115,10 +111,17 @@ public static class GizmosX {
 		}
 
 		mesh.RecalculateNormals();
+		return mesh;
+	}
 
+	public static void DrawPolygon (Vector2[] points, bool doubleSided = false) {
+		var mesh = CreatePolygonMesh(points, doubleSided);
 		if(mesh.vertexCount > 0 && mesh.normals.Length > 0)
 			Gizmos.DrawMesh(mesh);
-
+	}
+	public static void DrawPolygon (Vector3 position, Quaternion rotation, Vector3 scale, Vector2[] points, bool doubleSided = false) {
+		GizmosX.BeginMatrix(Matrix4x4.TRS(position, rotation, scale));
+		DrawPolygon(points, doubleSided);
 		GizmosX.EndMatrix();
 	}
 
@@ -140,16 +143,15 @@ public static class GizmosX {
 		}
 	}
 
-	public static void DrawExtrudedPolygon (Vector3 position, Quaternion rotation, Vector3 scale, float height, IList<Vector2> points) {
-		if(points.Count == 0) return;
-		GizmosX.BeginMatrix(Matrix4x4.TRS(position, rotation, scale));
+	public static void DrawExtrudedPolygon (Vector2[] points, float height) {
+		if(points == null || points.Length == 0) return;
 		Vector3 aLow, aHigh, bLow, bHigh = Vector3.zero;
 		int i = 0;
 		var heightOffset = Vector3.forward * height * 0.5f;
 		var localPolyPos = (Vector3)points[i];
 		aLow = -heightOffset + localPolyPos;
 		aHigh = heightOffset + localPolyPos;
-		for(i = 0; i <= points.Count; i++) {
+		for(i = 0; i <= points.Length; i++) {
 			localPolyPos = (Vector3)points.GetRepeating(i);
 			bLow = -heightOffset + localPolyPos;
 			bHigh = heightOffset + localPolyPos;
@@ -157,21 +159,35 @@ public static class GizmosX {
 			aLow = bLow;
 			aHigh = bHigh;
 		}
+
+		var mesh = CreatePolygonMesh(points, true);
+		if(mesh.vertexCount > 0 && mesh.normals.Length > 0) {
+			GizmosX.BeginMatrix(Gizmos.matrix * Matrix4x4.TRS(-heightOffset, Quaternion.identity, Vector3.one));
+			Gizmos.DrawMesh(mesh);
+			GizmosX.EndMatrix();
+
+			GizmosX.BeginMatrix(Gizmos.matrix * Matrix4x4.TRS(heightOffset, Quaternion.identity, Vector3.one));
+			Gizmos.DrawMesh(mesh);
+			GizmosX.EndMatrix();
+		}
+	}
+	
+	public static void DrawExtrudedPolygon (Vector3 position, Quaternion rotation, Vector3 scale, Vector2[] points, float height) {
+		if(points == null || points.Length == 0) return;
+		GizmosX.BeginMatrix(Matrix4x4.TRS(position, rotation, scale));
+		DrawExtrudedPolygon(points, height);
 		GizmosX.EndMatrix();
-		GizmosX.DrawPolygon(position + rotation * -heightOffset, rotation, scale, points.ToArray(), true);
-		GizmosX.DrawPolygon(position + rotation * heightOffset, rotation, scale, points.ToArray(), true);
 	}
 
-	public static void DrawExtrudedWirePolygon (Vector3 position, Quaternion rotation, Vector3 scale, float height, IList<Vector2> points) {
-		if(points.Count == 0) return;
-		GizmosX.BeginMatrix(Matrix4x4.TRS(position, rotation, scale));
+	public static void DrawExtrudedWirePolygon (Vector2[] points, float height) {
+		if(points == null || points.Length == 0) return;
 		Vector3 aLow, aHigh, bLow, bHigh = Vector3.zero;
 		int i = 0;
 		var heightOffset = Vector3.forward * height * 0.5f;
 		var localPolyPos = (Vector3)points[i];
 		aLow = -heightOffset + localPolyPos;
 		aHigh = heightOffset + localPolyPos;
-		for(i = 0; i <= points.Count; i++) {
+		for(i = 0; i <= points.Length; i++) {
 			localPolyPos = (Vector3)points.GetRepeating(i);
 			bLow = -heightOffset + localPolyPos;
 			bHigh = heightOffset + localPolyPos;
@@ -181,6 +197,11 @@ public static class GizmosX {
 			aLow = bLow;
 			aHigh = bHigh;
 		}
+	}
+	public static void DrawExtrudedWirePolygon (Vector3 position, Quaternion rotation, Vector3 scale, Vector2[] points, float height) {
+		if(points == null || points.Length == 0) return;
+		GizmosX.BeginMatrix(Matrix4x4.TRS(position, rotation, scale));
+		DrawExtrudedWirePolygon(points, height);
 		GizmosX.EndMatrix();
 	}
 	
@@ -295,12 +316,12 @@ public static class GizmosX {
 	}
 	
 	static Vector3[] rectPoints;
-	public static void DrawWireRect (Vector3 topLeft, Vector3 topRight, Vector3 bottomLeft, Vector3 bottomRight) {
+	public static void DrawWireRect (Vector3 topLeft, Vector3 topRight, Vector3 bottomRight, Vector3 bottomLeft) {
 		if(rectPoints == null) rectPoints = new Vector3[4];
 		rectPoints[0] = topLeft;
 		rectPoints[1] = topRight;
-		rectPoints[2] = bottomLeft;
-		rectPoints[3] = bottomRight;
+		rectPoints[2] = bottomRight;
+		rectPoints[3] = bottomLeft;
 		DrawWirePolygon(rectPoints);
 	}
 
@@ -316,9 +337,9 @@ public static class GizmosX {
 		scale *= 0.5f;
 		Vector3 topLeft = origin + rotation * new Vector3(-scale.x, scale.y, 0);
 		Vector3 topRight = origin + rotation * new Vector3(scale.x, scale.y, 0);
-		Vector3 bottomLeft = origin + rotation * new Vector3(-scale.x, -scale.y, 0);
 		Vector3 bottomRight = origin + rotation * new Vector3(scale.x, -scale.y, 0);
-		DrawWireRect(topLeft, topRight, bottomLeft, bottomRight);
+		Vector3 bottomLeft = origin + rotation * new Vector3(-scale.x, -scale.y, 0);
+		DrawWireRect(topLeft, topRight, bottomRight, bottomLeft);
 	}
 	
 
@@ -387,18 +408,18 @@ public static class GizmosX {
 	}
 
 
-	public static void DrawFrustum (Vector3 position, Quaternion rotation, float fieldOfView, float aspectRatio, float nearClipPlane, float farClipPlane) {
+	public static void DrawFrustum (Vector3 position, Quaternion rotation, float fieldOfView, float aspect, float nearClipPlane, float farClipPlane) {
 		if(!QuaternionX.IsValid(rotation)) return;
 		GizmosX.BeginMatrix(Matrix4x4.TRS(position, rotation, Vector3.one));
-		Gizmos.DrawFrustum(Vector3.zero, fieldOfView, farClipPlane, nearClipPlane, aspectRatio);
+		Gizmos.DrawFrustum(Vector3.zero, fieldOfView, farClipPlane, nearClipPlane, aspect);
 		GizmosX.EndMatrix();
 	}
 	
-	public static void DrawOrthographicFrustum (Vector3 position, Quaternion rotation, float orthographicSize, float aspectRatio, float nearClipPlane, float farClipPlane) {
+	public static void DrawOrthographicFrustum (Vector3 position, Quaternion rotation, float orthographicSize, float aspect, float nearClipPlane, float farClipPlane) {
 		GizmosX.BeginMatrix(Matrix4x4.TRS(position, rotation, Vector3.one));
 		float spread = farClipPlane - nearClipPlane;
 		float center = (farClipPlane + nearClipPlane)*0.5f;
-		Gizmos.DrawWireCube(new Vector3(0,0,center), new Vector3(orthographicSize*2*aspectRatio, orthographicSize*2, spread));
+		Gizmos.DrawWireCube(new Vector3(0,0,center), new Vector3(orthographicSize*2*aspect, orthographicSize*2, spread));
 		GizmosX.EndMatrix();
 	}
 

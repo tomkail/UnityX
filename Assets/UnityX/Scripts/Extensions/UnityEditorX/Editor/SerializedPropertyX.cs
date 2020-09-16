@@ -56,14 +56,16 @@ public static class SerializedPropertyX
 		return parts[0] == field.FieldType.ToString();
 	}
 
-	public static void PasteSettings(SerializedProperty settings)
-	{
-		Undo.RecordObject(settings.serializedObject.targetObject, "Paste value");
-		var field = ReflectionX.GetFieldInfoFromPath(settings.serializedObject.targetObject, settings.propertyPath);
-		var json = EditorGUIUtility.systemCopyBuffer.Substring(field.FieldType.ToString().Length + 1);
-		var obj = JsonUtility.FromJson(json, field.FieldType);
-		var parent = ReflectionX.GetParentObject(settings.propertyPath, settings.serializedObject.targetObject);
-		field.SetValue(parent, obj, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, CultureInfo.CurrentCulture);
+	public static void PasteSettings(SerializedProperty settings) {
+		foreach(var targetObject in settings.serializedObject.targetObjects) {
+			Undo.RecordObject(targetObject, "Paste value");
+			var field = ReflectionX.GetFieldInfoFromPath(targetObject, settings.propertyPath);
+			if(field == null || field.FieldType == null) continue;
+			var json = EditorGUIUtility.systemCopyBuffer.Substring(field.FieldType.ToString().Length + 1);
+			var obj = JsonUtility.FromJson(json, field.FieldType);
+			var parent = ReflectionX.GetParentObject(settings.propertyPath, targetObject);
+			field.SetValue(parent, obj, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, CultureInfo.CurrentCulture);
+		}
 	}
 
 

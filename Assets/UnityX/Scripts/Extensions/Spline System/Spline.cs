@@ -10,13 +10,25 @@ namespace SplineSystem {
 		public Vector3 GetPointAtArcLength (float arcLength) {
 			return GetCurveAtArcLength(arcLength).GetPointAtArcLength(arcLength);
 		}
+		public Vector3 GetPointAtArcLength (float arcLength, Matrix4x4 localToWorldMatrix) {
+			return localToWorldMatrix.MultiplyPoint3x4(GetPointAtArcLength(arcLength));
+		}
+		
 		
 		public Quaternion GetRotationAtArcLength (float arcLength) {
 			return GetCurveAtArcLength(arcLength).GetRotationAtArcLength(arcLength);
 		}
+		// I think I need to multiply the up and forward vectors of the rotation, but I'm not sure so I've left this until I actually need it!
+		// public Quaternion GetRotationAtArcLength (float arcLength, Matrix4x4 localToWorldMatrix) {
+		// 	return GetRotationAtArcLength(arcLength);
+		// }
+
 
 		public Vector3 GetDirectionAtArcLength (float arcLength) {
 			return GetCurveAtArcLength(arcLength).GetDirectionAtArcLength(arcLength);
+		}
+		public Vector3 GetDirectionAtArcLength (float arcLength, Matrix4x4 localToWorldMatrix) {
+			return localToWorldMatrix.MultiplyVector(GetDirectionAtArcLength(arcLength));
 		}
 
 		public SplineBezierPoint[] bezierPoints;
@@ -25,7 +37,7 @@ namespace SplineSystem {
 		public float length {
 			get {
 				#if UNITY_EDITOR
-				if(!Application.isPlaying) {
+				if(!UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode) {
 					if(curves.IsNullOrEmpty()) {
 						Debug.LogError("Spline has no curves!");
 					}
@@ -41,34 +53,71 @@ namespace SplineSystem {
 			RefreshCurveData();
 		}
 
-		public static Spline CreateFromPoints (Vector3[] points, Vector3 upVector, float n, float m) {
+		// Creates a smoothed version of the line defined by the points. The spline doesn't run through the points, but follows its shape.
+		// This means a line with a right angle produces a curve that doesn't include a point at the right angle, but curves inside it.
+		// normalizedBezierPositionBetweenPoints defines how far from the target points the beziers are created, leaving more space for the curve. 
+		// 0.5 means "between the points" and is the max value.
+		// normalizedControlPointDistance defines how far the control points are. 
+		// This shouldn't be further than normalizedBezierPositionBetweenPoints if you want smooth curves.
+		// Half normalizedBezierPositionBetweenPoints is a good default for smooth curves.
+		public static Spline CreateFromPoints (Vector3[] points, Vector3 upVector, float normalizedBezierPositionBetweenPoints, float normalizedControlPointDistance) {
 			if(points.Length <= 1) {
 				Debug.LogError("Can't create spline because points array only has "+points.Length+" items");
 				return null;
 			}
-			var numSplinePoints = (points.Length * 2) - 2;
+			var createInbetweenPoints = normalizedBezierPositionBetweenPoints < 0.5f;
+			var numSplinePoints = createInbetweenPoints ? ((points.Length * 2) - 2) : points.Length+1;
 			var bezierPoints = new SplineBezierPoint[numSplinePoints];
 			var index = 0;
-			for (int i = 0; i < points.Length; i++) {
-				if(i > 0) {
-					var vectorFromPrevious = points[i] - points[i-1];
-					var distanceFromPrevious = vectorFromPrevious.magnitude;
-					var rotation = Quaternion.LookRotation(vectorFromPrevious, upVector);
-					var point = points[i];
-					if(i < points.Length-1) point -= vectorFromPrevious * n;
-					bezierPoints[index] = new SplineBezierPoint(point, rotation, distanceFromPrevious * m, distanceFromPrevious * m);
-					index++;
+			if(createInbetweenPoints) {
+				for (int i = 0; i < points.Length; i++) {
+					if(i > 0) {
+						var vectorFromPrevious = points[i] - points[i-1];
+						var distanceFromPrevious = vectorFromPrevious.magnitude;
+						var rotation = Quaternion.LookRotation(vectorFromPrevious, upVector);
+						var point = points[i];
+						if(i < points.Length-1) point -= vectorFromPrevious * normalizedBezierPositionBetweenPoints;
+						bezierPoints[index] = new SplineBezierPoint(point, rotation, distanceFromPrevious * normalizedControlPointDistance, distanceFromPrevious * normalizedControlPointDistance);
+						index++;
+					}
+					if(i < points.Length-1) {
+						var vectorToNext = points[i+1] - points[i];
+						var distanceToNext = vectorToNext.magnitude;
+						var rotation = Quaternion.LookRotation(vectorToNext, upVector);
+						var point = points[i];
+						if(i > 0) point += vectorToNext * normalizedBezierPositionBetweenPoints;
+						bezierPoints[index] = new SplineBezierPoint(point, rotation, distanceToNext * normalizedControlPointDistance, distanceToNext * normalizedControlPointDistance);
+						index++;
+					}
 				}
-				if(i < points.Length-1) {
-					var vectorToNext = points[i+1] - points[i];
-					var distanceToNext = vectorToNext.magnitude;
-					var rotation = Quaternion.LookRotation(vectorToNext, upVector);
-					var point = points[i];
-					if(i > 0) point += vectorToNext * n;
-					bezierPoints[index] = new SplineBezierPoint(point, rotation, distanceToNext * m, distanceToNext * m);
-					index++;
+			} else {
+				for (int i = 0; i < numSplinePoints; i++) {
+					var point = points[index];
+					var rotation = Quaternion.identity;
+					var controlPointDistanceMultiplier = 0f;
+					if(i == 0) {
+						var vectorToNext = points[i+1] - points[i];
+						controlPointDistanceMultiplier = vectorToNext.magnitude;
+						rotation = Quaternion.LookRotation(vectorToNext, upVector);
+					} else if(i == numSplinePoints-1) {
+						point = points[index];
+						var vectorFromPrevious = points[index] - points[index-1];
+						controlPointDistanceMultiplier = vectorFromPrevious.magnitude;
+						rotation = Quaternion.LookRotation(vectorFromPrevious, upVector);
+						index++;
+					} else {
+						point = Vector3.Lerp(points[i-1], points[i], 0.5f);
+						var vectorToNext = points[i] - points[i-1];
+						controlPointDistanceMultiplier = vectorToNext.magnitude;
+						rotation = Quaternion.LookRotation(vectorToNext, upVector);
+						index++;
+					}
+					bezierPoints[i] = new SplineBezierPoint(point, rotation, controlPointDistanceMultiplier * normalizedControlPointDistance, controlPointDistanceMultiplier * normalizedControlPointDistance);
 				}
 			}
+			if(!createInbetweenPoints) 
+				normalizedBezierPositionBetweenPoints = Mathf.Min(normalizedBezierPositionBetweenPoints,0.5f);
+			
 			return new Spline(bezierPoints);
 		}
 
@@ -353,14 +402,31 @@ namespace SplineSystem {
 			}
 		}
 
-		public IEnumerable<Vector3> GetVerts (int pointsPerMeter = 1) {
-			for (var i = 0; i < curves.Length; i++) {
-				int numPoints = Mathf.Max(Mathf.CeilToInt(curves[i].length * pointsPerMeter), 2);
-				foreach(var vert in GetCurveVerts(this, curves[i], numPoints)) yield return vert;
-			}
+		public IEnumerable<Vector3> GetVerts (int numPoints) {
+			var r = length/(numPoints-1);
+			for (var i = 0; i < numPoints; i++)
+				yield return GetPointAtArcLength(r * i);
+		}
+		public IEnumerable<Vector3> GetVerts (int numPoints, Matrix4x4 localToWorldMatrix) {
+			var r = length/(numPoints-1);
+			for (var i = 0; i < numPoints; i++)
+				yield return GetPointAtArcLength(r * i, localToWorldMatrix);
 		}
 
-		public IEnumerable<Vector3> GetCurveVerts (Spline spline, SplineBezierCurve curve, int numPoints) {
+		public IEnumerable<Vector3> GetVertsWithPointsPerMeter (float pointsPerMeter) {
+			int numPoints = Mathf.Max(Mathf.CeilToInt(length * pointsPerMeter), 2);
+			var r = length/(numPoints-1);
+			for (var i = 0; i < numPoints; i++)
+				yield return GetPointAtArcLength(r * i);
+		}
+		public IEnumerable<Vector3> GetVertsWithPointsPerMeter (float pointsPerMeter, Matrix4x4 localToWorldMatrix) {
+			int numPoints = Mathf.Max(Mathf.CeilToInt(length * pointsPerMeter), 2);
+			var r = length/(numPoints-1);
+			for (var i = 0; i < numPoints; i++)
+				yield return GetPointAtArcLength(r * i, localToWorldMatrix);
+		}
+
+		public static IEnumerable<Vector3> GetCurveVerts (Spline spline, SplineBezierCurve curve, int numPoints) {
 			numPoints = Mathf.Min(numPoints, curve.numArcLengthsForArcLengthToTCalculation);
 			float r = 1f/(numPoints-1);
 			for (int j = 0; j < numPoints; j++) {
@@ -409,14 +475,20 @@ namespace SplineSystem {
             return didChange;
         }
 
-		public static void DrawSpline (Spline spline, Matrix4x4 localToWorldMatrix, int pointsPerMeter = 1) {
+		public static void DrawSplineGizmos (Spline spline, Matrix4x4 localToWorldMatrix, int numPoints) {
 			for (var i = 0; i < spline.curves.Length; i++) {
-				int numPoints = Mathf.Max(Mathf.CeilToInt(spline.curves[i].length * 5f), 2);
-				DrawCurveLine(spline, spline.curves[i], localToWorldMatrix, numPoints);
+				DrawCurveLineGizmos(spline, spline.curves[i], localToWorldMatrix, numPoints);
+			}
+		}
+		
+		public static void DrawSplineGizmosWithPointsPerMeter (Spline spline, Matrix4x4 localToWorldMatrix, int pointsPerMeter) {
+			for (var i = 0; i < spline.curves.Length; i++) {
+				int numPoints = Mathf.Max(Mathf.CeilToInt(spline.curves[i].length * pointsPerMeter), 2);
+				DrawCurveLineGizmos(spline, spline.curves[i], localToWorldMatrix, numPoints);
 			}
 		}
 
-		public static void DrawCurveLine (Spline spline, SplineBezierCurve curve, Matrix4x4 localToWorldMatrix, int numPoints) {
+		public static void DrawCurveLineGizmos (Spline spline, SplineBezierCurve curve, Matrix4x4 localToWorldMatrix, int numPoints) {
 			Vector3 p0;
 			Vector3 p1;
 			numPoints = Mathf.Min(numPoints, curve.numArcLengthsForArcLengthToTCalculation);

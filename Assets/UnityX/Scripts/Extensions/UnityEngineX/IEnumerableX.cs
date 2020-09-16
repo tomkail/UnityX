@@ -106,6 +106,17 @@ public static class IEnumerableX {
         return sum;
     }
 
+	public static float Multiply<T>(this IEnumerable<T> source, Func<T, float> selector)
+	{
+		if (source == null) throw new System.Exception("Source is null!");
+		float mult = 1.0f;
+		foreach (T v in source)
+		{
+			mult *= selector(v);
+		}
+		return mult;
+	}
+
 	public static int Min<T>(this IEnumerable<T> source, Func<T, int> selector) {
 		int value = 0;
 	    bool hasValue = false;

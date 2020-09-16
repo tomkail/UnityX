@@ -1,8 +1,4 @@
 using UnityEngine;
-using System.Collections;
-using System;
-using UnityX.Geometry;
-
 public static class RenderTextureX {
 	
 	/// <summary>

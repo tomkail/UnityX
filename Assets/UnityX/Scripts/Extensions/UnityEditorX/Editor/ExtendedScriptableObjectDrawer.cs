@@ -20,9 +20,11 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 	
 	public override float GetPropertyHeight (SerializedProperty property, GUIContent label) {
 		float totalHeight = EditorGUIUtility.singleLineHeight;
-        if(property.objectReferenceValue == null || !AreAnySubPropertiesVisible(property)){
+        
+		if(property.objectReferenceValue == null || !AreAnySubPropertiesVisible(property)){
             return totalHeight;
         }
+		
 		if(property.isExpanded) {
 			var data = property.objectReferenceValue as ScriptableObject;
 			if( data == null ) return EditorGUIUtility.singleLineHeight;
@@ -44,9 +46,20 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 	}
 
 	const int buttonWidth = 66;
+
+	static readonly string[] ignoreClassFullNames = { "TMPro.TMP_FontAsset" };
 	public override void OnGUI (Rect position, SerializedProperty property, GUIContent label) {
 		EditorGUI.BeginProperty (position, label, property);
 		
+		var objType = property.GetActualType();
+		
+		if(objType == null || ignoreClassFullNames.Contains(objType.FullName)) {
+			EditorGUI.PropertyField(position, property, label);	
+			EditorGUI.EndProperty ();
+			return;
+		}
+
+		EditorGUI.BeginChangeCheck();
 		ScriptableObject propertySO = null;
 		if(!property.hasMultipleDifferentValues && property.serializedObject.targetObject != null && property.serializedObject.targetObject is ScriptableObject) {
 			propertySO = (ScriptableObject)property.serializedObject.targetObject;
@@ -73,10 +86,8 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 		if(propertySO != null || property.objectReferenceValue == null) {
 			propertyRect.width -= buttonWidth;
 		}
-			
-		var objType = property.GetActualType();
 		property.objectReferenceValue = EditorGUI.ObjectField(propertyRect, GUIContent.none, property.objectReferenceValue, objType, false);
-		if (GUI.changed) property.serializedObject.ApplyModifiedProperties();
+		if (EditorGUI.EndChangeCheck()) property.serializedObject.ApplyModifiedProperties();
 
 		var buttonRect = new Rect(position.x + position.width - buttonWidth, position.y, buttonWidth, EditorGUIUtility.singleLineHeight);
 			
@@ -102,6 +113,8 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 
 				EditorGUI.indentLevel++;
 				SerializedObject serializedObject = new SerializedObject(data);
+				
+				EditorGUI.BeginChangeCheck();
 				
 				// Iterate over all the values and draw them
 				SerializedProperty prop = serializedObject.GetIterator();
@@ -136,7 +149,7 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 					}
 					while (prop.NextVisible(false));
 				}
-				if (GUI.changed)
+				if (EditorGUI.EndChangeCheck())
 					serializedObject.ApplyModifiedProperties();
 
 				EditorGUI.indentLevel--;
@@ -214,6 +227,7 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
         // Draw a background that shows us clearly which fields are part of the ScriptableObject
         EditorGUI.indentLevel++;
         EditorGUILayout.BeginVertical(GUI.skin.box);
+        EditorGUI.BeginChangeCheck();
 
         var serializedObject = new SerializedObject(objectReferenceValue);
         // Iterate over all the values and draw them
@@ -226,7 +240,7 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
             }
             while (prop.NextVisible(false));
         }
-        if (GUI.changed)
+        if (EditorGUI.EndChangeCheck())
             serializedObject.ApplyModifiedProperties();
         EditorGUILayout.EndVertical();
         EditorGUI.indentLevel--;

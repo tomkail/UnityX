@@ -11,8 +11,8 @@ namespace UnityX.Geometry {
 		ReorderableList list;
 
 		public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
-			if (!initialized) Initialize(property);
- 			EditorGUI.BeginProperty (position, label, property);
+ 			if (!initialized) Initialize(property);
+			EditorGUI.BeginProperty (position, label, property);
 			var foldoutRect = new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight);
 			property.isExpanded = EditorGUI.Foldout(foldoutRect, property.isExpanded, property.displayName, true);
 			if(property.isExpanded) {

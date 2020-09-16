@@ -77,6 +77,25 @@ public class ScreenX : MonoSingleton<ScreenX> {
 	}
 	
 	/// <summary>
+	/// The width of the screen in pixels.
+	/// </summary>
+	/// <value>The width.</value>
+	public static float width {
+		get {
+			return screen.width;
+		}
+	}
+	/// <summary>
+	/// The height of the screen in pixels.
+	/// </summary>
+	/// <value>The height.</value>
+	public static float height {
+		get {
+			return screen.height;
+		}
+	}
+	
+	/// <summary>
 	/// The size of the screen as a Vector.
 	/// </summary>
 	/// <value>The size.</value>
@@ -205,7 +224,7 @@ public class ScreenX : MonoSingleton<ScreenX> {
 	
 	
 	public static Vector2 ViewportToScreenPoint(Vector2 viewport){
-		return new Vector2(viewport.x * Screen.width, viewport.y * Screen.height);
+		return new Vector2(viewport.x * screenWidth, viewport.y * screenHeight);
 	}
 	public static Rect ViewportToScreenRect(Rect viewportRect){
 		return RectX.MinMaxRect(ViewportToScreenPoint(viewportRect.min), ViewportToScreenPoint(viewportRect.max));
@@ -247,7 +266,7 @@ public class ScreenX : MonoSingleton<ScreenX> {
 
 
 	private void CheckSizeChange() {
-		if(Screen.width != lastWidth || Screen.height != lastHeight){
+		if(screenWidth != lastWidth || screenHeight != lastHeight){
 			StoreWidthAndHeight();
 			CalculateScreenSizeProperties();
 			if(OnScreenSizeChange != null){
@@ -282,15 +301,37 @@ public class ScreenX : MonoSingleton<ScreenX> {
 	}
 	
 	public static void CalculateScreenSizeProperties () {
-		screen.CalculateScreenSizeProperties(Screen.width, Screen.height);
+		screen.CalculateScreenSizeProperties(screenWidth, screenHeight);
 		viewport.CalculateScreenSizeProperties(1, 1);
 		inches.CalculateScreenSizeProperties(ViewportToInchesPoint(Vector2.one));
 		centimeters.CalculateScreenSizeProperties(ViewportToCentimetersPoint(Vector2.one));
 	}
 	
 	private static void StoreWidthAndHeight () {
-		lastWidth = Screen.width;
-		lastHeight = Screen.height;
+		lastWidth = screenWidth;
+		lastHeight = screenHeight;
+	}
+	
+	// ARGH I hate this. It's necessary because screen/display don't return the values for game view in some editor contexts (using inspector windows, for example)
+	static int screenWidth {
+		get {
+			#if UNITY_EDITOR
+			var res = UnityEditor.UnityStats.screenRes.Split('x');
+			return int.Parse(res[0]);
+			#else
+			return Screen.width;
+			#endif
+		}
+	}
+	static int screenHeight {
+		get {
+			#if UNITY_EDITOR
+			var res = UnityEditor.UnityStats.screenRes.Split('x');
+			return int.Parse(res[1]);
+			#else
+			return Screen.height;
+			#endif
+		}
 	}
 }
 
@@ -428,5 +469,9 @@ public class ScreenProperties {
 		heightReciprocal = height == 0 ? 0 : 1f/height;
 		diagonalReciprocal = diagonal == 0 ? 0 : 1f/diagonal;
 		aspectRatioReciprocal = aspectRatio == 0 ? 0 : 1f/aspectRatio;
+	}
+
+	public override string ToString() {
+		return string.Format("[{0}] Width={1}, Height={2}", GetType().Name, width, height);
 	}
 }

@@ -152,7 +152,7 @@ public static class MathX {
 	/// </summary>
 	public static int Sign (this float f, bool allowZero = false) {
 		if( allowZero && f == 0.0f ) return 0;
-		return f >= 0 ? 1 : -1;
+		return f.IsPositive() ? 1 : -1;
 	}
 
     //COMPARISON 

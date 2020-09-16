@@ -115,28 +115,15 @@ public class ScreenshotCapturer {
         capturingScreenshot = true;
 
 		yield return new WaitForEndOfFrame();
+		
+		RenderTexture rt = new RenderTexture(properties.width, properties.height, 24, RenderTextureFormat.ARGB32);
+		
+		Canvas.ForceUpdateCanvases();
 
 		SavedCameraProperties[] savedProperties = new SavedCameraProperties[_cameras.Count];
-
-		RenderTexture rt = new RenderTexture(properties.width, properties.height, 24, RenderTextureFormat.ARGB32);
-		// Must render and wait for frame twice to ensure that UI Text has refreshed.
 		for (int i = 0; i < _cameras.Count; i++) {
 			Camera cam = _cameras [i];
 			savedProperties[i] = new SavedCameraProperties(cam);
-			if (!savedProperties[i].enabled)
-				continue;
-			cam.targetTexture = rt;
-			cam.enabled = false;
-			cam.Render ();
-			cam.enabled = true;
-		}
-
-		yield return new WaitForEndOfFrame();
-		rt = new RenderTexture(properties.width, properties.height, 24, RenderTextureFormat.ARGB32);
-		yield return new WaitForEndOfFrame();
-
-		for (int i = 0; i < _cameras.Count; i++) {
-			Camera cam = _cameras [i];
 			if (!savedProperties[i].enabled)
 				continue;
 			cam.targetTexture = rt;
@@ -160,6 +147,7 @@ public class ScreenshotCapturer {
 
 		rt.Release();
 		MonoBehaviour.Destroy(rt);
+		rt = null;
 
 		capturingScreenshot = false;
         

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityX.Geometry;
 
 public class HeightMapMeshGenerator : MonoBehaviour {
+	[AssetSaver]
 	public Mesh mesh;
 	
 	Vector3[] verts;

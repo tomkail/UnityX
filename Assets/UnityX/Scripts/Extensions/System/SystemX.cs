@@ -66,7 +66,7 @@ public static class SystemX {
 		#endif
 		
 		try {
-			System.Diagnostics.Process.Start("explorer.exe", (openInsidesOfFolder ? "" : "/select,") + winPath);
+			System.Diagnostics.Process.Start("explorer.exe", (openInsidesOfFolder ? "" : "/select, \"") + winPath+"\"");
 		} catch ( System.ComponentModel.Win32Exception e ) {
 			// tried to open win explorer in mac
 			// just silently skip error

@@ -29,4 +29,31 @@ public static class PathX {
 		var fullPathB = Path.GetFullPath(pathB);
 		return fullPathA == fullPathB;
 	}
+
+	// https://chrisbitting.com/2014/04/14/fixing-removing-invalid-characters-from-a-file-path-name-c/
+	public static string ReplaceIllegalCharacters (string toCleanPath, string replaceWith = "_") {
+		//get just the filename - can't use Path.GetFileName since the path might be bad!  
+		string[] pathParts = toCleanPath.Split(new char[] { '\\' });  
+		string newFileName = pathParts[pathParts.Length - 1];  
+		//get just the path  
+		string newPath = toCleanPath.Substring(0, toCleanPath.Length - newFileName.Length);   
+		//clean bad path chars  
+		foreach (char badChar in Path.GetInvalidPathChars())  
+		{  
+			newPath = newPath.Replace(badChar.ToString(), replaceWith);  
+		}  
+		//clean bad filename chars  
+		foreach (char badChar in Path.GetInvalidFileNameChars())  
+		{  
+			newFileName = newFileName.Replace(badChar.ToString(), replaceWith);  
+		}  
+		//remove duplicate "replaceWith" characters. ie: change "test-----file.txt" to "test-file.txt"  
+		if (string.IsNullOrWhiteSpace(replaceWith) == false)  
+		{  
+			newPath = newPath.Replace(replaceWith.ToString() + replaceWith.ToString(), replaceWith.ToString());  
+			newFileName = newFileName.Replace(replaceWith.ToString() + replaceWith.ToString(), replaceWith.ToString());  
+		}  
+		//return new, clean path:  
+		return newPath + newFileName;  
+	}
 }

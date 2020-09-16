@@ -4,7 +4,7 @@ namespace UnityX.Geometry
 {
     public class DrawingUtils {
 		public static Vector2[] DrawRoundedCorner(Vector2 angularPoint, Vector2 p1, Vector2 p2, float radius, float degreesPerPoint) {
-			// Debug.Assert(p1 != p2 && p1 != angularPoint && angularPoint != p2, angularPoint+" "+p1+" "+p2);
+			Debug.Assert(p1 != p2 && p1 != angularPoint && angularPoint != p2, angularPoint+" "+p1+" "+p2);
 			if(Mathf.Approximately(radius, 0) || Mathf.Approximately(degreesPerPoint, 0)) return new Vector2[] {angularPoint};
 			
 			//Vector 1

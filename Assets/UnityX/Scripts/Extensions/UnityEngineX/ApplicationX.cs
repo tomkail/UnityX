@@ -32,7 +32,9 @@ public class ApplicationX : MonoBehaviour {
 		// In editor, use the folder containing the Unity project
 		#if UNITY_EDITOR
 		return Path.GetFullPath(Path.Combine(projectPath, directoryName));
-		// On desktop
+		// On desktop use the desktop if useExecutableFolderOnDesktop is true, else uses persistentDataPath
+		// OSX: ~/Library/Application Support/CompanyName/ProductName
+		// Windows: C:\Users\UserName\AppData\LocalLow\CompanyName\ProductName
 		#elif UNITY_STANDALONE
 		if(useExecutableFolderOnDesktop) return Path.GetFullPath(Path.Combine(Application.dataPath, "../"+directoryName));
 		else return Path.GetFullPath(Path.Combine(Application.persistentDataPath, directoryName));

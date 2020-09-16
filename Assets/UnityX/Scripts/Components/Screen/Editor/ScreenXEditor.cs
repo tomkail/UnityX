@@ -5,10 +5,10 @@ using System.Collections;
 [CustomEditor(typeof(ScreenX))]
 public class ScreenXEditor : BaseEditor<ScreenX> {
 	
-	private static bool showScreen;
-	private static bool showViewport;
-	private static bool showInches;
-	private static bool showCentimeters;
+	private static bool showScreen = true;
+	private static bool showViewport = true;
+	private static bool showInches = true;
+	private static bool showCentimeters = true;
 	
 	public override void OnEnable () {
 		EditorApplication.update += Update;
@@ -33,20 +33,21 @@ public class ScreenXEditor : BaseEditor<ScreenX> {
 			GUI.enabled = true;
 		}
 		
-		showScreen = EditorGUILayout.Foldout(showScreen, "Screen Properties");
-		if(showScreen) EditorGUILayout.HelpBox(ScreenX.screen.ToString(), MessageType.None);
+		showScreen = EditorGUILayout.Foldout(showScreen, "Screen Properties", true);
+		if(showScreen) RenderScreenProperties(ScreenX.screen);
 		
-		showViewport = EditorGUILayout.Foldout(showViewport, "Viewport Properties");
-		if(showViewport) EditorGUILayout.HelpBox(ScreenX.viewport.ToString(), MessageType.None);
+		showViewport = EditorGUILayout.Foldout(showViewport, "Viewport Properties", true);
+		if(showViewport) RenderScreenProperties(ScreenX.viewport);
 		
-		showInches = EditorGUILayout.Foldout(showInches, "Inches Properties");
-		if(showInches) EditorGUILayout.HelpBox(ScreenX.inches.ToString(), MessageType.None);
+		showInches = EditorGUILayout.Foldout(showInches, "Inches Properties", true);
+		if(showInches) RenderScreenProperties(ScreenX.inches);
 		
-		showCentimeters = EditorGUILayout.Foldout(showCentimeters, "Centimeters Properties");
-		if(showCentimeters) EditorGUILayout.HelpBox(ScreenX.centimeters.ToString(), MessageType.None);
+		showCentimeters = EditorGUILayout.Foldout(showCentimeters, "Centimeters Properties", true);
+		if(showCentimeters) RenderScreenProperties(ScreenX.centimeters);
 	}
 	
 	private void RenderScreenProperties (ScreenProperties properties) {
-		
+		string str = string.Format("Width={0}, Height={1}", properties.width, properties.height);
+		EditorGUILayout.HelpBox(str, MessageType.None);
 	}
 }

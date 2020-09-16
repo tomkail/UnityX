@@ -1,9 +1,7 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 using System;
 using System.Linq;
-using UnityX.Geometry;
 
 /// <summary>
 /// Grid class.

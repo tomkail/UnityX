@@ -733,6 +733,16 @@ public partial class SLayout : UIBehaviour {
 
     
     
+    public Vector2 ScreenToSLayoutPoint (Vector2 screenPoint) {
+        return (Vector2)CanvasToSLayoutSpace(canvas.ScreenToCanvasPoint(screenPoint));
+    }
+    public Vector2 ScreenToSLayoutVector (Vector2 screenVector) {
+        return ScreenToSLayoutPoint(screenVector) - ScreenToSLayoutPoint(Vector2.zero);
+    }
+    public Rect ScreenToSLayoutRect (Rect screenRect) {
+        return RectX.CreateEncapsulating(ScreenToSLayoutPoint(screenRect.min), ScreenToSLayoutPoint(screenRect.max));
+    }
+
     // Converts a canvas space coordinate to the space of this slayout.
     // "Canvas space" meaning local to the canvas' transform, where 0,0 is the center of the canvas.
     // If the canvas size was (1000,500) the canvas top left would be (-500,-250) and the slayout space would be (0,0)
@@ -762,16 +772,18 @@ public partial class SLayout : UIBehaviour {
         return canvasSpacePos + offset;
     }
 
+	public Vector2 ConvertPositionToWorldSpace(Vector2 localLayoutPos) {
+		if( originTopLeft ) localLayoutPos.y = height - localLayoutPos.y;
+		var localPos = localLayoutPos - GetPivotPos(rectTransform);
+		return rectTransform.TransformPoint(localPos);
+	}
 	/// <summary>
 	/// Converts a point in local space of this SLayout to the local space of another SLayout.
 	/// If you pass a null SLayout, it will get the point in the space of the canvas.
+	/// Note - there might be a bug when layout is null, because it returns canvas space relative to the bottom corner rather than the canvas's pivot?
 	/// </summary>
-	public Vector2 ConvertPositionToTarget(Vector2 localLayoutPos, SLayout targetLayout)
-	{
-		if( originTopLeft ) localLayoutPos.y = height - localLayoutPos.y;
-		
-		var localPos = localLayoutPos - GetPivotPos(rectTransform);
-		var worldSpacePoint = rectTransform.TransformPoint(localPos);
+	public Vector2 ConvertPositionToTarget(Vector2 localLayoutPos, SLayout targetLayout) {
+		var worldSpacePoint = ConvertPositionToWorldSpace(localLayoutPos);
 
 		RectTransform targetRectTransform = targetLayout ? targetLayout.rectTransform : null;
 		if( targetRectTransform == null ) targetRectTransform = canvas.GetRectTransform();
@@ -789,7 +801,7 @@ public partial class SLayout : UIBehaviour {
 	/// Converts a rect in local space of this SLayout to the local space of another SLayout.
 	/// If you pass a null SLayout, it will get the rect in the space of the canvas.
 	/// </summary>
-	public Rect ConvertRectToTarget(Rect localRect, SLayout targetLayout)
+	public Rect ConvertRectToTarget(Rect localRect, SLayout targetLayout = null)
 	{
 		var convertedMin = ConvertPositionToTarget(localRect.min, targetLayout);
 		var convertedMax = ConvertPositionToTarget(localRect.max, targetLayout);

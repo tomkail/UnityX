@@ -5,6 +5,7 @@ using System.Collections;
 using UnityX.Geometry;
 
 public class PolygonEditorHandles {
+	public bool editable = true;
 	bool _editing;
 	public bool editing {
 		get {
@@ -43,7 +44,6 @@ public class PolygonEditorHandles {
 	}
 	public PolygonEditorHandles (Transform transform, Quaternion offsetRotation) : this(transform, Matrix4x4.TRS(Vector3.zero, offsetRotation, Vector3.one)) {}
 	public PolygonEditorHandles (Transform transform, bool onXZPlane) : this(transform, onXZPlane ? Quaternion.Euler(new Vector3(90,0,0)) : Quaternion.identity) {}
-
 
 	public Func<Vector2[]> defaultPolygonFunc;
 
@@ -93,7 +93,7 @@ public class PolygonEditorHandles {
 	Vector2 moveLastPosition;
 
 	const float handleSize = 0.04f;
-	const float pointSnapDistance = 20;
+	const float pointSnapDistance = 14;
 	const float highlightedLineWidth = 3;
 
 	static readonly Color lineColor = new Color(0.8f, 1, 0.8f);
@@ -137,11 +137,13 @@ public class PolygonEditorHandles {
 		Validate(polygon, ref changed);
 		Color savedHandleColor = Handles.color;
 		DrawPolygon(polygon);
-		DrawSceneViewToolbar(polygon, ref changed);
-		if(Event.current.alt) StopEditingPoint();
-		else if(editing) {
-			HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
-			DrawEditor(polygon, ref changed);
+		if(editable) {
+			DrawSceneViewToolbar(polygon, ref changed);
+			if(Event.current.alt) StopEditingPoint();
+			else if(editing) {
+				HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
+				DrawEditor(polygon, ref changed);
+			}
 		}
 		Handles.color = savedHandleColor;
 		return changed;
@@ -153,38 +155,55 @@ public class PolygonEditorHandles {
 
 	static Polygon clipboardPolygon;
 	void DrawSceneViewToolbar (Polygon polygon, ref bool changed) {
-		Vector3 midPointScreenPoint = HandleUtility.WorldToGUIPointWithDepth(matrix.MultiplyPoint3x4(polygon.center));
-		if(midPointScreenPoint.z <= 0) return;
-
 		Handles.BeginGUI();
-		GUILayout.BeginArea(RectX.Create(midPointScreenPoint, new Vector2(140, 40), new Vector2(0.5f, 0.5f)));
+		Vector3 midPointScreenPoint = HandleUtility.WorldToGUIPoint(matrix.MultiplyPoint3x4(polygon.center));
+		GUILayout.BeginArea(RectX.Create(midPointScreenPoint, new Vector2(100, 28), new Vector2(0.5f, 0.5f)));
 		GUILayout.BeginHorizontal();
 
-		if (GUILayout.Button(editing ? "Finish" : "Edit")) {
+		if (GUILayout.Button(editing ? "Finish" : "Edit", GUILayout.Width(50), GUILayout.ExpandHeight(true))) {
 			editing = !editing;
 		}
-		
-		if(GUILayout.Button("Copy")) {
-			var serialized = JsonUtility.ToJson(polygon);
-			GUIUtility.systemCopyBuffer = serialized;
-		}
 
-		if(GUIUtility.systemCopyBuffer.Length > 0) {
-			try {
-				if(clipboardPolygon == null) clipboardPolygon = JsonUtility.FromJson<Polygon>(GUIUtility.systemCopyBuffer);
-				else JsonUtility.FromJsonOverwrite(GUIUtility.systemCopyBuffer, clipboardPolygon);
-			} catch {
-				clipboardPolygon = null;	
+		if (GUILayout.Button(new GUIContent(EditorGUIUtility.IconContent("Icon Dropdown")), GUILayout.Width(28), GUILayout.ExpandHeight(true))) {
+			bool _changed = changed;
+			var contextMenu = new GenericMenu();
+			contextMenu.AddItem(new GUIContent("Copy"), false, () => {
+				var serialized = JsonUtility.ToJson(polygon);
+				GUIUtility.systemCopyBuffer = serialized;
+			});
+			if(GUIUtility.systemCopyBuffer.Length > 0) {
+				try {
+					if(clipboardPolygon == null) clipboardPolygon = JsonUtility.FromJson<Polygon>(GUIUtility.systemCopyBuffer);
+					else JsonUtility.FromJsonOverwrite(GUIUtility.systemCopyBuffer, clipboardPolygon);
+				} catch {
+					clipboardPolygon = null;	
+				}
+			} else {
+				clipboardPolygon = null;
 			}
-		} else {
-			clipboardPolygon = null;
+			if(clipboardPolygon == null) contextMenu.AddDisabledItem(new GUIContent("Paste"));
+			else {
+				contextMenu.AddItem(new GUIContent("Paste"), false, () => {
+					if(clipboardPolygon != null) polygon.CopyFrom((Polygon)clipboardPolygon);
+					_changed = true;
+				});
+			}
+
+			contextMenu.AddSeparator("");
+
+			contextMenu.AddItem(new GUIContent("Flip X"), false, () => {
+				for (int i = 0; i < polygon.vertices.Length; i++) {
+					polygon.vertices[i] = new Vector2(-polygon.vertices[i].x, polygon.vertices[i].y);
+				}
+				_changed = true;
+			});
+			contextMenu.AddItem(new GUIContent("Simplify"), false, () => {
+				polygon.vertices = Polygon.GetSimplifiedVerts(polygon.vertices).ToArray();
+				_changed = true;
+			});
+			contextMenu.ShowAsContext();
+			changed = _changed;
 		}
-		EditorGUI.BeginDisabledGroup(clipboardPolygon == null);
-		if(GUIUtility.systemCopyBuffer.Length > 0 && GUILayout.Button("Paste") ) {
-			if(clipboardPolygon != null) polygon.CopyFrom((Polygon)clipboardPolygon);
-			changed = true;
-		}
-		EditorGUI.EndDisabledGroup();
 
 		GUILayout.EndHorizontal();
 		GUILayout.EndArea();
@@ -197,9 +216,13 @@ public class PolygonEditorHandles {
 			if( defaultPolygonFunc != null ) {
 				polygon.vertices = defaultPolygonFunc();
 			} else {
-				polygon.vertices = new RegularPolygon(4, 45).ToPolygonVerts();
+				polygon.vertices = new Vector2[] {
+					new Vector2(-0.5f, 0.5f),
+					new Vector2(0.5f, 0.5f),
+					new Vector2(0.5f, -0.5f),
+					new Vector2(-0.5f, -0.5f),
+				};
 			}
-
 			changed = true;
 		}
     }
@@ -212,6 +235,7 @@ public class PolygonEditorHandles {
 		Vector3[] worldPoints = new Vector3[polygon.vertices.Length+1];
 		for (int i = 0; i < polygon.vertices.Length; i++) {
 			worldPoints[i] = PolygonToWorldPoint(polygon.vertices [i]);
+			
             
             // Draw vert normals
             // var vertNormal = polygon.GetVertexNormal(i);
@@ -225,9 +249,20 @@ public class PolygonEditorHandles {
 		    // Handles.DrawPolyLine(PolygonToWorldPoint(centerPos), PolygonToWorldPoint(centerPos+edgeNormal * 0.25f));
             // // Draw edge tangents
             // Handles.ArrowHandleCap(-1, PolygonToWorldPoint(centerPos), Quaternion.LookRotation(PolygonToWorldDirection(tangent), Vector3.Cross(PolygonToWorldDirection(tangent), PolygonToWorldDirection(edgeNormal))), 0.5f, EventType.Repaint);
+			
         }
 		worldPoints[worldPoints.Length-1] = worldPoints[0];
 		Handles.DrawPolyLine(worldPoints);
+		
+		// Draw index
+		// Handles.BeginGUI();
+		// for (int i = 0; i < polygon.vertices.Length; i++) {
+		// 	Vector3 midPointScreenPoint = HandleUtility.WorldToGUIPoint(matrix.MultiplyPoint3x4(polygon.vertices [i]));
+		// 	GUILayout.BeginArea(RectX.Create(midPointScreenPoint, new Vector2(24, 24), new Vector2(0.5f, 0.5f)), GUI.skin.box);
+		// 	GUILayout.Label(i.ToString(), EditorStyles.centeredGreyMiniLabel);
+		// 	GUILayout.EndArea();
+		// }
+		// Handles.EndGUI();
     }
 
     Vector2 GUIToScreen () {

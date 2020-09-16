@@ -4,6 +4,14 @@ using System.Collections.Generic;
 using UnityX.Geometry;
 
 public static class PlaneX {
+	public static bool TryGetHitPoint (this Plane plane, Ray ray, ref Vector3 hitPoint) {
+		float distance = 0;
+		if(plane.Raycast(ray, out distance)) {
+			hitPoint = ray.GetPoint(distance);
+			return true;
+		}
+		return false;
+	}
 	public static Vector3 GetHitPoint (this Plane plane, Ray ray) {
 		return ray.GetPoint(plane.GetDistanceToPointInDirection(ray));
 	}

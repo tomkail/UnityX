@@ -4,6 +4,19 @@ using System.Collections.Generic;
 
 // TODO - change new Rect() to rect.Set()!
 public static class RectX {
+	//Similar to Unity's epsilon comparison, but allows for any precision.
+	public static bool NearlyEqual(Rect a, Rect b, float maxDifference = 0.001f) {
+		if (a == b)  { 
+			return true;
+		} else {
+			return 
+				MathX.Difference(a.x, b.x) < maxDifference && 
+				MathX.Difference(a.y, b.y) < maxDifference && 
+				MathX.Difference(a.xMax, b.xMax) < maxDifference &&
+				MathX.Difference(a.yMax, b.yMax) < maxDifference;
+	    }
+	}
+
 	public static Rect MinMaxRect (Vector2 min, Vector2 max) {
 		return Rect.MinMaxRect (min.x, min.y, max.x, max.y);
 	}
@@ -337,7 +350,7 @@ public static class RectX {
 		return new Vector2(normalizedPoint.x * r.width + r.x, normalizedPoint.y * r.height + r.y);
 	}
 	
-	public static Rect ClampInside(Rect r, Rect container) {
+	public static Rect ClampInsideWithFlexibleSize(Rect r, Rect container) {
         Rect rect = Rect.zero;
         rect.xMin = Mathf.Max(r.xMin, container.xMin);
         rect.xMax = Mathf.Min(r.xMax, container.xMax);

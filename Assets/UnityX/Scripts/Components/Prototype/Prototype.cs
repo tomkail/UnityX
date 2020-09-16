@@ -11,7 +11,8 @@ using System;
 /// </summary>
 public class Prototype : MonoBehaviour {
 
-	public event Action OnReturnToPool;
+	public event Action<Prototype> OnPreReturnToPool;
+	public event Action<Prototype> OnReturnToPool;
     [SerializeField, Disable]
     bool _inUse;
     public bool inUse {
@@ -143,6 +144,9 @@ public class Prototype : MonoBehaviour {
 		if( !isOriginalPrototype )
 			Debug.LogError("Adding "+instancePrototype.name+" to prototype pool of "+this.name+" but this appears to be an instance itself?");
 		
+		if( instancePrototype.OnPreReturnToPool != null )
+			instancePrototype.OnPreReturnToPool(this);
+
 		instancePrototype.gameObject.SetActive(false);
         if(instancePrototype.transform.parent != transform.parent) instancePrototype.transform.SetParent(transform.parent);
         instancePrototype.inUse = false;
@@ -151,7 +155,7 @@ public class Prototype : MonoBehaviour {
 		_instancePool.Add(instancePrototype);
 
 		if( instancePrototype.OnReturnToPool != null )
-			instancePrototype.OnReturnToPool();
+			instancePrototype.OnReturnToPool(this);
 	}
 
 	Prototype _originalPrototype;

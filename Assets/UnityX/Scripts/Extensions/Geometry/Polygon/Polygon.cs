@@ -1214,6 +1214,51 @@ namespace UnityX.Geometry
             return t * 90;
         }
 
+		// Removes points on a polygon that don't contribute to its shape (points lying on the line between neighbours)
+		public static List<Vector2> GetSimplifiedVerts(IList<Vector2> verts) {
+			List<Vector2> points = new List<Vector2>();
+			var point = verts[0];
+			Line line = default(Line);
+			line.start = verts.GetRepeating(-1);
+			for (int i = 0; i < verts.Count; i++) {
+				line.end = verts.GetRepeating(i+1);
+				var skipPoint = false;
+				if(line.start == line.end || point == line.start || point == line.end || Vector2X.SqrDistance(point, line.GetClosestPointOnLine(point)) < 0.0001f) {
+					skipPoint = true;
+				}
+				if(!skipPoint) {
+					points.Add(point);
+					line.start = point;
+				}
+				point = line.end;
+			}
+			return points;
+		}
+		public static List<Vector2> GetSimplifiedVerts(IList<Vector2> verts, float minDot = 0.1f) {
+			List<Vector2> points = new List<Vector2>();
+			var point = verts[0];
+			Line line = default(Line);
+			line.start = verts.GetRepeating(-1);
+			for (int i = 0; i < verts.Count; i++) {
+				line.end = verts.GetRepeating(i+1);
+				var skipPoint = false;
+				if(line.start == line.end || point == line.start || point == line.end || Vector2X.SqrDistance(point, line.GetClosestPointOnLine(point)) < 0.0001f) {
+					skipPoint = true;
+				} else {
+					// var lineVector = line.end-line.start;
+					// var startCenterVector = point-line.start;
+					// if(Vector2.Dot(lineVector, startCenterVector)) {
+					// 	skipPoint = true;
+					// }
+				}
+				if(!skipPoint) {
+					points.Add(point);
+					line.start = point;
+				}
+				point = line.end;
+			}
+			return points;
+		}
 
 
 		public static List<Vector2> GetSmoothed(IList<Vector2> vertices, float radius, float degreesPerPoint) {
@@ -1374,7 +1419,7 @@ namespace UnityX.Geometry
 		/// </summary>
 		/// <returns><c>true</c>, if with polygon was intersectsed, <c>false</c> otherwise.</returns>
 		/// <param name="otherPolygon">Other polygon.</param>
-		public bool intersectsWithPolygon(Polygon otherPolygon) {
+		public bool IntersectsWithPolygon(Polygon otherPolygon) {
 			var intersections = AddIntersectionPointsOfPoly (this, otherPolygon); 
 			return (intersections.indexList.Count > 0);
 		}
@@ -1385,7 +1430,7 @@ namespace UnityX.Geometry
 		/// <returns><c>true</c>, if contains other polygon entirely, <c>false</c> otherwise.</returns>
 		/// <param name="otherPolygon">Other polygon.</param>
 		public bool whollyContainsOtherPolygon(Polygon otherPolygon) {
-			if (!intersectsWithPolygon(otherPolygon)) {
+			if (!IntersectsWithPolygon(otherPolygon)) {
 				return (ContainsPoint(otherPolygon.vertices[0]));
 			}
 			return false;
@@ -1629,6 +1674,82 @@ namespace UnityX.Geometry
 			
 			return new Polygon(outputPoints.ToArray());
 
+		}
+
+
+
+
+
+
+
+
+
+
+		// Reduces the number of points
+		public static void SimplifyRamerDouglasPeucker(List<Vector2> pointList, float epsilon, List<Vector2> output) {
+			if (pointList.Count < 2) {
+				return;
+				// throw new ArgumentOutOfRangeException("Not enough points to simplify");
+			}
+
+			// Find the point with the maximum distance from line between the start and end
+			float dmax = 0f;
+			int index = 0;
+			int end = pointList.Count - 1;
+			for (int i = 1; i < end; ++i) {
+				float d = PerpendicularDistance(pointList[i], pointList[0], pointList[end]);
+				if (d > dmax) {
+					index = i;
+					dmax = d;
+				}
+			}
+
+			// If max distance is greater than epsilon, recursively simplify
+			if (dmax > epsilon) {
+				List<Vector2> recResults1 = new List<Vector2>();
+				List<Vector2> recResults2 = new List<Vector2>();
+				List<Vector2> firstLine = pointList.Take(index + 1).ToList();
+				List<Vector2> lastLine = pointList.Skip(index).ToList();
+				SimplifyRamerDouglasPeucker(firstLine, epsilon, recResults1);
+				SimplifyRamerDouglasPeucker(lastLine, epsilon, recResults2);
+
+				// build the result list
+				output.AddRange(recResults1.Take(recResults1.Count - 1));
+				output.AddRange(recResults2);
+				if (output.Count < 2) {
+					return;
+					// throw new Exception("Problem assembling output");
+				}
+			}
+			else {
+				// Just return start and end points
+				output.Clear();
+				output.Add(pointList[0]);
+				output.Add(pointList[pointList.Count - 1]);
+			}
+		}
+
+		static float PerpendicularDistance(Vector2 pt, Vector2 lineStart, Vector2 lineEnd) {
+			float dx = lineEnd.x - lineStart.x;
+			float dy = lineEnd.y - lineStart.y;
+
+			// Normalize
+			float mag = Mathf.Sqrt(dx * dx + dy * dy);
+			if (mag > 0f) {
+				dx /= mag;
+				dy /= mag;
+			}
+			float pvx = pt.x - lineStart.x;
+			float pvy = pt.y - lineStart.y;
+
+			// Get dot product (project pv onto normalized direction)
+			float pvdot = dx * pvx + dy * pvy;
+
+			// Scale line direction vector and subtract it from pv
+			float ax = pvx - pvdot * dx;
+			float ay = pvy - pvdot * dy;
+
+			return Mathf.Sqrt(ax * ax + ay * ay);
 		}
 	}
 }

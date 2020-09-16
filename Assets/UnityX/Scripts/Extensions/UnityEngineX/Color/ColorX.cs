@@ -29,6 +29,24 @@ public static class ColorX {
 		Luminosity
 	}
 
+	public static Color MoveTowards (Color current, Color target, float maxDelta) {
+		return new Color(
+			Mathf.MoveTowards(current.r, target.r, maxDelta),
+			Mathf.MoveTowards(current.g, target.g, maxDelta),
+			Mathf.MoveTowards(current.b, target.b, maxDelta),
+			Mathf.MoveTowards(current.a, target.a, maxDelta)
+		);
+	}
+
+	public static Color SmoothDamp (Color current, Color target, ref Color currentVelocity, float smoothTime, float maxSpeed, float deltaTime) {
+		return new Color(
+			Mathf.SmoothDamp(current.r, target.r, ref currentVelocity.r, smoothTime, maxSpeed, deltaTime),
+			Mathf.SmoothDamp(current.g, target.g, ref currentVelocity.g, smoothTime, maxSpeed, deltaTime),
+			Mathf.SmoothDamp(current.b, target.b, ref currentVelocity.b, smoothTime, maxSpeed, deltaTime),
+			Mathf.SmoothDamp(current.a, target.a, ref currentVelocity.a, smoothTime, maxSpeed, deltaTime)
+		);
+	}
+
 	public static string ToHex(this Color32 color, bool alpha = true, bool toUpper = false) {
 		if(toUpper) {
 			return color.r.ToString("X2") + color.g.ToString("X2") + color.b.ToString("X2") + (alpha?color.a.ToString("X2"):"");

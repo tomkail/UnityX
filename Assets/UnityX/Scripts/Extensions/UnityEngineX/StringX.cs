@@ -20,16 +20,44 @@ public static class StringX {
 		return new string(a);
 	}
 
-	public static string UppercaseFirstCharacterHandlingQuotes( this string s){
+	public static string UppercaseFirstCharacterHandlingQuotesAndOtherMarkers(this string s) {
 		if (string.IsNullOrEmpty(s)) return string.Empty;
-		if (s [0] != '\"' && s [0] != '”') {
+		char[] newS = s.ToCharArray();
+		var startOfSentence = true;
+		char k;
+		for (var i = 0 ; i < newS.Length; i++ )
+        {
+			k = newS[i];
+			if (k == '\"' || k == '\'' || k == '_' || k == '‘' || k == '’' || k == '“' || k == '”' || k == '§' || k == ' ' ) continue;
+
+			if (startOfSentence)
+				newS[i] = char.ToUpperInvariant(k);
+			
+			startOfSentence = isTerminator(k);
+
+			if (startOfSentence && i < newS.Length - 1 // not the end of the sentence
+				&& (newS[i] == '!' || newS[i] == '?') // was ! or ? only
+				&& (newS[i + 1] == '\"' || newS[i + 1] == '\'' || newS[i + 1] == '’' || newS[i + 1] == '”') ) // followed a close-quote of some kind
+				startOfSentence = false;
+
+			// ellipsis
+			if (i > 2 && k == '.' && newS[i - 1] == '.' && newS[i - 2] == '.') startOfSentence = false;
+
+		}
+
+		return new string(newS);
+	}
+
+	/*
+		if (string.IsNullOrEmpty(s)) return string.Empty;
+		if (s [0] != '\"' && s [0] != '”' && s[0] != '§') {
 			return s.UppercaseFirstCharacter ();
 		}
 		var resultString = new StringBuilder(s.Length);
 		resultString.Append (s [0]);
 		resultString.Append (s.Substring (1).UppercaseFirstCharacter());
 		return resultString.ToString();
-	}
+	*/
 
 	public static string LowercaseFirstCharacter(string s){
 		if (string.IsNullOrEmpty(s)) return string.Empty;
@@ -108,12 +136,14 @@ public static class StringX {
 
 		int fullstopCounter = 0;
 
+		bool pendingUnderscore = false; // we aim to hold back underscores to after ,.;?! punctuation, so _yes_? becomes _yes?_ 
+
 		for (int i = 0; i < s.Length; i++) {
 			char thisChar = s [i];
-			if (thisChar == '\'' || thisChar == '‘') {
+			if (thisChar == '\'') {
 				if ((lastCharacter == '^' || lastCharacter == ' ' || (inStringOfPunctuationCharacters && !inSingleQuotes)) && 
 					(!inSingleQuotes ||  mightHaveClosedSingleQuote)) {
-					thisChar = '\'';
+					thisChar = '‘';
 					inSingleQuotes = true;
 					mightHaveClosedSingleQuote = false;
 				} else {
@@ -128,7 +158,7 @@ public static class StringX {
 					}
 
 					// we think this is an apostrophe
-					thisChar = '\'';
+					thisChar = '’';
 
 				}
 			}
@@ -136,39 +166,55 @@ public static class StringX {
 			if (thisChar == '"') {
 				if (inQuotes) {
 					inQuotes = false; 
-					thisChar = '"';
+					thisChar = '”';
 
 				} else {
-					thisChar = '"';
+					thisChar = '“';
 					inQuotes = true;
 				}
 			}
 
 			// no spaces after open-quotes
-			if ((lastCharacter == '"' || lastCharacter == '\'') && thisChar == ' ') {
+			if ((lastCharacter == '“' || lastCharacter == '‘') && thisChar == ' ') {
 				continue;
 			}
+
+			if (pendingUnderscore && !isPunctuation(thisChar) && thisChar != ' ') {
+				pendingUnderscore = false; 
+				resultString.Append ('_');
+			}
+			if (thisChar == '_') {
+				pendingUnderscore = true;  
+				continue;
+			}
+
 
 			// note that open quote is counted as a word character, not a punctuation character
 			if (isPunctuation(thisChar) || isQuoteMark(thisChar)) {
 				// close single-quotes don't request a space after, but they don't insert one before either
-				if (thisChar != '\'') {
+				if (thisChar != '’') {
 					inStringOfPunctuationCharacters = true;
 
-					if (lastCharacter == '\'') {
+					if (lastCharacter == '’') {
 						// if we close a quote only to hit punctuation, it wasn't an apostrophe after all
 						inSingleQuotes = false;
 					}
 
 				} 
 
-				if (lastCharacter == ' ') {
+				if (lastCharacter == ' ' && resultString.Length > 0) {
 					// only applies to punctuation, or quotes that aren't leading 'postrophes
 					if (!isQuoteMark (thisChar) || mightHaveClosedSingleQuote) {
 					
 						// the last character we wrote was a ' ', so delete it. 
 						resultString.Remove ((resultString.Length - 1), 1);
 						lastCharacter = resultString [resultString.Length - 1];
+
+						if (!pendingUnderscore && lastCharacter == '_' && resultString.Length > 0) {
+							pendingUnderscore = true; 
+							resultString.Remove ((resultString.Length - 1), 1);
+							lastCharacter = resultString [resultString.Length - 1];
+						}
 
 						// we've decided we've closed a quote after all
 						if (mightHaveClosedSingleQuote) {
@@ -198,11 +244,14 @@ public static class StringX {
 			if (thisChar == lastCharacter && (thisChar == ' ' || thisChar == ',' || thisChar == ':' || thisChar == ';' || thisChar == ')' || thisChar == '('))  {
 				continue;
 			}
-
+			// remove leading junk
+			if (resultString.Length == 0 && (thisChar == ' ' || thisChar == ',' || thisChar == ':' || thisChar == ';' || thisChar == ')'))  
+				continue;
+		
 			bool foundEllipsis = false;
 
 			// slightly trickier, handle multiple full-stops but allow "..."  and "..?" and "..!"
-			if (thisChar == '.' || thisChar == '!' || thisChar == '?') {
+			if (isTerminator(thisChar)) {
 
 				if (lastCharacter == '.' ) {
 					fullstopCounter++;
@@ -242,10 +291,15 @@ public static class StringX {
 				}
 			}
 
+			if (pendingUnderscore && thisChar == ' ') {
+				pendingUnderscore = false; 
+				resultString.Append ('_');
+			}
+
 			resultString.Append(thisChar);
 
 				 
-			if (inSingleQuotes && lastCharacter == '\'') {
+			if (inSingleQuotes && lastCharacter == '’') {
 				if (thisChar != ' ' && !inStringOfPunctuationCharacters) {
 					// we printed a close quote before, and now a "real" letter
 					// so it was an apostrophe 
@@ -260,12 +314,15 @@ public static class StringX {
 
 		}
 
+		if (pendingUnderscore) {
+			resultString.Append ('_');
+		}
+
 		return resultString.ToString().Trim();
 	}
 
 	public static bool isPunctuation(this char thisChar) {
-		return (thisChar == '.' || thisChar == '?' || thisChar == '!' || thisChar == ','
-			|| thisChar == ';' || thisChar == ':');
+		return punctuation.Contains(thisChar);
 	}
 
 	public static bool isTerminator(this char thisChar) {
@@ -276,6 +333,18 @@ public static class StringX {
 		return ( thisChar == '”' || thisChar == '’' || thisChar == '\'' || thisChar == '"' );
 	}
 
+	public static string Possessive(this string txt)
+    {
+		if (!txt.IsNullOrEmpty())
+		{
+			if (txt[txt.Length - 1] == 's')
+				return txt + "'";
+			else
+				return txt + "'s";
+		}
+		return "";
+	}
+
 	/// <summary>
 	///  Runs the punctuation-correction, spacing-correction and grammar adjustment tidy-up routines 
 	///  required to make ink text presentable onscreen.
@@ -284,10 +353,12 @@ public static class StringX {
 	/// <param name="text">Text.</param>
 	public static string ProcessText(this string text, bool terminatingPunctuation = true, bool stripSquareBrackets = false ) {
 		if (string.IsNullOrEmpty(text)) return string.Empty;
-		var outText = text.CorrectSpacingErrors().ResolveArticleAlteringMarkers().UppercaseFirstCharacterHandlingQuotes();
+		var outText = text;
+		if (stripSquareBrackets)
+			outText = outText.StripSquareBrackets().Trim();
+		outText = outText.CorrectSpacingErrors().ResolveArticleAlteringMarkers().UppercaseFirstCharacterHandlingQuotesAndOtherMarkers();
 		outText = outText.EnforceTerminatingPunctuation (terminatingPunctuation);
-        if (stripSquareBrackets)
-		    outText = outText.StripSquareBrackets();
+
 		return outText;
 
 
@@ -360,6 +431,7 @@ public static class StringX {
 	static char[] nonTerminatorsWhichThenRequireTerminators = new char[]{ '"', '”'  };
 	static char[] nonTerminators = new char[]{ ')', ']', '_', ' ', '\'', '’' };
 	static char[] terminators = new char[]{ '?', '!', '.' };
+	static char[] punctuation = new char[]{ '?', '!', '.', ',', ';' , ':' };
 
 	public static string EnforceTerminatingPunctuation(this string s, bool requireTerminatingPunctuation) {
 		
@@ -608,4 +680,27 @@ public static class StringX {
 		}
 		return index;
 	}
+
+
+	
+
+    public static string StringWithInsertedNewline(string str, int maxSingleLineCharacters) {
+        if(str == null) return null;
+        int length = str.Length;
+        if(length <= maxSingleLineCharacters) return str;
+        
+        int mid = length/2;
+        // Don't iterate all the characters, since it's not worth splitting at the very edges
+        for(int i=0; i<length-2; ++i) {
+            int offset = i/2;
+            if( (i%2) == 1 ) {
+                offset = -offset - 1;
+            }
+            int characterIndex = mid + offset;
+            if( str[characterIndex] == ' ' ) {
+                return str.Substring(0, characterIndex) + "\n" + str.Substring(characterIndex+1);
+            }
+        }
+        return str;
+    }
 }

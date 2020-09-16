@@ -79,7 +79,7 @@ public class InputPoint {
 				state = InputPointState.Stationary;
 			}
 
-			if(lerpedMovement > 2.5f) {
+			if(lerpedMovement > 5f) {
 				state = InputPointState.Moving;
 			} else {
 				if(state != InputPointState.Started) {

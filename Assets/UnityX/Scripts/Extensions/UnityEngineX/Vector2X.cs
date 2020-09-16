@@ -176,8 +176,7 @@ public static class Vector2X {
 		return Radians(a) * Mathf.Rad2Deg;
 	}
 
-	public static Vector2 WithDegrees(float degrees)
-	{
+	public static Vector2 WithDegrees(float degrees) {
 		var rad = degrees * Mathf.Deg2Rad;
 		return new Vector2(Mathf.Sin(rad), Mathf.Cos(rad));
 	}
@@ -334,6 +333,49 @@ public static class Vector2X {
 	public static Vector3 ToVector3XYZ (this Vector2 v, float z = 0) {
 		return new Vector3(v.x, v.y, z);
 	}
+
+
+	// Fits dimentions with a given aspect ratio in a container of fixed size. 
+	// If forceUseContainerWidth/forceUseContainerHeight are true, the output can exceed the size of the container.
+	// If we're constrained vertically, forceUseContainerWidth will force the output width to match the container size, and the height will expand to the aspect ratio, exceeding the bounds.
+	// forceUseContainerHeight does the same thing on the other axis.
+	public static Vector2 Rescale(Vector2 containerSize, float targetAspect, bool forceUseContainerWidth = false, bool forceUseContainerHeight = false) {
+        Vector2 destRect = new Vector2();
+		if(containerSize.x == Mathf.Infinity) {
+            destRect.x = containerSize.y * targetAspect;
+			destRect.y = containerSize.y;
+		} else if(containerSize.y == Mathf.Infinity) {
+            destRect.x = containerSize.x;
+            destRect.y = containerSize.x / targetAspect;
+		}
+
+        float rectAspect = containerSize.x / containerSize.y;
+
+        if (targetAspect > rectAspect) {
+            // wider than high keep the width and scale the height
+            destRect.x = containerSize.x;
+            destRect.y = containerSize.x / targetAspect;
+
+            if (forceUseContainerHeight)
+            {
+                float resizePerc = containerSize.y / destRect.y;
+                destRect.x = containerSize.x * resizePerc;
+                destRect.y = containerSize.y;
+            }
+        } else {
+            // higher than wide – keep the height and scale the width
+            destRect.x = containerSize.y * targetAspect;
+            destRect.y = containerSize.y;
+
+            if (forceUseContainerWidth) {
+                float resizePerc = containerSize.x / destRect.x;
+                destRect.x = containerSize.x;
+                destRect.y = containerSize.y * resizePerc;
+            }
+        }
+
+        return destRect;
+    }
 
 
 

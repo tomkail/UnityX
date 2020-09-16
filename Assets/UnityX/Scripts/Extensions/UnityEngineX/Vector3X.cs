@@ -161,6 +161,12 @@ public static class Vector3X {
 		Vector3 projectedB = Vector3.ProjectOnPlane(b, normalizedDirection).normalized;
 		return Vector3.Angle(projectedA, projectedB);
 	}
+	public static float SignedDegreesAgainstDirection (Vector3 a, Vector3 b, Vector3 direction) {
+		Vector3 normalizedDirection = direction.sqrMagnitude == 1 ? direction : direction.normalized;
+		Vector3 projectedA = Vector3.ProjectOnPlane(a, normalizedDirection).normalized;
+		Vector3 projectedB = Vector3.ProjectOnPlane(b, normalizedDirection).normalized;
+		return Vector3.SignedAngle(projectedA, projectedB, direction);
+	}
 
 	/// <summary>
 	/// Find distance between two points on the XZ plane, ignoring the Y component.
@@ -287,7 +293,7 @@ public static class Vector3X {
 
 
 	
-	public static Vector3 ClampMagnitudeInDirection (Vector3 vector, Vector3 direction, float clampValue, bool outwardsOnly = false) {
+	public static Vector3 ClampMagnitudeInDirection (Vector3 vector, Vector3 direction, float clampValue) {
 		float magnitudeAlongTangent = Vector3.Dot(vector, direction);
 		if(Mathf.Abs(magnitudeAlongTangent) > clampValue) {
 			float clampedSpeed = Mathf.Clamp(magnitudeAlongTangent, -clampValue, +clampValue);
@@ -377,7 +383,10 @@ public static class Vector3X {
 		if (a == b)  { 
 			return true;
 		} else {
-			return MathX.Difference(a.x, b.x) + MathX.Difference(a.y, b.y) + MathX.Difference(a.z, b.z) < maxDifference;
+			return 
+				MathX.Difference(a.x, b.x) < maxDifference && 
+				MathX.Difference(a.y, b.y) < maxDifference && 
+				MathX.Difference(a.z, b.z) < maxDifference;
 	    }
 	}
 
@@ -386,5 +395,13 @@ public static class Vector3X {
 	/// </summary>
 	public static bool HasNaN(Vector3 v) {
 		return float.IsNaN(v.x) || float.IsNaN(v.y) || float.IsNaN(v.z);
+	}
+
+	public static string ToString(this Vector3 v, int significantFigures) {
+		return string.Format("({0}, {1}, {2})",
+			string.Format("{0:F"+significantFigures+"}", v.x), 
+			string.Format("{0:F"+significantFigures+"}", v.y), 
+			string.Format("{0:F"+significantFigures+"}", v.z)
+		);
 	}
 }

@@ -240,6 +240,7 @@ public class ScreenshotSaverWindow : EditorWindow {
 	}
 
     static void GameUpdate () {
+		Instance.TryLoadProperties();
 		if(!Application.isPlaying || ScreenshotCapturer.capturingScreenshot || Instance.cameras.Count == 0) return;
 		// KeyDown never works here. This is nice in some ways since you can hold to make a movie!
         if(Input.GetKey(Instance.captureKeycode))
@@ -332,12 +333,9 @@ public class ScreenshotSaverWindow : EditorWindow {
 		expandResolutionSection = EditorGUILayout.Foldout(expandResolutionSection, "Resolution");
 
 		if(currentResolution.name == "Game View") {
-			retinaGameViewResolution = EditorGUILayout.Toggle("Retina", retinaGameViewResolution);
-			SetScreenWidthAndHeightFromEditorGameViewViaReflection(ref currentResolution.width, ref currentResolution.height);
-			if(!retinaGameViewResolution) {
-				currentResolution.width = Mathf.RoundToInt(currentResolution.width * 0.5f);
-				currentResolution.height = Mathf.RoundToInt(currentResolution.height * 0.5f);
-			}
+			if(EditorGUIUtility.pixelsPerPoint > 1)
+				retinaGameViewResolution = EditorGUILayout.Toggle("Retina", retinaGameViewResolution);
+			RefreshGameViewResolution();
 		}
 
 		if(expandResolutionSection) {
@@ -468,12 +466,25 @@ public class ScreenshotSaverWindow : EditorWindow {
 		currentResolutionIndex = 0;
 	}
 	
+	private void RefreshGameViewResolution () {
+		foreach(var resolution in resolutions) {
+			if(resolution.name == "Game View") {
+				SetScreenWidthAndHeightFromEditorGameViewViaReflection(ref resolution.width, ref resolution.height);
+				if(EditorGUIUtility.pixelsPerPoint > 1 && !retinaGameViewResolution) {
+					resolution.width = Mathf.RoundToInt(resolution.width * 0.5f);
+					resolution.height = Mathf.RoundToInt(resolution.height * 0.5f);
+				}
+				break;
+			}
+		}
+	}
 	
 	private bool KeyCodeIsFKey (KeyCode keycode) {
 		return (keycode == KeyCode.F1 || keycode == KeyCode.F2 || keycode == KeyCode.F3 || keycode == KeyCode.F4 || keycode == KeyCode.F5 || keycode == KeyCode.F6 || keycode == KeyCode.F7 || keycode == KeyCode.F8 || keycode == KeyCode.F9 || keycode == KeyCode.F10 || keycode == KeyCode.F11 || keycode == KeyCode.F12 || keycode == KeyCode.F13 || keycode == KeyCode.F14 || keycode == KeyCode.F15);
 	}
 	
 	private void CaptureScreenshot () {
+		if(currentResolution.name == "Game View") RefreshGameViewResolution();
 		var properties = new ScreenshotCapturer.ScreenshotCapturerProperties(currentResolution.width, currentResolution.height, cameras, textureFormat, OnCaptureScreenshot);
 		ScreenshotCapturer.CaptureScreenshot(properties);
 	}

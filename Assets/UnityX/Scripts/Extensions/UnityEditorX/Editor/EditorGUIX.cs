@@ -79,6 +79,16 @@ public static class EditorGUIX {
 		}
 	}
 
+	public static float DrawPropertyField (Rect rect, SerializedProperty serializedProperty, GUIContent label) {
+		if(serializedProperty.propertyType == SerializedPropertyType.Generic) {
+			serializedProperty.isExpanded = EditorGUI.Foldout(new Rect(rect.x, rect.y, rect.width, EditorGUIUtility.singleLineHeight), serializedProperty.isExpanded, serializedProperty.displayName, true);
+			return rect.y + EditorGUIUtility.singleLineHeight;
+		} else {
+			EditorGUI.PropertyField(new Rect(rect.x, rect.y, rect.width, EditorGUI.GetPropertyHeight(serializedProperty, label)), serializedProperty, label);
+			return rect.y + EditorGUI.GetPropertyHeight(serializedProperty);
+		}
+	}
+
 	public static float GetPropertyFieldHeight (SerializedProperty serializedProperty) {
 		if(serializedProperty.propertyType == SerializedPropertyType.Generic) {
 			return EditorGUIUtility.singleLineHeight;

@@ -8,6 +8,19 @@ using UnityX.Geometry;
 [ExecuteInEditMode]
 [RequireComponent(typeof(MeshFilter))]
 public class PolygonOutlineRenderer : BasePolygonRenderer {
+    [Space]
+    public const string colorID = "_Color";
+    [SerializeField]
+    Color _tintColor = Color.white;
+    public Color tintColor {
+        get {
+            return _tintColor;
+        } set {
+            if(_tintColor == value) return;
+            _tintColor = value;
+            RefreshMaterialPropertyBlock();
+        }
+    }
     public const string textureID = "_MainTex";
     [SerializeField]
     Texture2D _texture;
@@ -41,15 +54,14 @@ public class PolygonOutlineRenderer : BasePolygonRenderer {
         }
     }
 
-    MeshBuilder mb = new MeshBuilder();
 	public override void RebuildMesh () {
 		GetMesh();
 		mesh.Clear();
         
-        var polygonRect = polygon.GetRect();
         var points = polygon.vertices;
 
-        mb.Clear();
+		MeshBuilder mb = new MeshBuilder();
+        
         var clockwise = polygon.GetIsClockwise();
         Vector2 startCorner;
         Vector2 startCornerInner;
@@ -61,10 +73,6 @@ public class PolygonOutlineRenderer : BasePolygonRenderer {
 			Vector2 endCornerOuter;
             GetVertPoints(i+1, clockwise, out endCorner, out endCornerInner, out endCornerOuter);
 
-            Color startColor = Color.white;
-            Color endColor = Color.white;
-            // GetColors(i+1, clockwise, out endCorner, out endCornerInner, out endCornerOuter);
-            
 
 			AddPlaneParams planeInput = new AddPlaneParams();
 			planeInput.front = front ^ !clockwise;
@@ -157,8 +165,6 @@ public class PolygonOutlineRenderer : BasePolygonRenderer {
             planeInput.uvTopLeft = new Vector2(0,0);
             
             planeInput.topLeft = startCornerOuter; planeInput.topRight = endCornerOuter; planeInput.bottomRight = endCornerInner; planeInput.bottomLeft = startCornerInner;
-
-            planeInput.colorTopLeft = startColor; planeInput.colorTopRight = startColor; planeInput.colorBottomRight = endColor; planeInput.colorBottomLeft = endColor;
             mb.AddPlane(planeInput);
 
 
@@ -176,13 +182,11 @@ public class PolygonOutlineRenderer : BasePolygonRenderer {
     // Gets the inner and outer point for a vert (mitered)
     void GetVertPoints (int i, bool clockwise, out Vector2 point, out Vector2 innerPoint, out Vector2 outerPoint) {
         point = polygon.GetVertex(i);
-        var lastPoint = polygon.GetVertex(i-1);
-        var nextPoint = polygon.GetVertex(i+1);
-
-        var edgeATangent = (point-lastPoint).normalized;
+        
+        var edgeATangent = polygon.GetEdgeTangentAtEdgeIndex(i-1);
         var edgeANormal = Polygon.GetEdgeNormalAtEdgeIndex(edgeATangent, clockwise);
 
-        var edgeBTangent = (nextPoint-point).normalized;
+        var edgeBTangent = polygon.GetEdgeTangentAtEdgeIndex(i);
         var edgeBNormal = Polygon.GetEdgeNormalAtEdgeIndex(edgeBTangent, clockwise);
         
         var edgeAOffsetInnerLine = new Line(point + edgeANormal * innerDistance, point + edgeANormal * innerDistance - edgeATangent);

@@ -5,6 +5,10 @@ using UnityEditor;
 
 namespace SplineSystem {
 	public class SplineEditor {
+        const float cursorPointHandleSize = 0.125f;
+        const float bezierPointHandleSize = 0.075f;
+        const float controlPointHandleSize = 0.175f;
+
         bool _editing;
         public bool editing {
             get {
@@ -105,7 +109,9 @@ namespace SplineSystem {
 				DrawCurveLine(spline, spline.curves[i], matrix, numPoints);
 			}
 			for (var i = 0; i < spline.bezierPoints.Length; i++) {
-                Handles.SphereHandleCap(-1, matrix.MultiplyPoint3x4(spline.bezierPoints[i].position), Quaternion.identity, 0.1f, EventType.Repaint);
+                var worldPoint = matrix.MultiplyPoint3x4(spline.bezierPoints[i].position);
+                float handleSize = HandleUtility.GetHandleSize(worldPoint) * bezierPointHandleSize;
+                Handles.SphereHandleCap(-1, worldPoint, Quaternion.identity, handleSize, EventType.Repaint);
 			}
         }
 
@@ -168,30 +174,32 @@ namespace SplineSystem {
         }
 
         void DrawEditor (Spline spline, ref bool changed) {
-            for(int i = 0; i < spline.bezierPoints.Length; i++) {
-				var point = spline.bezierPoints[i];
-				DrawBezierPoint(ref point, ref changed);
-                spline.bezierPoints[i] = point;
-			}
+            if(!creationMode && !deletionMode) {
+                for(int i = 0; i < spline.bezierPoints.Length; i++) {
+                    var point = spline.bezierPoints[i];
+                    DrawBezierPointHandle(ref point, ref changed);
+                    spline.bezierPoints[i] = point;
+                }
+            }
 
             if(GUIUtility.hotControl == 0) {
                 DrawEditorPoint(spline, ref changed);
             }
         }
 
-		void DrawBezierPoint (ref SplineBezierPoint bezierPoint, ref bool changed) {
+		void DrawBezierPointHandle (ref SplineBezierPoint bezierPoint, ref bool changed) {
 			var bezierPointPosition = matrix.MultiplyPoint3x4(bezierPoint.position);
 			var bezierPointRotation = matrix.rotation.Rotate(bezierPoint.rotation);
 			
-			if(Tools.current == Tool.Move) {
-				var newBezierPointPosition = Handles.PositionHandle(bezierPointPosition, Tools.pivotRotation == PivotRotation.Local ? bezierPoint.rotation : Quaternion.identity);
+			if(Tools.current == Tool.Move || Tools.current == Tool.Transform) {
+				var newBezierPointPosition = Handles.PositionHandle(bezierPointPosition, Tools.pivotRotation == PivotRotation.Local ? bezierPointRotation : Quaternion.identity);
 				if(bezierPointPosition != newBezierPointPosition) {
 					bezierPoint.position = matrix.inverse.MultiplyPoint3x4(newBezierPointPosition);
                     if(in2DMode) bezierPoint.position = GetFlattened2DPosition(bezierPoint.position);
                     changed = true;
                 }
 			}
-			if(Tools.current == Tool.Rotate) {
+			if(Tools.current == Tool.Rotate || Tools.current == Tool.Transform) {
 				var newBezierPointRotation = Handles.RotationHandle(bezierPointRotation, bezierPointPosition);
 				if(bezierPointRotation != newBezierPointRotation) {
 					bezierPoint.rotation = matrix.inverse.rotation.Rotate(newBezierPointRotation);
@@ -218,68 +226,44 @@ namespace SplineSystem {
 		}
 
 		private Vector3 DrawEditableControlPointHandle (Vector3 controlPointPosition, Quaternion controlPointRotation) {
-			float handleSize = HandleUtility.GetHandleSize(controlPointPosition) * 0.15f;
+			float handleSize = HandleUtility.GetHandleSize(controlPointPosition) * controlPointHandleSize;
 			return Handles.FreeMoveHandle(controlPointPosition, controlPointRotation, handleSize, Vector3.zero, ((int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType) => {
 				Handles.ConeHandleCap(controlID, position, controlPointRotation, handleSize, eventType);
 			}));
 	    }
 
+        
         void DrawEditorPoint (Spline spline, ref bool changed) {
-            Vector2 mousePosition = Event.current.mousePosition;
+            var samplePoint = GetSamplePoint(spline, Event.current.mousePosition);
+            
+            var bestCurve = spline.curves[samplePoint.bestCurveIndex];
+            var startPoint = bestCurve._points[samplePoint.bestCurvePointIndex-1];
+            var endPoint = bestCurve._points[samplePoint.bestCurvePointIndex];
+            var point = Vector3.LerpUnclamped(startPoint, endPoint, samplePoint.bestNormalizedDistanceOnLine);
+            var worldPoint = matrix.MultiplyPoint3x4(point);
+            float handleSize = HandleUtility.GetHandleSize(worldPoint) * cursorPointHandleSize;
+            
+            Color cachedHandlesColor = Handles.color;
+            if(creationMode) Handles.color = Color.blue;
+            else if(deletionMode) Handles.color = Color.red;
+            Handles.SphereHandleCap(-1, worldPoint, Quaternion.identity, handleSize, EventType.Repaint);
+            Handles.color = cachedHandlesColor;
 
-            float bestSqrDistance = Mathf.Infinity;
-            int bestCurveIndex = -1;
-            int bestPointIndex = -1;
-            float bestNormalizedDistanceOnLine = -1;
-            for (var i = 0; i < spline.curves.Length; i++) {
-                var curve = spline.curves[i];
-                var lastPoint = HandleUtility.WorldToGUIPoint(matrix.MultiplyPoint3x4(curve._points[0]));
-                for (var j = 1; j < curve._points.Length; j++) {
-                    var nextPoint = HandleUtility.WorldToGUIPoint(matrix.MultiplyPoint3x4(curve._points[j]));
-                    UnityX.Geometry.Line line = new UnityX.Geometry.Line(lastPoint, nextPoint);
-                    var normalizedDistanceOnLine = line.GetNormalizedDistanceOnLine(mousePosition);
-                    var pointOnLine = Vector2.LerpUnclamped(line.start, line.end, normalizedDistanceOnLine);
-                    var sqrDistanceFromLine = Vector2X.SqrDistance(mousePosition, pointOnLine);
-                    if(sqrDistanceFromLine < bestSqrDistance) {
-                        bestSqrDistance = sqrDistanceFromLine;
-                        bestCurveIndex = i;
-                        bestPointIndex = j;
-                        bestNormalizedDistanceOnLine = normalizedDistanceOnLine;
-                    }
-                    lastPoint = nextPoint;
-                }			
-            }
-
-            if(bestSqrDistance != Mathf.Infinity) {
-                var bestCurve = spline.curves[bestCurveIndex];
-                var startPoint = bestCurve._points[bestPointIndex-1];
-                var endPoint = bestCurve._points[bestPointIndex];
-                var point = Vector3.LerpUnclamped(startPoint, endPoint,bestNormalizedDistanceOnLine);
-                var worldPoint = matrix.MultiplyPoint3x4(point);
-                Handles.SphereHandleCap(-1, worldPoint, Quaternion.identity, 0.1f, EventType.Repaint);
-
+            if(creationMode && Event.current.button == 0 && Event.current.type == EventType.MouseDown) {
+                var arcLength = spline.EstimateArcLengthAlongCurve(point);
+                var curve = spline.GetCurveAtArcLength(arcLength);
+                var bezierPoints = spline.bezierPoints.ToList();
+                var rotation = spline.GetRotationAtArcLength(arcLength);
                 
-                if(creationMode && Event.current.button == 0 && Event.current.type == EventType.MouseDown) {
-                    var arcLength = spline.EstimateArcLengthAlongCurve(point);
-                    var curve = spline.GetCurveAtArcLength(arcLength);
-                    var bezierPoints = spline.bezierPoints.ToList();
-                    var rotation = spline.GetRotationAtArcLength(arcLength);
-                    // Handles.ConeHandleCap(-1, worldPoint, rotation, 0.15f, EventType.Repaint);
-                    
-                    var newPoint = new SplineBezierPoint(point, rotation, curve.length * 0.15f, curve.length * 0.15f);
-                    bezierPoints.Insert(bestCurveIndex+1, newPoint);
-                    spline.bezierPoints = bezierPoints.ToArray();
-                }
-                if(deletionMode && Event.current.button == 0 && Event.current.type == EventType.MouseDown) {
-                    var arcLength = spline.EstimateArcLengthAlongCurve(point);
-                    var curve = spline.GetCurveAtArcLength(arcLength);
-                    var bezierPoints = spline.bezierPoints.ToList();
-                    var rotation = spline.GetRotationAtArcLength(arcLength);
-                    
-                    var newPoint = new SplineBezierPoint(point, rotation, curve.length * 0.15f, curve.length * 0.15f);
-                    bezierPoints.Insert(bestCurveIndex+1, newPoint);
-                    spline.bezierPoints = bezierPoints.ToArray();
-                }
+                var newPoint = new SplineBezierPoint(point, rotation, curve.length * 0.15f, curve.length * 0.15f);
+                bezierPoints.Insert(samplePoint.bestCurveIndex+1, newPoint);
+                spline.bezierPoints = bezierPoints.ToArray();
+                changed = true;
+            } else if(deletionMode && Event.current.button == 0 && Event.current.type == EventType.MouseDown && spline.bezierPoints.Length > 2) {
+                var bezierPoints = spline.bezierPoints.ToList();
+                bezierPoints.RemoveAt(samplePoint.bestBezierPointIndex);
+                spline.bezierPoints = bezierPoints.ToArray();
+                changed = true;
             }
         }
 
@@ -291,7 +275,60 @@ namespace SplineSystem {
             return Quaternion.LookRotation(Vector3.ProjectOnPlane(rotation * Vector3.forward, localPlaneFor2DMode.normal), localPlaneFor2DMode.normal);
         }
 
+        struct SamplePoint {
+            public int bestCurveIndex;
+            public int bestCurvePointIndex;
+            public int bestBezierPointIndex;
+            public float bestNormalizedDistanceOnLine;
+            public SamplePoint (int bestCurveIndex, int bestCurvePointIndex, int bestBezierPointIndex, float bestNormalizedDistanceOnLine) {
+                this.bestCurveIndex = bestCurveIndex;
+                this.bestCurvePointIndex = bestCurvePointIndex;
+                this.bestBezierPointIndex = bestBezierPointIndex;
+                this.bestNormalizedDistanceOnLine = bestNormalizedDistanceOnLine;
+            }
+        }
 
+        SamplePoint GetSamplePoint (Spline spline, Vector2 mousePosition) {
+            int bestCurveIndex = -1;
+            int bestCurvePointIndex = -1;
+            float bestNormalizedDistanceOnLine = -1;
+            {
+                float bestSqrDistance = Mathf.Infinity;
+                for (var i = 0; i < spline.curves.Length; i++) {
+                    var curve = spline.curves[i];
+                    var lastPoint = HandleUtility.WorldToGUIPoint(matrix.MultiplyPoint3x4(curve._points[0]));
+                    for (var j = 1; j < curve._points.Length; j++) {
+                        var nextPoint = HandleUtility.WorldToGUIPoint(matrix.MultiplyPoint3x4(curve._points[j]));
+                        UnityX.Geometry.Line line = new UnityX.Geometry.Line(lastPoint, nextPoint);
+                        var normalizedDistanceOnLine = line.GetNormalizedDistanceOnLine(mousePosition);
+                        var pointOnLine = Vector2.LerpUnclamped(line.start, line.end, normalizedDistanceOnLine);
+                        var sqrDistanceFromLine = Vector2X.SqrDistance(mousePosition, pointOnLine);
+                        if(sqrDistanceFromLine < bestSqrDistance) {
+                            bestSqrDistance = sqrDistanceFromLine;
+                            bestCurveIndex = i;
+                            bestCurvePointIndex = j;
+                            bestNormalizedDistanceOnLine = normalizedDistanceOnLine;
+                        }
+                        lastPoint = nextPoint;
+                    }			
+                }
+            }
+
+            int bestBezierPointIndex = -1;
+            {
+                float bestBezierPointSqrDistance = Mathf.Infinity;
+                for (var i = 0; i < spline.bezierPoints.Length; i++) {
+                    var bezierPoint = spline.bezierPoints[i];
+                    var guiBezierPoint = HandleUtility.WorldToGUIPoint(matrix.MultiplyPoint3x4(bezierPoint.position));
+                    var sqrDistanceFromBezierPoint = Vector2X.SqrDistance(mousePosition, guiBezierPoint);
+                    if(sqrDistanceFromBezierPoint < bestBezierPointSqrDistance) {
+                        bestBezierPointSqrDistance = sqrDistanceFromBezierPoint;
+                        bestBezierPointIndex = i;
+                    }
+                }
+            }
+            return new SamplePoint(bestCurveIndex, bestCurvePointIndex, bestBezierPointIndex, bestNormalizedDistanceOnLine);
+        }
 
         /*
         void Subdivide () {

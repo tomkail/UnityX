@@ -4,10 +4,17 @@ using UnityEngine.EventSystems;
 using System.Collections;
 
 public static class CanvasX {
-
 	public static RectTransform GetRectTransform (this Canvas canvas) {
 		Debug.Assert(canvas != null, "Canvas is null!");
 		return canvas.transform as RectTransform;
+	}
+
+	// Forces the canvas to refresh position from camera position (ARGH why isn't this handled internally?!)
+	// This is necessary when converting between screen and canvas camera space when the canvas's camera has moved that frame, or you'll be a frame behind
+	public static void RefreshPosition (this Canvas canvas) {
+		if(canvas.worldCamera == null) return;
+        canvas.enabled = false;
+        canvas.enabled = true;
 	}
 
 	private static void GetCameraFromCanvas (Canvas canvas, ref Camera camera) {
@@ -41,12 +48,11 @@ public static class CanvasX {
 		return RectX.MinMaxRect(canvas.WorldToScreenPoint(corners[0]), canvas.WorldToScreenPoint(corners[2]));
 	}
 	public static Vector2 CanvasToScreenPoint (this Canvas canvas, Vector3 canvasPoint) {
-		return canvas.WorldToScreenPoint(canvasPoint);
+		return canvas.WorldToScreenPoint(canvas.transform.TransformPoint(canvasPoint));
 	}
 
-	public static Vector2 CanvasToScreenVector (this Canvas canvas, RectTransform rectTransform, Vector3 vector) {
-		var world = rectTransform.TransformVector(vector);
-		return canvas.WorldToScreenVector(world);
+	public static Vector2 CanvasToScreenVector (this Canvas canvas, Vector3 vector) {
+		return canvas.WorldToScreenVector(canvas.transform.TransformPoint(vector));
 	}
 
 
@@ -59,8 +65,8 @@ public static class CanvasX {
 		return ScreenX.ScreenToViewportPoint(screenPoint);
 	}
 
-	public static Vector2 CanvasToViewportVector (this Canvas canvas, RectTransform rectTransform, Vector3 vector) {
-		var screenPoint = canvas.CanvasToScreenVector(rectTransform, vector);
+	public static Vector2 CanvasToViewportVector (this Canvas canvas, Vector3 vector) {
+		var screenPoint = canvas.CanvasToScreenVector(vector);
 		return ScreenX.ScreenToViewportPoint(screenPoint);
 	}
 
@@ -77,8 +83,8 @@ public static class CanvasX {
 		GetCameraFromCanvas(canvas, ref camera);
 		return RectTransformUtility.WorldToScreenPoint(camera, position);
 	}
-	public static Vector2 WorldToScreenVector(this Canvas canvas, Vector3 position, Camera camera = null) {
-		return canvas.WorldToScreenPoint(position) - canvas.WorldToScreenPoint(Vector3.zero);
+	public static Vector2 WorldToScreenVector(this Canvas canvas, Vector3 vector, Camera camera = null) {
+		return canvas.WorldToScreenPoint(vector) - canvas.WorldToScreenPoint(canvas.transform.TransformPoint(Vector3.zero));
 	}
 
 

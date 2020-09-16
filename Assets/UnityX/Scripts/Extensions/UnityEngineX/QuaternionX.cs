@@ -25,22 +25,22 @@ public static class QuaternionX {
 	}
 
 	// Nabbed off the internet.
-	public static Quaternion SmoothDamp(Quaternion rot, Quaternion target, ref Quaternion currentVelocity, float time, float maxSpeed, float deltaTime) {
+	public static Quaternion SmoothDamp(Quaternion rot, Quaternion target, ref Quaternion currentVelocity, float smoothTime, float maxSpeed, float deltaTime) {
 		if(deltaTime == 0) return rot;
 
 		// account for double-cover
-		var Dot = Quaternion.Dot(rot, target);
-		var Multi = Dot > 0f ? 1f : -1f;
-		target.x *= Multi;
-		target.y *= Multi;
-		target.z *= Multi;
-		target.w *= Multi;
+		var dot = Quaternion.Dot(rot, target);
+		var sign = dot > 0f ? 1f : -1f;
+		target.x *= sign;
+		target.y *= sign;
+		target.z *= sign;
+		target.w *= sign;
 		// smooth damp (nlerp approx)
 		var Result = new Vector4(
-			Mathf.SmoothDamp(rot.x, target.x, ref currentVelocity.x, time),
-			Mathf.SmoothDamp(rot.y, target.y, ref currentVelocity.y, time),
-			Mathf.SmoothDamp(rot.z, target.z, ref currentVelocity.z, time),
-			Mathf.SmoothDamp(rot.w, target.w, ref currentVelocity.w, time)
+			Mathf.SmoothDamp(rot.x, target.x, ref currentVelocity.x, smoothTime, maxSpeed, deltaTime),
+			Mathf.SmoothDamp(rot.y, target.y, ref currentVelocity.y, smoothTime, maxSpeed, deltaTime),
+			Mathf.SmoothDamp(rot.z, target.z, ref currentVelocity.z, smoothTime, maxSpeed, deltaTime),
+			Mathf.SmoothDamp(rot.w, target.w, ref currentVelocity.w, smoothTime, maxSpeed, deltaTime)
 		).normalized;
 		// compute deriv
 		var dtInv = 1f / deltaTime;

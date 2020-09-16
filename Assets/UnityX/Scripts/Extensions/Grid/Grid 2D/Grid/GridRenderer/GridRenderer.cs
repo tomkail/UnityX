@@ -1,7 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
-using UnityX.Geometry;
 
 [ExecuteInEditMode]
 public class GridRenderer : MonoBehaviour {
@@ -189,11 +188,11 @@ public class GridRenderer : MonoBehaviour {
 			return gridToWorldMatrix.inverse.MultiplyPoint3x4(worldPosition);
 		}
 		
-		public Vector2 LocalPositionToNormalizedPosition (Vector3 worldPosition) {
+		public Vector2 LocalToNormalizedPosition (Vector3 worldPosition) {
 			return normalizedToLocalMatrix.inverse.MultiplyPoint3x4(worldPosition);
 		}
 
-		public Vector2 WorldPositionToNormalizedPosition (Vector3 worldPosition) {
+		public Vector2 WorldToNormalizedPosition (Vector3 worldPosition) {
 			return normalizedToWorldMatrix.inverse.MultiplyPoint3x4(worldPosition);
 		}
 
@@ -290,8 +289,12 @@ public class GridRenderer : MonoBehaviour {
 			return worldPoints;
 		}
 
-		
-
+		public void NormalizedRectToWorldRectNonAlloc (Rect normalizedRect, Vector3[] worldPoints) {
+			worldPoints[0] = NormalizedToWorldPoint(normalizedRect.position);
+			worldPoints[1] = NormalizedToWorldPoint(normalizedRect.position + new Vector2(normalizedRect.size.x, 0));
+			worldPoints[2] = NormalizedToWorldPoint(normalizedRect.position + normalizedRect.size);
+			worldPoints[3] = NormalizedToWorldPoint(normalizedRect.position + new Vector2(0, normalizedRect.size.y));
+		}
 	}
 
 	public IEnumerable<Point> GetPointsInWorldBounds (Bounds bounds) {

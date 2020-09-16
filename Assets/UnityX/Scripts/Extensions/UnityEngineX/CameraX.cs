@@ -1,5 +1,5 @@
 using UnityEngine;
-using System.Collections;
+using System.Linq;
 using System.Collections.Generic;
 
 /// <summary>
@@ -50,12 +50,17 @@ public static class CameraX {
 	
 	public static Vector2[] WorldToScreenPoints (this Camera camera, Vector3[] worldPoints) {
 		Vector2[] screenPoints = new Vector2[worldPoints.Length];
-        for(int i = 0; i < screenPoints.Length; i++) screenPoints[i] = camera.WorldToScreenPoint(worldPoints[i]);
+		camera.WorldToScreenPoints(worldPoints, ref screenPoints);
 		return screenPoints;
+	}
+	
+	public static void WorldToScreenPoints (this Camera camera, Vector3[] worldPoints, ref Vector2[] screenPoints) {
+		if(screenPoints == null || screenPoints.Length != worldPoints.Length) screenPoints = new Vector2[worldPoints.Length];
+        for(int i = 0; i < screenPoints.Length; i++) screenPoints[i] = camera.WorldToScreenPoint(worldPoints[i]);
 	}
 
 	public static Rect WorldToScreenRect (this Camera camera, Bounds worldBounds, float distance) {
-		Vector2[] viewportSpaceTargetPoints = camera.WorldToViewportPoints(worldBounds.GetVertices());
+		Vector2[] viewportSpaceTargetPoints = camera.WorldToViewportPoints(worldBounds.GetVertices().ToArray());
 		return RectX.CreateEncapsulating(viewportSpaceTargetPoints);
 	}
 	
