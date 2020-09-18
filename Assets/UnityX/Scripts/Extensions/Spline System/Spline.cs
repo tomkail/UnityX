@@ -7,6 +7,7 @@ namespace SplineSystem {
 
 	[System.Serializable]
 	public class Spline {
+		public float quality = 10;
 		public Vector3 GetPointAtArcLength (float arcLength) {
 			return GetCurveAtArcLength(arcLength).GetPointAtArcLength(arcLength);
 		}
@@ -38,7 +39,7 @@ namespace SplineSystem {
 			get {
 				#if UNITY_EDITOR
 				if(!UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode) {
-					if(curves.IsNullOrEmpty()) {
+					if(curves == null || curves.Length == 0) {
 						Debug.LogError("Spline has no curves!");
 					}
 				}
@@ -127,8 +128,19 @@ namespace SplineSystem {
 			for (int i = 0; i < bezierPoints.Length-1; i++) curves[i] = new SplineBezierCurve(bezierPoints [i], bezierPoints [i+1]);
 			
 			float distance = 0;
+			// float roughLength = 0;
+			// foreach(var curve in curves) {
+			// 	curve.CacheData();
+			// 	var curveRoughLength = curve.GetRoughLength();
+			// 	roughLength += curveRoughLength;
+			// }
 			foreach(var curve in curves) {
+				// var curveRoughLength = curve.GetRoughLength();
+				// var cachedPointsPerMeter = (curveRoughLength/roughLength) * quality;
+				
 				curve.CacheData();
+				curve.numArcLengthsForArcLengthToTCalculation = Mathf.Max(2, Mathf.CeilToInt(quality));//Mathf.Max(2, Mathf.CeilToInt(cachedPointsPerMeter));
+
 				curve.SetLength();
 				curve.SetArcLengths();
 				curve.startArcLength = distance;
@@ -193,7 +205,7 @@ namespace SplineSystem {
 			sqrDistances.Clear();
 			for (int i = 0; i < curvesToTry.Count; i++) {
 				var curve = curvesToTry [i];
-				sqrDistances.Add(Vector3X.SqrDistance(position, curve.bounds.ClosestPoint(position)));
+				sqrDistances.Add(SqrDistance(position, curve.bounds.ClosestPoint(position)));
 				smallestSqrDistance = Mathf.Min (smallestSqrDistance, sqrDistances [i]);
 			}
 
@@ -249,7 +261,7 @@ namespace SplineSystem {
 		void GetBestCurve (Vector3 position, SplineBezierCurve curve, ref SplineBezierCurve bestCurve, ref float bestDistance, ref Vector3 bestPoint, ref float bestT) {
 			for (int i = 0; i < curve.numArcLengthsForArcLengthToTCalculation; i++) {
 				var curvePoint = curve._points[i];
-				float distance = Vector3X.SqrDistance(position, curvePoint);
+				float distance = SqrDistance(position, curvePoint);
 				if(distance == bestDistance) {
 					var t = i * curve.numArcLengthsForArcLengthToTCalculationReciprocal;
 					Vector3 direction = curve.GetDirectionAtT(t);
@@ -272,8 +284,8 @@ namespace SplineSystem {
 		// Accuracy will depend on numArcLengthsForArcLengthToTCalculation and maxSqrDistanceToSpline and maxRange variables in this function.
 		static List<SplineBezierCurve> curvesToTry = new List<SplineBezierCurve>();
 		public float EstimateArcLengthAlongCurve (Vector3 position, bool clampAtStart = false, bool clampAtEnd = false) {
-			if(curves.IsNullOrEmpty()) {
-				DebugX.LogError(this, "No curves in spline");
+			if(curves == null || curves.Length == 0) {
+				Debug.LogError("No curves in spline");
 				return 0;
 			}
 			// Step 1: Throw away any curves that are clearly further away
@@ -357,8 +369,8 @@ namespace SplineSystem {
 
 			closestDistanceAlongLeftLine = Line3D.GetNormalizedDistanceOnLine(leftPoint, centerPoint, position, clampAtStart);
 			closestDistanceAlongRightLine = Line3D.GetNormalizedDistanceOnLine(centerPoint, rightPoint, position, clampAtEnd);
-			float closestDistanceOnLineA = Vector3X.SqrDistance(position, Vector3.LerpUnclamped(leftPoint, centerPoint, closestDistanceAlongLeftLine));
-			float closestDistanceOnLineB = Vector3X.SqrDistance(position, Vector3.LerpUnclamped(centerPoint, rightPoint, closestDistanceAlongRightLine));
+			float closestDistanceOnLineA = SqrDistance(position, Vector3.LerpUnclamped(leftPoint, centerPoint, closestDistanceAlongLeftLine));
+			float closestDistanceOnLineB = SqrDistance(position, Vector3.LerpUnclamped(centerPoint, rightPoint, closestDistanceAlongRightLine));
 			var arcLengthOffsetMultiplier = 0f;
 			if(closestDistanceOnLineA < closestDistanceOnLineB) {
 				arcLengthOffset = Vector3.Distance(leftPoint, centerPoint);
@@ -381,7 +393,7 @@ namespace SplineSystem {
 
 		float SqrDistanceAtTValue(SplineBezierCurve curve, float t, Vector3 samplePosition) {
 			var curvePoint = curve.GetPointAtT(t);
-			return Vector3X.SqrDistance(samplePosition, curvePoint);
+			return SqrDistance(samplePosition, curvePoint);
 		}
 
 		// This could be more efficient by using a binary search
@@ -394,7 +406,7 @@ namespace SplineSystem {
 			for(int i = 0; i < numSamples; i++) {
 				var t = leftT + (i * r);
 				var curvePoint = curve.GetPointAtT(t);
-				float distance = Vector3X.SqrDistance(samplePosition, curvePoint);
+				float distance = SqrDistance(samplePosition, curvePoint);
 				if(distance < bestDist) {
 					bestDist = distance;
 					bestT = t;
@@ -445,7 +457,7 @@ namespace SplineSystem {
                 didChange = true;
             } else {
                 for (var i = 0; i < bezierPoints.Length; i++) {
-                    if(!bezierPoints[i].rotation.IsValid()) {
+                    if(bezierPoints[i].rotation.x == 0 && bezierPoints[i].rotation.y == 0 && bezierPoints[i].rotation.z == 0 && bezierPoints[i].rotation.w == 0) {
                         bezierPoints[i].rotation = Quaternion.identity;
                         didChange = true;
                     }
@@ -455,7 +467,7 @@ namespace SplineSystem {
                         didChange = true;
                     }
                     if(bezierPoints[i].inControlPoint.distance <= 0) {
-                        bezierPoints[i].inControlPoint.distance = 1;
+                        bezierPoints[i].inControlPoint.distance = 0;
                         didChange = true;
                     }
 
@@ -464,7 +476,7 @@ namespace SplineSystem {
                         didChange = true;
                     }
                     if(bezierPoints[i].outControlPoint.distance <= 0) {
-                        bezierPoints[i].outControlPoint.distance = 1;
+                        bezierPoints[i].outControlPoint.distance = 0;
                         didChange = true;
                     }
                 }
@@ -501,5 +513,10 @@ namespace SplineSystem {
 				p0 = p1;
 			}
 	    }
+
+
+		static float SqrDistance (Vector3 a, Vector3 b) {
+			return (a.x-b.x) * (a.x-b.x) + (a.y-b.y) * (a.y-b.y) + (a.z-b.z) * (a.z-b.z);
+		}
 	}
 }

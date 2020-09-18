@@ -19,7 +19,6 @@ namespace SplineSystem {
 		public SplineBezierPoint endPoint;
 
 		// This constant affects how precise the GetTAtNormalizedDistance function is. Higher is more precise.
-		const float cachedPointsPerMeter = 50f;
 		public int numArcLengthsForArcLengthToTCalculation;
 		public float numArcLengthsForArcLengthToTCalculationReciprocal;
 
@@ -54,15 +53,18 @@ namespace SplineSystem {
 			p3 = endPoint.position;
 		}
 
+		public float GetRoughLength () {
+			return Bezier.GetRoughLength(p0, p1, p2, p3);
+		}
+
 		public void SetLength () {
 			var roughLength = Bezier.GetRoughLength(p0, p1, p2, p3);
-			int numSamples = Mathf.Max(2, Mathf.RoundToInt(roughLength * 1));
-			float rec = 1f/(numSamples-1);
+			float rec = 1f/(numArcLengthsForArcLengthToTCalculation-1);
 
 			Vector3 pA = GetPointAtT(0);
 			Vector3 pB;
 			length = 0;
-			for (int s = 1; s < numSamples; s++) {
+			for (int s = 1; s < numArcLengthsForArcLengthToTCalculation; s++) {
 				pB = GetPointAtT(rec * s);
 				length += (pB - pA).magnitude;
 				pA = pB;
@@ -70,7 +72,6 @@ namespace SplineSystem {
 		}
 
 		public void SetArcLengths () {
-			numArcLengthsForArcLengthToTCalculation = Mathf.Max(2, Mathf.CeilToInt(length * cachedPointsPerMeter));
 			numArcLengthsForArcLengthToTCalculationReciprocal = 1f/(numArcLengthsForArcLengthToTCalculation-1);
 			if(_arcLengths == null || _arcLengths.Length != numArcLengthsForArcLengthToTCalculation) _arcLengths = new float[numArcLengthsForArcLengthToTCalculation];
 			if(_points == null || _points.Length != numArcLengthsForArcLengthToTCalculation) _points = new Vector3[numArcLengthsForArcLengthToTCalculation];
@@ -174,7 +175,7 @@ namespace SplineSystem {
 		}
 
 		public float NormalizeBezierArcLength (float bezierArcLength) {
-			return MathX.InverseLerpUnclamped(startArcLength, endArcLength, bezierArcLength);
+			return (bezierArcLength - startArcLength) / (endArcLength - startArcLength);
 		}
 
 		public Vector3 GetPointAtArcLength (float distance) {
