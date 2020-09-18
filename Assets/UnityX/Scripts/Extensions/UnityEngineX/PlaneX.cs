@@ -33,16 +33,16 @@ public static class PlaneX {
 
 	// https://stackoverflow.com/questions/5666222/3d-line-plane-intersection
 	public static bool LineIntersectionPoint (this Plane plane, Line3D line, out float intersectionLineDistance) {
-		var u = Vector3X.FromTo(line.start, line.end).normalized;
+		var u = Vector3.Normalize(line.end - line.start);
 		var dot = Vector3.Dot(plane.normal, u);
 		if(Mathf.Abs(dot) > Mathf.Epsilon) {
 			var planePoint = -plane.normal * plane.distance;
-			var w = Vector3X.FromTo(planePoint, line.start);
+			var w = line.start - planePoint;
 			intersectionLineDistance = -Vector3.Dot(plane.normal, w) / dot;
 			if(intersectionLineDistance < 0 || intersectionLineDistance > line.length) return false;
 			else return true;
 		} else {
-			// 	# The segment is parallel to plane
+			// The segment is parallel to plane
 			intersectionLineDistance = 0;
 			return false;
 		}

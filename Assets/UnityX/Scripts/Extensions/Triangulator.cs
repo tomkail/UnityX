@@ -1,35 +1,32 @@
 using UnityEngine;
-using System.Linq;
 using System.Collections.Generic;
 
-class Triangulator {
-	private List<Vector2> mPoints = new List<Vector2>();
+public static class Triangulator {
+
 	
-	public Triangulator (Vector2[] points) {
-		mPoints = new List<Vector2>(points);
-	}
+	public static void GenerateIndices(IList<Vector2> points, List<int> outputIndices) {
 	
-	public int[] Triangulate() {
-		List<int> indices = new List<int>();
-	
-		int n = mPoints.Count;
-		if (n < 3) return indices.ToArray();
-	
-		int[] V = new int[n];
-		if (Area() > 0) {
+		int n = points.Count;
+		if (n < 3) return;
+
+		Debug.Assert(outputIndices.Count == 0);
+
+		_indicesScratch.Clear();
+
+		if (Area(points) > 0) {
 			for (int v = 0; v < n; v++)
-				V[v] = v;
+				_indicesScratch.Add(v);
 		}
 		else {
 			for (int v = 0; v < n; v++)
-				V[v] = (n - 1) - v;
+				_indicesScratch.Add((n - 1) - v);
 		}
 	
 		int nv = n;
 		int count = 2 * nv;
 		for (int m = 0, v = nv - 1; nv > 2; ) {
 			if ((count--) <= 0)
-				return indices.ToArray();
+				return;
 	
 			int u = v;
 			if (nv <= u)
@@ -41,55 +38,135 @@ class Triangulator {
 			if (nv <= w)
 				w = 0;
 	
-			if (Snip(u, v, w, nv, V)) {
+			if (Snip(points, u, v, w, nv)) {
 				int a, b, c, s, t;
-				a = V[u];
-				b = V[v];
-				c = V[w];
-				indices.Add(a);
-				indices.Add(b);
-				indices.Add(c);
+				a = _indicesScratch[u];
+				b = _indicesScratch[v];
+				c = _indicesScratch[w];
+				outputIndices.Add(a);
+				outputIndices.Add(b);
+				outputIndices.Add(c);
 				m++;
 				for (s = v, t = v + 1; t < nv; s++, t++)
-					V[s] = V[t];
+					_indicesScratch[s] = _indicesScratch[t];
 				nv--;
 				count = 2 * nv;
 			}
 		}
 	
-		indices.Reverse();
-		return indices.ToArray();
+		outputIndices.Reverse();
+	}
+
+	public static void GenerateIndices(IList<Vector3> points, List<int> outputIndices) {
+	
+		int n = points.Count;
+		if (n < 3) return;
+
+		Debug.Assert(outputIndices.Count == 0);
+
+		_indicesScratch.Clear();
+
+		if (Area(points) > 0) {
+			for (int v = 0; v < n; v++)
+				_indicesScratch.Add(v);
+		}
+		else {
+			for (int v = 0; v < n; v++)
+				_indicesScratch.Add((n - 1) - v);
+		}
+	
+		int nv = n;
+		int count = 2 * nv;
+		for (int m = 0, v = nv - 1; nv > 2; ) {
+			if ((count--) <= 0)
+				return;
+	
+			int u = v;
+			if (nv <= u)
+				u = 0;
+			v = u + 1;
+			if (nv <= v)
+				v = 0;
+			int w = v + 1;
+			if (nv <= w)
+				w = 0;
+	
+			if (Snip(points, u, v, w, nv)) {
+				int a, b, c, s, t;
+				a = _indicesScratch[u];
+				b = _indicesScratch[v];
+				c = _indicesScratch[w];
+				outputIndices.Add(a);
+				outputIndices.Add(b);
+				outputIndices.Add(c);
+				m++;
+				for (s = v, t = v + 1; t < nv; s++, t++)
+					_indicesScratch[s] = _indicesScratch[t];
+				nv--;
+				count = 2 * nv;
+			}
+		}
+	
+		outputIndices.Reverse();
 	}
 	
-	private float Area () {
-		int n = mPoints.Count;
+	public static float Area (IList<Vector3> points) {
+		int n = points.Count;
 		float A = 0.0f;
 		for (int p = n - 1, q = 0; q < n; p = q++) {
-			Vector2 pval = mPoints[p];
-			Vector2 qval = mPoints[q];
+			Vector2 pval = points[p];
+			Vector2 qval = points[q];
+			A += pval.x * qval.y - qval.x * pval.y;
+		}
+		return (A * 0.5f);
+	}
+
+	public static float Area (IList<Vector2> points) {
+		int n = points.Count;
+		float A = 0.0f;
+		for (int p = n - 1, q = 0; q < n; p = q++) {
+			Vector2 pval = points[p];
+			Vector2 qval = points[q];
 			A += pval.x * qval.y - qval.x * pval.y;
 		}
 		return (A * 0.5f);
 	}
 	
-	private bool Snip (int u, int v, int w, int n, int[] V) {
+	static bool Snip (IList<Vector2> points, int u, int v, int w, int n) {
 		int p;
-		Vector2 A = mPoints[V[u]];
-		Vector2 B = mPoints[V[v]];
-		Vector2 C = mPoints[V[w]];
+		Vector2 A = points[_indicesScratch[u]];
+		Vector2 B = points[_indicesScratch[v]];
+		Vector2 C = points[_indicesScratch[w]];
 		if (Mathf.Epsilon > (((B.x - A.x) * (C.y - A.y)) - ((B.y - A.y) * (C.x - A.x))))
 			return false;
 		for (p = 0; p < n; p++) {
 			if ((p == u) || (p == v) || (p == w))
 				continue;
-			Vector2 P = mPoints[V[p]];
+			Vector2 P = points[_indicesScratch[p]];
+			if (InsideTriangle(A, B, C, P))
+				return false;
+		}
+		return true;
+	}
+
+	static bool Snip (IList<Vector3> points, int u, int v, int w, int n) {
+		int p;
+		Vector2 A = points[_indicesScratch[u]];
+		Vector2 B = points[_indicesScratch[v]];
+		Vector2 C = points[_indicesScratch[w]];
+		if (Mathf.Epsilon > (((B.x - A.x) * (C.y - A.y)) - ((B.y - A.y) * (C.x - A.x))))
+			return false;
+		for (p = 0; p < n; p++) {
+			if ((p == u) || (p == v) || (p == w))
+				continue;
+			Vector2 P = points[_indicesScratch[p]];
 			if (InsideTriangle(A, B, C, P))
 				return false;
 		}
 		return true;
 	}
 	
-	private bool InsideTriangle (Vector2 A, Vector2 B, Vector2 C, Vector2 P) {
+	static bool InsideTriangle (Vector2 A, Vector2 B, Vector2 C, Vector2 P) {
 		float ax, ay, bx, by, cx, cy, apx, apy, bpx, bpy, cpx, cpy;
 		float cCROSSap, bCROSScp, aCROSSbp;
 	
@@ -106,4 +183,6 @@ class Triangulator {
 	
 		return ((aCROSSbp >= 0.0f) && (bCROSScp >= 0.0f) && (cCROSSap >= 0.0f));
 	}
+
+	static List<int> _indicesScratch = new List<int>(256);
 }

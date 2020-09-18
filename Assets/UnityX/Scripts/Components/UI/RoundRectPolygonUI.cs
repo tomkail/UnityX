@@ -13,7 +13,7 @@ public class RoundRectPolygonUI : UIBehaviour, ILayoutElement {
         }
     }
 	[SerializeField]
-	UIPolygon polygon;
+	UIPolygon polygon = null;
 	[SerializeField]
 	AdvancedUILineRenderer lineRenderer = null;
 	public float rounding = 1;

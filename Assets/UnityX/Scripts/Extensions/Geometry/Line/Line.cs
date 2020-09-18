@@ -9,7 +9,23 @@ namespace UnityX.Geometry {
 	public struct Line {
 		public Vector2 start;
 		public Vector2 end;
+        
+		public Vector2 direction {
+			get { return vector.normalized; }
+		}
 
+		public Vector2 vector {
+			get { return end - start; }
+		}
+
+		public float length {
+			get { return Vector2.Distance(start, end); }
+		}
+	
+		public float sqrLength {
+			get { return (start.x-end.x) * (start.x-end.x) + (start.y-end.y) * (start.y-end.y); }
+		}
+		
 		public float left {
 			get {
 				if(start.x < end.x) return start.x;
@@ -33,22 +49,6 @@ namespace UnityX.Geometry {
 				if(start.y < end.y) return start.y;
 				else return end.y;
 			}
-		}
-        
-		public Vector2 direction {
-			get { return vector.normalized; }
-		}
-
-		public Vector2 vector {
-			get { return end - start; }
-		}
-
-		public float length {
-			get { return Vector2.Distance(start, end); }
-		}
-	
-		public float sqrLength {
-			get { return Vector2X.SqrDistance(start, end); }
 		}
 
 		public Line (Vector2 _start, Vector2 _end) {
@@ -240,8 +240,8 @@ namespace UnityX.Geometry {
 
 
 
-		public static float GetClosestDistanceFromLine(Vector2 start, Vector2 end, Vector2 p) {
-			return Vector2.Distance(p, GetClosestPointOnLine(start, end, p));
+		public static float GetClosestDistanceFromLine(Vector2 start, Vector2 end, Vector2 p, bool clamped = true) {
+			return Vector2.Distance(p, GetClosestPointOnLine(start, end, p, clamped));
 		}
 
 		public static Vector2 GetClosestPointOnLine(Vector2 start, Vector2 end, Vector2 p, bool clamped = true) {
@@ -250,7 +250,7 @@ namespace UnityX.Geometry {
 		}
 
 		public static float GetNormalizedDistanceOnLine(Vector2 start, Vector2 end, Vector2 p, bool clamped = true) {
-			float sqrLength = Vector2X.SqrDistance(start, end);
+			float sqrLength = (start.x-end.x) * (start.x-end.x) + (start.y-end.y) * (start.y-end.y);
 			return GetNormalizedDistanceOnLineInternal(start, end, p, sqrLength, clamped);
 		}
 

@@ -155,25 +155,25 @@ public static class Vector2X {
 		return v;
 	}
 
-	const float radiansFor90Degrees = Mathf.Deg2Rad * 90;
 	// Gets angle between a and b where 0 is up and pi/2 is right. Use Mathf.Rad2Deg to get degrees.
 	public static float RadiansBetween(Vector2 a, Vector2 b) {
-		return Mathf.Atan2(a.y-b.y, b.x-a.x) + radiansFor90Degrees;
+		return Vector2.SignedAngle(b-a, Vector2.up) * Mathf.Deg2Rad;
 	}
 
+	const float radiansFor90Degrees = Mathf.Deg2Rad * 90;
 	// Gets angle of the direction of a where 0 is up and pi/2 is right. Use Mathf.Rad2Deg to get degrees.
 	public static float Radians(Vector2 a) {
-		return Mathf.Atan2(-a.y, a.x) + radiansFor90Degrees;
+		return Vector2.SignedAngle(a, Vector2.up) * Mathf.Deg2Rad;
 	}
 	
 	// Gets angle of the vector from a to b where 0 is up and 90 is right.
 	public static float DegreesBetween(Vector2 a, Vector2 b) {
-		return RadiansBetween(a,b) * Mathf.Rad2Deg;
+		return Vector2.SignedAngle(b-a, Vector2.up);
 	}
 	
 	// Gets angle of the direction of a as degrees where 0 is up and 90 is right
 	public static float Degrees(Vector2 a) {
-		return Radians(a) * Mathf.Rad2Deg;
+		return Vector2.SignedAngle(a, Vector2.up);
 	}
 
 	public static Vector2 WithDegrees(float degrees) {

@@ -6,7 +6,7 @@ using UnityX.Geometry;
 public class Region : MonoBehaviour {
 	#if UNITY_EDITOR
 	[SerializeField]
-	Color _selectedFillColor = Color.red.WithAlpha(0.5f);
+	Color _selectedFillColor = new Color(1,0,0,0.5f);
 	public Color selectedFillColor {
 		get {
 			return _selectedFillColor;
@@ -90,8 +90,8 @@ public class Region : MonoBehaviour {
 			var cachedWorldNormal = worldNormal;
 			for(int i = 0; i < _verts3D.Length; i++) {
 				var vertA = _verts3D[i];
-				var vertB = _verts3D.GetRepeating(i+1);
-				var normal = Vector3.Cross(Vector3X.FromTo(vertA, vertB).normalized, cachedWorldNormal);
+				var vertB = _verts3D[i == _verts3D.Length-1 ? 0 : i+1];
+				var normal = Vector3.Cross(Vector3.Normalize(vertB - vertA), cachedWorldNormal);
 				planes[i] = new Plane(normal, Vector3.Lerp(vertA, vertB, 0.5f));
 			}
 			return planes;
@@ -116,7 +116,34 @@ public class Region : MonoBehaviour {
 	public Bounds bounds {
 		get {
 			var _matrix = matrix;
-			return BoundsX.CreateEncapsulating(localBounds.GetVertices().Select(corner => _matrix.MultiplyPoint3x4(corner)));
+			Vector3[] verts = new Vector3[8];
+			
+			var min = localBounds.min;
+			var max = localBounds.max;
+			verts[0] = _matrix.MultiplyPoint3x4(min);
+			verts[1] = _matrix.MultiplyPoint3x4(max);
+			verts[2] = _matrix.MultiplyPoint3x4(new Vector3(min.x, min.y, max.z));
+			verts[3] = _matrix.MultiplyPoint3x4(new Vector3(min.x, max.y, min.z));
+			verts[4] = _matrix.MultiplyPoint3x4(new Vector3(max.x, min.y, min.z));
+			verts[5] = _matrix.MultiplyPoint3x4(new Vector3(min.x, max.y, max.z));
+			verts[6] = _matrix.MultiplyPoint3x4(new Vector3(max.x, min.y, max.z));
+			verts[7] = _matrix.MultiplyPoint3x4(new Vector3(max.x, max.y, min.z));
+			
+			Bounds bounds = new Bounds(verts[0], Vector3.zero);
+			min = bounds.min;
+			max = bounds.max;
+			foreach(var vector in verts) {
+				if(vector.x < min.x) min.x = vector.x;
+				else if(vector.x > max.x) max.x = vector.x;
+
+				if(vector.y < min.y) min.y = vector.y;
+				else if(vector.y > max.y) max.y = vector.y;
+
+				if(vector.z < min.z) min.z = vector.z;
+				else if(vector.z > max.z) max.z = vector.z;
+			}
+			bounds.SetMinMax(min, max);
+			return bounds;
 		}
 	}
 
@@ -226,7 +253,10 @@ public class Region : MonoBehaviour {
 		}
 	}
 	bool ContainsPolygonSpacePoint3D (Vector3 polygonSpace) {
-		if(Vector3X.SqrDistance(localBounds.center, polygonSpace) > localBoundsSqrRadius) return false;
+		float SqrDistance (Vector3 a, Vector3 b) {
+			return (a.x-b.x) * (a.x-b.x) + (a.y-b.y) * (a.y-b.y) + (a.z-b.z) * (a.z-b.z);
+		}
+		if(SqrDistance(localBounds.center, polygonSpace) > localBoundsSqrRadius) return false;
 		if(!localBounds.Contains(polygonSpace)) return false;
 		if(polygonSpace.z > height * 0.5f) return false;
 		return polygon.ContainsPoint(polygonSpace);
@@ -273,7 +303,7 @@ public class Region : MonoBehaviour {
 		float distance = 0;
 		var pointOnEdge = ClosestPointOnRegionEdge(position);
 		if(in2DMode) {
-			distance = Vector3X.DistanceAgainstDirection(position, pointOnEdge, floorPlane.normal);
+			distance = Vector3.ProjectOnPlane(pointOnEdge - position, floorPlane.normal).magnitude;
 		} else {
 			distance = Vector3.Distance(position, pointOnEdge);
 		}
@@ -302,13 +332,13 @@ public class Region : MonoBehaviour {
 	public bool Linecast (Line3D line) {
         if(!in2DMode) {
             var planeIntersectionDistance = 0f; 
-            if(backPlane.LineIntersectionPoint(line, out planeIntersectionDistance)) {
+            if(PlaneLineIntersectionPoint(backPlane, line, out planeIntersectionDistance)) {
                 var point = line.AtDistance(planeIntersectionDistance);
                 var polygonSpace = WorldToPolygonSpacePoint(point);
                 if(ContainsPolygonSpacePoint2D(polygonSpace))
                     return true;
             }
-            if(frontPlane.LineIntersectionPoint(line, out planeIntersectionDistance)) {
+            if(PlaneLineIntersectionPoint(frontPlane, line, out planeIntersectionDistance)) {
                 var point = line.AtDistance(planeIntersectionDistance);
                 var polygonSpace = WorldToPolygonSpacePoint(point);
                 if(ContainsPolygonSpacePoint2D(polygonSpace))
@@ -341,14 +371,16 @@ public class Region : MonoBehaviour {
         intersectionPoints.Clear();
 
 		if(!in2DMode) {
-            var planeIntersectionDistance = 0f; 
-            if(backPlane.LineIntersectionPoint(line, out planeIntersectionDistance)) {
+            var planeIntersectionDistance = 0f;
+
+
+            if(PlaneLineIntersectionPoint(backPlane, line, out planeIntersectionDistance)) {
                 var point = line.AtDistance(planeIntersectionDistance);
                 var polygonSpace = WorldToPolygonSpacePoint(point);
                 if(ContainsPolygonSpacePoint2D(polygonSpace))
                     intersectionPoints.Add(point);
             }
-            if(frontPlane.LineIntersectionPoint(line, out planeIntersectionDistance)) {
+            if(PlaneLineIntersectionPoint(frontPlane, line, out planeIntersectionDistance)) {
                 var point = line.AtDistance(planeIntersectionDistance);
                 var polygonSpace = WorldToPolygonSpacePoint(point);
                 if(ContainsPolygonSpacePoint2D(polygonSpace))
@@ -375,6 +407,22 @@ public class Region : MonoBehaviour {
 		}
         return intersectionPoints.Count > 0;
     }
+
+	static bool PlaneLineIntersectionPoint (Plane plane, Line3D line, out float intersectionLineDistance) {
+		var u = Vector3.Normalize(line.end - line.start);
+		var dot = Vector3.Dot(plane.normal, u);
+		if(Mathf.Abs(dot) > Mathf.Epsilon) {
+			var planePoint = -plane.normal * plane.distance;
+			var w = line.start - planePoint;
+			intersectionLineDistance = -Vector3.Dot(plane.normal, w) / dot;
+			if(intersectionLineDistance < 0 || intersectionLineDistance > line.length) return false;
+			else return true;
+		} else {
+			// The segment is parallel to plane
+			intersectionLineDistance = 0;
+			return false;
+		}
+	}
 
 	public static int LineIntersectionNormalizedDistances (Matrix4x4 inverseMatrix, IEnumerable<Line> polygonLines, Line3D line, ref List<float> intersectionDistances) {
         Debug.LogWarning("TODO - integrate region height! See LineIntersectionPoints, although this that function is unsorted");
@@ -410,13 +458,19 @@ public class Region : MonoBehaviour {
 
         // Add intersections with the planes
         if(!in2DMode) {
-            hit.distance = backPlane.GetDistanceToPointInDirection(rayOrigin, rayDirection);
+			float GetDistanceToPointInDirection(Plane plane, Ray ray) { 
+				float distance = 0;
+				plane.Raycast(ray, out distance);
+				return distance;
+			}
+
+            hit.distance = GetDistanceToPointInDirection(backPlane, new Ray(rayOrigin, rayDirection));
             if(hit.distance > 0) {
                 hit.point = rayOrigin + rayDirection * hit.distance;
                 var polygonSpace = WorldToPolygonSpacePoint(hit.point);
                 if(ContainsPolygonSpacePoint2D(polygonSpace)) hits.Add(hit);
             }
-            hit.distance = frontPlane.GetDistanceToPointInDirection(rayOrigin, rayDirection);
+            hit.distance = GetDistanceToPointInDirection(frontPlane, new Ray(rayOrigin, rayDirection));
             if(hit.distance > 0) {
                 hit.point = rayOrigin + rayDirection * hit.distance;
                 var polygonSpace = WorldToPolygonSpacePoint(hit.point);
@@ -451,10 +505,117 @@ public class Region : MonoBehaviour {
 
         return hits;
     }
-
+	
 	public Vector3 GetCenter () {
 		return matrix.MultiplyPoint3x4(polygon.center);
 	}
+	
+	public Mesh CreatePolygonMesh (bool drawFront = true, bool drawBack = false) {
+		var points = polygon.vertices;
+		if(points == null || points.Length == 0) return null;
+		if(!drawFront && !drawBack) return null;
+		var mesh = new Mesh();
+
+		var surfaceTris = new List<int>();
+		Triangulator.GenerateIndices(polygon.vertices, surfaceTris);
+		var surfaceTrisCountMinusOne = surfaceTris.Count-1;
+		
+		var m = (drawFront?1:0) + (drawBack?1:0);
+		Vector3[] verts = new Vector3[((m * 6)*(points.Length)) + (polygon.vertices.Length * (m * 2))];
+		int[] tris = new int[((m * 6)*(points.Length)) + (surfaceTris.Count * (m * 2))];
+		
+		int vertIndex = 0;
+		int triIndex = 0;
+
+		var heightOffset = Vector3.forward * height * 0.5f;
+		
+		Vector3 topLeft, bottomLeft, topRight, bottomRight = Vector3.zero;
+		var localPolyPos = (Vector3)points[points.Length-1];
+		topLeft = -heightOffset + localPolyPos;
+		bottomLeft = heightOffset + localPolyPos;
+		for(var i = 0; i < points.Length; i++) {
+			localPolyPos = (Vector3)points[i];
+			topRight = -heightOffset + localPolyPos;
+			bottomRight = heightOffset + localPolyPos;
+			
+			if(drawFront) {
+				verts[vertIndex] = topLeft; vertIndex++;
+				verts[vertIndex] = topRight; vertIndex++;
+				verts[vertIndex] = bottomLeft; vertIndex++;
+				verts[vertIndex] = topRight; vertIndex++;
+				verts[vertIndex] = bottomRight; vertIndex++;
+				verts[vertIndex] = bottomLeft; vertIndex++;
+				for(int t = 0; t < 6; t++) tris[triIndex + t] = triIndex + t;
+				triIndex += 6;
+			}
+
+			if (drawBack) {
+				verts[vertIndex] = bottomLeft; vertIndex++;
+				verts[vertIndex] = topRight; vertIndex++;
+				verts[vertIndex] = topLeft; vertIndex++;
+				verts[vertIndex] = bottomLeft; vertIndex++;
+				verts[vertIndex] = bottomRight; vertIndex++;
+				verts[vertIndex] = topRight; vertIndex++;
+
+				for(int t = 0; t < 6; t++) tris[triIndex + t] = triIndex + t;
+				triIndex += 6;
+			}
+
+			topLeft = topRight;
+			bottomLeft = bottomRight;
+		}
+
+		// Front
+		if(drawFront) {
+			for(int i = 0; i < points.Length; i++) {
+				verts[vertIndex+i] = (Vector3)points[i] - heightOffset;
+			}
+			for(int i = 0; i < surfaceTris.Count; i++) {
+				tris[triIndex+i] = surfaceTris[i] + vertIndex;
+			}
+			vertIndex += points.Length;
+			triIndex += surfaceTris.Count;
+			
+			// Back
+			for(int i = 0; i < points.Length; i++) {
+				verts[vertIndex+i] = (Vector3)points[i] + heightOffset;
+			}
+			for(int i = 0; i < surfaceTris.Count; i++) {
+				tris[triIndex+i] = surfaceTris[surfaceTrisCountMinusOne - i] + vertIndex;
+			}
+			vertIndex += points.Length;
+			triIndex += surfaceTris.Count;
+		}
+		
+
+		if(drawBack) {
+			for(int i = 0; i < points.Length; i++) {
+				verts[vertIndex+i] = (Vector3)points[i] - heightOffset;
+			}
+			for(int i = 0; i < surfaceTris.Count; i++) {
+				tris[triIndex+i] = surfaceTris[surfaceTrisCountMinusOne - i] + vertIndex;
+			}
+			vertIndex += points.Length;
+			triIndex += surfaceTris.Count;
+			
+			// Back
+			for(int i = 0; i < points.Length; i++) {
+				verts[vertIndex+i] = (Vector3)points[i] + heightOffset;
+			}
+			for(int i = 0; i < surfaceTris.Count; i++) {
+				tris[triIndex+i] = surfaceTris[i] + vertIndex;
+			}
+			vertIndex += points.Length;
+			triIndex += surfaceTris.Count;
+		}
+
+		mesh.vertices = verts;
+		mesh.triangles = tris;
+
+		mesh.RecalculateNormals();
+		return mesh;
+	}
+
 
 	// This must be called when the properties of the region are changed.
 	[ContextMenu("Refresh")]
@@ -466,12 +627,31 @@ public class Region : MonoBehaviour {
 	void RebuildProperties () {
 		polygonRect = polygon.GetRect();
 		// bounds = Bounds.Create
-		localBounds = BoundsX.CreateEncapsulating(
+		localBounds = CreateEncapsulating(
 			new Vector3(polygonRect.x, polygonRect.y, -height * 0.5f), 
 			new Vector3(polygonRect.x, polygonRect.y, height * 0.5f),
 			new Vector3(polygonRect.xMax, polygonRect.yMax, -height * 0.5f), 
 			new Vector3(polygonRect.xMax, polygonRect.yMax, height * 0.5f)
 		);
 		localBoundsSqrRadius = localBounds.extents.sqrMagnitude;
+
+		Bounds CreateEncapsulating (params Vector3[] vectors) {
+			if(vectors == null || vectors.Length == 0) return new Bounds(Vector3.zero, Vector3.zero);
+			Bounds bounds = new Bounds(vectors[0], Vector3.zero);
+			Vector3 min = bounds.min;
+			Vector3 max = bounds.max;
+			foreach(var vector in vectors) {
+				if(vector.x < min.x) min.x = vector.x;
+				else if(vector.x > max.x) max.x = vector.x;
+
+				if(vector.y < min.y) min.y = vector.y;
+				else if(vector.y > max.y) max.y = vector.y;
+
+				if(vector.z < min.z) min.z = vector.z;
+				else if(vector.z > max.z) max.z = vector.z;
+			}
+			bounds.SetMinMax(min, max);
+			return bounds;
+		}
 	}
 }

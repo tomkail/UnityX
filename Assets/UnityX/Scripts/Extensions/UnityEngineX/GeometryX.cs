@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public static class GeometryX {
 	// (4/3)πr^3
 	public static float SphereVolumeFromRadius(float radius){
-		return (4/3)*Mathf.PI*(Mathf.Pow(radius, 3));
+		return (4f/3f)*Mathf.PI*(Mathf.Pow(radius, 3));
 	}
 
 	// 4πr^2

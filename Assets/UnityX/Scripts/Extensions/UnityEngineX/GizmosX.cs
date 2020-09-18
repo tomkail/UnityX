@@ -86,28 +86,25 @@ public static class GizmosX {
 	}
 
 	static Mesh CreatePolygonMesh (Vector2[] points, bool doubleSided = false) {
-		// if(mesh == null) 
 		var mesh = CreateMesh();
-		// else mesh.Clear();
 
+		var tris = new List<int>();
+		Triangulator.GenerateIndices(points, tris);
 		if(doubleSided) {
-			var verts = points.Select(v => new Vector3(v.x, v.y, 0)).ToArray();
-			var tris = new Triangulator(points).Triangulate();
+			var doubleVerts = new Vector3[points.Length * 2];
+			for(int i = 0; i < points.Length; i++) doubleVerts[i] = doubleVerts[i+points.Length] = points[i];
 
-			var doubleVerts = new Vector3[verts.Length * 2];
-			for(int i = 0; i < verts.Length; i++) doubleVerts[i] = doubleVerts[i+verts.Length] = verts[i];
-
-			var doubleTris = new int[tris.Length * 2];
-			int triLengthMinusOne = tris.Length-1;
-			for(int i = 0; i < tris.Length; i++) {
+			var doubleTris = new int[tris.Count * 2];
+			int triLengthMinusOne = tris.Count-1;
+			for(int i = 0; i < tris.Count; i++) {
 				doubleTris[i] = tris[i];
-				doubleTris[i+tris.Length] = tris[triLengthMinusOne - i] + points.Length;
+				doubleTris[i+tris.Count] = tris[triLengthMinusOne - i] + points.Length;
 			}
 			mesh.vertices = doubleVerts;
 			mesh.triangles = doubleTris;
 		} else {
 			mesh.vertices = points.Select(v => new Vector3(v.x, v.y, 0)).ToArray();
-			mesh.triangles = new Triangulator(points).Triangulate();
+			mesh.SetTriangles(tris, 0);
 		}
 
 		mesh.RecalculateNormals();
@@ -152,23 +149,23 @@ public static class GizmosX {
 		aLow = -heightOffset + localPolyPos;
 		aHigh = heightOffset + localPolyPos;
 		for(i = 0; i <= points.Length; i++) {
-			localPolyPos = (Vector3)points.GetRepeating(i);
+			localPolyPos = (Vector3)points[i % points.Length];
 			bLow = -heightOffset + localPolyPos;
 			bHigh = heightOffset + localPolyPos;
-			GizmosX.DrawPlane(aLow, bLow, aHigh, bHigh, true);
+			DrawPlane(aLow, bLow, aHigh, bHigh, true);
 			aLow = bLow;
 			aHigh = bHigh;
 		}
 
 		var mesh = CreatePolygonMesh(points, true);
 		if(mesh.vertexCount > 0 && mesh.normals.Length > 0) {
-			GizmosX.BeginMatrix(Gizmos.matrix * Matrix4x4.TRS(-heightOffset, Quaternion.identity, Vector3.one));
+			var cachedMatrix = Gizmos.matrix;
+			Gizmos.matrix = Gizmos.matrix * Matrix4x4.TRS(-heightOffset, Quaternion.identity, Vector3.one);
 			Gizmos.DrawMesh(mesh);
-			GizmosX.EndMatrix();
 
-			GizmosX.BeginMatrix(Gizmos.matrix * Matrix4x4.TRS(heightOffset, Quaternion.identity, Vector3.one));
+			Gizmos.matrix = Gizmos.matrix * Matrix4x4.TRS(heightOffset, Quaternion.identity, Vector3.one);
 			Gizmos.DrawMesh(mesh);
-			GizmosX.EndMatrix();
+			Gizmos.matrix = cachedMatrix;
 		}
 	}
 	
@@ -179,7 +176,7 @@ public static class GizmosX {
 		GizmosX.EndMatrix();
 	}
 
-	public static void DrawExtrudedWirePolygon (Vector2[] points, float height) {
+	static void DrawExtrudedWirePolygon (Vector2[] points, float height) {
 		if(points == null || points.Length == 0) return;
 		Vector3 aLow, aHigh, bLow, bHigh = Vector3.zero;
 		int i = 0;
@@ -188,7 +185,7 @@ public static class GizmosX {
 		aLow = -heightOffset + localPolyPos;
 		aHigh = heightOffset + localPolyPos;
 		for(i = 0; i <= points.Length; i++) {
-			localPolyPos = (Vector3)points.GetRepeating(i);
+			localPolyPos = (Vector3)points[i%points.Length];
 			bLow = -heightOffset + localPolyPos;
 			bHigh = heightOffset + localPolyPos;
 			Gizmos.DrawLine(aLow, aHigh);
@@ -344,9 +341,7 @@ public static class GizmosX {
 	
 
 	public static void DrawPlane (Vector3 topLeft, Vector3 topRight, Vector3 bottomLeft, Vector3 bottomRight, bool doubleSided = false) {
-		// if(mesh == null) 
 		var mesh = CreateMesh();
-		// else mesh.Clear();
 		
 		Vector3[] verts = null;
 		int[] tris = null;

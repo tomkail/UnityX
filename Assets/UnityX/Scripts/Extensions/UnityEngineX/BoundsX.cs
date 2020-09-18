@@ -26,8 +26,8 @@ public static class BoundsX {
 	/// </summary>
 	/// <param name="vectors">Vectors.</param>
 	public static Bounds CreateEncapsulating (params Vector3[] vectors) {
-		if(vectors == null || !vectors.Any()) return new Bounds(Vector3.zero, Vector3.zero);
-		Bounds bounds = new Bounds(vectors.First(), Vector3.zero);
+		if(vectors == null || vectors.Length == 0) return new Bounds(Vector3.zero, Vector3.zero);
+		Bounds bounds = new Bounds(vectors[0], Vector3.zero);
         Vector3 min = bounds.min;
         Vector3 max = bounds.max;
 		foreach(var vector in vectors) {

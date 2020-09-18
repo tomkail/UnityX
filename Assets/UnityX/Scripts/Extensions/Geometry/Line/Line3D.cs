@@ -11,7 +11,7 @@ namespace UnityX.Geometry {
 		public Vector3 end;
 		
 		public Vector3 direction {
-			get { return Vector3X.NormalizedDirection(start, end); }
+			get { return Vector3.Normalize(end-start); }
 		}
 
 		public Vector3 vector {
@@ -23,7 +23,7 @@ namespace UnityX.Geometry {
 		}
 	
 		public float sqrLength {
-			get { return Vector3X.SqrDistance(start, end); }
+			get { return SqrDistance(start, end); }
 		}
 
 	
@@ -146,7 +146,7 @@ namespace UnityX.Geometry {
 
 		public float GetClosestSqrDistanceFromLine(Vector3 p, bool clamped = true) {
 //			// Return minimum distance between line segment vw and point p
-			return Vector3X.SqrDistance(p, GetClosestPointOnLine(p, clamped));
+			return SqrDistance(p, GetClosestPointOnLine(p, clamped));
 		}
 		public float GetClosestDistanceFromLine(Vector3 p, bool clamped = true) {
 //			// Return minimum distance between line segment vw and point p
@@ -181,7 +181,7 @@ namespace UnityX.Geometry {
 		}
 
 		public static float GetNormalizedDistanceOnLine(Vector3 start, Vector3 end, Vector3 p, bool clamped = true) {
-			float sqrLength = Vector3X.SqrDistance(start, end);
+			float sqrLength = SqrDistance(start, end);
 			return GetNormalizedDistanceOnLineInternal(start, end, p, sqrLength, clamped);
 		}
 
@@ -196,6 +196,12 @@ namespace UnityX.Geometry {
 			float n = Vector3.Dot(p - start, end - start) / sqrLength;
 			if(!clamped) return n;
 			return Mathf.Clamp01(n);
+		}
+
+
+
+		static float SqrDistance (Vector3 a, Vector3 b) {
+			return (a.x-b.x) * (a.x-b.x) + (a.y-b.y) * (a.y-b.y) + (a.z-b.z) * (a.z-b.z);
 		}
 	}
 }

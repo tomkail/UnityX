@@ -68,7 +68,8 @@ namespace UnityEngine.UI.Extensions {
 			var points = polygon.vertices;
             var pivotOffset = (Vector3)GetPixelAdjustedRect().position;
 			
-            var triangles = new Triangulator(points).Triangulate();
+            List<int> triangles = new List<int>();
+            Triangulator.GenerateIndices(points, triangles);
             var rect = polygon.GetRect();
             Vector2 uvXDirection = MathX.DegreesToVector2(uvXAngle);
             Vector2 uvYDirection = MathX.DegreesToVector2(uvYAngle);
@@ -105,7 +106,7 @@ namespace UnityEngine.UI.Extensions {
                     vh.AddVert(pos+pivotOffset, color, uv);
                 }
                 // vh.AddUIVertexQuad()
-                for(int i = 0; i < triangles.Length; i+= 3) {
+                for(int i = 0; i < triangles.Count; i+= 3) {
                     vh.AddTriangle(triangles[i], triangles[i+1], triangles[i+2]);
                 }
             // }

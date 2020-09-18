@@ -98,8 +98,11 @@ public class PolygonRenderer : BasePolygonRenderer {
 
         // if(back) {
             mesh.vertices = points.Select(v => new Vector3(v.x, v.y, 0)).ToArray();
-			mesh.triangles = new Triangulator(points).Triangulate();
 			
+            List<int> triangles = new List<int>();
+            Triangulator.GenerateIndices(points, triangles);
+            mesh.SetTriangles(triangles, 0);
+            
             mesh.uv = RecalculateUVs(polygonRect, points);
             mesh.colors = RecalculateColors(polygonRect, points);
         // }

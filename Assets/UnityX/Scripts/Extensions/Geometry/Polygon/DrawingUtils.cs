@@ -53,8 +53,8 @@ namespace UnityX.Geometry
 			var circlePoint = GetProportionPoint(angularPoint, d, L, dx, dy);
 
 			//StartAngle and EndAngle of arc
-			var startAngle = Vector2X.DegreesBetween(circlePoint, p1Cross);
-			var endAngle = Vector2X.DegreesBetween(circlePoint, p2Cross);
+			var startAngle = Vector2.Angle(p1Cross-circlePoint, Vector2.up);
+			var endAngle = Vector2.Angle(p2Cross-circlePoint, Vector2.up);
 
 			//Sweep angle
 			var sweepAngle = Mathf.DeltaAngle(startAngle, endAngle);
@@ -64,8 +64,11 @@ namespace UnityX.Geometry
 			Vector2[] points = new Vector2[pointsCount];
 
 			var n = 1f/(Mathf.Max(pointsCount-1, 1));
-			for (int i = 0; i < pointsCount; ++i) 
-				points[i] = circlePoint + MathX.DegreesToVector2(Mathf.LerpAngle(startAngle, endAngle, i * n)) * radius;
+			for (int i = 0; i < pointsCount; ++i) {
+				var radians = Mathf.LerpAngle(startAngle, endAngle, i * n) * Mathf.Deg2Rad;
+				var vector = new Vector2(Mathf.Sin(radians), Mathf.Cos(radians));
+				points[i] = circlePoint + vector * radius;
+			}
 			return points;
 		}
 

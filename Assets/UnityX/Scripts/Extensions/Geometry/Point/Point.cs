@@ -454,11 +454,14 @@ public struct Point : IEquatable<Point> {
 
 	// Given a coord and corner index, find the corner index of another coord that shares the same vert.
 	public static int GetTouchingCornerPointIndex (Point coord, int coordCornerIndex, Point otherCoord) {
+		float SqrDistance (Vector2 a, Vector2 b) {
+			return (a.x-b.x) * (a.x-b.x) + (a.y-b.y) * (a.y-b.y);
+		}
 		if(Math.Abs(coord.x-otherCoord.x) != 1 && Math.Abs(coord.y-otherCoord.y) != 1) return -1;
 		var cornerPoint = coord.Corner(coordCornerIndex);
 		for(int otherCornerIndex = 0; otherCornerIndex < numCorners; otherCornerIndex++) {
 			var otherCornerPoint = otherCoord.Corner(otherCornerIndex);
-			if(Vector2X.SqrDistance(cornerPoint, otherCornerPoint) < 0.1f) {
+			if(SqrDistance(cornerPoint, otherCornerPoint) < 0.1f) {
 				return otherCornerIndex;
 			}
 		}

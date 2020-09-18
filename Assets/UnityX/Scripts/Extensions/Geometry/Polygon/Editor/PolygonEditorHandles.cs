@@ -1,7 +1,9 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using System;
+using System.Linq;
 using System.Collections;
+using System.Collections.Generic;
 using UnityX.Geometry;
 
 public class PolygonEditorHandles {
@@ -157,7 +159,8 @@ public class PolygonEditorHandles {
 	void DrawSceneViewToolbar (Polygon polygon, ref bool changed) {
 		Handles.BeginGUI();
 		Vector3 midPointScreenPoint = HandleUtility.WorldToGUIPoint(matrix.MultiplyPoint3x4(polygon.center));
-		GUILayout.BeginArea(RectX.Create(midPointScreenPoint, new Vector2(100, 28), new Vector2(0.5f, 0.5f)));
+		var halfSize = new Vector2(100, 28)*0.5f;
+		GUILayout.BeginArea(Rect.MinMaxRect(midPointScreenPoint.x-halfSize.x, midPointScreenPoint.y-halfSize.y, midPointScreenPoint.x+halfSize.x, midPointScreenPoint.y+halfSize.y));
 		GUILayout.BeginHorizontal();
 
 		if (GUILayout.Button(editing ? "Finish" : "Edit", GUILayout.Width(50), GUILayout.ExpandHeight(true))) {
@@ -198,7 +201,9 @@ public class PolygonEditorHandles {
 				_changed = true;
 			});
 			contextMenu.AddItem(new GUIContent("Simplify"), false, () => {
-				polygon.vertices = Polygon.GetSimplifiedVerts(polygon.vertices).ToArray();
+				List<Vector2> simplified = new List<Vector2>();
+				Polygon.SimplifyRamerDouglasPeucker(polygon.vertices.ToList(), 0, simplified);
+				polygon.SetVertices(simplified);
 				_changed = true;
 			});
 			contextMenu.ShowAsContext();
@@ -288,14 +293,14 @@ public class PolygonEditorHandles {
 
 		Vector2[] screenSpacePolygonVerts = new Vector2[polygon.vertices.Length];
 		for (int i = 0; i < screenSpacePolygonVerts.Length; i++) {
-			Vector3 worldSpace = PolygonToWorldPoint(polygon.vertices[i]);
+			Vector3 worldSpace = PolygonToWorldPoint(polygon.GetVertex(i));
 			screenSpacePolygonVerts [i] = HandleUtility.WorldToGUIPoint(worldSpace);
 		}
 		Polygon screenSpacePolygon = new Polygon(screenSpacePolygonVerts);
 
 		var closestVertexIndex = screenSpacePolygon.FindClosestVertexIndex(mousePosition);
 
-		var closestScreenVertexPoint = screenSpacePolygon.vertices[closestVertexIndex];
+		var closestScreenVertexPoint = screenSpacePolygon.GetVertex(closestVertexIndex);
 
 		var bestPointOnScreenPolygon = screenSpacePolygon.FindClosestPointOnPolygon(mousePosition);
 
@@ -306,14 +311,14 @@ public class PolygonEditorHandles {
 		bool vertexEditMode = !moveMode && (screenDistanceFromClosestPoint < pointSnapDistance || deletionMode);
 		if(vertexEditMode) {
 			int[] indices = new int[3] {
-				polygon.vertices.GetRepeatingIndex(closestVertexIndex-1),
+				closestVertexIndex-1,
 				closestVertexIndex, 
-				polygon.vertices.GetRepeatingIndex(closestVertexIndex+1)
+				closestVertexIndex+1
 			};
 
 			if(!isEditingPoint) {
 				Vector3[] closestVertices = new Vector3[3];
-				for(int i = 0; i < closestVertices.Length; i++) closestVertices[i] = PolygonToWorldPoint(polygon.vertices[indices[i]]);
+				for(int i = 0; i < closestVertices.Length; i++) closestVertices[i] = PolygonToWorldPoint(polygon.GetVertex(indices[i]));
 
 				if(deletionMode) Handles.color = highlightedDeletionModeLineColor;
 				else Handles.color = highlightedLineColor;
@@ -395,8 +400,8 @@ public class PolygonEditorHandles {
     }
 
 	Vector2 SnapToPolygonInterval (Vector2 vector) {
-		vector.x = MathX.RoundToNearest(vector.x, snapInterval);
-		vector.y = MathX.RoundToNearest(vector.y, snapInterval);
+		vector.x = RoundToNearest(vector.x, snapInterval);
+		vector.y = RoundToNearest(vector.y, snapInterval);
 		return vector;
 	}
 	Vector3 SnapToWorldInterval (Vector3 vector) {
@@ -436,4 +441,8 @@ public class PolygonEditorHandles {
 		}
 		return false;
     }
+
+	static float RoundToNearest(float newNum, float nearestValue){
+		return Mathf.Round(newNum/nearestValue)*nearestValue;
+	}
 }

@@ -33,10 +33,21 @@ namespace UnityX.Geometry {
             list.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
 				EditorGUI.PropertyField(rect, listProperty.GetArrayElementAtIndex(index), new GUIContent("Index "+index));
             };
-            list.elementHeightCallback = ReorderableListX.DefaultElementHeightCallback(list);
+            list.elementHeightCallback = DefaultElementHeightCallback(list);
 			list.onCanRemoveCallback = (ReorderableList list) => {
 				return list.serializedProperty.arraySize > 3;
 			};
+
+			ReorderableList.ElementHeightCallbackDelegate DefaultElementHeightCallback(ReorderableList list, float extraHeight = 0) {
+				return (int index) => {
+					if(list.serializedProperty == null) {
+						return EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing + extraHeight;
+					} else {
+						var element = list.serializedProperty.GetArrayElementAtIndex(index);
+						return EditorGUI.GetPropertyHeight(element) + EditorGUIUtility.standardVerticalSpacing + extraHeight;
+					}
+				};
+			}
 		}
 
 		public override float GetPropertyHeight (SerializedProperty property, GUIContent label) {

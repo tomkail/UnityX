@@ -17,7 +17,7 @@ namespace UnityX.Geometry {
 
 		public float Volume {
 			get {
-				return GeometryX.SphereVolumeFromRadius(radius);
+				return (4f/3f)*Mathf.PI*(Mathf.Pow(radius, 3));
 			}
 		}
 
@@ -32,7 +32,7 @@ namespace UnityX.Geometry {
 
 		// If the sphere contains a point
 		public bool ContainsPoint (Vector3 point) {
-			return Vector3X.SqrDistance(center, point) < sqrRadius;
+			return SqrDistance(center, point) < sqrRadius;
 		}
 
 		// If the sphere entirely contains a sphere
@@ -40,7 +40,7 @@ namespace UnityX.Geometry {
 			var sqrRadiusDelta = radius - otherSphere.radius;
 			if(sqrRadiusDelta < 0) return false;
 			sqrRadiusDelta *= sqrRadiusDelta;
-			var sqrCenterDist = Vector3X.SqrDistance(center, otherSphere.center);
+			var sqrCenterDist = SqrDistance(center, otherSphere.center);
 			return sqrCenterDist < sqrRadiusDelta;
 		}
 
@@ -49,7 +49,7 @@ namespace UnityX.Geometry {
 			var sqrRadiusDelta = radius + otherSphere.radius;
 			if(sqrRadiusDelta < 0) return false;
 			sqrRadiusDelta *= sqrRadiusDelta;
-			var sqrCenterDist = Vector3X.SqrDistance(center, otherSphere.center);
+			var sqrCenterDist = SqrDistance(center, otherSphere.center);
 			return sqrCenterDist < sqrRadiusDelta;
 		}
 
@@ -61,7 +61,7 @@ namespace UnityX.Geometry {
 		
 		// Clamps the point to the closest point on the surface of the sphere
 		public Vector3 ClosestPointOnSurface (Vector3 position) {
-			var dirFromCenter = Vector3X.NormalizedDirection(center, position);
+			var dirFromCenter = Vector3.Normalize(position-center);
 			return center + dirFromCenter * radius;
 		}
 
@@ -172,15 +172,7 @@ namespace UnityX.Geometry {
 				return new Sphere(O + o, o.magnitude * RADIUS_EPSILON);
 			}
 		}
-
-
-
-
-
-
-
-
-
+		
 
 
 
@@ -270,5 +262,11 @@ namespace UnityX.Geometry {
 			
 		// 	result = b * b >= a;
 		// }
+
+		static float SqrDistance (Vector3 a, Vector3 b) {
+			return (a.x-b.x) * (a.x-b.x) + (a.y-b.y) * (a.y-b.y) + (a.z-b.z) * (a.z-b.z);
+		}
 	}
+
+
 }

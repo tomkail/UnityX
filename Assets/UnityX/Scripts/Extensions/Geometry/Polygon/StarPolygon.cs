@@ -85,7 +85,9 @@ namespace UnityX.Geometry {
 		private Polygon RegularPolygonToPolygon () {
 			Vector2[] vertices = new Vector2[NumVertices];
 			for(int i = 0; i < NumVertices; i++) {
-				vertices[i] = offset + MathX.DegreesToVector2(rotation + MathX.DegreesFromRange(i, NumVertices)) * radius;
+				var radians = (i/(float)NumVertices) * Mathf.PI * 2;
+				var dir = new Vector2(Mathf.Sin(radians), Mathf.Sin(radians));
+				vertices[i] = offset + dir * radius;
 			}
 			return new Polygon(vertices);
 		}
@@ -94,8 +96,13 @@ namespace UnityX.Geometry {
 			int calculatedNumVerts = 2 * NumVertices;
 			Vector2[] vertices = new Vector2[calculatedNumVerts];
 			for (int i = 0; i < calculatedNumVerts; i += 2) {
-				vertices[i] = offset + MathX.DegreesToVector2(rotation + MathX.DegreesFromRange(i, calculatedNumVerts)) * radius;
-				vertices[i + 1] = offset + MathX.DegreesToVector2(rotation + MathX.DegreesFromRange(i + 1, calculatedNumVerts)) * concaveRadius;
+				var radians = (i/(float)calculatedNumVerts) * Mathf.PI * 2;
+				var dir = new Vector2(Mathf.Sin(radians), Mathf.Sin(radians));
+				vertices[i] = offset + dir * radius;
+				
+				radians = ((i + 1)/(float)calculatedNumVerts) * Mathf.PI * 2;
+				dir = new Vector2(Mathf.Sin(radians), Mathf.Sin(radians));
+				vertices[i + 1] = offset + dir * concaveRadius;
 			}
 			return new Polygon(vertices);
 		}
@@ -113,10 +120,10 @@ namespace UnityX.Geometry {
 		    float theta11 = theta10 - dtheta * Skip;
 	
 		    // Find the key points.
-			Vector2 pt00 = MathX.RadiansToVector2(theta00);
-			Vector2 pt01 = MathX.RadiansToVector2(theta01);
-			Vector2 pt10 = MathX.RadiansToVector2(theta10);
-			Vector2 pt11 = MathX.RadiansToVector2(theta11);
+			Vector2 pt00 = new Vector2(Mathf.Sin(theta00), Mathf.Cos(theta00));
+			Vector2 pt01 = new Vector2(Mathf.Sin(theta01), Mathf.Cos(theta01));
+			Vector2 pt10 = new Vector2(Mathf.Sin(theta10), Mathf.Cos(theta10));
+			Vector2 pt11 = new Vector2(Mathf.Sin(theta11), Mathf.Cos(theta11));
 	
 		    // See where the segments connecting the points intersect.
 		    bool lines_intersect, segments_intersect;

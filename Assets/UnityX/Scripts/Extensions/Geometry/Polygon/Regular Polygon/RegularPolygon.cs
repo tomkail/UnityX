@@ -41,7 +41,9 @@ namespace UnityX.Geometry {
 		public Vector2[] ToPolygonVerts () {
 			Vector2[] vertices = new Vector2[NumVertices];
 			for(int i = 0; i < NumVertices; i++) {
-				vertices[i] = offset + MathX.DegreesToVector2(rotation + MathX.DegreesFromRange(i, NumVertices)) * radius;
+				var radians = i/(float)NumVertices * Mathf.PI * 2;
+				radians += Mathf.Deg2Rad * rotation;
+				vertices[i] = offset + new Vector2(Mathf.Sin(radians), Mathf.Cos(radians)) * radius;
 			}
 			return vertices;
 		}
