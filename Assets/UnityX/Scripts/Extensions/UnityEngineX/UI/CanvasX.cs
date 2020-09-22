@@ -95,33 +95,13 @@ public static class CanvasX {
 	/// <param name="canvas">Canvas.</param>
 	/// <param name="camera">Camera.</param>
 	/// <param name="worldPosition">World position.</param>
-	public static Vector3? WorldPointToLocalPointInRectangle (this Canvas canvas, Camera camera, Vector3 worldPosition) {
-		Vector3 screenPoint = camera.WorldToScreenPoint(worldPosition);
-
-		// Behind the camera, definitely can't be within the rectangle
-		if (screenPoint.z < 0)
-			return null;
-		
-		Vector3? output = canvas.ScreenPointToLocalPointInRectangle(screenPoint);
-		if(output == null)
-			return null;
-		else
-			return (Vector3)output;
-	}
-
 	public static Vector3? WorldPointToLocalPointInRectangle (this Canvas canvas, Camera camera, RectTransform rectTransform, Vector3 worldPosition) {
 		Vector3 screenPoint = camera.WorldToScreenPoint(worldPosition);
-
-		
-		// Behind the camera, definitely can't be within the rectangle
-		if (screenPoint.z < 0)
-			return null;
-		
-		Vector3? output = canvas.ScreenPointToLocalPointInRectangle(rectTransform, screenPoint);
-		if(output == null)
-			return null;
-		else
-			return (Vector3)output;
+		if (screenPoint.z < 0) return null;
+		return canvas.ScreenPointToLocalPointInRectangle(rectTransform, screenPoint);
+	}
+	public static Vector3? WorldPointToLocalPointInRectangle (this Canvas canvas, Camera camera, Vector3 worldPosition) {
+		return canvas.WorldPointToLocalPointInRectangle(canvas.GetComponent<RectTransform>(), camera, worldPosition);
 	}
 
 	public static Vector3? ScreenPointToLocalPointInRectangle (this Canvas canvas, RectTransform rectTransform, Vector2 screenPoint) {
@@ -133,12 +113,7 @@ public static class CanvasX {
 	}
 	
 	public static Vector3? ScreenPointToLocalPointInRectangle (this Canvas canvas, Vector2 screenPoint) {
-		Camera camera = canvas.renderMode == RenderMode.ScreenSpaceCamera ? canvas.worldCamera : null;
-		Vector2 localPosition;
-        var rectTransform = canvas.GetComponent<RectTransform>();
-		if(RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, screenPoint, camera, out localPosition))
-			return localPosition;
-		else return null;
+		return canvas.ScreenPointToLocalPointInRectangle(canvas.GetComponent<RectTransform>(), screenPoint);
 	}
 	
 	
