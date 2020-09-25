@@ -44,7 +44,7 @@ public struct Range
 
 
 	// 1D AABB detection algorithm
-	public bool IsAtAllIncludedByRange (Range otherRange) {
+	public bool Overlaps (Range otherRange) {
 		return Mathf.Abs(otherRange.min - min) * 2 < (otherRange.length + length);
 	}
 

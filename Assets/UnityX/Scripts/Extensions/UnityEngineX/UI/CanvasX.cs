@@ -101,7 +101,7 @@ public static class CanvasX {
 		return canvas.ScreenPointToLocalPointInRectangle(rectTransform, screenPoint);
 	}
 	public static Vector3? WorldPointToLocalPointInRectangle (this Canvas canvas, Camera camera, Vector3 worldPosition) {
-		return canvas.WorldPointToLocalPointInRectangle(canvas.GetComponent<RectTransform>(), camera, worldPosition);
+		return canvas.WorldPointToLocalPointInRectangle(camera, canvas.GetComponent<RectTransform>(), worldPosition);
 	}
 
 	public static Vector3? ScreenPointToLocalPointInRectangle (this Canvas canvas, RectTransform rectTransform, Vector2 screenPoint) {
