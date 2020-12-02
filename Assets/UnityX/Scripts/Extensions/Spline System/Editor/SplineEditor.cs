@@ -274,7 +274,10 @@ namespace SplineSystem {
             return localPlaneFor2DMode.ClosestPointOnPlane(position);
         }
         Quaternion GetFlattened2DRotation (Quaternion rotation) {
-            return Quaternion.LookRotation(Vector3.ProjectOnPlane(rotation * Vector3.forward, localPlaneFor2DMode.normal), localPlaneFor2DMode.normal);
+            var projected = Vector3.ProjectOnPlane(rotation * Vector3.forward, localPlaneFor2DMode.normal).normalized;
+            if(projected == Vector3.zero) return Quaternion.LookRotation(localPlaneFor2DMode.normal, new Vector3(localPlaneFor2DMode.normal.z, localPlaneFor2DMode.normal.y, -localPlaneFor2DMode.normal.x)); 
+            // if(Mathf.Abs(Vector3.Dot(projected, localPlaneFor2DMode.normal)) > 1f-Mathf.Epsilon) 
+            return Quaternion.LookRotation(projected, localPlaneFor2DMode.normal);
         }
 
         struct SamplePoint {
