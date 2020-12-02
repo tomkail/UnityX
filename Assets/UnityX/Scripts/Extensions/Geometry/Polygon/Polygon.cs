@@ -125,12 +125,15 @@ namespace UnityX.Geometry
 			}
 		}
 		
-		public Polygon (params Vector2[] _vertices) {
-			this.vertices = _vertices;
+		public Polygon (params Vector2[] vertices) {
+			SetVertices(vertices);
+		}
+		public Polygon (IEnumerable<Vector2> vertices) {
+			SetVertices(vertices);
 		}
 		
 		public Polygon (Polygon _polygon) {
-			vertices = (Vector2[]) _polygon.vertices.Clone();
+			SetVertices(_polygon.vertices);
 		}
 
 		/// <summary>
@@ -144,10 +147,18 @@ namespace UnityX.Geometry
 			}
 		}
 
-		public void SetVertices (List<Vector2> verts) {
-			_vertices = new Vector2[verts.Count];
-			// System.Array.Resize(ref _vertices, verts.Count);
+		public void SetVertices (IList<Vector2> verts) {
+			if(_vertices == null) _vertices = new Vector2[verts.Count];
+			else System.Array.Resize(ref _vertices, verts.Count);
 			for(int i = 0; i < verts.Count; i++) _vertices[i] = verts[i];
+		}
+		public void SetVertices (IEnumerable<Vector2> verts) {
+			System.Array.Resize(ref _vertices, verts.Count());
+			int i = 0;
+			foreach(var vert in verts) {
+				_vertices[i] = vert;
+				i++;
+			}
 		}
 
 
@@ -176,12 +187,9 @@ namespace UnityX.Geometry
 			return length;
 		}
 		
-		public Vector2 GetRegularEdgePosition (float normalizedEdgeLength) {
-			normalizedEdgeLength %= 1; 
-			var edgeLength = GetTotalLength() * normalizedEdgeLength;
+		public Vector2 GetPositionAtArcLength (float edgeLength) {
 			// var edgeIndex = Mathf.FloorToInt(edgeLength);
 			// var edgeArcLength = edgeIndex-edgeLength;
-
 			var length = 0f;
 			foreach(var line in GetLines()) {
 				var endLength = length + line.length;
@@ -192,6 +200,13 @@ namespace UnityX.Geometry
 				else length = endLength;
 			}
 			return vertices.Last();
+		}
+		public Vector2 GetPositionAtNormalizedArcLength (float normalizedEdgeLength) {
+			normalizedEdgeLength %= 1; 
+			var edgeLength = GetTotalLength() * normalizedEdgeLength;
+			// var edgeIndex = Mathf.FloorToInt(edgeLength);
+			// var edgeArcLength = edgeIndex-edgeLength;
+			return GetPositionAtArcLength(edgeLength);
 		}
 		/// <summary>
 		/// Gets the vertex.
@@ -427,7 +442,7 @@ namespace UnityX.Geometry
 
 
 		public static Polygon MakeConvexHull(List<Vector2> points) {
-			return new Polygon(MakeConvexHullPoints(points).ToArray());
+			return new Polygon(MakeConvexHullPoints(points));
 		}
 
 
@@ -917,6 +932,13 @@ namespace UnityX.Geometry
 				if (_vertices[i] != src[i]) return false;
 			return true;
 		}
+		public bool CompareTo(Vector2[] verts)
+		{
+			if (_vertices.Length != verts.Length) return false;
+			for (int i = 0; i < _vertices.Length; ++i)
+				if (_vertices[i] != verts[i]) return false;
+			return true;
+		}
 
 
         // Return the points that make up a polygon's convex hull.
@@ -1123,7 +1145,34 @@ namespace UnityX.Geometry
 		}
 
 
+		public static Vector2[] GetExtruded (Polygon polygon, float extrusion) {
+			var clockwise = polygon.GetIsClockwise();
+        	Vector2[] extrudedPoints = new Vector2[polygon._vertices.Length];
+			Vector2 endCorner = Vector2.zero;
+			Vector2 endCornerOuter = Vector2.zero;
+			for(int i = 0; i < polygon._vertices.Length; i++) {
+				GetVertPoints(i+1, clockwise, out endCorner, out endCornerOuter, extrusion);
+				extrudedPoints[i] = endCornerOuter;
+			}
 
+			void GetVertPoints (int i, bool _clockwise, out Vector2 point, out Vector2 outerPoint, float _extrusion) {
+				point = polygon.GetVertex(i);
+				
+				var edgeATangent = polygon.GetEdgeTangentAtEdgeIndex(i-1);
+				var edgeANormal = Polygon.GetEdgeNormalAtEdgeIndex(edgeATangent, _clockwise);
+
+				var edgeBTangent = polygon.GetEdgeTangentAtEdgeIndex(i);
+				var edgeBNormal = Polygon.GetEdgeNormalAtEdgeIndex(edgeBTangent, _clockwise);
+				
+				var edgeAOffsetOuterLine = new Line(point + edgeANormal * _extrusion, point + edgeANormal * _extrusion + edgeATangent);
+				var edgeBOffsetOuterLine = new Line(point + edgeBNormal * _extrusion, point + edgeBNormal * _extrusion + edgeBTangent);
+				if(!Line.LineIntersectionPoint(edgeAOffsetOuterLine, edgeBOffsetOuterLine, out outerPoint, false)) {
+					outerPoint = point + edgeANormal * _extrusion;
+				}
+			}
+
+			return extrudedPoints;
+		}
 		///
 		/// SIMPLIFICATION
 		///
