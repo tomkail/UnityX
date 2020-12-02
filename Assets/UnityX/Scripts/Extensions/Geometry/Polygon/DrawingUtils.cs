@@ -53,8 +53,8 @@ namespace UnityX.Geometry
 			var circlePoint = GetProportionPoint(angularPoint, d, L, dx, dy);
 
 			//StartAngle and EndAngle of arc
-			var startAngle = Vector2.Angle(p1Cross-circlePoint, Vector2.up);
-			var endAngle = Vector2.Angle(p2Cross-circlePoint, Vector2.up);
+			var startAngle = Vector2.SignedAngle(p1Cross-circlePoint, Vector2.up);
+			var endAngle = Vector2.SignedAngle(p2Cross-circlePoint, Vector2.up);
 
 			//Sweep angle
 			var sweepAngle = Mathf.DeltaAngle(startAngle, endAngle);
