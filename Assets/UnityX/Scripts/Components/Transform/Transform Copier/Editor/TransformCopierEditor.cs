@@ -15,8 +15,7 @@ public class TransformCopierEditor : BaseEditor<TransformCopier> {
 	void OnDisable() {
 		Tools.hidden = false;
 	}
-
-	void OnSceneGUI () {
+    protected override void OnMultiEditSceneGUI () {
 		Tools.hidden = data.enabled && (Application.isPlaying && data.playMode || !Application.isPlaying && data.editMode) && ((data.position && Tools.current == Tool.Move) || (data.rotation && Tools.current == Tool.Rotate));
 		var color = Handles.color;
 		Handles.color = Color.blue;

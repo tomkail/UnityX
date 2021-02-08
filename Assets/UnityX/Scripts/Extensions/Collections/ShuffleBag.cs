@@ -31,7 +31,8 @@ public class ShuffleBag<T> {
 		_items = new List<T>(otherBag.items);
 	}
 
-	private void RefreshBag () {
+	private void RefreshBag (bool clearBeforeAdding = true) {
+        if(clearBeforeAdding) _items.Clear();
 		foreach(var item in _sourceItems) {
 			_items.Add(item);
 		}

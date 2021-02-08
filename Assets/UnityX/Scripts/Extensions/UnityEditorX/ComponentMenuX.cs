@@ -13,7 +13,7 @@ public static class ComponentMenuX {
 		if(component.gameObject.GetComponent<Component>() == component) return;
 		Component[] comps = component.gameObject.GetComponents<Component>();
 		if(component == comps[0]) return;
-		int componentIndex = comps.IndexOf(component);
+		int componentIndex = System.Array.IndexOf(comps, component);
 		for(int i = 0; i < componentIndex-1; i++)
 			UnityEditorInternal.ComponentUtility.MoveComponentUp (component);
 	}
@@ -22,7 +22,7 @@ public static class ComponentMenuX {
 		if(component == null) return;
 		Component[] comps = component.gameObject.GetComponents<Component>();
 		if(component == comps[comps.Length-1]) return;
-		int componentIndex = comps.IndexOf(component);
+		int componentIndex = System.Array.IndexOf(comps, component);
 		for(int i = 0; i < comps.Length-componentIndex-1; i++)
 			UnityEditorInternal.ComponentUtility.MoveComponentDown (component);
 	}

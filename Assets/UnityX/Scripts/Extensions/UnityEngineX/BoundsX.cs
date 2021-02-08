@@ -14,22 +14,17 @@ public static class BoundsX {
 	public static Bounds MoveTowards (Bounds start, Bounds end, float maxPositionDistanceDelta, float maxSizeDistanceDelta) {
 		return new Bounds(Vector3.MoveTowards(start.center, end.center, maxPositionDistanceDelta), Vector3.MoveTowards(start.size, end.size, maxSizeDistanceDelta));
     }
-    
-	public static Bounds CreateMinMax (Vector3 min, Vector3 max) {
-		Bounds bounds = new Bounds(min, Vector3.zero);
-        bounds.SetMinMax(min, max);
-		return bounds;
-	}
 
 	/// <summary>
 	/// Creates new bounds that encapsulates a list of vectors.
 	/// </summary>
 	/// <param name="vectors">Vectors.</param>
 	public static Bounds CreateEncapsulating (params Vector3[] vectors) {
-		if(vectors == null || vectors.Length == 0) return new Bounds(Vector3.zero, Vector3.zero);
-		Bounds bounds = new Bounds(vectors[0], Vector3.zero);
-        Vector3 min = bounds.min;
-        Vector3 max = bounds.max;
+		if(vectors == null) return new Bounds(Vector3.zero, Vector3.zero);
+		var count = vectors.Length;
+        if(count == 0) return new Bounds(Vector3.zero, Vector3.zero);
+        Vector3 min = vectors[0];
+        Vector3 max = vectors[0];
 		foreach(var vector in vectors) {
             if(vector.x < min.x) min.x = vector.x;
             else if(vector.x > max.x) max.x = vector.x;
@@ -40,9 +35,29 @@ public static class BoundsX {
             if(vector.z < min.z) min.z = vector.z;
             else if(vector.z > max.z) max.z = vector.z;
         }
-        bounds.SetMinMax(min, max);
-		return bounds;
+        return CreateMinMax(min, max);
 	}
+
+    public static Bounds CreateEncapsulating (IList<Vector3> vectors) {
+		if(vectors == null) return new Bounds(Vector3.zero, Vector3.zero);
+		var count = vectors.Count;
+        if(count == 0) return new Bounds(Vector3.zero, Vector3.zero);
+        Vector3 min = vectors[0];
+        Vector3 max = vectors[0];
+        for (int i = 1; i < count; i++) {
+            Vector3 vector = vectors[i];
+            if (vector.x < min.x) min.x = vector.x;
+            else if(vector.x > max.x) max.x = vector.x;
+
+            if(vector.y < min.y) min.y = vector.y;
+            else if(vector.y > max.y) max.y = vector.y;
+
+            if(vector.z < min.z) min.z = vector.z;
+            else if(vector.z > max.z) max.z = vector.z;
+        }
+        return CreateMinMax(min, max);
+	}
+
 	public static Bounds CreateEncapsulating (IEnumerable<Vector3> vectors) {
 		if(vectors == null || !vectors.Any()) return new Bounds(Vector3.zero, Vector3.zero);
 		Bounds bounds = new Bounds(vectors.First(), Vector3.zero);
@@ -58,9 +73,14 @@ public static class BoundsX {
             if(vector.z < min.z) min.z = vector.z;
             else if(vector.z > max.z) max.z = vector.z;
         }
-        bounds.SetMinMax(min, max);
-		return bounds;
+        return CreateMinMax(min, max);
 	}
+
+	public static Bounds CreateMinMax (Vector3 min, Vector3 max) {
+        var size = max - min;
+        var center = min + size * 0.5f;
+		return new Bounds(center, size);
+    }
 
 	public static Bounds CreateEncapsulating (IEnumerable<Bounds> allBounds) {
 		if(allBounds == null || !allBounds.Any()) return new Bounds(Vector3.zero, Vector3.zero);

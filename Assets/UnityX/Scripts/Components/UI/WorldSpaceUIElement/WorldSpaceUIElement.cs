@@ -150,8 +150,8 @@ public class WorldSpaceUIElement : UIBehaviour {
 	
 	protected override void Awake () {
 		#if UNITY_EDITOR
-		if(!Application.isPlaying && !_updateInEditMode)
-			return;
+		if(UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetPrefabStage(gameObject) != null) return;
+        if(!Application.isPlaying && !_updateInEditMode) return;
 		#endif
 		rectTransform = this.GetRectTransform();
 		if(camera == null)
@@ -161,16 +161,16 @@ public class WorldSpaceUIElement : UIBehaviour {
 
 	protected override void OnEnable () {
 		#if UNITY_EDITOR
-		if(!Application.isPlaying && !_updateInEditMode)
-			return;
+		if(UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetPrefabStage(gameObject) != null) return;
+        if(!Application.isPlaying && !_updateInEditMode) return;
 		#endif
 		Refresh();
 	}
 	
 	protected override void OnTransformParentChanged () {
 		#if UNITY_EDITOR
-		if(!Application.isPlaying && !_updateInEditMode)
-			return;
+		if(UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetPrefabStage(gameObject) != null) return;
+        if(!Application.isPlaying && !_updateInEditMode) return;
 		#endif
 		SetRootCanvas();
 		base.OnTransformParentChanged ();
@@ -179,8 +179,8 @@ public class WorldSpaceUIElement : UIBehaviour {
 	// LateUpdate because we want it to come even after camera updates
 	private void LateUpdate () {
 		#if UNITY_EDITOR
-		if(!Application.isPlaying && !_updateInEditMode)
-			return;
+		if(UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetPrefabStage(gameObject) != null) return;
+        if(!Application.isPlaying && !_updateInEditMode) return;
 		#endif
 		Refresh();
 	}

@@ -68,7 +68,7 @@ public static class ListX {
 		}
 		return found;
 	}
-
+    
 	public static int GetRepeatingIndex<T>(this IList<T> list, int index) {
 		return index.Mod(list.Count);
     }
@@ -170,6 +170,14 @@ public static class ListX {
         }
     }
 
+    public static T[] GetShiftedRepeating<T>(IList<T> items, int places) {
+		places %= items.Count;
+		T[] shiftedItems = new T[items.Count];
+		for (int i = 0; i < items.Count; i++)
+			shiftedItems[i] = items.GetRepeating(i-places);
+		return shiftedItems;
+	}
+    
 	/// <summary>
 	/// Swaps the elements at the two given indices within the list
 	/// </summary>

@@ -26,7 +26,8 @@ public class PolygonRendererEditor : BaseEditor<PolygonRenderer> {
 		serializedObject.ApplyModifiedProperties();
 	}
 
-	void OnSceneGUI () {
+    protected override void OnMultiEditSceneGUI () {
+        base.OnMultiEditSceneGUI();
 		Undo.RecordObject(data, "Edit polygon");
 		polygonEditor.OnSceneGUI(data.polygon);
 	}

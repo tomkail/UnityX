@@ -33,10 +33,17 @@ public class BaseEditor<T> : Editor where T : UnityEngine.Object {
 		if(GUI.changed && target != null) {         
 			EditorUtility.SetDirty(target);
 		}
-		
-		serializedObject.ApplyModifiedProperties();
 	}
-	
+
+    public virtual void OnSceneGUI() {
+        if (target == datas [0]) {
+            OnMultiEditSceneGUI ();
+        }
+    }
+
+    // Called once per SceneView refresh. You should iterate the targets/datas array to draw per object here
+    protected virtual void OnMultiEditSceneGUI () {}
+
 	protected void SetData () {
 		// If an object has been deleted under our feet we need to handle it gracefully
 		// (Previously it would assert)

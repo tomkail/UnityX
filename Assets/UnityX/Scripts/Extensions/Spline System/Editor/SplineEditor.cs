@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 
 namespace SplineSystem {
@@ -227,7 +224,7 @@ namespace SplineSystem {
 
 			var newControlPointPosition = DrawEditableControlPointHandle(controlPointPosition, controlPointRotation);
 			if(controlPointPosition != newControlPointPosition) {
-                controlPoint.distance = Vector3.Dot(newControlPointPosition - bezierPointPosition, controlPointRotation * Vector3.forward);
+                controlPoint.distance = Vector3.Dot(matrix.inverse.MultiplyPoint3x4(newControlPointPosition) - matrix.inverse.MultiplyPoint3x4(bezierPointPosition), controlPointRotation * Vector3.forward);
                 changed = true;
             }
 		}
@@ -306,9 +303,8 @@ namespace SplineSystem {
                     var lastPoint = HandleUtility.WorldToGUIPoint(matrix.MultiplyPoint3x4(curve._points[0]));
                     for (var j = 1; j < curve._points.Length; j++) {
                         var nextPoint = HandleUtility.WorldToGUIPoint(matrix.MultiplyPoint3x4(curve._points[j]));
-                        UnityX.Geometry.Line line = new UnityX.Geometry.Line(lastPoint, nextPoint);
-                        var normalizedDistanceOnLine = line.GetNormalizedDistanceOnLine(mousePosition);
-                        var pointOnLine = Vector2.LerpUnclamped(line.start, line.end, normalizedDistanceOnLine);
+                        var normalizedDistanceOnLine = GetNormalizedDistanceOnLine(lastPoint, nextPoint, mousePosition);
+                        var pointOnLine = Vector2.LerpUnclamped(lastPoint, nextPoint, normalizedDistanceOnLine);
                         var sqrDistanceFromLine = (mousePosition - pointOnLine).sqrMagnitude;
                         if(sqrDistanceFromLine < bestSqrDistance) {
                             bestSqrDistance = sqrDistanceFromLine;
@@ -335,6 +331,16 @@ namespace SplineSystem {
                 }
             }
             return new SamplePoint(bestCurveIndex, bestCurvePointIndex, bestBezierPointIndex, bestNormalizedDistanceOnLine);
+
+            static float GetNormalizedDistanceOnLine(Vector2 start, Vector2 end, Vector2 p, bool clamped = true) {
+                float sqrLength = (start.x-end.x) * (start.x-end.x) + (start.y-end.y) * (start.y-end.y);
+                if (sqrLength == 0f) return 0;
+                // Divide by length squared so that we can save on normalising (end-start), since
+                // we're effectively dividing by the length an extra time.
+                float n = Vector2.Dot(p - start, end - start) / sqrLength;
+                if(!clamped) return n;
+                return Mathf.Clamp01(n);
+            }
         }
 
         /*

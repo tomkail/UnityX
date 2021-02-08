@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections.Generic;
-using UnityX.Geometry;
 
 namespace SplineSystem {
 	public delegate void OnSplineChangeEvent(Spline spline);
@@ -50,7 +49,10 @@ namespace SplineSystem {
 			}
 		}
 		public Bounds bounds;
-		
+
+        public Spline () {
+			Validate();
+		}
 		public Spline (params SplineBezierPoint[] bezierPoints) {
 			this.bezierPoints = bezierPoints;
 			RefreshCurveData();
@@ -148,7 +150,7 @@ namespace SplineSystem {
 		}
 
 		public void RefreshCurveData () {
-			if(bezierPoints.Length <= 1) return;
+            if(bezierPoints == null || bezierPoints.Length <= 1) return;
 			if(curves == null || curves.Length != bezierPoints.Length-1) curves = new SplineBezierCurve[bezierPoints.Length-1];
 			for (int i = 0; i < bezierPoints.Length-1; i++) curves[i] = new SplineBezierCurve(bezierPoints [i], bezierPoints [i+1]);
 			
@@ -392,8 +394,8 @@ namespace SplineSystem {
 			var leftPoint = bestCurve.GetPointAtT(leftT);
 			var rightPoint = bestCurve.GetPointAtT(rightT);
 
-			closestDistanceAlongLeftLine = Line3D.GetNormalizedDistanceOnLine(leftPoint, centerPoint, position, clampAtStart);
-			closestDistanceAlongRightLine = Line3D.GetNormalizedDistanceOnLine(centerPoint, rightPoint, position, clampAtEnd);
+			closestDistanceAlongLeftLine = GetNormalizedDistanceOnLine(leftPoint, centerPoint, position, clampAtStart);
+			closestDistanceAlongRightLine = GetNormalizedDistanceOnLine(centerPoint, rightPoint, position, clampAtEnd);
 			float closestDistanceOnLineA = SqrDistance(position, Vector3.LerpUnclamped(leftPoint, centerPoint, closestDistanceAlongLeftLine));
 			float closestDistanceOnLineB = SqrDistance(position, Vector3.LerpUnclamped(centerPoint, rightPoint, closestDistanceAlongRightLine));
 			var arcLengthOffsetMultiplier = 0f;
@@ -478,8 +480,8 @@ namespace SplineSystem {
 				quality = defaultQuality;
 				didChange = true;
 			}
-			if(bezierPoints.Length < 2) {
-                this.bezierPoints = new SplineBezierPoint[] {
+			if(bezierPoints == null || bezierPoints.Length < 2) {
+                bezierPoints = new SplineBezierPoint[] {
                     new SplineBezierPoint(new Vector3(-1,1,0), Quaternion.LookRotation(Vector3.right, Vector3.forward), 1f, 1f),
                     new SplineBezierPoint(new Vector3(1,-1,0), Quaternion.LookRotation(Vector3.right, Vector3.forward), 1f, 1f)
                 };
@@ -546,6 +548,20 @@ namespace SplineSystem {
 
 		static float SqrDistance (Vector3 a, Vector3 b) {
 			return (a.x-b.x) * (a.x-b.x) + (a.y-b.y) * (a.y-b.y) + (a.z-b.z) * (a.z-b.z);
+		}
+
+        static float GetNormalizedDistanceOnLine(Vector3 start, Vector3 end, Vector3 p, bool clamped = true) {
+			float sqrLength = SqrDistance(start, end);
+			return GetNormalizedDistanceOnLineInternal(start, end, p, sqrLength, clamped);
+		}
+
+		static float GetNormalizedDistanceOnLineInternal(Vector3 start, Vector3 end, Vector3 p, float sqrLength, bool clamped = true) {
+			if (sqrLength == 0f) return 0;
+			// Divide by length squared so that we can save on normalising (end-start), since
+			// we're effectively dividing by the length an extra time.
+			float n = Vector3.Dot(p - start, end - start) / sqrLength;
+			if(!clamped) return n;
+			return Mathf.Clamp01(n);
 		}
 	}
 }

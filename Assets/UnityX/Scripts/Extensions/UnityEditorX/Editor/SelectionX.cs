@@ -7,7 +7,9 @@ using UnityEditor;
 /// <summary>
 /// Provides callbacks for more specific selection events.
 /// </summary>
+#if UNITY_EDITOR
 [InitializeOnLoad]
+#endif
 public static class SelectionX {
 	const string editorPrefsPath = "SelectionXLastSelection";
 

@@ -535,7 +535,7 @@ namespace UnityX.Geometry
 			return x >= 0;
 		}
 
-		public void ReverseDirection () {
+		public void FlipWindingOrder () {
 			System.Array.Reverse(_vertices);
 		}
 

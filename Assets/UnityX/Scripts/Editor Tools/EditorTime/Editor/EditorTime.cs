@@ -2,7 +2,9 @@
 using UnityEditor;
 using System.Collections;
 
+#if UNITY_EDITOR
 [InitializeOnLoad]
+#endif
 public class EditorTime {
 
 	public static float time {
