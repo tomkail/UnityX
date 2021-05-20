@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
-using UnityX.Geometry;
 
 public class Region : MonoBehaviour {
 	#if UNITY_EDITOR
@@ -510,11 +509,12 @@ public class Region : MonoBehaviour {
 		return matrix.MultiplyPoint3x4(polygon.center);
 	}
 	
-	public Mesh CreatePolygonMesh (bool drawFront = true, bool drawBack = false) {
+	public void CreatePolygonMesh (ref Mesh mesh, bool drawFront = true, bool drawBack = false) {
+		mesh.Clear();
+
 		var points = polygon.vertices;
-		if(points == null || points.Length == 0) return null;
-		if(!drawFront && !drawBack) return null;
-		var mesh = new Mesh();
+		if(points == null || points.Length == 0) return;
+		if(!drawFront && !drawBack) return;
 
 		var surfaceTris = new List<int>();
 		Triangulator.GenerateIndices(polygon.vertices, surfaceTris);
@@ -613,6 +613,10 @@ public class Region : MonoBehaviour {
 		mesh.triangles = tris;
 
 		mesh.RecalculateNormals();
+	}
+	public Mesh CreatePolygonMesh (bool drawFront = true, bool drawBack = false) {
+		var mesh = new Mesh();
+		CreatePolygonMesh(ref mesh, drawFront, drawBack);
 		return mesh;
 	}
 

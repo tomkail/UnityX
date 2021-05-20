@@ -5,6 +5,7 @@ using UnityX.Geometry;
 
 namespace UnityEngine.UI.Extensions {
     [AddComponentMenu("UI/Extensions/Primitives/UI Polygon")]
+    [RequireComponent(typeof(CanvasRenderer))]
     public class UIPolygon : MaskableGraphic, ILayoutElement, ICanvasRaycastFilter {
         [SerializeField]
         Texture _texture;

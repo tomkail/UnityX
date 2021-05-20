@@ -18,7 +18,6 @@ using System.Collections.Generic;
 ///  - Partial so you can compile in your own shortcut properties (e.g. for TextMeshPro), but without having a full
 ///    dependency on 3rd party APIs.
 /// </summary>
-[ExecuteInEditMode]
 public partial class SLayout : UIBehaviour {
 
 	/// <summary>
@@ -144,11 +143,13 @@ public partial class SLayout : UIBehaviour {
 
 	public void CancelAnimations()
 	{
-		SLayoutAnimator.instance.CancelAnimations(this);
+		if(SLayoutAnimator.instance == null) return;
+        SLayoutAnimator.instance.CancelAnimations(this);
 	}
 
 	public void CompleteAnimations()
 	{
+		if(SLayoutAnimator.instance == null) return;
 		SLayoutAnimator.instance.CompleteAnimations(this);
 	}
 
@@ -743,6 +744,10 @@ public partial class SLayout : UIBehaviour {
         return RectX.CreateEncapsulating(ScreenToSLayoutPoint(screenRect.min), ScreenToSLayoutPoint(screenRect.max));
     }
 
+    public Vector2 WorldToSLayoutSpace (Vector3 worldPosition) {
+        var targetLocalPos = (Vector2) transform.parent.InverseTransformPoint(worldPosition);
+        return LocalPositionToSLayoutPosition(targetLocalPos);
+    }
     // Converts a canvas space coordinate to the space of this slayout.
     // "Canvas space" meaning local to the canvas' transform, where 0,0 is the center of the canvas.
     // If the canvas size was (1000,500) the canvas top left would be (-500,-250) and the slayout space would be (0,0)
@@ -772,6 +777,7 @@ public partial class SLayout : UIBehaviour {
         return canvasSpacePos + offset;
     }
 
+    // Converts a local position into world space, forcing the pivot (top left or bottom left) assigned by SLayout instead of that of the rect transform
 	public Vector2 ConvertPositionToWorldSpace(Vector2 localLayoutPos) {
 		if( originTopLeft ) localLayoutPos.y = height - localLayoutPos.y;
 		var localPos = localLayoutPos - GetPivotPos(rectTransform);
@@ -782,6 +788,12 @@ public partial class SLayout : UIBehaviour {
 	/// If you pass a null SLayout, it will get the point in the space of the canvas.
 	/// Note - there might be a bug when layout is null, because it returns canvas space relative to the bottom corner rather than the canvas's pivot?
 	/// </summary>
+    
+    // Tom had a bug here when converting between two objects in different spaces. It might have been a misunderstanding. He fixed it by using the code below.
+    // Note that this code expects the object on which the position is to be applied, rather than the parent.
+    // var worldSpacePoint = targetLayout.ConvertPositionToWorldSpace(targetPosition);
+    // var targetLocalPos = (Vector2) layout.transform.parent.InverseTransformPoint(worldSpacePoint);
+    // layout.position = layout.LocalPositionToSLayoutPosition(targetLocalPos);
 	public Vector2 ConvertPositionToTarget(Vector2 localLayoutPos, SLayout targetLayout) {
 		var worldSpacePoint = ConvertPositionToWorldSpace(localLayoutPos);
 
@@ -814,6 +826,29 @@ public partial class SLayout : UIBehaviour {
 			convertedMax.x - convertedMin.x,
 			Mathf.Abs(convertedMin.y - convertedMax.y)
 		);
+	}
+
+    
+    // Converts a RectTransform localPosition to an SLayout position.
+    // Note that it doesn't offset for this layout's pivot like the Get/SetRectTransformX/Y functions do because it's implicit in the localPosition
+	public Vector2 LocalPositionToSLayoutPosition(Vector2 localPosition) {
+		float toLeftEdge = rectTransform.pivot.x * rectTransform.rect.width;
+		var parentRectT = rectTransform.parent as RectTransform;
+		if( parentRectT == null )
+			return Vector2.zero;
+		
+		float parentToLeftEdge = parentRectT.pivot.x * parentRectT.rect.width;
+		float leftInset = parentToLeftEdge + localPosition.x;
+		
+        if( originTopLeft ) {
+            float parentToTopEdge = (1.0f-parentRectT.pivot.y) * parentRectT.rect.height;
+            float topInset = parentToTopEdge - localPosition.y;
+            return new Vector2(leftInset, topInset);
+		} else {
+			float parentToBottomEdge = parentRectT.pivot.y * parentRectT.rect.height;
+			float bottomInset = parentToBottomEdge + localPosition.y;
+            return new Vector2(leftInset, bottomInset);
+		}
 	}
 		
 	public RectTransform rectTransform {
