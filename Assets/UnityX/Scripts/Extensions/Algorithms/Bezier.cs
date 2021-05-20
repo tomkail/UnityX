@@ -1,6 +1,29 @@
 ﻿using UnityEngine;
 
 public static class Bezier {
+	public static Vector2 GetPoint(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3, float t) {
+		if(t <= 0) return p0;
+		if(t >= 1) return p3;
+        
+        float t2 = t*t;
+        float OneMinusT = 1f - t;
+        float OneMinusT2 = OneMinusT*OneMinusT;
+
+        float p0Scalar = OneMinusT2*OneMinusT;
+        float p1Scalar = 3f * OneMinusT2 * t;
+        float p2Scalar = 3f * OneMinusT * t2;
+        float p3Scalar = t2*t;
+        
+        return new Vector2(
+            p0Scalar * p0.x + p1Scalar * p1.x + p2Scalar * p2.x + p3Scalar * p3.x,
+            p0Scalar * p0.y + p1Scalar * p1.y + p2Scalar * p2.y + p3Scalar * p3.y
+        );
+
+        // OneMinusT * OneMinusT * OneMinusT * p0 +
+        // 3f * OneMinusT * OneMinusT * t * p1 +
+        // 3f * OneMinusT * t * t * p2 +
+        // t * t * t * p3;
+    }
 	public static Vector3 GetPoint(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t) {
 		if(t <= 0) return p0;
 		if(t >= 1) return p3;

@@ -254,7 +254,8 @@ public static class IEnumerableX {
 	// A faster version of 
 	// var entered = newChunkPoints.Except(chunkPoints).ToList();
 	// var exited = chunkPoints.Except(newChunkPoints).ToList();	
-	public static void GetChanges<T> (IEnumerable<T> oldList, IEnumerable<T> newList, ref List<T> itemsRemoved, ref List<T> itemsAdded) {
+    // Returns true if any changes were found.
+	public static bool GetChanges<T> (IEnumerable<T> oldList, IEnumerable<T> newList, ref List<T> itemsRemoved, ref List<T> itemsAdded) {
 		if(itemsRemoved == null) itemsRemoved = new List<T>();
 		else itemsRemoved.Clear();
 		if(itemsAdded == null) itemsAdded = new List<T>();
@@ -262,8 +263,10 @@ public static class IEnumerableX {
 		
 		foreach(var item in GetRemoved(oldList, newList)) itemsRemoved.Add(item);
 		foreach(var item in GetAdded(oldList, newList)) itemsAdded.Add(item);
+
+        return itemsRemoved.Count > 0 || itemsAdded.Count > 0;
 	}
-	public static void GetChanges<T> (IEnumerable<T> oldList, IEnumerable<T> newList, ref List<T> itemsRemoved, ref List<T> itemsAdded, ref List<T> itemsUnchanged) {
+	public static bool GetChanges<T> (IEnumerable<T> oldList, IEnumerable<T> newList, ref List<T> itemsRemoved, ref List<T> itemsAdded, ref List<T> itemsUnchanged) {
 		if(itemsRemoved == null) itemsRemoved = new List<T>();
 		else itemsRemoved.Clear();
 		if(itemsAdded == null) itemsAdded = new List<T>();
@@ -274,6 +277,8 @@ public static class IEnumerableX {
 		foreach(var item in GetRemoved(oldList, newList)) itemsRemoved.Add(item);
 		foreach(var item in GetAdded(oldList, newList)) itemsAdded.Add(item);
 		foreach(var item in GetInBoth(oldList, newList)) itemsUnchanged.Add(item);
+
+        return itemsRemoved.Count > 0 || itemsAdded.Count > 0;
 	}
 
 	public static IEnumerable<T> GetInBoth<T> (IEnumerable<T> oldList, IEnumerable<T> newList) {

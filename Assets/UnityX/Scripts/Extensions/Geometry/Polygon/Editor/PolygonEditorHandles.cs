@@ -37,6 +37,14 @@ public class PolygonEditorHandles {
 		}
 	}
 
+	Plane plane {
+		get {
+			return new Plane(directionMatrix.MultiplyVector(Vector3.forward), matrix.MultiplyPoint3x4(Vector3.zero));
+		}
+	}
+    
+    
+
 	/// <summary>
 	/// Allows editing polygons in world space via the scene view.
 	/// </summary>
@@ -58,8 +66,12 @@ public class PolygonEditorHandles {
 		this.transform = transform;
 		this.offsetMatrix = offsetMatrix;
 	}
-
-	bool moveMode {
+    
+    bool usingZoomOrOrbitTool {
+		get {
+			return (Tools.viewTool == ViewTool.Zoom || Tools.viewTool == ViewTool.Orbit) && Event.current.alt;
+		}
+	}	bool moveMode {
 		get {
 			return editing && Event.current.shift;
 		}
@@ -94,6 +106,9 @@ public class PolygonEditorHandles {
 	bool isMoving;
 	Vector2 moveLastPosition;
 
+	static Polygon clipboardPolygon;
+
+
 	const float handleSize = 0.04f;
 	const float pointSnapDistance = 14;
 	const float highlightedLineWidth = 3;
@@ -105,13 +120,6 @@ public class PolygonEditorHandles {
 	static readonly Color highlightedLineColor = Color.green;
 	static readonly Color highlightedDeletionModeLineColor = Color.red;
 
-
-	Plane plane {
-		get {
-			return new Plane(directionMatrix.MultiplyVector(Vector3.forward), matrix.MultiplyPoint3x4(Vector3.zero));
-		}
-	}
-
 	void StartMoving (Vector2 currentPosition) {
 		isMoving = true;
 		moveLastPosition = currentPosition;
@@ -121,8 +129,12 @@ public class PolygonEditorHandles {
 		isMoving = false;
     }
 
-	void StartEditingPoint (int pointIndex) {
-		editingPointIndex = pointIndex;
+	void StartEditingPoint (Polygon polygon, int pointIndex) {
+		if(pointIndex >= 0 && pointIndex < polygon.vertices.Length) {
+            editingPointIndex = pointIndex;
+        } else {
+            Debug.LogWarning("Cannot edit out of range point "+pointIndex+" on poly with length "+polygon.vertices.Length);
+        }
     }
 
 	void StopEditingPoint () {
@@ -138,8 +150,10 @@ public class PolygonEditorHandles {
     	bool changed = false;
 		Validate(polygon, ref changed);
 		Color savedHandleColor = Handles.color;
+        if(editable && usingZoomOrOrbitTool) 
+			StopEditingPoint();
 		DrawPolygon(polygon);
-		if(editable) {
+		if(editable && !usingZoomOrOrbitTool) {
 			DrawSceneViewToolbar(polygon, ref changed);
 			if(Event.current.alt) StopEditingPoint();
 			else if(editing) {
@@ -155,7 +169,6 @@ public class PolygonEditorHandles {
         editing = false;
     }
 
-	static Polygon clipboardPolygon;
 	void DrawSceneViewToolbar (Polygon polygon, ref bool changed) {
 		Handles.BeginGUI();
 		Vector3 midPointScreenPoint = HandleUtility.WorldToGUIPoint(matrix.MultiplyPoint3x4(polygon.center));
@@ -287,7 +300,7 @@ public class PolygonEditorHandles {
 
 	void DrawEditor (Polygon polygon, ref bool changed) {
 		bool mouseDown = Event.current.button == 0 && Event.current.type == EventType.MouseDown;
-		bool mouseUp = Event.current.button == 0 && Event.current.type == EventType.MouseUp;
+		bool mouseUp = Event.current.button == 0 && Event.current.type == EventType.MouseUp || Event.current.type == EventType.MouseLeaveWindow;;
 
 		Vector2 mousePosition = Event.current.mousePosition;
 
@@ -304,8 +317,11 @@ public class PolygonEditorHandles {
 
 		var bestPointOnScreenPolygon = screenSpacePolygon.FindClosestPointOnPolygon(mousePosition);
 
-		
 		var screenDistanceFromClosestPoint = Vector2.Distance(closestScreenVertexPoint, bestPointOnScreenPolygon);
+        
+        var signedScreenDistanceFromEdge = Vector2.Distance(bestPointOnScreenPolygon, mousePosition);
+        signedScreenDistanceFromEdge *= screenSpacePolygon.ContainsPoint(mousePosition) ? -1 : 1;
+
 		var worldMousePointOnPlane = Vector3.zero;
 		GetScreenPointIntersectingRegionPlane(mousePosition, ref worldMousePointOnPlane);
 		bool vertexEditMode = !moveMode && (screenDistanceFromClosestPoint < pointSnapDistance || deletionMode);
@@ -322,26 +338,39 @@ public class PolygonEditorHandles {
 
 				if(deletionMode) Handles.color = highlightedDeletionModeLineColor;
 				else Handles.color = highlightedLineColor;
-
+                
 				Handles.DrawAAPolyLine(highlightedLineWidth, closestVertices);
 				Handles.DotHandleCap(0, closestVertices[1], Quaternion.identity, HandleUtility.GetHandleSize(closestVertices[1]) * handleSize, Event.current.type);
 			}
 			
+            bool canRemove = polygon.vertices.Length > 3;
+            if((deletionMode && canRemove) || (!deletionMode))
+                HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
+
 			if(mouseDown) {
 				if(deletionMode) {
-					bool canRemove = polygon.vertices.Length > 3;
 					if(canRemove) {
 						RemovePoint(ref polygon, closestVertexIndex);
 						changed = true;
 					}
 				}
-				else StartEditingPoint(closestVertexIndex);
+				else {
+                    StartEditingPoint(polygon, closestVertexIndex);
+                }
 			}
 		} else {
 			if(moveMode) {
-				if(mouseDown) 
-					StartMoving(WorldToPolygonPoint(worldMousePointOnPlane));
+				if(signedScreenDistanceFromEdge <= 0) {
+                    HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
+                    EditorGUIUtility.AddCursorRect(SceneView.currentDrawingSceneView.position, MouseCursor.Pan);
+
+                    if(mouseDown) {
+                        StartMoving(WorldToPolygonPoint(worldMousePointOnPlane));
+                    }
+                }
 			} else if(!isEditingPoint) {
+                HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
+                
 				int leftIndex = 0;
 				int rightIndex = 0;
 				screenSpacePolygon.FindClosestEdgeIndices(bestPointOnScreenPolygon, ref leftIndex, ref rightIndex);
@@ -360,13 +389,15 @@ public class PolygonEditorHandles {
 
 				if(mouseDown) {
 					InsertPoint(ref polygon, rightIndex, worldMousePointOnPlane);
-					StartEditingPoint(rightIndex);
+
+					StartEditingPoint(polygon, rightIndex);
 					changed = true;
 				}
 			}
 		}
 
 		if(isMoving) {
+            HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
 			var moveNewPosition = WorldToPolygonPoint(worldMousePointOnPlane);
 			var moveDeltaPosition = moveNewPosition - moveLastPosition;
 			// This doesn't work, and isnt the right approach. To do, if i can be arsed

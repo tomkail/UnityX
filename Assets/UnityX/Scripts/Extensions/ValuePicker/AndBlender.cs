@@ -6,6 +6,7 @@ using UnityEngine;
 
 [System.Serializable]
 public abstract class LogicBlender {
+	public bool defaultValue = true;
 	public bool value;
 
 	protected abstract bool GetValue ();
@@ -13,16 +14,31 @@ public abstract class LogicBlender {
 }
 
 // Blender using "and" logic. All gate sources must be true.
+// When no values exist the blender is true, unless a default value is set in the constructor
 [System.Serializable]
 public class AndBlender : LogicBlender {
 
 	public event Action<bool> onChange;
 
-	public AndBlender () {}
+	public AndBlender () : this(true) {}
+	public AndBlender (bool defaultValue) {
+        this.defaultValue = defaultValue;
+        Refresh();
+    }
 
 	// Removes a source and refreshes
 	public void Remove (object source) {
-		RemoveEntriesWhere (p => p.source.Equals (source));
+        int numItemsRemoved = 0;
+        for (int i = sources.Count - 1; i >= 0; i--) {
+            var _source = sources[i];
+            if (source == _source.source) {
+                sources.RemoveAt(i);
+                numItemsRemoved++;
+            }
+        }
+		if(numItemsRemoved > 0) Refresh();
+        // This creates garbage.
+		// RemoveEntriesWhere (p => p.source.Equals (source));
 	}
 
 	// Sets a source (creating if necessary) and refreshes
@@ -32,6 +48,7 @@ public class AndBlender : LogicBlender {
 		var existingIndex = sources.FindIndex (e => e.source.Equals(source));
 		if (existingIndex != -1) {
 			var entry = sources [existingIndex];
+            if(entry.value == value) return;
 			entry.value = value;
 			sources [existingIndex] = entry;
 		} else {
@@ -55,6 +72,7 @@ public class AndBlender : LogicBlender {
 	}
 
 	protected override bool GetValue () {
+        if(sources.Count == 0) return defaultValue;
 		bool current = true;
 		foreach(var entry in sources) current = current && entry.value;
 		return current;

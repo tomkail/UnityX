@@ -20,10 +20,10 @@ public class ExtendedSlider : Slider {
 	public class SliderExitEvent : UnityEvent {}
 
 	[System.Serializable]
-	public class SliderSelectEvent : UnityEvent {}
+	public class SliderSelectEvent : UnityEvent<BaseEventData> {}
 
 	[System.Serializable]
-	public class SliderDeselectEvent : UnityEvent {}
+	public class SliderDeselectEvent : UnityEvent<BaseEventData> {}
 
 	[System.Serializable]
 	public class SliderMoveEvent : UnityEvent {}
@@ -78,7 +78,7 @@ public class ExtendedSlider : Slider {
 
 		if (!IsActive() || !IsInteractable())
             return;
-		onSelect.Invoke();
+		onSelect.Invoke(eventData);
 	}
 
 	public override void OnDeselect (BaseEventData eventData) {
@@ -86,7 +86,7 @@ public class ExtendedSlider : Slider {
 
 		if (!IsActive() || !IsInteractable())
             return;
-		onDeselect.Invoke();
+		onDeselect.Invoke(eventData);
 	}
 
 	public override void OnMove (AxisEventData eventData) {

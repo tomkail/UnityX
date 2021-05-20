@@ -162,7 +162,9 @@ public static class ColorX {
 	}
 	
 	public static Color Blend(Color color1, Color color2, float lerp, BlendMode blendMode){
-		switch (blendMode) {
+		if(lerp == 0) return color1;
+		else if(lerp == 1) return color2;
+        switch (blendMode) {
 			case BlendMode.Normal:
 				return Color.Lerp(color1, color2, lerp);
 			case BlendMode.Additive:

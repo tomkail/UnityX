@@ -1,137 +1,194 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 [System.Serializable]
-public class HSVColor
-{
-    // human settings
-    public float _Hue;
-    public float _Saturation;
-    public float _Value;
+public class HSVColor {
+	public float h;
+	public float s;
+	public float v;
+	public float a;
 
-    // derived values
-    private float _vsu;
-    private float _vsw;
-    private float _rr;
-    private float _rg;
-    private float _rb;
-    private float _gr;
-    private float _gg;
-    private float _gb;
-    private float _br;
-    private float _bg;
-    private float _bb;
-
-    // the colour remains unchanged if these values are used in the hsv shader
-    public static HSVColor NoShift = new HSVColor() { _Hue = 0, _Saturation = 1, _Value = 1 };
-
-    public void UseOnHSVMaterial(Material HSVMaterial)
-    {
-        HSVMaterial.SetFloat("_HueShift", _Hue);
-        HSVMaterial.SetFloat("_Sat", _Saturation);
-        HSVMaterial.SetFloat("_Val", _Value);
+	public HSVColor(float h, float s, float v, float a) {
+		this.h = h;
+		this.s = s;
+		this.v = v;
+		this.a = a;
+	}
+ 
+	public HSVColor(float h, float s, float v) {
+        this.h = h;
+        this.s = s;
+        this.v = v;
+        this.a = 1f;
     }
-
-    public void UseOnHSVFastMaterial(Material HSVFastMaterial)
-    {
-        UseOnHSVMaterial(HSVFastMaterial);
-        SetUpHSVFast(HSVFastMaterial);
+ 
+    public HSVColor(Color col) {
+        HSVColor temp = FromRGBA(col);
+        h = temp.h;
+        s = temp.s;
+        v = temp.v;
+        a = temp.a;
     }
-
-    public void SetFromHSVMaterial(Material HSVMaterial)
-    {
-        _Hue = HSVMaterial.GetFloat("_HueShift");
-        _Saturation = HSVMaterial.GetFloat("_Sat");
-        _Value = HSVMaterial.GetFloat("_Val");
-    }
-
-    public Color ShiftRGBColour(Color originalPixel)
-    {
-        Color shifted = new Color();
-
-        CalculateDerivedValues();
-
-
-        shifted.r = _rr * originalPixel.r
-                + _rg * originalPixel.g
-                + _rb * originalPixel.b;
-
-        shifted.g = _gr * originalPixel.r
-                + _gg * originalPixel.g
-                + _gb * originalPixel.b;
-
-        shifted.b = _br * originalPixel.r
-                + _bg * originalPixel.g
-                + _bb * originalPixel.b;
-
-        return shifted;
-    }
-
-    public void ApplyToTexture(Texture2D source, Texture2D destination)
-    {
-        for (int x = 0; x < destination.width; x++)
+ 
+    public static HSVColor FromRGBA(Color color) {
+        HSVColor ret = new HSVColor(0f, 0f, 0f, color.a);
+ 
+        float r = color.r;
+        float g = color.g;
+        float b = color.b;
+ 
+        float max = Mathf.Max(r, Mathf.Max(g, b));
+ 
+        if (max <= 0)
         {
-            for (int y = 0; y < destination.height; y++)
+            return ret;
+        }
+ 
+        float min = Mathf.Min(r, Mathf.Min(g, b));
+        float dif = max - min;
+ 
+        if (max > min)
+        {
+            if (g == max)
             {
-                Color originalPixel = source.GetPixel(x, y);
-
-                Color shiftedPixel = ShiftRGBColour(originalPixel);
-
-                destination.SetPixel(x, y, shiftedPixel);
+                ret.h = (b - r) / dif * 60f + 120f;
+            }
+            else if (b == max)
+            {
+                ret.h = (r - g) / dif * 60f + 240f;
+            }
+            else if (b > g)
+            {
+                ret.h = (g - b) / dif * 60f + 360f;
+            }
+            else
+            {
+                ret.h = (g - b) / dif * 60f;
+            }
+            if (ret.h < 0)
+            {
+                ret.h = ret.h + 360f;
             }
         }
-
-        destination.Apply();
+        else
+        {
+            ret.h = 0;
+        }
+ 
+//        ret.h *= 1f / 360f;
+//		ret.h = Mathf.Repeat(ret.h, 360f);
+        ret.s = (dif / max) * 1f;
+        ret.v = max;
+ 
+        return ret;
     }
-
-   
-
-    public void SetUpHSVFast(Material HSVFastMaterial)
+ 
+    public static Color ToRGBA(HSVColor hsbColor)
     {
-        CalculateDerivedValues();
-
-        HSVFastMaterial.SetFloat("_VSU", _vsu);
-        HSVFastMaterial.SetFloat("_VSW", _vsw);
-        HSVFastMaterial.SetFloat("_RR", _rr);
-        HSVFastMaterial.SetFloat("_RG", _rg);
-        HSVFastMaterial.SetFloat("_RB", _rb);
-        HSVFastMaterial.SetFloat("_GR", _gr);
-        HSVFastMaterial.SetFloat("_GG", _gg);
-        HSVFastMaterial.SetFloat("_GB", _gb);
-        HSVFastMaterial.SetFloat("_BR", _br);
-        HSVFastMaterial.SetFloat("_BG", _bg);
-        HSVFastMaterial.SetFloat("_BB", _bb);
+        float r = hsbColor.v;
+        float g = hsbColor.v;
+        float b = hsbColor.v;
+        if (hsbColor.s != 0)
+        {
+            float max = hsbColor.v;
+            float dif = hsbColor.v * hsbColor.s;
+            float min = hsbColor.v - dif;
+ 
+//			float h = hsbColor.h; // * 360f;
+			float h = Mathf.Repeat(hsbColor.h, 360f);
+            if (h < 60f)
+            {
+                r = max;
+                g = h * dif / 60f + min;
+                b = min;
+            }
+            else if (h < 120f)
+            {
+                r = -(h - 120f) * dif / 60f + min;
+                g = max;
+                b = min;
+            }
+            else if (h < 180f)
+            {
+                r = min;
+                g = max;
+                b = (h - 120f) * dif / 60f + min;
+            }
+            else if (h < 240f)
+            {
+                r = min;
+                g = -(h - 240f) * dif / 60f + min;
+                b = max;
+            }
+            else if (h < 300f)
+            {
+                r = (h - 240f) * dif / 60f + min;
+                g = min;
+                b = max;
+            }
+            else if (h <= 360f)
+            {
+                r = max;
+                g = min;
+                b = -(h - 360f) * dif / 60 + min;
+            }
+            else
+            {
+                r = 0;
+                g = 0;
+                b = 0;
+            }
+        }
+ 
+        return new Color(Mathf.Clamp01(r),Mathf.Clamp01(g),Mathf.Clamp01(b),hsbColor.a);
     }
-
-    private void CalculateDerivedValues()
+ 
+    public Color ToRGBA()
     {
-        CalculateVSU();
-        CalculateVSW();
-        CalculateMatrix();
+        return ToRGBA(this);
     }
-
-    private void CalculateVSU()
+ 
+    public override string ToString()
     {
-        _vsu =  _Value * _Saturation * Mathf.Cos(_Hue * 3.14159265f / 180f);
+        return "H:" + h + " S:" + s + " B:" + v;
     }
-
-    private void CalculateVSW()
+ 
+    public static HSVColor Lerp(HSVColor a, HSVColor b, float t)
     {
-        _vsw = _Value * _Saturation * Mathf.Sin(_Hue * 3.14159265f / 180f);
+        float h = 0;
+		float s = 0;
+ 
+        //check special case black (color.b==0): interpolate neither hue nor saturation!
+        //check special case grey (color.s==0): don't interpolate hue!
+        if(a.v==0){
+            h=b.h;
+            s=b.s;
+        }else if(b.v==0){
+            h=a.h;
+            s=a.s;
+        }else{
+            if(a.s==0){
+                h=b.h;
+            }else if(b.s==0){
+                h=a.h;
+            }else{
+                // works around bug with LerpAngle
+                float angle = Mathf.LerpAngle(a.h * 360f, b.h * 360f, t);
+                while (angle < 0f)
+                    angle += 360f;
+                while (angle > 360f)
+                    angle -= 360f;
+//                h=angle/360f;
+            }
+            s=Mathf.Lerp(a.s,b.s,t);
+        }
+        return new HSVColor(h, s, Mathf.Lerp(a.v, b.v, t), Mathf.Lerp(a.a, b.a, t));
     }
 
-    private void CalculateMatrix()
-    {
-        _rr = (.299f * _Value + .701f * _vsu + .168f * _vsw);
-        _rg = (.587f * _Value - .587f * _vsu + .330f * _vsw);
-        _rb = (.114f * _Value - .114f * _vsu - .497f * _vsw);
-
-        _gr = (.299f * _Value - .299f * _vsu - .328f * _vsw);
-        _gg = (.587f * _Value + .413f * _vsu + .035f * _vsw);
-        _gb = (.114f * _Value - .114f * _vsu + .292f * _vsw);
-
-        _br = (.299f * _Value - .300f * _vsu + 1.25f * _vsw);
-        _bg = (.587f * _Value - .588f * _vsu - 1.05f * _vsw);
-        _bb = (.114f * _Value + .886f * _vsu - .203f * _vsw);
+    public static implicit operator HSVColor(Color src) {
+        return FromRGBA(src);
     }
-
+    
+    public static implicit operator Color(HSVColor src) {
+        return src.ToRGBA();
+    }
 }

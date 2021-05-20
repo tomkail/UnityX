@@ -48,7 +48,8 @@ public class RegexDrawer : BaseAttributePropertyDrawer<RegexAttribute> {
 
     // Test if the propertys string value matches the regex pattern.
     private bool IsValid (SerializedProperty prop) {
-		return Regex.IsMatch (prop.stringValue, attribute.pattern) == attribute.showErrorWhenValid;
+        if(attribute.regex != null) return attribute.regex.IsMatch(prop.stringValue);
+        else return Regex.IsMatch (prop.stringValue, attribute.pattern) == attribute.showErrorWhenValid;
     }
 
 	protected override bool IsSupported (SerializedProperty property) {

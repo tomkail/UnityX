@@ -25,7 +25,9 @@ public class CommentComponentEditor : BaseEditor<CommentComponent> {
 			// data.messageType = ;
 			GUILayout.EndHorizontal();
 		} else {
-			EditorGUILayout.HelpBox(data.text, EnumX.TryParse<MessageType>(data.messageType.ToString()));
+            MessageType messageType  = MessageType.None;
+            System.Enum.TryParse<MessageType>(data.messageType.ToString(), true, out messageType);
+			EditorGUILayout.HelpBox(data.text, messageType);
 			if(GUILayout.Button("Edit")) {
 				Edit();
 			}

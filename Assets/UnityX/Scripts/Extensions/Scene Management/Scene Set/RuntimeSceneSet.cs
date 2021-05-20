@@ -69,7 +69,8 @@ public class RuntimeSceneSet : ScriptableObject {
 
 	/// <summary>
 	/// Determines whether the current scene manager setup exactly matches this setup.
-	/// DO NOT use this for checking if a scene set is loaded after the game has started running. Instead use IsSetLoaded in SceneSetManager.
+    /// Scenes may be in the process of being loaded/unloaded so be careful when using this!
+    /// A more robust solution is to manually track which scene sets are loaded.
 	/// </summary>
 	/// <returns><c>true</c> if this instance is currently fully loaded; otherwise, <c>false</c>.</returns>
 	public bool IsCurrentlyUniquelyLoaded () {

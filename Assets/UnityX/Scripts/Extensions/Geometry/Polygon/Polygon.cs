@@ -187,9 +187,20 @@ namespace UnityX.Geometry
 			return length;
 		}
 		
+		public Vector2 GetPositionAtArcLength (float edgeLength, IList<Line> lines, IList<float> lineLengths) {
+			var length = 0f;
+            for (int i = 0; i < lines.Count; i++) {
+                Line line = lines[i];
+                var endLength = length + lineLengths[i];
+				if(endLength > edgeLength) {
+					var l = Mathf.InverseLerp(length, endLength, edgeLength);
+					return Vector2.Lerp(line.start, line.end, l);
+				}
+				else length = endLength;
+			}
+			return vertices.Last();
+		}
 		public Vector2 GetPositionAtArcLength (float edgeLength) {
-			// var edgeIndex = Mathf.FloorToInt(edgeLength);
-			// var edgeArcLength = edgeIndex-edgeLength;
 			var length = 0f;
 			foreach(var line in GetLines()) {
 				var endLength = length + line.length;
@@ -410,6 +421,11 @@ namespace UnityX.Geometry
         }
 		
 
+		public void GetLines (List<Line> lines) {
+            lines.Clear();
+			for(int i = 0; i < _vertices.Length-1; i++) lines.Add(new Line(_vertices[i], _vertices[i+1]));
+			lines.Add(new Line(_vertices[_vertices.Length-1], _vertices[0]));
+		}
 		public IEnumerable<Line> GetLines () {
 			for(int i = 0; i < _vertices.Length-1; i++) yield return new Line(_vertices[i], _vertices[i+1]);
 			yield return new Line(_vertices[_vertices.Length-1], _vertices[0]);
@@ -522,17 +538,20 @@ namespace UnityX.Geometry
 		///
 		/// WINDING DIRECTION
 		///
-		public bool GetIsClockwise () {
+		public static bool GetIsClockwise (Vector2[] verticies) {
 			float x = 0;
-			Vector2 current = _vertices[_vertices.Length-1];
-			Vector2 next = _vertices[0];
+			Vector2 current = verticies[verticies.Length-1];
+			Vector2 next = verticies[0];
 			x += (next.x-current.x) * (next.y+current.y);
-			for (int i = 1; i < _vertices.Length; i++) {
+			for (int i = 1; i < verticies.Length; i++) {
 				current = next;
-				next = _vertices[i];
+				next = verticies[i];
 				x += (next.x-current.x) * (next.y+current.y);
 			}
 			return x >= 0;
+		}
+		public bool GetIsClockwise () {
+			return GetIsClockwise(_vertices);
 		}
 
 		public void FlipWindingOrder () {

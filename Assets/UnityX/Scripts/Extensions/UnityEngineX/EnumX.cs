@@ -79,25 +79,6 @@ public static class EnumX {
 		int j = Array.IndexOf<T>(Arr, src) - 1;
 		return (j == -1) ? Arr[Arr.Length-1] : Arr[j];            
 	}
-	
-	public static T TryParse<T>(string _string, bool ignoreCase = true) where T : struct {
-		T output = default(T);
-		TryParse(_string, out output, ignoreCase);
-		return output;
-	}
-
-	public static bool TryParse<T>(string _string, out T output, bool ignoreCase = true) where T : struct {
-        output = default(T);
-		#if !UNITY_WINRT
-		if (!typeof(T).IsEnum) Debug.LogError("Argument {0} is not an Enum "+typeof(T).FullName);
-		#endif
-		try {
-			output = (T)Enum.Parse(typeof(T), _string, ignoreCase);
-			return true;
-		} catch {
-			return false;
-		}
-	}
 
 	/// <summary>
 	/// Returns an array of all the values of the enum.

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEditorX.SceneManagement;
 using System.IO;
 
+
 [CustomPropertyDrawer(typeof(SceneAttribute))]
 public class SceneDrawer : PropertyDrawer {
 	

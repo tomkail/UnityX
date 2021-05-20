@@ -156,7 +156,7 @@ public static class ComponentX {
 		}
 	}
 	
-	public static T GetComponentInChildren<T>(this Component current, string name) where T : Component {
+	public static T GetComponentInChildrenExcludingSelf<T>(this Component current, string name) where T : Component {
 		Transform[] transforms = current.transform.FindAllInChildren(name);
 		T found;
 		for(int i = 0; i < transforms.Length; i++) {
@@ -169,6 +169,18 @@ public static class ComponentX {
 	}
 	
 	
+	public static T GetComponentInImmediateChildrenExcludingSelf<T>(this Component current) where T : Component {
+		Transform[] transforms = current.transform.GetChildren();
+		T found;
+		for(int i = 0; i < transforms.Length; i++) {
+			found = transforms[i].GetComponent<T>();
+			if(found != null) {
+				return found;
+			}
+		}
+		return null;
+	}
+
 	public static T[] GetComponentsInChildren<T>(this Component current, string name) where T : Component {
 		List<Transform> transforms = current.transform.FindAllInChildrenList(name);
 		List<T> all = new List<T>();

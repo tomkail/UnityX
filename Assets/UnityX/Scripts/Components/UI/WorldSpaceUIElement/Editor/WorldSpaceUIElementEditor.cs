@@ -17,7 +17,7 @@ public class WorldSpaceUIElementEditor : BaseEditor<WorldSpaceUIElement> {
 			}
 		}
 		if(anyUsingWorldSpaceCanvas) {
-			EditorGUILayout.HelpBox("WorldSpaceUIElementEditor root canvas is in WorldSpace mode, which is not currently supported (what SHOULD this mode do?)", MessageType.Warning);
+			EditorGUILayout.HelpBox("WorldSpaceUIElement root canvas is in WorldSpace mode, which is not currently supported (what SHOULD this mode do?)", MessageType.Warning);
 		}
 
 		EditorGUI.BeginChangeCheck();

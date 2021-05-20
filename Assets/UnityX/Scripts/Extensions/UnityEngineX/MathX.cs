@@ -78,7 +78,7 @@ public static class MathX {
     }
 
     // Calculates the shortest difference between two given angles.
-    public static float DeltaRepeating(float a, float b, float val, float target) {
+    public static float SignedDeltaRepeating(float a, float b, float val, float target) {
         b-=a;
         val-=a;
         target-=a;

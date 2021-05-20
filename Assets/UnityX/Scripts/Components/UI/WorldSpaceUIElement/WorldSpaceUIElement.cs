@@ -220,7 +220,7 @@ public class WorldSpaceUIElement : UIBehaviour {
 		projectedCanvasPosition = (Vector3) targetPositionNullable;
 
 		if(rootCanvas.renderMode == RenderMode.WorldSpace) {
-			projectedCanvasPosition = transform.parent.InverseTransformPoint(projectedCanvasPosition);
+			projectedCanvasPosition = transform.parent.InverseTransformPoint(worldPosition);
 			projectedCanvasPosition.z = 0;
 		}
 

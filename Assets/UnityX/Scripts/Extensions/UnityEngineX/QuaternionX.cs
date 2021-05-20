@@ -25,6 +25,12 @@ public static class QuaternionX {
 	}
 
 	// Nabbed off the internet.
+	public static Quaternion SmoothDamp(Quaternion rot, Quaternion target, ref Quaternion currentVelocity, float smoothTime) {
+        return SmoothDamp(rot, target, ref currentVelocity, smoothTime, Mathf.Infinity, Time.deltaTime);
+    }
+	public static Quaternion SmoothDamp(Quaternion rot, Quaternion target, ref Quaternion currentVelocity, float smoothTime, float maxSpeed) {
+        return SmoothDamp(rot, target, ref currentVelocity, smoothTime, maxSpeed, Time.deltaTime);
+    }
 	public static Quaternion SmoothDamp(Quaternion rot, Quaternion target, ref Quaternion currentVelocity, float smoothTime, float maxSpeed, float deltaTime) {
 		if(deltaTime == 0) return rot;
 

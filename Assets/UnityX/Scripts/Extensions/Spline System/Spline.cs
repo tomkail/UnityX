@@ -49,10 +49,7 @@ namespace SplineSystem {
 			}
 		}
 		public Bounds bounds;
-
-        public Spline () {
-			Validate();
-		}
+		
 		public Spline (params SplineBezierPoint[] bezierPoints) {
 			this.bezierPoints = bezierPoints;
 			RefreshCurveData();
@@ -150,7 +147,7 @@ namespace SplineSystem {
 		}
 
 		public void RefreshCurveData () {
-            if(bezierPoints == null || bezierPoints.Length <= 1) return;
+			if(bezierPoints == null || bezierPoints.Length <= 1) return;
 			if(curves == null || curves.Length != bezierPoints.Length-1) curves = new SplineBezierCurve[bezierPoints.Length-1];
 			for (int i = 0; i < bezierPoints.Length-1; i++) curves[i] = new SplineBezierCurve(bezierPoints [i], bezierPoints [i+1]);
 			
@@ -452,17 +449,39 @@ namespace SplineSystem {
 				yield return GetPointAtArcLength(r * i, localToWorldMatrix);
 		}
 
+		public IEnumerable<Vector3> GetVerts (int numPoints, float startArcLength, float endArcLength) {
+			var length = endArcLength-startArcLength;
+			var r = length/(numPoints-1);
+			for (var i = 0; i < numPoints; i++)
+				yield return GetPointAtArcLength(startArcLength + r * i);
+		}
+		public IEnumerable<Vector3> GetVerts (int numPoints, float startArcLength, float endArcLength, Matrix4x4 localToWorldMatrix) {
+			var length = endArcLength-startArcLength;
+			var r = length/(numPoints-1);
+			for (var i = 0; i < numPoints; i++)
+				yield return GetPointAtArcLength(startArcLength + r * i, localToWorldMatrix);
+		}
+
 		public IEnumerable<Vector3> GetVertsWithPointsPerMeter (float pointsPerMeter) {
 			int numPoints = Mathf.Max(Mathf.CeilToInt(length * pointsPerMeter), 2);
 			var r = length/(numPoints-1);
-			for (var i = 0; i < numPoints; i++)
-				yield return GetPointAtArcLength(r * i);
+			return GetVerts(numPoints);
 		}
 		public IEnumerable<Vector3> GetVertsWithPointsPerMeter (float pointsPerMeter, Matrix4x4 localToWorldMatrix) {
 			int numPoints = Mathf.Max(Mathf.CeilToInt(length * pointsPerMeter), 2);
 			var r = length/(numPoints-1);
-			for (var i = 0; i < numPoints; i++)
-				yield return GetPointAtArcLength(r * i, localToWorldMatrix);
+			return GetVerts(numPoints, localToWorldMatrix);
+		}
+
+		public IEnumerable<Vector3> GetVertsWithPointsPerMeter (float pointsPerMeter, float startArcLength, float endArcLength) {
+			var length = endArcLength-startArcLength;
+			int numPoints = Mathf.Max(Mathf.CeilToInt(length * pointsPerMeter), 2);
+			return GetVerts(numPoints, startArcLength, endArcLength);
+		}
+		public IEnumerable<Vector3> GetVertsWithPointsPerMeter (float pointsPerMeter, float startArcLength, float endArcLength, Matrix4x4 localToWorldMatrix) {
+			var length = endArcLength-startArcLength;
+            int numPoints = Mathf.Max(Mathf.CeilToInt(length * pointsPerMeter), 2);
+			return GetVerts(numPoints, startArcLength, endArcLength, localToWorldMatrix);
 		}
 
 		public static IEnumerable<Vector3> GetCurveVerts (Spline spline, SplineBezierCurve curve, int numPoints) {
@@ -497,7 +516,7 @@ namespace SplineSystem {
                         bezierPoints[i].inControlPoint.directionSign = -1;
                         didChange = true;
                     }
-                    if(bezierPoints[i].inControlPoint.distance <= 0) {
+                    if(bezierPoints[i].inControlPoint.distance < 0) {
                         bezierPoints[i].inControlPoint.distance = 0;
                         didChange = true;
                     }
@@ -506,7 +525,7 @@ namespace SplineSystem {
                         bezierPoints[i].outControlPoint.directionSign = 1;
                         didChange = true;
                     }
-                    if(bezierPoints[i].outControlPoint.distance <= 0) {
+                    if(bezierPoints[i].outControlPoint.distance < 0) {
                         bezierPoints[i].outControlPoint.distance = 0;
                         didChange = true;
                     }
@@ -545,12 +564,26 @@ namespace SplineSystem {
 			}
 	    }
 
+		public static void DrawSplineGizmos (Spline spline, Matrix4x4 localToWorldMatrix, float startArcLength, float endArcLength, int numPoints) {
+            var verts = spline.GetVertsWithPointsPerMeter(numPoints, startArcLength, endArcLength, localToWorldMatrix);
+			Vector3 lastVert = Vector3.zero;
+            bool isFirst = true;
+            foreach(var vert in verts) {
+                if(isFirst) {
+                    isFirst = false;
+                } else {
+				    Gizmos.DrawLine(lastVert, vert);
+                }
+                lastVert = vert;
+            }
+	    }
+
 
 		static float SqrDistance (Vector3 a, Vector3 b) {
 			return (a.x-b.x) * (a.x-b.x) + (a.y-b.y) * (a.y-b.y) + (a.z-b.z) * (a.z-b.z);
 		}
 
-        static float GetNormalizedDistanceOnLine(Vector3 start, Vector3 end, Vector3 p, bool clamped = true) {
+		static float GetNormalizedDistanceOnLine(Vector3 start, Vector3 end, Vector3 p, bool clamped = true) {
 			float sqrLength = SqrDistance(start, end);
 			return GetNormalizedDistanceOnLineInternal(start, end, p, sqrLength, clamped);
 		}

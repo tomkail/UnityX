@@ -1,11 +1,17 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using UnityEditor;
+
 
 namespace SplineSystem {
 	public class SplineEditor {
         const float cursorPointHandleSize = 0.125f;
         const float bezierPointHandleSize = 0.075f;
         const float controlPointHandleSize = 0.175f;
+
+        public bool editable = true;
 
         bool _editing;
         public bool editing {
@@ -67,17 +73,16 @@ namespace SplineSystem {
 		    Validate(spline, ref changed);
             Color savedHandleColor = Handles.color;
 		    DrawSpline(spline);
-		    DrawSceneViewToolbar(spline, ref changed);
-            if(Event.current.alt) {}
-            else if(editing) {                
-                // Stops clicking on background objects, but breaks 3D rotation sphere (individual axis work though) 
-			    HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
-                DrawEditor(spline, ref changed);
+            if(editable) {
+		        DrawSceneViewToolbar(spline, ref changed);
+                if(Event.current.alt) {}
+                else if(editing) {                
+                    // Stops clicking on background objects, but breaks 3D rotation sphere (individual axis work though) 
+                    HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
+                    DrawEditor(spline, ref changed);
+                }
             }
 		    Handles.color = savedHandleColor;
-            if(changed) {
-                spline.RefreshCurveData();
-            }
             return changed;
 		}
 
@@ -331,16 +336,16 @@ namespace SplineSystem {
                 }
             }
             return new SamplePoint(bestCurveIndex, bestCurvePointIndex, bestBezierPointIndex, bestNormalizedDistanceOnLine);
+        }
 
-            static float GetNormalizedDistanceOnLine(Vector2 start, Vector2 end, Vector2 p, bool clamped = true) {
-                float sqrLength = (start.x-end.x) * (start.x-end.x) + (start.y-end.y) * (start.y-end.y);
-                if (sqrLength == 0f) return 0;
-                // Divide by length squared so that we can save on normalising (end-start), since
-                // we're effectively dividing by the length an extra time.
-                float n = Vector2.Dot(p - start, end - start) / sqrLength;
-                if(!clamped) return n;
-                return Mathf.Clamp01(n);
-            }
+        static float GetNormalizedDistanceOnLine(Vector2 start, Vector2 end, Vector2 p, bool clamped = true) {
+            float sqrLength = (start.x-end.x) * (start.x-end.x) + (start.y-end.y) * (start.y-end.y);
+            if (sqrLength == 0f) return 0;
+            // Divide by length squared so that we can save on normalising (end-start), since
+            // we're effectively dividing by the length an extra time.
+            float n = Vector2.Dot(p - start, end - start) / sqrLength;
+            if(!clamped) return n;
+            return Mathf.Clamp01(n);
         }
 
         /*

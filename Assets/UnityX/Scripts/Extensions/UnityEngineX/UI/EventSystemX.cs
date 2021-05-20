@@ -121,7 +121,18 @@ public static class EventSystemX {
         }
 	}
 
-
+	public static void Exit (GameObject focusedOption) {
+		var eventData = new PointerEventData(null);
+        eventData.button = PointerEventData.InputButton.Left;
+        if(focusedOption == null) {
+            eventData.hovered = new List<GameObject>() {};
+            ExecuteEvents.ExecuteHierarchy(null, eventData, ExecuteEvents.pointerExitHandler);
+        } else {
+            eventData.hovered = new List<GameObject>() {focusedOption};
+			ExecuteEvents.ExecuteHierarchy(focusedOption, eventData, ExecuteEvents.pointerExitHandler);
+        }
+	}
+    
 	public static void Click (GameObject focusedOption) {
 		var eventData = new PointerEventData(null);
         eventData.eligibleForClick = true;

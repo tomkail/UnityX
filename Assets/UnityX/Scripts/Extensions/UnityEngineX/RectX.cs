@@ -489,6 +489,14 @@ public static class RectX {
 		vertices[3] = new Vector2(vertices[0].x, max.y);
 		return vertices;
 	}
+	public static IEnumerable<Vector2> GetVerticesEnumerable(this Rect rect) {
+		Vector2 min = rect.min;
+		Vector2 max = rect.max;
+		yield return min;
+		yield return new Vector2(max.x, min.y);
+		yield return max;
+		yield return new Vector2(min.x, max.y);
+	}
 
     public static float GetClosestDistanceBetweenEdges (Rect rect1, Rect rect2) {
         var minX = Mathf.Min(Mathf.Abs(rect1.xMin - rect2.xMin), Mathf.Abs(rect1.xMin - rect2.xMax), Mathf.Abs(rect1.xMax - rect2.xMin), Mathf.Abs(rect1.xMax - rect2.xMax));

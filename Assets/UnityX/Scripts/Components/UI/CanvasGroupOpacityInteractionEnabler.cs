@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.EventSystems;
 using System.Collections;
 
 /// <summary>
@@ -7,20 +8,25 @@ using System.Collections;
 /// </summary>
 [RequireComponent(typeof(CanvasGroup))]
 [ExecuteInEditMode]
-public class CanvasGroupOpacityInteractionEnabler : MonoBehaviour {
-	private CanvasGroup canvasGroup;
+public class CanvasGroupOpacityInteractionEnabler : UIBehaviour {
+	private CanvasGroup canvasGroup {
+        get {
+            return GetComponent<CanvasGroup>();
+        }
+    }
 	[ClampAttribute(0f,1f)]
 	public float alphaThreshold = 1;
-	public bool blocksRaycasts = true;
 	public bool interactable = true;
-	
-	void OnEnable () {
-		canvasGroup = GetComponent<CanvasGroup>();
-	}
-	
-	void Update () {
+	public bool blocksRaycasts = true;
+
+    protected override void OnCanvasGroupChanged() {
+        base.OnCanvasGroupChanged();
         var alphaIsValid = alphaThreshold == 1 ? canvasGroup.alpha >= alphaThreshold : canvasGroup.alpha > alphaThreshold;
-		canvasGroup.blocksRaycasts = blocksRaycasts && alphaIsValid;
-		canvasGroup.interactable = interactable && alphaIsValid;
-	}
+        
+        var newBlocksRaycasts = blocksRaycasts && alphaIsValid;
+		if(canvasGroup.blocksRaycasts != newBlocksRaycasts) canvasGroup.blocksRaycasts = newBlocksRaycasts;
+
+        var newInteractable = interactable && alphaIsValid;
+		if(canvasGroup.interactable != newInteractable) canvasGroup.interactable = newInteractable;
+    }
 }

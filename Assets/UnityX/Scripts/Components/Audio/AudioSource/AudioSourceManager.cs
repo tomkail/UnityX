@@ -16,13 +16,16 @@ public class AudioSourceManager : MonoBehaviour {
 			else return false;
 		}
 	}
-	AndBlender canPlayBlender = new AndBlender();
+	AndBlender canPlayBlender = new AndBlender(true);
 	public bool startPlayingAtRandomTime;
 
-	[SerializeField]
 	private AudioSource _audioSource;
 	public AudioSource audioSource {
 		get {
+            if(_audioSource == null) {
+                _audioSource = GetComponent<AudioSource>();
+		        if(_audioSource == null) _audioSource = gameObject.AddComponent<AudioSource>();
+            }
 			return _audioSource;
 		} private set {
 			_audioSource = value;
@@ -96,15 +99,12 @@ public class AudioSourceManager : MonoBehaviour {
 	}
 
 	void Awake () {
-		if(audioSource == null) audioSource = GetComponent<AudioSource>();
-		if(audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
 		_wasPlaying = audioSource.isPlaying;
 		audioSourceWasPlayingWhileFocused = audioSource.isPlaying;
 		if(audioSource.isPlaying && startPlayingAtRandomTime && audioSource.clip != null) audioSource.time = Random.Range(0, audioSource.clip.length);
-		volumeTween = new FloatTween(audioSource.volume);
-		volumeTween.OnChange += (newVolume) => {
-			audioSource.volume = volumeTween.currentValue;
-		};
+		volumeTween.OnChange += OnChangeVolumeTween;
+		volumeTween.Reset(audioSource.volume);
+        audioSource.volume = volumeTween.currentValue;
 		
 		canPlayBlender.onChange += (bool canPlay) => {
 			if(canPlay) audioSource.UnPause();
@@ -112,6 +112,10 @@ public class AudioSourceManager : MonoBehaviour {
 		};
 		EnforcePauseState();
 	}
+
+    void OnChangeVolumeTween (float newVolume) {
+        audioSource.volume = volumeTween.currentValue;
+    }
 	
 	void Update () {
 		volumeTween.Update(Time.unscaledDeltaTime);
@@ -176,7 +180,7 @@ public class AudioSourceManager : MonoBehaviour {
 		
 	bool _wasPlaying;
 	[SerializeField]
-	FloatTween _volumeTween;
+	FloatTween _volumeTween = new FloatTween();
 
 	#if UNITY_EDITOR
 	public void LogPauseBlender () {

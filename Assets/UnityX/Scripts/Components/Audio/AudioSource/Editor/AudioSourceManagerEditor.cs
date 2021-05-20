@@ -9,16 +9,10 @@ public class AudioSourceManagerEditor : BaseEditor<AudioSourceManager> {
 	public override void OnInspectorGUI () {
 		serializedObject.Update();
 		this.Repaint();
-//		base.OnInspectorGUI ();
-		
-		var audioSources = data.gameObject.GetComponents<AudioSource>();
-		if(audioSources != null) {
-			if(audioSources.Length == 1) serializedObject.FindProperty("_audioSource").objectReferenceValue = audioSources[0];
-			else if(audioSources.Length > 1) EditorGUILayout.PropertyField(serializedObject.FindProperty("_audioSource"));
-		}
-
+        
 		EditorGUILayout.PropertyField(serializedObject.FindProperty("startPlayingAtRandomTime"));
 		EditorGUILayout.PropertyField(serializedObject.FindProperty("pauseWhenTimescaleIsZero"));
+		EditorGUILayout.PropertyField(serializedObject.FindProperty("pauseWhenVolumeIsZero"));
 		EditorGUILayout.BeginHorizontal();
 		GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 		if(!Application.isPlaying) {

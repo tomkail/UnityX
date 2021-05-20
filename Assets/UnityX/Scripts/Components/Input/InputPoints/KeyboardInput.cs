@@ -34,7 +34,7 @@ public class KeyboardInput {
 		return Vector2.zero;
 	}
 	
-	public Vector2 GetCombinedDirectionFromArrowKeys (bool alsoUseWASD = true) {
+	public static Vector2 GetCombinedDirectionFromArrowKeys (bool alsoUseWASD = true) {
 		Vector2 direction = Vector2.zero;
 		if(Input.GetKey(KeyCode.UpArrow) || (alsoUseWASD && Input.GetKey(KeyCode.W))) {
 			direction += Vector2.up;

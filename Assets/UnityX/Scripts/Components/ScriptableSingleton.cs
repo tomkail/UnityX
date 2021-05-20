@@ -5,7 +5,7 @@ public abstract class ScriptableSingleton<T> : ScriptableObject where T : Script
 	private static T _Instance;
 	public static T Instance {
 		get {
-			if(_Instance == null) _Instance = Resources.Load<T>("");
+			if(_Instance == null) _Instance = Resources.Load<T>(typeof(T).Name);
 #if UNITY_EDITOR
 			if(_Instance == null) _Instance = AssetDatabaseX.LoadAssetOfType<T>();
 

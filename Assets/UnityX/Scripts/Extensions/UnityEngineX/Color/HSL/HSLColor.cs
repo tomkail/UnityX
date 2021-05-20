@@ -104,7 +104,59 @@ public struct HSLColor {
 	public static HSLColor Lerp(HSLColor c1, HSLColor c2, float step) {
 		return new HSLColor(Mathf.Lerp(c1.h, c2.h, step), Mathf.Lerp(c1.s, c2.s, step), Mathf.Lerp(c1.l, c2.l, step), Mathf.Lerp(c1.a, c2.a, step));
 	}
+	public static HSLColor MoveTowards(HSLColor c1, HSLColor c2, float maxDelta) {
+		return new HSLColor(Mathf.MoveTowards(c1.h, c2.h, maxDelta*180), Mathf.MoveTowards(c1.s, c2.s, maxDelta), Mathf.MoveTowards(c1.l, c2.l, maxDelta), Mathf.MoveTowards(c1.a, c2.a, maxDelta));
+	}
 	
+
+    public static HSLColor Add(HSLColor left, HSLColor right){
+		return new HSLColor(left.h+right.h, left.s+right.s, left.l+right.l, left.a+right.a);
+	}
+
+	public static HSLColor Subtract(HSLColor left, HSLColor right){
+		return new HSLColor(left.h-right.h, left.s-right.s, left.l-right.l, left.a-right.a);
+	}
+    
+    public override bool Equals(System.Object obj) {
+		return obj is HSLColor && this == (HSLColor)obj;
+	}
+
+	public bool Equals(HSLColor p) {
+		return h == p.h && s == p.s && l == p.l && a == p.a;
+	}
+
+	public override int GetHashCode() {
+		unchecked // Overflow is fine, just wrap
+		{
+			int hash = 27;
+			hash = hash * 31 + h.GetHashCode();
+			hash = hash * 31 + s.GetHashCode();
+			hash = hash * 31 + l.GetHashCode();
+			hash = hash * 31 + a.GetHashCode();
+			return hash;
+		}
+	}
+
+	public static bool operator == (HSLColor left, HSLColor right) {
+		return left.Equals(right);
+	}
+
+	public static bool operator != (HSLColor left, HSLColor right) {
+		return !(left == right);
+	}
+
+	public static HSLColor operator +(HSLColor left, HSLColor right) {
+		return Add(left, right);
+	}
+
+	public static HSLColor operator -(HSLColor left) {
+		return new HSLColor(-left.h, -left.s, -left.l, -left.a);
+	}
+
+	public static HSLColor operator -(HSLColor left, HSLColor right) {
+		return Subtract(left, right);
+	}
+
 	public static implicit operator HSLColor(Color src) {
 		return FromRGBA(src);
 	}
@@ -112,5 +164,4 @@ public struct HSLColor {
 	public static implicit operator Color(HSLColor src) {
 		return src.ToRGBA();
 	}
-
 }
