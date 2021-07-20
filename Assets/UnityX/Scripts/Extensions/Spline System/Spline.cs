@@ -21,7 +21,8 @@ namespace SplineSystem {
 		}
 		public Quaternion GetRotationAtArcLength (float arcLength, Matrix4x4 localToWorldMatrix) {
 			var rawRotation = GetRotationAtArcLength(arcLength);
-			return Quaternion.LookRotation(localToWorldMatrix.MultiplyVector(rawRotation * Vector3.forward), localToWorldMatrix.MultiplyVector(rawRotation * Vector3.up));
+			return localToWorldMatrix.rotation * rawRotation;
+			// return Quaternion.LookRotation(localToWorldMatrix.MultiplyVector(rawRotation * Vector3.forward), localToWorldMatrix.MultiplyVector(rawRotation * Vector3.up));
 		}
 
 
@@ -493,6 +494,34 @@ namespace SplineSystem {
 			}
 	    }
 
+		// Transforms a spline into another space. A typical use for this is creating world space splines from local ones, or the reverse.
+		// This approach handles matricies with non-uniform scale
+		public static Spline Transform (Spline spline, Matrix4x4 matrix) {
+			SplineBezierPoint[] newBezierPoints = new SplineBezierPoint[spline.bezierPoints.Length];
+			for(int i = 0; i < spline.bezierPoints.Length; i++) {
+				var bezierPoint = spline.bezierPoints[i];
+
+				var worldPosition = matrix.MultiplyPoint3x4(bezierPoint.position);
+				var worldRotation = Quaternion.LookRotation(matrix.MultiplyVector(bezierPoint.rotation * Vector3.forward), matrix.MultiplyVector(bezierPoint.rotation * Vector3.up));
+				
+				var inWorldPos = matrix.MultiplyPoint3x4(bezierPoint.inControlPoint.GetPosition(bezierPoint));
+				var inWorldDir = matrix.MultiplyVector(bezierPoint.inControlPoint.GetDirection(bezierPoint)).normalized;
+				var inDist = Vector3.Dot(inWorldPos - worldPosition, inWorldDir);
+
+				var outWorldPos = matrix.MultiplyPoint3x4(bezierPoint.outControlPoint.GetPosition(bezierPoint));
+				var outWorldDir = matrix.MultiplyVector(bezierPoint.outControlPoint.GetDirection(bezierPoint)).normalized;
+				var outDist = Vector3.Dot(outWorldPos - worldPosition, outWorldDir);
+				
+				newBezierPoints[i] = new SplineBezierPoint(
+					worldPosition,
+					worldRotation,
+					inDist,
+					outDist
+				);
+			}
+			return new Spline(newBezierPoints);
+		}
+
         public bool Validate () {
 			bool didChange = false;
             if(quality <= 0) {
@@ -537,6 +566,11 @@ namespace SplineSystem {
             return didChange;
         }
 
+		public static void DrawSplineGizmos (Spline spline, int numPoints) {
+			for (var i = 0; i < spline.curves.Length; i++) {
+				DrawCurveLineGizmos(spline, spline.curves[i], Matrix4x4.identity, numPoints);
+			}
+		}
 		public static void DrawSplineGizmos (Spline spline, Matrix4x4 localToWorldMatrix, int numPoints) {
 			for (var i = 0; i < spline.curves.Length; i++) {
 				DrawCurveLineGizmos(spline, spline.curves[i], localToWorldMatrix, numPoints);

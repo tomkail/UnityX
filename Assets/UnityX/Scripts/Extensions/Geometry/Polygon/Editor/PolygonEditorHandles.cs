@@ -13,6 +13,7 @@ public class PolygonEditorHandles {
 		get {
 			return _editing;
 		} set {
+			if(_editing == value) return;
 			_editing = value;
 			if(_editing) Tools.hidden = true;
 			else Tools.hidden = false;

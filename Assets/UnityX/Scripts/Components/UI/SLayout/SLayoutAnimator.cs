@@ -131,6 +131,11 @@ public sealed class SLayoutAnimator : MonoBehaviour
 		}
 	}
 
+	void OnDisable () {
+		_animations.Clear();
+		_animationsToRemove.Clear();
+	}
+
 	List<SLayoutAnimation> _animations = new List<SLayoutAnimation>();
 	List<SLayoutAnimation> _animationsToRemove = new List<SLayoutAnimation>();
 

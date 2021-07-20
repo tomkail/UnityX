@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using System.Collections;
+using System.Linq;
 using System.IO;
 
 [CustomPropertyDrawer (typeof(FilePathAttribute))]
@@ -13,7 +13,8 @@ class FilePathDrawer : BaseAttributePropertyDrawer<FilePathAttribute> {
 
 	public static string FilePathLayout (string path, GUIContent label, FilePathAttribute.RelativeTo relativeTo, bool removePrefixSlash = false, bool showPrevNextFileControls = false) {
 		bool exists = FileExistsOrPathEmpty(path, relativeTo);
-		if(!exists) OnGUIX.BeginBackgroundColor(Color.red);
+		Color previousColor = GUI.backgroundColor;
+        if(!exists) GUI.backgroundColor = Color.red;
 		label.text = string.Format("{0} ({1})", label.text, RelativeToLabelText(relativeTo));
 
 		EditorGUILayout.BeginHorizontal();
@@ -22,16 +23,15 @@ class FilePathDrawer : BaseAttributePropertyDrawer<FilePathAttribute> {
 		if(path == null) path = "";
 		path = EditorGUILayout.TextField(path);
 		if(showPrevNextFileControls) {
-			string dirName = null;
-			if(!string.IsNullOrWhiteSpace(path)) dirName = Path.GetDirectoryName(path);
 			string[] filesInDir = null;
-			if(!string.IsNullOrWhiteSpace(dirName)) filesInDir = Directory.GetFiles(dirName);
-			var index = filesInDir == null ? -1 : filesInDir.IndexOf(x => PathX.Compare(x, path));
-			EditorGUI.BeginDisabledGroup(index == -1 || index == 0);
-			if(GUILayout.Button(new GUIContent("<", null, GUI.enabled ? Path.GetFileName(filesInDir[index-1]) : string.Empty), GUILayout.Width(buttonWidth))) path = filesInDir[index-1];
+            int numFilesInDir;
+            int indexOfFile;
+            SetFilesInDir(path, ref filesInDir, out numFilesInDir, out indexOfFile);
+			EditorGUI.BeginDisabledGroup(indexOfFile == -1 || indexOfFile == 0);
+			if(GUILayout.Button(new GUIContent("<", null, GUI.enabled ? Path.GetFileName(filesInDir[indexOfFile-1]) : string.Empty), GUILayout.Width(buttonWidth))) path = filesInDir[indexOfFile-1];
 			EditorGUI.EndDisabledGroup();
-			EditorGUI.BeginDisabledGroup(index == -1 || index == filesInDir.Length-1);
-			if(GUILayout.Button(new GUIContent(">", null, GUI.enabled ? Path.GetFileName(filesInDir[index+1]) : string.Empty), GUILayout.Width(buttonWidth))) path = filesInDir[index+1];
+			EditorGUI.BeginDisabledGroup(indexOfFile == -1 || indexOfFile == numFilesInDir-1);
+			if(GUILayout.Button(new GUIContent(">", null, GUI.enabled ? Path.GetFileName(filesInDir[indexOfFile+1]) : string.Empty), GUILayout.Width(buttonWidth))) path = filesInDir[indexOfFile+1];
 			EditorGUI.EndDisabledGroup();
 		}
 		if(GUILayout.Button(new GUIContent("...", null, "Show file picker"), GUILayout.Width(buttonWidth))) path = GetPath(path, relativeTo, removePrefixSlash);
@@ -39,7 +39,7 @@ class FilePathDrawer : BaseAttributePropertyDrawer<FilePathAttribute> {
 		if(GUILayout.Button(new GUIContent(">", null, "Show in finder"), GUILayout.Width(buttonWidth))) RevealPathInFinder(path, relativeTo);
 		EditorGUI.EndDisabledGroup();
 		EditorGUILayout.EndHorizontal();
-		if(!exists) OnGUIX.EndBackgroundColor();
+		if(!exists) GUI.backgroundColor = previousColor;
 		return path;
 	}
 
@@ -49,7 +49,8 @@ class FilePathDrawer : BaseAttributePropertyDrawer<FilePathAttribute> {
 	
 	public static string FilePath (Rect position, string path, GUIContent label, FilePathAttribute.RelativeTo relativeTo, bool removePrefixSlash = false, bool showPrevNextFileControls = false) {
 		bool exists = FileExistsOrPathEmpty(path, relativeTo);
-		if(!exists) OnGUIX.BeginBackgroundColor(Color.red);
+		Color previousColor = GUI.backgroundColor;
+        if(!exists) GUI.backgroundColor = Color.red;
 		label.text = string.Format("{0} ({1})", label.text, RelativeToLabelText(relativeTo));
 		
 		var contentRect = EditorGUI.PrefixLabel(position, label);
@@ -79,13 +80,14 @@ class FilePathDrawer : BaseAttributePropertyDrawer<FilePathAttribute> {
 			string dirName = null;
 			if(!string.IsNullOrWhiteSpace(path)) dirName = Path.GetDirectoryName(path);
 			string[] filesInDir = null;
-			if(!string.IsNullOrWhiteSpace(dirName)) filesInDir = Directory.GetFiles(dirName);
-			var index = filesInDir == null ? -1 : filesInDir.IndexOf(x => PathX.Compare(x, path));
-			EditorGUI.BeginDisabledGroup(index == -1 || index == 0);
-			if(GUI.Button(buttonRect, new GUIContent("<", null, GUI.enabled ? Path.GetFileName(filesInDir[index-1]) : string.Empty))) path = filesInDir[index-1];
+            int numFilesInDir;
+            int indexOfFile;
+            SetFilesInDir(path, ref filesInDir, out numFilesInDir, out indexOfFile);
+			EditorGUI.BeginDisabledGroup(indexOfFile == -1 || indexOfFile == 0);
+			if(GUI.Button(buttonRect, new GUIContent("<", null, GUI.enabled ? Path.GetFileName(filesInDir[indexOfFile-1]) : string.Empty))) path = filesInDir[indexOfFile-1];
 			EditorGUI.EndDisabledGroup();
-			EditorGUI.BeginDisabledGroup(index == -1 || index == filesInDir.Length-1);
-			if(GUI.Button(buttonRect2, new GUIContent(">", null, GUI.enabled ? Path.GetFileName(filesInDir[index+1]) : string.Empty))) path = filesInDir[index+1];
+			EditorGUI.BeginDisabledGroup(indexOfFile == -1 || indexOfFile == numFilesInDir-1);
+			if(GUI.Button(buttonRect2, new GUIContent(">", null, GUI.enabled ? Path.GetFileName(filesInDir[indexOfFile+1]) : string.Empty))) path = filesInDir[indexOfFile+1];
 			EditorGUI.EndDisabledGroup();
 		}
 
@@ -96,9 +98,27 @@ class FilePathDrawer : BaseAttributePropertyDrawer<FilePathAttribute> {
 		EditorGUI.BeginDisabledGroup(string.IsNullOrWhiteSpace(path) || !exists);
 		if(GUI.Button(buttonRect4, new GUIContent(">", null, "Show in finder"))) RevealPathInFinder(path, relativeTo);
 		EditorGUI.EndDisabledGroup();
-		if(!exists) OnGUIX.EndBackgroundColor();
+		if(!exists) GUI.backgroundColor = previousColor;
 		return path;
 	}
+
+    static void SetFilesInDir (string path, ref string[] filesInDir, out int numFilesInDir, out int indexOfFile) {
+        string dirName = null;
+        if(!string.IsNullOrWhiteSpace(path)) dirName = Path.GetDirectoryName(path);
+        if(!string.IsNullOrWhiteSpace(dirName)) filesInDir = Directory.GetFiles(dirName);
+        indexOfFile = -1;
+        if(filesInDir != null) {
+            numFilesInDir = filesInDir.Length;
+            for(int i = 0; i < numFilesInDir; i++) {
+                if(PathX.Compare(filesInDir[i], path)) {
+                    indexOfFile = i;
+                    break;
+                }
+            }
+        } else {
+            numFilesInDir = 0;
+        }
+    }
 
 	static string GetPath (string unityRelativePath, FilePathAttribute.RelativeTo relativeTo, bool removePrefixSlash = false) {
 		var absolutePath = ToAbsolutePath(unityRelativePath, relativeTo);

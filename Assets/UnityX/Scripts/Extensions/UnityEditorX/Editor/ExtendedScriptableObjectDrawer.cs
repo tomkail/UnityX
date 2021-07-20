@@ -1,14 +1,11 @@
-﻿// Developed by Tom Kail at Inkle
+// Developed by Tom Kail at Inkle
 // Released under the MIT Licence as held at https://opensource.org/licenses/MIT
 
 // Must be placed within a folder named "Editor"
 using System;
-using System.Reflection;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using Object = UnityEngine.Object;
 
 /// <summary>
 /// Extends how ScriptableObject object references are displayed in the inspector
@@ -20,11 +17,9 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 	
 	public override float GetPropertyHeight (SerializedProperty property, GUIContent label) {
 		float totalHeight = EditorGUIUtility.singleLineHeight;
-        
-		if(property.objectReferenceValue == null || !AreAnySubPropertiesVisible(property)){
+        if(property.objectReferenceValue == null || !AreAnySubPropertiesVisible(property)){
             return totalHeight;
         }
-		
 		if(property.isExpanded) {
 			var data = property.objectReferenceValue as ScriptableObject;
 			if( data == null ) return EditorGUIUtility.singleLineHeight;
@@ -46,20 +41,19 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 	}
 
 	const int buttonWidth = 66;
-
-	static readonly string[] ignoreClassFullNames = { "TMPro.TMP_FontAsset" };
+	
+	static readonly List<string> ignoreClassFullNames = new List<string>{ "TMPro.TMP_FontAsset" };
+	
 	public override void OnGUI (Rect position, SerializedProperty property, GUIContent label) {
 		EditorGUI.BeginProperty (position, label, property);
+		var type = GetFieldType();
 		
-		var objType = property.GetActualType();
-		
-		if(objType == null || ignoreClassFullNames.Contains(objType.FullName)) {
+		if(type == null || ignoreClassFullNames.Contains(type.FullName)) {
 			EditorGUI.PropertyField(position, property, label);	
 			EditorGUI.EndProperty ();
 			return;
 		}
-
-		EditorGUI.BeginChangeCheck();
+		
 		ScriptableObject propertySO = null;
 		if(!property.hasMultipleDifferentValues && property.serializedObject.targetObject != null && property.serializedObject.targetObject is ScriptableObject) {
 			propertySO = (ScriptableObject)property.serializedObject.targetObject;
@@ -71,7 +65,6 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 		if(property.objectReferenceValue != null && AreAnySubPropertiesVisible(property)) {
 			property.isExpanded = EditorGUI.Foldout(foldoutRect, property.isExpanded, guiContent, true);
 		} else {
-			property.isExpanded = false;
 			// So yeah having a foldout look like a label is a weird hack 
 			// but both code paths seem to need to be a foldout or 
 			// the object field control goes weird when the codepath changes.
@@ -86,35 +79,21 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 		if(propertySO != null || property.objectReferenceValue == null) {
 			propertyRect.width -= buttonWidth;
 		}
-		property.objectReferenceValue = EditorGUI.ObjectField(propertyRect, GUIContent.none, property.objectReferenceValue, objType, false);
-		if (EditorGUI.EndChangeCheck()) property.serializedObject.ApplyModifiedProperties();
+		
+		EditorGUI.ObjectField(propertyRect, property, type, GUIContent.none);
+		if (GUI.changed) property.serializedObject.ApplyModifiedProperties();
 
 		var buttonRect = new Rect(position.x + position.width - buttonWidth, position.y, buttonWidth, EditorGUIUtility.singleLineHeight);
 			
 		if(property.propertyType == SerializedPropertyType.ObjectReference && property.objectReferenceValue != null) {
 			var data = (ScriptableObject)property.objectReferenceValue;
-			// if(propertySO != null) {
-			// 	bool parented = AssetDatabaseX.IsSubAssetOf(data, property.serializedObject.targetObject);
-			// 	if(parented) {
-			// 		if(GUI.Button(buttonRect, "Unparent")) {	
-			// 			AssetDatabaseX.UnSetAsSubAsset(ref data);
-			// 			property.objectReferenceValue = data;
-			// 		}
-			// 	} else {
-			// 		if(GUI.Button(buttonRect, "Parent")) {	
-			// 			AssetDatabaseX.SetAsSubAsset(ref data, propertySO);
-			// 			property.objectReferenceValue = data;
-			// 		}
-			// 	}
-			// }
+			
 			if(property.isExpanded) {
 				// Draw a background that shows us clearly which fields are part of the ScriptableObject
-				GUI.Box(new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing - 1, position.width, position.height - EditorGUIUtility.singleLineHeight - EditorGUIUtility.standardVerticalSpacing), "");
+				GUI.Box(new Rect(0, position.y + EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing - 1, Screen.width, position.height - EditorGUIUtility.singleLineHeight - EditorGUIUtility.standardVerticalSpacing), "");
 
 				EditorGUI.indentLevel++;
 				SerializedObject serializedObject = new SerializedObject(data);
-				
-				EditorGUI.BeginChangeCheck();
 				
 				// Iterate over all the values and draw them
 				SerializedProperty prop = serializedObject.GetIterator();
@@ -124,32 +103,12 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 						// Don't bother drawing the class file
 						if(prop.name == "m_Script") continue;
 						float height = EditorGUI.GetPropertyHeight(prop, new GUIContent(prop.displayName), true);
-						bool isSubAsset = AssetDatabaseX.IsSubAssetOf(prop, property.serializedObject.targetObject);
-						bool canBeSubAsset = AssetDatabaseX.CanBeSubAsset(prop);
 						EditorGUI.PropertyField(new Rect(position.x, y, position.width-buttonWidth, height), prop, true);
-						if(isSubAsset || canBeSubAsset) {
-							if(isSubAsset) {
-								var objButtonRect = new Rect(position.xMax-buttonWidth, y, buttonWidth, EditorGUIUtility.singleLineHeight);
-								if(GUI.Button(objButtonRect, "Unparent")) {
-									var x = prop.objectReferenceValue;
-									AssetDatabaseX.UnSetAsSubAsset(ref x);
-									prop.objectReferenceValue = x;
-								}
-							} else if(canBeSubAsset) {
-								// EditorGUI.PropertyField(new Rect(position.x, y, position.width - buttonWidth, height), prop, true);
-								var objButtonRect = new Rect(position.xMax-buttonWidth, y, buttonWidth, EditorGUIUtility.singleLineHeight);
-								if(GUI.Button(objButtonRect, "Parent")) {
-									var x = prop.objectReferenceValue;
-									AssetDatabaseX.SetAsSubAsset(ref x, data);
-									prop.objectReferenceValue = x;
-								}
-							}
-						}
 						y += height + EditorGUIUtility.standardVerticalSpacing;
 					}
 					while (prop.NextVisible(false));
 				}
-				if (EditorGUI.EndChangeCheck())
+				if (GUI.changed)
 					serializedObject.ApplyModifiedProperties();
 
 				EditorGUI.indentLevel--;
@@ -161,9 +120,7 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 					MonoScript ms = MonoScript.FromMonoBehaviour((MonoBehaviour)property.serializedObject.targetObject);
 					selectedAssetPath = System.IO.Path.GetDirectoryName(AssetDatabase.GetAssetPath( ms ));
 				}
-				Type type = fieldInfo.FieldType;
-				if(type.IsArray) type = type.GetElementType();
-				else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>)) type = type.GetGenericArguments()[0];
+				
 				property.objectReferenceValue = CreateAssetWithSavePrompt(type, selectedAssetPath);
 			}
 		}
@@ -227,7 +184,6 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
         // Draw a background that shows us clearly which fields are part of the ScriptableObject
         EditorGUI.indentLevel++;
         EditorGUILayout.BeginVertical(GUI.skin.box);
-        EditorGUI.BeginChangeCheck();
 
         var serializedObject = new SerializedObject(objectReferenceValue);
         // Iterate over all the values and draw them
@@ -240,7 +196,7 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
             }
             while (prop.NextVisible(false));
         }
-        if (EditorGUI.EndChangeCheck())
+        if (GUI.changed)
             serializedObject.ApplyModifiedProperties();
         EditorGUILayout.EndVertical();
         EditorGUI.indentLevel--;
@@ -304,6 +260,13 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 		AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
 		EditorGUIUtility.PingObject(asset);
 		return asset;
+	}
+	
+	Type GetFieldType () {
+		Type type = fieldInfo.FieldType;
+		if(type.IsArray) type = type.GetElementType();
+		else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>)) type = type.GetGenericArguments()[0];
+		return type;
 	}
 
 	static bool AreAnySubPropertiesVisible(SerializedProperty property) {

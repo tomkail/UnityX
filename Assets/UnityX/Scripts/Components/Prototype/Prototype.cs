@@ -9,6 +9,7 @@ using System;
 /// NEW FEATURE! If you call ReturnToPool() once you're done with the instance, then it's returned
 /// to the original prototype to be reused if necessary instead of creating a brand new GameObject.
 /// </summary>
+[DisallowMultipleComponent]
 public class Prototype : MonoBehaviour {
 
 	public event Action<Prototype> OnPreReturnToPool;

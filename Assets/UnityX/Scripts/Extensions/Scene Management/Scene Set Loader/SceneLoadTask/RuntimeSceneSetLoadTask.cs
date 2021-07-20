@@ -99,7 +99,7 @@ public class RuntimeSceneSetLoadTask {
 			}
 		}
 		
-		string[] currentPaths = SceneManagerX.GetCurrentScenePaths();
+		string[] currentPaths = RuntimeSceneSetLoader.GetCurrentScenePaths();
 		List<string> pathsToUnload = new List<string>();
 		if(sceneLoadMode == LoadTaskMode.LoadSingle) {
 			pathsToUnload = currentPaths.Except(sceneSetPaths).ToList();
@@ -131,11 +131,11 @@ public class RuntimeSceneSetLoadTask {
 		}
 
         if(whenTasksAssigned != null) whenTasksAssigned(this);
-		if(RuntimeSceneSetLoader.debugLogging) DebugX.Log(this, "AssignedTasks:\nUnload: "+DebugX.ListAsString(unloadTasks)+"\nLoad:"+DebugX.ListAsString(loadTasks));
+		if(RuntimeSceneSetLoader.debugLogging) RuntimeSceneSetLoader.Log(this, "AssignedTasks:\nUnload: "+DebugX.ListAsString(unloadTasks)+"\nLoad:"+DebugX.ListAsString(loadTasks));
 	}
 
 	public IEnumerator LoadSceneSetupCR(Action OnPreComplete) {
-		if(RuntimeSceneSetLoader.debugLogging) DebugX.Log(this, "Begin "+GetType().Name+" Load: "+sceneSet.name);
+		if(RuntimeSceneSetLoader.debugLogging) RuntimeSceneSetLoader.Log(this, "Begin "+GetType().Name+" Load: "+sceneSet.name);
         
 		// Unloading
         IEnumerator unloadIE = Unload();
@@ -158,14 +158,14 @@ public class RuntimeSceneSetLoadTask {
 			else if(allTasksAllowedToActivate && yieldActivation) 
 				Debug.LogWarning("All tasks were allowed to activate, but load task is marked as yieldActivation. This can happen if tasks are all individually allowed to activate, and isn't a bug if you're aware of it!");
 		}
-        if(RuntimeSceneSetLoader.debugLogging) DebugX.Log(this, GetType().Name+" completed Activating '"+sceneSet.name+"'. Load Tasks:\n"+DebugX.ListAsString(loadTasks));
+        if(RuntimeSceneSetLoader.debugLogging) RuntimeSceneSetLoader.Log(this, GetType().Name+" completed Activating '"+sceneSet.name+"'. Load Tasks:\n"+DebugX.ListAsString(loadTasks));
 		
 		// Completion
 		{
 			while(loadTasks.Any(x => !x.complete)) yield return null;
 			
 			state = State.Complete;
-            if(RuntimeSceneSetLoader.debugLogging) DebugX.Log(this, "Complete "+GetType().Name+" '"+sceneSet.name+"'.");
+            if(RuntimeSceneSetLoader.debugLogging) RuntimeSceneSetLoader.Log(this, "Complete "+GetType().Name+" '"+sceneSet.name+"'.");
             if(OnPreComplete != null) OnPreComplete();
             if(whenComplete != null) whenComplete(this);
 		}
@@ -173,9 +173,9 @@ public class RuntimeSceneSetLoadTask {
 
 	IEnumerator Unload () {
 		state = State.Unloading;
-		if(RuntimeSceneSetLoader.debugLogging) DebugX.Log(this, GetType().Name+" beginning Unloading '"+sceneSet.name+"'. Unload Tasks:\n"+DebugX.ListAsString(unloadTasks));
+		if(RuntimeSceneSetLoader.debugLogging) RuntimeSceneSetLoader.Log(this, GetType().Name+" beginning Unloading '"+sceneSet.name+"'. Unload Tasks:\n"+DebugX.ListAsString(unloadTasks));
 		foreach (var task in unloadTasks) {
-			task.Unload();
+			RuntimeSceneSetLoader.Instance.StartCoroutine(task.UnloadCR());
             if(activateDuringLoad) while(!task.complete) yield return null;
         }
         while(unloadTasks.Any(task => !task.complete)) {
@@ -188,14 +188,14 @@ public class RuntimeSceneSetLoadTask {
         if(whenUnloaded != null) {
             whenUnloaded(this);
         }
-		if(RuntimeSceneSetLoader.debugLogging) DebugX.Log(this, GetType().Name+" completed Unloading '"+sceneSet.name+"'. Unload Tasks:\n"+DebugX.ListAsString(unloadTasks));
+		if(RuntimeSceneSetLoader.debugLogging) RuntimeSceneSetLoader.Log(this, GetType().Name+" completed Unloading '"+sceneSet.name+"'. Unload Tasks:\n"+DebugX.ListAsString(unloadTasks));
 	}
 
 	IEnumerator Load () {
 		state = State.Loading;
-		if(RuntimeSceneSetLoader.debugLogging) DebugX.Log(this, GetType().Name+" beginning Loading '"+sceneSet.name+"'. Load Tasks:\n"+DebugX.ListAsString(loadTasks));
+		if(RuntimeSceneSetLoader.debugLogging) RuntimeSceneSetLoader.Log(this, GetType().Name+" beginning Loading '"+sceneSet.name+"'. Load Tasks:\n"+DebugX.ListAsString(loadTasks));
 		foreach (var task in loadTasks) {
-			task.Load();
+			RuntimeSceneSetLoader.Instance.StartCoroutine(task.LoadCR());
             // If this is true we also activate during this step
             if(activateDuringLoad) {
                 task.allowActivation = true;
@@ -212,12 +212,12 @@ public class RuntimeSceneSetLoadTask {
         if(whenLoaded != null) {
             whenLoaded(this);
         }
-		if(RuntimeSceneSetLoader.debugLogging) DebugX.Log(this, GetType().Name+" completed Loading '"+sceneSet.name+"'. Load Tasks:\n"+DebugX.ListAsString(loadTasks));
+		if(RuntimeSceneSetLoader.debugLogging) RuntimeSceneSetLoader.Log(this, GetType().Name+" completed Loading '"+sceneSet.name+"'. Load Tasks:\n"+DebugX.ListAsString(loadTasks));
 	}
 
 	void Activate () {
 		state = State.Activating;
-		if(RuntimeSceneSetLoader.debugLogging) DebugX.Log(this, GetType().Name+" beginning Activating '"+sceneSet.name+"'. Load Tasks:\n"+DebugX.ListAsString(loadTasks));
+		if(RuntimeSceneSetLoader.debugLogging) RuntimeSceneSetLoader.Log(this, GetType().Name+" beginning Activating '"+sceneSet.name+"'. Load Tasks:\n"+DebugX.ListAsString(loadTasks));
 		foreach(SceneLoadTask task in loadTasks) {
 			task.allowActivation = true;
 		}
@@ -225,7 +225,7 @@ public class RuntimeSceneSetLoadTask {
 
 	public void Cancel() {
 		state = State.Cancelling;
-		if(RuntimeSceneSetLoader.debugLogging) DebugX.Log(this, "Cancel "+GetType().Name+" '"+sceneSet.name+"'. Load Tasks:\n"+DebugX.ListAsString(loadTasks));
+		if(RuntimeSceneSetLoader.debugLogging) RuntimeSceneSetLoader.Log(this, "Cancel "+GetType().Name+" '"+sceneSet.name+"'. Load Tasks:\n"+DebugX.ListAsString(loadTasks));
 		cancelled = true;
 		foreach(SceneLoadTask task in loadTasks) {
 			task.Cancel();
@@ -233,7 +233,7 @@ public class RuntimeSceneSetLoadTask {
     }
 
 	public void Uncancel() {
-		if(RuntimeSceneSetLoader.debugLogging) DebugX.Log(this, "Uncancel "+GetType().Name+" '"+sceneSet.name+"'. Load Tasks:\n"+DebugX.ListAsString(loadTasks));
+		if(RuntimeSceneSetLoader.debugLogging) RuntimeSceneSetLoader.Log(this, "Uncancel "+GetType().Name+" '"+sceneSet.name+"'. Load Tasks:\n"+DebugX.ListAsString(loadTasks));
 		cancelled = false;
 		foreach(SceneLoadTask task in loadTasks) {
 			task.Uncancel();

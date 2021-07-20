@@ -95,8 +95,9 @@ namespace UnityEditorX.SceneManagement {
 			string[] files = System.IO.Directory.GetFiles(Path.Combine(Application.dataPath, path), "*.unity", System.IO.SearchOption.AllDirectories);
 			if(files == null) files = new string[0];
 
+			var assetsPath = Application.dataPath.Substring(0, Application.dataPath.LastIndexOf("Assets"));
 			for(int i = 0; i < files.Length; i++) {
-				files[i] = files[i].After(Application.dataPath.BeforeLast("Assets"));
+				files[i] = files[i].Substring(files[i].IndexOf(assetsPath) + assetsPath.Length).Replace("\\", "/");
 			}
 			return files;
 		}

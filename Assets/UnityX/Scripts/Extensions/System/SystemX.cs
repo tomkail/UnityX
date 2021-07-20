@@ -14,7 +14,7 @@ public static class SystemX {
 		} else if (SystemInfoX.IsMacOS) {
 			return OpenInMacFileBrowser(path);	
 		} else {
-			DebugX.LogError ("Could not open in file browser because OS is unrecognized. OS is "+UnityEngine.SystemInfo.operatingSystem);
+			Debug.LogError ("Could not open in file browser because OS is unrecognized. OS is "+UnityEngine.SystemInfo.operatingSystem);
 			return false;
 		}
 	}

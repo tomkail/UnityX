@@ -65,7 +65,10 @@ public static class EditorApplicationX {
 	/// <param name="absolutePath">Absolute path.</param>
 	public static string AbsoluteToResourcesPath(string absolutePath) {
 		if(!absolutePath.Contains("Resources/")) return "";
-		var relativePath = absolutePath.After("Resources/");
+		var relativePath = After(absolutePath, "Resources/");
+        string After(string value, string a) {
+            return value.Substring(value.LastIndexOf(a) + a.Length);
+        }
         var directoryName = Path.GetDirectoryName(relativePath);
 		relativePath = Path.Combine(directoryName, Path.GetFileNameWithoutExtension(relativePath));
 		return relativePath;

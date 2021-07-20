@@ -19,9 +19,11 @@ public abstract class SLayoutProperty<T>
 		set {
 
 			var currentAnim = SLayoutAnimation.AnimationUnderDefinition();
-			if( currentAnim != null )
+			if( currentAnim != null ) {
 				currentAnim.SetupPropertyAnim<T>(this);
-
+				this.animatedProperty.end = value;
+			}
+			
 			setter(value);
 		}
 	}

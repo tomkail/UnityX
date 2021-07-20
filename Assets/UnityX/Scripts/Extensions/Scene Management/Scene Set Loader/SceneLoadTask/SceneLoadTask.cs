@@ -38,7 +38,7 @@ public class SceneLoadTask : SceneTask {
 		} set {
 			if(_allowActivation == value) return;
             _allowActivation = value;
-			if(RuntimeSceneSetLoader.debugLogging) DebugX.Log(this, "Change allow activation of '"+sceneName+"' to "+_allowActivation+".");
+			if(RuntimeSceneSetLoader.debugLogging) RuntimeSceneSetLoader.Log(this, "Change allow activation of '"+sceneName+"' to "+_allowActivation+".");
 			UpdateAllowSceneActivation();
 		}
 	}
@@ -50,7 +50,7 @@ public class SceneLoadTask : SceneTask {
 		} set {
 			if(_cancel == value) return;
             _cancel = value;
-			if(RuntimeSceneSetLoader.debugLogging) DebugX.Log(this, "Change cancel of '"+sceneName+"' to "+_cancel+".");
+			if(RuntimeSceneSetLoader.debugLogging) RuntimeSceneSetLoader.Log(this, "Change cancel of '"+sceneName+"' to "+_cancel+".");
 			UpdateAllowSceneActivation();
 		}
 	}
@@ -64,13 +64,9 @@ public class SceneLoadTask : SceneTask {
 	private const float activationLoadStopMagicNumber = 0.9f;
 
 	public SceneLoadTask(string sceneName) : base (sceneName) {}
-
-	public void Load () {
-		coroutineRunner.StartCoroutine(LoadCR());
-	}
-
+	
 	public IEnumerator LoadCR () {
-		if(RuntimeSceneSetLoader.debugLogging) DebugX.Log(this, "Begin "+GetType().Name+" for '"+sceneName+"'");
+		if(RuntimeSceneSetLoader.debugLogging) RuntimeSceneSetLoader.Log(this, "Begin "+GetType().Name+" for '"+sceneName+"'");
         state = State.Loading;
 		op = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
 		UpdateAllowSceneActivation();
@@ -80,10 +76,10 @@ public class SceneLoadTask : SceneTask {
         // until you set allowSceneActivation back to true
 		while(op.progress < activationLoadStopMagicNumber)
 			yield return null;
-		if(RuntimeSceneSetLoader.debugLogging) DebugX.Log(this, "Initial load (no activation) for '"+sceneName+"' took " +(Time.realtimeSinceStartup-startTime)+" seconds");
+		if(RuntimeSceneSetLoader.debugLogging) RuntimeSceneSetLoader.Log(this, "Initial load (no activation) for '"+sceneName+"' took " +(Time.realtimeSinceStartup-startTime)+" seconds");
 		loadingDone = true;
 
-        if(!op.allowSceneActivation && RuntimeSceneSetLoader.debugLogging) DebugX.Log(this, "Waiting for activation to be allowed for "+GetType().Name+" for '"+sceneName+"'");
+        if(!op.allowSceneActivation && RuntimeSceneSetLoader.debugLogging) RuntimeSceneSetLoader.Log(this, "Waiting for activation to be allowed for "+GetType().Name+" for '"+sceneName+"'");
 		
         while (!op.isDone) {
             if(op.allowSceneActivation) state = State.Activating;
@@ -91,13 +87,13 @@ public class SceneLoadTask : SceneTask {
 			yield return null;
         }
 		Debug.Assert(SceneManager.GetSceneByName(sceneName).isLoaded);
-		if(RuntimeSceneSetLoader.debugLogging) DebugX.Log(this, "Load for '"+sceneName+"' took " +(Time.realtimeSinceStartup-startTime)+" seconds");
+		if(RuntimeSceneSetLoader.debugLogging) RuntimeSceneSetLoader.Log(this, "Load for '"+sceneName+"' took " +(Time.realtimeSinceStartup-startTime)+" seconds");
 		if(OnCompleteLoad != null) OnCompleteLoad(this);
 		if(cancel) {
-			if(RuntimeSceneSetLoader.debugLogging) DebugX.Log(this, "Cancelling ongoing load coroutine of '"+sceneName+"'");
+			if(RuntimeSceneSetLoader.debugLogging) RuntimeSceneSetLoader.Log(this, "Cancelling ongoing load coroutine of '"+sceneName+"'");
             state = State.UnloadingDueToCancel;
 			SceneUnloadTask unloadTask = new SceneUnloadTask(sceneName);
-			unloadTask.Unload();
+			RuntimeSceneSetLoader.Instance.StartCoroutine(unloadTask.UnloadCR());
 			while(!unloadTask.complete)
 				yield return null;
 		}
@@ -107,17 +103,17 @@ public class SceneLoadTask : SceneTask {
 
 		if(cancel) if(OnCompleteCancel != null) OnCompleteCancel(this);
 		if(OnCompleteTask != null) OnCompleteTask(this);
-		if(RuntimeSceneSetLoader.debugLogging) DebugX.Log(this, "Completed "+GetType().Name+" for '"+sceneName+"'. Did cancel? "+cancel);
+		if(RuntimeSceneSetLoader.debugLogging) RuntimeSceneSetLoader.Log(this, "Completed "+GetType().Name+" for '"+sceneName+"'. Did cancel? "+cancel);
     }
 	
 	public void Cancel() {
-		if(RuntimeSceneSetLoader.debugLogging) DebugX.Log(this, "Cancel load of '"+sceneName+"'.");
+		if(RuntimeSceneSetLoader.debugLogging) RuntimeSceneSetLoader.Log(this, "Cancel load of '"+sceneName+"'.");
 		cancel = true;
     }
 
 	public void Uncancel() {
         if(!cancel) return;
-		if(RuntimeSceneSetLoader.debugLogging) DebugX.Log(this, "Uncancel load of '"+sceneName+"'.");
+		if(RuntimeSceneSetLoader.debugLogging) RuntimeSceneSetLoader.Log(this, "Uncancel load of '"+sceneName+"'.");
 		if(!complete) {
 			cancel = false;
 		} else {

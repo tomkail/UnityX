@@ -18,6 +18,9 @@ namespace UnityX.MeshBuilder
 		}
 		
         public void ToMesh (Mesh mesh, MeshBakeParams bakeParams) {
+			if(mesh.vertexCount != verts.Count) {
+				mesh.Clear();
+			}
             mesh.SetVertices(verts);
 			mesh.SetTriangles(tris,0);
             mesh.SetUVs(0, uvs);
@@ -65,20 +68,18 @@ namespace UnityX.MeshBuilder
 
 		public void AddTriangle (AddTriangleParams input) {
 			if(input.front) {
-				List<Vector3> frontVerts = new List<Vector3>(){input.topLeft,input.topRight,input.bottom};
-				verts.AddRange(frontVerts);
+				verts.Add(input.topLeft);verts.Add(input.topRight);verts.Add(input.bottom);
 				int t = tris.Count;
 				for(int j = 0; j < 3; j++)tris.Add(j+t);
-				uvs.AddRange(new List<Vector2>(){input.uvTopLeft,input.uvTopRight,input.uvBottom});
-				colors.AddRange(new List<Color>(){input.colorTopLeft,input.colorTopRight,input.colorBottom});
+				uvs.Add(input.uvTopLeft);uvs.Add(input.uvTopRight);uvs.Add(input.uvBottom);
+				colors.Add(input.colorTopLeft);colors.Add(input.colorTopRight);colors.Add(input.colorBottom);
 			}
 			if(input.back) {
-				List<Vector3> backVerts = new List<Vector3>(){input.bottom,input.topRight,input.topLeft};
-				verts.AddRange(backVerts);
+				verts.Add(input.bottom);verts.Add(input.topRight);verts.Add(input.topLeft);
 				int t = tris.Count;
 				for(int j = 0; j < 3; j++)tris.Add(j+t);
-				uvs.AddRange(new List<Vector2>(){input.uvBottom,input.uvTopRight,input.uvTopLeft});
-				colors.AddRange(new List<Color>(){input.colorBottom,input.colorTopRight,input.colorTopLeft});
+				uvs.Add(input.uvBottom);uvs.Add(input.uvTopRight);uvs.Add(input.uvTopLeft);
+				colors.Add(input.colorBottom);colors.Add(input.colorTopRight);colors.Add(input.colorTopLeft);
 			}
 		}
 	}

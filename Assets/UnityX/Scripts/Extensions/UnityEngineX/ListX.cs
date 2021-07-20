@@ -17,8 +17,8 @@ public static class ListX {
     }
 
 	public static bool ContainsIndex<T>(this IList<T> list, int index) {
-		if(list.IsNullOrEmpty()) return false;
-		return MathX.IsBetweenInclusive(index, 0, list.Count-1);
+		if(list == null || list.Count == 0) return false;
+        return index >= 0 && index <= list.Count-1;
     }
 
 	/// <summary>

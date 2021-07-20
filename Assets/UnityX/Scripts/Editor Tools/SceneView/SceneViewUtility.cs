@@ -11,7 +11,7 @@ public static class SceneViewUtility {
     static bool sceneViewCameraIsOrthographic;
     public static float sceneViewCameraOrthographicSize;
 
-    static float maxDistance = 750;
+    static float maxDistance = 1500;
     static float minOrthographicSizeFraction = 0.035f;
 
     static SceneViewUtility () {

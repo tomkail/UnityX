@@ -64,6 +64,22 @@ public static class GizmosX {
 		for(int i = 0; i < positions.Count-1; i++) Gizmos.DrawLine(positions[i], positions[i+1]);
 	}
 
+	public static void DrawCircle (Vector3 position, float radius, int numLines = 16) {
+		Debug.Assert(numLines > 2);
+		float deltaTheta = 2 * Mathf.PI / numLines;
+        var p1 = new Vector3(position.x + radius * Mathf.Sin(0), position.y + radius * Mathf.Cos(0), position.z);
+        for(int i=0; i<numLines; i++) {
+            var p2 = new Vector3(position.x + radius * Mathf.Sin((i+1)*deltaTheta), position.y + radius * Mathf.Cos((i+1)*deltaTheta), position.z);
+            Gizmos.DrawLine(p1, p2);
+            p1 = p2;
+        }
+	}
+
+    public static void DrawCrosshair(Vector3 center, float armLength) {
+        Gizmos.DrawLine(center - armLength*Vector3.right, center + armLength*Vector3.right);
+        Gizmos.DrawLine(center - armLength*Vector3.up,    center + armLength*Vector3.up);
+    }
+
 	public static void DrawWirePolygon (Vector3 position, Quaternion rotation, Vector3 scale, IList<Vector2> points) {
 		GizmosX.BeginMatrix(Matrix4x4.TRS(position, rotation, scale));
 		for(int i = 0; i < points.Count; i++) {

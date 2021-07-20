@@ -39,7 +39,8 @@ public class SceneDrawer : PropertyDrawer {
 		Object[] scenes = GetScenes();
 		string[] sceneNames = GetSceneNames();
 		for(int i = 0; i < sceneNames.Length; i++) {
-			sceneNames[i] = PathX.GetFullPathWithoutExtension(sceneNames[i]).AfterFirst("Assets/");
+			sceneNames[i] = PathX.GetFullPathWithoutExtension(sceneNames[i]);
+			sceneNames[i] = sceneNames[i].Substring(sceneNames[i].IndexOf("Assets/") + 7);
 		}
 
         if (sceneNames.Length == 0) {
@@ -55,7 +56,7 @@ public class SceneDrawer : PropertyDrawer {
 		if(property.objectReferenceValue == null) {
 			property.objectReferenceValue = last;
 		}
-		sceneNameAttribute.selectedValue = scenes.IndexOf(property.objectReferenceValue);
+		sceneNameAttribute.selectedValue = System.Array.IndexOf(scenes, property.objectReferenceValue);
 		if(sceneNameAttribute.selectedValue == -1)
 			sceneNameAttribute.selectedValue = 0;
 

@@ -6,24 +6,50 @@ using UnityEngine;
 /// Has a property drawer for easy inspectorisification
 /// </summary>
 [Serializable]
-public struct Range
+public struct Range : IEquatable<Range>
 {
 	public float min;
 	public float max;
+	public float mid => 0.5f*(min+max);
 
-	public float length {
-        get {
-            return max - min;
-        }
-    }
+	public float length => max - min;
+
+	public Range negated => new Range(-max, -min);
+
+
+	public static readonly Range infinity = new Range(float.NegativeInfinity, float.PositiveInfinity);
+
+	public static readonly Range zero = default(Range);
 
 	public Range(float min, float max) {
 		this.min = min;
 		this.max = max;
 	}
 
+	public static Range Centered(float mid, float width) => new Range(mid-0.5f*width, mid+0.5f*width);
+
+	public static Range Auto(float x0, float x1) {
+		if( x0 <= x1 ) return new Range(x0, x1);
+		else return new Range(x1, x0);
+	}
+
 	public float Random() {
 		return UnityEngine.Random.Range(min, max);
+	}
+
+	// Higher iterations creates a steeper central spike
+	// 1 = flat (standard random numbers)
+	// 2 = triangular
+	// 3 = soft squidgy middle (good balance?)
+	// 4 = bit sharper
+	// 8 = much sharper, ~2x as high central peak as triangular
+	public float RandomBell(int iterations = 3) {
+		float val = 0;
+		for(int i=0; i<iterations; i++) {
+			val += UnityEngine.Random.Range(min, max);
+		}
+		val /= iterations;
+		return val;
 	}
 
 	public float Lerp(float t) {
@@ -43,15 +69,29 @@ public struct Range
 	}
 
 
-	// 1D AABB detection algorithm
-	public bool Overlaps (Range otherRange) {
-		return Mathf.Abs(otherRange.min - min) * 2 < (otherRange.length + length);
+	// If a point is contained in the range
+	public bool Contains(float x) => x >= min && x <= max;
+
+	// If another range is entirely contained by this range
+	public bool Contains(Range otherRange)  => otherRange.min >= min && otherRange.max <= max;
+
+	// If there's any intersection between this and another range
+	// not( completely on either side of other range )
+	public bool Intersects(Range otherRange) => !(otherRange.min > max || otherRange.max < min);
+
+	// The shared range between this range and another
+	public Range Intersection (Range otherRange) {
+        var intersectionMin = Math.Max (min, otherRange.min);
+        var intersectionMax = Math.Min (max, otherRange.max);
+        return new Range(intersectionMin, intersectionMax);
 	}
 
+	// The magnitude of the shared range between this range and another
 	public float GetAmountIncludedByRange (Range otherRange) {
 		return Mathf.Max(Mathf.Min(otherRange.max, max) - Mathf.Max(otherRange.min, min), 0);
 	}
 
+	// The normalized magnitude of the shared range between this range and another, relative to the length of this range
 	public float GetNormalizedAmountIncludedByRange (Range otherRange) {
 		if(otherRange.length <= 0) return 1; 
 		return GetAmountIncludedByRange(otherRange) / length;
@@ -263,5 +303,10 @@ public struct Range
 	
 	public static implicit operator Vector2(Range src) {
 		return src.ToVector2();
+	}
+
+	
+	public override string ToString() {
+		return string.Format("[{0:N1} to {1:N1}]", min, max);
 	}
 }

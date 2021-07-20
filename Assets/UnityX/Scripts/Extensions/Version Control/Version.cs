@@ -18,6 +18,8 @@ namespace UnityX.Versioning
 		public bool isDevelopment;
 
 		[Disable]
+		public string gitBranch;
+		[Disable]
 		public string gitCommitSHA;
 		[Disable]
 		public string buildDateTimeString;
@@ -28,7 +30,7 @@ namespace UnityX.Versioning
 			return string.Format ("{0}.{1}.{2}", major, minor, build);
 		}
 		public override string ToString () {
-			return string.Format ("Version {0}.{1}.{2}{3} {4}", major, minor, build, string.IsNullOrWhiteSpace(buildType) ? "" : " ("+buildType+")", gitCommitSHA);
+			return string.Format ("Version {0}.{1}.{2}{3} {4} {5}", major, minor, build, string.IsNullOrWhiteSpace(buildType) ? "" : " ("+buildType+")", gitBranch, gitCommitSHA);
 		}
 	}
 }

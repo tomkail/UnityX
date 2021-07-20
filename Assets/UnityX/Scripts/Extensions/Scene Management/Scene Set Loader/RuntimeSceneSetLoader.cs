@@ -36,6 +36,8 @@ public class RuntimeSceneSetLoader : MonoSingleton<RuntimeSceneSetLoader> {
         }
     }
 	#endif
+
+
     public const string pathPlayerPrefsKeyPrefix = "RuntimeSceneSetLoader DebugLogging";
     public static string pathPlayerPrefsKey {
         get {
@@ -98,7 +100,7 @@ public class RuntimeSceneSetLoader : MonoSingleton<RuntimeSceneSetLoader> {
 
 	public void LoadSceneSetup(RuntimeSceneSetLoadTask newLevelSetLoadTask) {
 		Debug.Log("LoadSceneSetup "+newLevelSetLoadTask.sceneSet.name);
-		if(RuntimeSceneSetLoader.debugLogging) DebugX.Log(this, "Add scene set load task to queue "+newLevelSetLoadTask);
+		if(RuntimeSceneSetLoader.debugLogging) RuntimeSceneSetLoader.Log(this, "Add scene set load task to queue "+newLevelSetLoadTask);
 		if(OnAddTask != null) OnAddTask(newLevelSetLoadTask);
 		if(currentLevelSetLoadTask == null) {
 			currentLevelSetLoadTask = newLevelSetLoadTask;
@@ -136,7 +138,7 @@ public class RuntimeSceneSetLoader : MonoSingleton<RuntimeSceneSetLoader> {
 //		if(OnWillLoad != null) OnWillLoad(currentLevelSetLoadTask.sceneSet);
 		currentLevelSetLoadTask.AssignTasks(); 
 
-		if( !currentLevelSetLoadTask.unloadTasks.IsNullOrEmpty() && OnWillUnload != null )
+		if(currentLevelSetLoadTask.unloadTasks.Count != 0 && OnWillUnload != null)
 			OnWillUnload();
 
 		yield return StartCoroutine(currentLevelSetLoadTask.LoadSceneSetupCR(() => {
@@ -157,7 +159,7 @@ public class RuntimeSceneSetLoader : MonoSingleton<RuntimeSceneSetLoader> {
 		_tasksCompletedSinceQueue.Add(currentLevelSetLoadTask);
 		if(!pendingLevelSetLoadTasks.IsEmpty()) {
 			currentLevelSetLoadTask = pendingLevelSetLoadTasks[0];
-			if(RuntimeSceneSetLoader.debugLogging) DebugX.Log(this, "Queuing SceneSet Load: "+currentLevelSetLoadTask.sceneSet.name);
+			if(RuntimeSceneSetLoader.debugLogging) RuntimeSceneSetLoader.Log(this, "Queuing SceneSet Load: "+currentLevelSetLoadTask.sceneSet.name);
 			pendingLevelSetLoadTasks.RemoveAt(0);
 			StartCoroutine(LoadSceneSetupCR());
 		} else {
@@ -211,4 +213,106 @@ public class RuntimeSceneSetLoader : MonoSingleton<RuntimeSceneSetLoader> {
 
 		_tasksCompletedSinceQueue.Clear();
     }
+
+
+
+
+	// UTILS
+	public static void Log (System.Object obj, System.Object a) {
+		if(!debugLogging) return;
+		var logString = LogString(obj, a);
+		string LogString (System.Object obj, System.Object msg) {
+			var sb = new System.Text.StringBuilder(msg.ToString());
+			sb.AppendLine();
+			sb.Append("(").Append(Time.unscaledTime.ToString()).Append(")");
+			sb.Append(" ("+obj.GetType().Name+")");
+			return sb.ToString();
+		}
+		if(obj is UnityEngine.Object) Debug.Log(logString, (UnityEngine.Object)obj);
+		else Debug.Log(logString);
+	}
+
+
+
+	public static Scene[] GetCurrentScenes () {
+		Scene[] scenes = new Scene[SceneManager.sceneCount];
+		for(int i = 0; i < scenes.Length; i++)
+			scenes[i] = SceneManager.GetSceneAt(i);
+		return scenes;
+	}
+
+	public static string[] GetCurrentSceneNames () {
+		string[] scenes = new string[SceneManager.sceneCount];
+		for(int i = 0; i < scenes.Length; i++)
+			scenes[i] = SceneManager.GetSceneAt(i).name;
+		return scenes;
+	}
+
+	public static string[] GetCurrentScenePaths () {
+		string[] scenes = new string[SceneManager.sceneCount];
+		for(int i = 0; i < scenes.Length; i++)
+			scenes[i] = SceneManager.GetSceneAt(i).path;
+		return scenes;
+	}
+
+
+	public static void BroadcastMessageScene (UnityEngine.SceneManagement.Scene scene, string methodName) {
+		BroadcastMessageScene(scene, methodName, SendMessageOptions.DontRequireReceiver);
+    }
+
+	public static void BroadcastMessageScene (UnityEngine.SceneManagement.Scene scene, string methodName, SendMessageOptions sendMessageOptions) {
+		if(!scene.isLoaded) {
+			Debug.LogWarning("Tried to BroadcastMessage '"+methodName+"' to scene '"+scene.name+"', but scene is not loaded.");
+			return;
+		}
+		foreach (GameObject gameObject in scene.GetRootGameObjects().OrderBy(x => x.transform.GetSiblingIndex())) {
+			BetterBroadcastMessage(gameObject, methodName, sendMessageOptions);
+		}
+    }
+
+	public static void BroadcastMessageScene (UnityEngine.SceneManagement.Scene scene, string methodName, object parameter) {
+		BroadcastMessageScene(scene, methodName, parameter, SendMessageOptions.DontRequireReceiver);
+    }
+
+	public static void BroadcastMessageScene (UnityEngine.SceneManagement.Scene scene, string methodName, object parameter, SendMessageOptions sendMessageOptions) {
+		if(!scene.isLoaded) {
+			Debug.LogWarning("Tried to BroadcastMessage '"+methodName+"' to scene '"+scene.name+"', but scene is not loaded.");
+			return;
+		}
+		foreach (GameObject gameObject in scene.GetRootGameObjects().OrderBy(x => x.transform.GetSiblingIndex())) {
+			BetterBroadcastMessage(gameObject, methodName, parameter, sendMessageOptions);
+		}
+    }
+
+	/// <summary>
+	/// Send message doesn't work in edit mode, so we use reflection in that case instead.
+	/// </summary>
+	/// <param name="message">Message.</param>
+	public static void BetterSendMessage (GameObject go, string message, object obj = null, SendMessageOptions sendMessageOptions = SendMessageOptions.DontRequireReceiver) {
+		#if UNITY_EDITOR
+		if(!Application.isPlaying) {
+			foreach(var component in go.GetComponents<Component>()) {
+				try {
+					var tMethod = component.GetType().GetMethod(message, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+					if(tMethod != null) tMethod.Invoke(component, obj == null ? null : new object[] {obj, sendMessageOptions});
+				} catch {
+					if(sendMessageOptions == SendMessageOptions.RequireReceiver) Debug.LogError("No reciever found for message "+message+" for type "+component.GetType()+" on gameobject "+go.name);
+				}
+			}
+			return;
+		}
+		#endif
+		go.SendMessage(message, obj, sendMessageOptions);
+	}
+
+	public static void BetterBroadcastMessage (GameObject go, string message, object obj = null, SendMessageOptions sendMessageOptions = SendMessageOptions.DontRequireReceiver) {
+		#if UNITY_EDITOR
+		if(!Application.isPlaying) {
+			foreach(var transform in go.GetComponentsInChildren<Transform>()) 
+				BetterSendMessage(go, message, obj, sendMessageOptions);
+			return;
+		}
+		#endif
+		go.BroadcastMessage(message, obj, sendMessageOptions);
+	}
 }

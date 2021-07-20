@@ -21,7 +21,7 @@ public class WorldSpaceUIElementEditor : BaseEditor<WorldSpaceUIElement> {
 		}
 
 		EditorGUI.BeginChangeCheck();
-		EditorGUILayout.PropertyField(serializedObject.FindProperty("_camera"));
+		EditorGUILayout.PropertyField(serializedObject.FindProperty("_worldCamera"));
 
 		EditorGUILayout.Separator();
 		

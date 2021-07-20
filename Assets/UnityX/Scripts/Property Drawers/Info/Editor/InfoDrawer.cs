@@ -14,7 +14,7 @@ public class InfoDrawer : BaseAttributePropertyDrawer<InfoAttribute> {
 	}
 
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
-		EditorGUI.HelpBox(position.CopyWithHeight(helpBoxHeight), attribute.info, MessageType.Info);
-		EditorGUI.PropertyField(position.CopyWithY(position.y + helpBoxHeight).CopyWithHeight(position.height-helpBoxHeight), property, label, true);
+		EditorGUI.HelpBox(new Rect(position.x, position.y, position.width, helpBoxHeight), attribute.info, MessageType.Info);
+		EditorGUI.PropertyField(new Rect(position.x, position.y + helpBoxHeight, position.width, position.height-helpBoxHeight), property, label, true);
     }
 }

@@ -51,14 +51,14 @@ public class BaseEditor<T> : Editor where T : UnityEngine.Object {
 		if( target == null ) {
 			data = null;
 		} else {
-			DebugX.Assert(target as T != null, "Cannot cast "+target + " to "+typeof(T));
+			Debug.Assert(target as T != null, "Cannot cast "+target + " to "+typeof(T));
 			data = (T) target;
 		}
 
 		datas = new List<T>();
 		foreach(Object t in targets) {
 			if( t == null ) continue;
-			DebugX.Assert(t as T != null, "Cannot cast "+t + " to "+typeof(T));
+			Debug.Assert(t as T != null, "Cannot cast "+t + " to "+typeof(T));
 			datas.Add((T) t); 
 		}
 	}

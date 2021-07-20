@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
-using Ink.UnityIntegration;
 
 namespace UnityX.Versioning {
     // This script updates all the version number fields in PlayerSettings to match the VersionManager script's version.
@@ -50,13 +49,11 @@ namespace UnityX.Versioning {
 
         public void UpdateCurrentVersion(CurrentVersionSO currentVersion) {
             if(currentVersion == null) return;
+            currentVersion.version.gitBranch = VersionControlX.GetGitBranch();
             currentVersion.version.gitCommitSHA = VersionControlX.GetGitSHA();
             currentVersion.version.buildTarget = EditorUserBuildSettings.activeBuildTarget.ToString();
             currentVersion.version.isDevelopment = Debug.isDebugBuild;
             currentVersion.version.buildDateTimeString = System.DateTime.Now.ToString();
-            var storyInkFile = InkLibrary.GetMasterInkFiles().FirstOrDefault();
-            if(storyInkFile != null)
-                currentVersion.version.inkCompileDateTimeString = storyInkFile.lastCompileDate.ToString();
         }
     }
 }

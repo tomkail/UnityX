@@ -1,10 +1,12 @@
 using System;
 using UnityEngine;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 
 // Can be thought of as a singleton reference for editor settings, saved via editor prefs.   
 public class SerializedEditorSettings<T> where T : class, new() {
-	
+    #if UNITY_EDITOR
 	static string _settingsEditorPrefsKey;
 	static string settingsEditorPrefsKey {
 		get {
@@ -40,6 +42,7 @@ public class SerializedEditorSettings<T> where T : class, new() {
     }
 
 	public static void Save (T settings) {
+        
 		string data = JsonUtility.ToJson(settings);
 		EditorPrefs.SetString(settingsEditorPrefsKey, data);
     }
@@ -55,4 +58,5 @@ public class SerializedEditorSettings<T> where T : class, new() {
 			CreateAndSave();
 		}
     }
+    #endif
 }

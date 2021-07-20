@@ -7,6 +7,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
 using System.Collections.Generic;
+#nullable enable
 
 
 /// <summary>
@@ -18,6 +19,7 @@ using System.Collections.Generic;
 ///  - Partial so you can compile in your own shortcut properties (e.g. for TextMeshPro), but without having a full
 ///    dependency on 3rd party APIs.
 /// </summary>
+[ExecuteInEditMode]
 public partial class SLayout : UIBehaviour {
 
 	/// <summary>
@@ -34,12 +36,31 @@ public partial class SLayout : UIBehaviour {
 	/// a top level RectTransform due to non-SLayout related things like screen size changing or
 	/// simply something else controlling the (top level) view.
 	/// </summary>
-	public event Action<SLayout> onRectChange;
+	public event Action<SLayout>? onRectChange;
 
 	public bool isAnimating {
 		get {
 			return SLayoutAnimator.instance.IsAnimating(this);
 		}
+	}
+	
+	// Reset all private fields to deal with skipping Scene Reload
+	protected override void OnDisable () {
+		base.OnDisable();
+		_x = null;
+		_y = null;
+		_width = null;
+		_height = null;
+		_rotation = null;
+		_scale = null;				 
+		_groupAlpha = null;
+		_color = null;
+		_canvas = null;
+		_canvasGroup = null;
+		_graphic = null;
+		_searchedForTimeScalar = false;
+		_timeScalar = null;
+    	CancelAnimations();
 	}
 
 	protected override void OnRectTransformDimensionsChange() {
@@ -65,7 +86,7 @@ public partial class SLayout : UIBehaviour {
 		return newAnim;
 	}
 
-	public SLayoutAnimation Animate(float duration, float delay, AnimationCurve customCurve, System.Action animAction)
+	public SLayoutAnimation Animate(float duration, float delay, AnimationCurve? customCurve, System.Action animAction)
 	{
 		var newAnim = new SLayoutAnimation(duration, delay, customCurve, animAction, null, this);
 		SLayoutAnimator.instance.StartAnimation(newAnim);
@@ -143,13 +164,12 @@ public partial class SLayout : UIBehaviour {
 
 	public void CancelAnimations()
 	{
-		if(SLayoutAnimator.instance == null) return;
-        SLayoutAnimator.instance.CancelAnimations(this);
+		if(SLayoutAnimator.instance != null)
+		SLayoutAnimator.instance.CancelAnimations(this);
 	}
 
 	public void CompleteAnimations()
 	{
-		if(SLayoutAnimator.instance == null) return;
 		SLayoutAnimator.instance.CompleteAnimations(this);
 	}
 
@@ -166,7 +186,7 @@ public partial class SLayout : UIBehaviour {
 			return _canvas;
 		}
 	}
-	Canvas _canvas;
+	Canvas? _canvas = null;
 
 	/// <summary>
 	/// Width of canvas, taking into account scaling mode.
@@ -192,35 +212,35 @@ public partial class SLayout : UIBehaviour {
 		}
 	}
 
-	public CanvasGroup canvasGroup {
+	public CanvasGroup? canvasGroup {
 		get {
 			if( _canvasGroup == null ) _canvasGroup = GetComponent<CanvasGroup>();
 			return _canvasGroup;
 		}
 	}
-	CanvasGroup _canvasGroup;
+	CanvasGroup? _canvasGroup = null;
 
-	public Image image {
+	public Image? image {
 		get {
 			return graphic as Image;
 		}
 	}
 
-	public Text text {
+	public Text? text {
 		get {
 			return graphic as Text;
 		}
 	}
 
-	public Graphic graphic {
+	public Graphic? graphic {
 		get {
 			if( _graphic == null ) _graphic = GetComponent<Graphic>();
 			return _graphic;
 		}
 	}
-	Graphic _graphic;
+	Graphic? _graphic = null;
 
-	public SLayout parent {
+	public SLayout? parent {
 		get {
 			return transform.parent.GetComponent<SLayout>();
 		}
@@ -235,7 +255,7 @@ public partial class SLayout : UIBehaviour {
 		}
 	}
 
-	public RectTransform parentRectTransform {
+	public RectTransform? parentRectTransform {
 		get {
 			return transform.parent as RectTransform;
 		}
@@ -252,7 +272,7 @@ public partial class SLayout : UIBehaviour {
 			return timeScalar == null ? 1 : timeScalar.timeScale;
 		}
 	}
-	SLayoutCanvasTimeScalar timeScalar {
+	SLayoutCanvasTimeScalar? timeScalar {
 		get {
 			if(!_searchedForTimeScalar) {
 				// Search all canvases in hierarchy until we find the component
@@ -267,77 +287,77 @@ public partial class SLayout : UIBehaviour {
 		}
 	}
 	bool _searchedForTimeScalar;
-	SLayoutCanvasTimeScalar _timeScalar;
+	SLayoutCanvasTimeScalar? _timeScalar = null;
 		
 	public float x {
 		get {
 			InitX();
-			return _x.value;
+			return _x!.value;
 		}
 		set {
 			InitX();
-			_x.value = value; 
+			_x!.value = value; 
 		}
 	}
 
 	public float targetX {
 		get {
 			InitX();
-			return _x.animatedProperty != null ? _x.animatedProperty.end : _x.value;
+			return _x!.animatedProperty != null ? _x!.animatedProperty.end : _x!.value;
 		}
 	}
 
 	public float y {
 		get {
 			InitY();
-			return _y.value;
+			return _y!.value;
 		}
 		set {
 			InitY();
-			_y.value = value;
+			_y!.value = value;
 		}
 	}
 
 	public float targetY {
 		get {
 			InitY();
-			return _y.animatedProperty != null ? _y.animatedProperty.end : _y.value;
+			return _y!.animatedProperty != null ? _y!.animatedProperty.end : _y!.value;
 		}
 	}
 
 	public float width {
 		get {
 			InitWidth();
-			return _width.value;
+			return _width!.value;
 		}
 		set {
 			InitWidth();
-			_width.value = value;
+			_width!.value = value;
 		}
 	}
 
 	public float targetWidth {
 		get {
 			InitWidth();
-			return _width.animatedProperty != null ? _width.animatedProperty.end : _width.value;
+			return _width!.animatedProperty != null ? _width!.animatedProperty.end : _width!.value;
 		}
 	}
 
 	public float height {
 		get {
 			InitHeight();
-			return _height.value;
+			return _height!.value;
 		}
 		set {
 			InitHeight();
-			_height.value = value;
+			_height!.value = value;
 		}
 	}
 
 	public float targetHeight {
 		get {
 			InitHeight();
-			return _height.animatedProperty != null ? _height.animatedProperty.end : _height.value;
+			return _height!.animatedProperty != null ? _height!.animatedProperty.end : _height!.value;
 		}
 	}
 
@@ -376,85 +396,85 @@ public partial class SLayout : UIBehaviour {
 	public float rotation {
 		get {
 			InitRotation();
-			return _rotation.value;
+			return _rotation!.value;
 		}
 		set {
 			InitRotation();
-			_rotation.value = value;
+			_rotation!.value = value;
 		}
 	}
 
 	public float targetRotation {
 		get {
 			InitRotation();
-			return _rotation.animatedProperty != null ? _rotation.animatedProperty.end : _rotation.value;
+			return _rotation!.animatedProperty != null ? _rotation!.animatedProperty.end : _rotation!.value;
 		}
 	}
 
 	public float scale {
 		get {
 			InitScale();
-			return _scale.value;
+			return _scale!.value;
 		}
 		set {
 			InitScale();
-			_scale.value = value;
+			_scale!.value = value;
 		}
 	}
 
 	public float targetScale {
 		get {
 			InitScale();
-			return _scale.animatedProperty != null ? _scale.animatedProperty.end : _scale.value;
+			return _scale!.animatedProperty != null ? _scale!.animatedProperty.end : _scale!.value;
 		}
 	}
 
 	public float groupAlpha {
 		get {
 			InitGroupAlpha();
-			return _groupAlpha.value;
+			return _groupAlpha!.value;
 		}
 		set {
 			InitGroupAlpha();
-			_groupAlpha.value = value;
+			_groupAlpha!.value = value;
 		}
 	}
 
 	public float targetGroupAlpha {
 		get {
 			InitGroupAlpha();
-			return _groupAlpha.animatedProperty != null ? _groupAlpha.animatedProperty.end : _groupAlpha.value;
+			return _groupAlpha!.animatedProperty != null ? _groupAlpha!.animatedProperty.end : _groupAlpha!.value;
 		}
 	}
 
 	public Color color {
 		get {
 			InitColor();
-			return _color.value;
+			return _color!.value;
 		}
 		set {
 			InitColor();
-			_color.value = value;
+			_color!.value = value;
 		}
 	}
 
 	public Color targetColor {
 		get {
 			InitColor();
-			return _color.animatedProperty != null ? _color.animatedProperty.end : _color.value;
+			return _color!.animatedProperty != null ? _color!.animatedProperty.end : _color!.value;
 		}
 	}
 
 	public float alpha {
 		get {
 			InitColor();
-			return _color.value.a;
+			return _color!.value.a;
 		}
 		set {
 			InitColor();
-			var color = _color.value;
+			var color = _color!.value;
 			color.a = value;
-			_color.value = color;
+			_color!.value = color;
 		}
 	}
 
@@ -731,24 +751,7 @@ public partial class SLayout : UIBehaviour {
 		);
 	}
 
-
-    
-    
-    public Vector2 ScreenToSLayoutPoint (Vector2 screenPoint) {
-        return (Vector2)CanvasToSLayoutSpace(canvas.ScreenToCanvasPoint(screenPoint));
-    }
-    public Vector2 ScreenToSLayoutVector (Vector2 screenVector) {
-        return ScreenToSLayoutPoint(screenVector) - ScreenToSLayoutPoint(Vector2.zero);
-    }
-    public Rect ScreenToSLayoutRect (Rect screenRect) {
-        return RectX.CreateEncapsulating(ScreenToSLayoutPoint(screenRect.min), ScreenToSLayoutPoint(screenRect.max));
-    }
-
-    public Vector2 WorldToSLayoutSpace (Vector3 worldPosition) {
-        var targetLocalPos = (Vector2) transform.parent.InverseTransformPoint(worldPosition);
-        return LocalPositionToSLayoutPosition(targetLocalPos);
-    }
-    // Converts a canvas space coordinate to the space of this slayout.
+	// Converts a canvas space coordinate to the space of this slayout.
     // "Canvas space" meaning local to the canvas' transform, where 0,0 is the center of the canvas.
     // If the canvas size was (1000,500) the canvas top left would be (-500,-250) and the slayout space would be (0,0)
     // This function "corrects" for that difference
@@ -777,30 +780,21 @@ public partial class SLayout : UIBehaviour {
         return canvasSpacePos + offset;
     }
 
-    // Converts a local position into world space, forcing the pivot (top left or bottom left) assigned by SLayout instead of that of the rect transform
-	public Vector2 ConvertPositionToWorldSpace(Vector2 localLayoutPos) {
-		if( originTopLeft ) localLayoutPos.y = height - localLayoutPos.y;
-		var localPos = localLayoutPos - GetPivotPos(rectTransform);
-		return rectTransform.TransformPoint(localPos);
-	}
 	/// <summary>
 	/// Converts a point in local space of this SLayout to the local space of another SLayout.
 	/// If you pass a null SLayout, it will get the point in the space of the canvas.
-	/// Note - there might be a bug when layout is null, because it returns canvas space relative to the bottom corner rather than the canvas's pivot?
 	/// </summary>
-    
-    // Tom had a bug here when converting between two objects in different spaces. It might have been a misunderstanding. He fixed it by using the code below.
-    // Note that this code expects the object on which the position is to be applied, rather than the parent.
-    // var worldSpacePoint = targetLayout.ConvertPositionToWorldSpace(targetPosition);
-    // var targetLocalPos = (Vector2) layout.transform.parent.InverseTransformPoint(worldSpacePoint);
-    // layout.position = layout.LocalPositionToSLayoutPosition(targetLocalPos);
-	public Vector2 ConvertPositionToTarget(Vector2 localLayoutPos, SLayout targetLayout) {
-		var worldSpacePoint = ConvertPositionToWorldSpace(localLayoutPos);
+	public Vector2 ConvertPositionToTarget(Vector2 localLayoutPos, SLayout targetLayout)
+	{
+		if( originTopLeft ) localLayoutPos.y = height - localLayoutPos.y;
+		
+		var localPos = localLayoutPos - GetPivotPos(rectTransform);
+		var worldSpacePoint = rectTransform.TransformPoint(localPos);
 
-		RectTransform targetRectTransform = targetLayout ? targetLayout.rectTransform : null;
-		if( targetRectTransform == null ) targetRectTransform = canvas.GetRectTransform();
+		RectTransform? targetRectTransform = targetLayout ? targetLayout.rectTransform : null;
+		if( targetRectTransform == null ) targetRectTransform = canvas.transform as RectTransform;
 
-		var targetLocalPos = (Vector2) targetRectTransform.InverseTransformPoint(worldSpacePoint);
+		var targetLocalPos = (Vector2) targetRectTransform!.InverseTransformPoint(worldSpacePoint);
 		var targetLayoutPos = targetLocalPos + GetPivotPos(targetRectTransform);
 
 		if( targetLayout != null && targetLayout.originTopLeft )
@@ -813,7 +807,7 @@ public partial class SLayout : UIBehaviour {
 	/// Converts a rect in local space of this SLayout to the local space of another SLayout.
 	/// If you pass a null SLayout, it will get the rect in the space of the canvas.
 	/// </summary>
-	public Rect ConvertRectToTarget(Rect localRect, SLayout targetLayout = null)
+	public Rect ConvertRectToTarget(Rect localRect, SLayout targetLayout)
 	{
 		var convertedMin = ConvertPositionToTarget(localRect.min, targetLayout);
 		var convertedMax = ConvertPositionToTarget(localRect.max, targetLayout);
@@ -827,33 +821,10 @@ public partial class SLayout : UIBehaviour {
 			Mathf.Abs(convertedMin.y - convertedMax.y)
 		);
 	}
-
-    
-    // Converts a RectTransform localPosition to an SLayout position.
-    // Note that it doesn't offset for this layout's pivot like the Get/SetRectTransformX/Y functions do because it's implicit in the localPosition
-	public Vector2 LocalPositionToSLayoutPosition(Vector2 localPosition) {
-		float toLeftEdge = rectTransform.pivot.x * rectTransform.rect.width;
-		var parentRectT = rectTransform.parent as RectTransform;
-		if( parentRectT == null )
-			return Vector2.zero;
-		
-		float parentToLeftEdge = parentRectT.pivot.x * parentRectT.rect.width;
-		float leftInset = parentToLeftEdge + localPosition.x;
-		
-        if( originTopLeft ) {
-            float parentToTopEdge = (1.0f-parentRectT.pivot.y) * parentRectT.rect.height;
-            float topInset = parentToTopEdge - localPosition.y;
-            return new Vector2(leftInset, topInset);
-		} else {
-			float parentToBottomEdge = parentRectT.pivot.y * parentRectT.rect.height;
-			float bottomInset = parentToBottomEdge + localPosition.y;
-            return new Vector2(leftInset, bottomInset);
-		}
-	}
 		
 	public RectTransform rectTransform {
 		get {
-			return transform as RectTransform;
+			return (RectTransform)transform;
 		}
 	}
 
@@ -900,6 +871,11 @@ public partial class SLayout : UIBehaviour {
 		var localPos = rectTransform.localPosition;
 		localPos.x = localX;
 		rectTransform.localPosition = localPos;
+
+        // Due to an issue introduced in 2017.3, this is necessary, but it's fixed in 2017.4.3f1
+        // Remove this line when we upgrade please!
+        // https://issuetracker.unity3d.com/issues/children-layout-breaks-when-changing-the-hierarchy-layer-and-the-transform-of-their-parent
+        rectTransform.ForceUpdateRectTransforms();
 	}
 
 	void SetRectTransformY(float y)
@@ -1025,8 +1001,8 @@ public partial class SLayout : UIBehaviour {
 	void InitGroupAlpha() {
 		if( _groupAlpha == null ) {
 			_groupAlpha = new SLayoutFloatProperty {
-				getter = () => canvasGroup ? canvasGroup.alpha : 1.0f,
-				setter = a => { if( canvasGroup ) canvasGroup.alpha = a; }
+				getter = () => canvasGroup != null ? canvasGroup.alpha : 1.0f,
+				setter = a => { if( canvasGroup != null ) canvasGroup.alpha = a; }
 			};
 		}
 	}
@@ -1034,21 +1010,21 @@ public partial class SLayout : UIBehaviour {
 	void InitColor() {
 		if( _color == null ) {
 			_color = new SLayoutColorProperty {
-				getter = () => graphic ? graphic.color : Color.white,
-				setter = c => {  if( graphic ) graphic.color = c;  }
+				getter = () => graphic != null ? graphic.color : Color.white,
+				setter = c => {  if( graphic != null ) graphic.color = c;  }
 			};
 		}
 	}
 	
 
-	SLayoutFloatProperty _x;
-	SLayoutFloatProperty _y;
-	SLayoutFloatProperty _width;
-	SLayoutFloatProperty _height;
-	SLayoutAngleProperty _rotation;
-	SLayoutFloatProperty _scale;
+	SLayoutFloatProperty? _x = null;
+	SLayoutFloatProperty? _y = null;
+	SLayoutFloatProperty? _width = null;
+	SLayoutFloatProperty? _height = null;
+	SLayoutAngleProperty? _rotation = null;
+	SLayoutFloatProperty? _scale = null;
 									 
-	SLayoutFloatProperty _groupAlpha;
-	SLayoutColorProperty _color;
+	SLayoutFloatProperty? _groupAlpha = null;
+	SLayoutColorProperty? _color = null;
 
 }

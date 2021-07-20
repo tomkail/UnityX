@@ -30,12 +30,8 @@ public class SceneUnloadTask : SceneTask {
 
 	public SceneUnloadTask(string sceneName) : base (sceneName) {}
 
-	public void Unload () {
-		coroutineRunner.StartCoroutine(UnloadCR());
-	}
-
 	public IEnumerator UnloadCR () {
-		if(RuntimeSceneSetLoader.debugLogging) DebugX.Log(this, "Begin "+GetType().Name+" for '"+sceneName+"'");
+		if(RuntimeSceneSetLoader.debugLogging) RuntimeSceneSetLoader.Log(this, "Begin "+GetType().Name+" for '"+sceneName+"'");
 		state = State.Unloading;
         op = SceneManager.UnloadSceneAsync(sceneName);
         while (op != null && !op.isDone)
@@ -44,7 +40,7 @@ public class SceneUnloadTask : SceneTask {
 		complete = true;
 		op = null;
 		if(OnCompleteUnload != null) OnCompleteUnload(this);
-		if(RuntimeSceneSetLoader.debugLogging) DebugX.Log(this, "Completed "+GetType().Name+" for '"+sceneName+"'");
+		if(RuntimeSceneSetLoader.debugLogging) RuntimeSceneSetLoader.Log(this, "Completed "+GetType().Name+" for '"+sceneName+"'");
     }
 
     public override string ToString () {

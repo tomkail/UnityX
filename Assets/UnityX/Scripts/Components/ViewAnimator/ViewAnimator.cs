@@ -6,7 +6,7 @@ using System.Collections.Generic;
 public class ViewAnimator : MonoBehaviour {
     public ViewAnimationEvent AddEvent (ViewAnimationEvent animEvent) {
         if(animEvent == null) return null;
-        if(animEvent.endTime < _animationTime) Debug.LogWarning("ViewAnimationEvent '"+animEvent.name+"' end time is in the past!");
+        if(animEvent.endTime < _animationTime) Debug.LogWarning("ViewAnimationEvent '"+animEvent.name+"' end time ("+animEvent.endTime+") is in the past! Current time is "+_animationTime);
         
         bool inserted = false;
         for(int i = 0; i < animationEvents.Count; i++) {
@@ -47,7 +47,7 @@ public class ViewAnimator : MonoBehaviour {
     
     public bool isPlayingOrHasFutureEvents {
         get {
-            return !animationEvents.IsEmpty();
+            return animationEvents.Count != 0;
         }
     }
     public bool isCurrentlyPlayingAnyAnimation {
@@ -86,8 +86,8 @@ public class ViewAnimator : MonoBehaviour {
     }
 
     public float GetFuturemostAnimationEventTime () {
-        if(!animationEvents.IsNullOrEmpty()) return animationEvents.Max(x => x.endTime);
-        else if(!animationEventHistory.IsNullOrEmpty()) return animationEventHistory.Max(x => x.endTime);
+        if(animationEvents.Count != 0) return animationEvents.Max(x => x.endTime);
+        else if(animationEventHistory.Count != 0) return animationEventHistory.Max(x => x.endTime);
         else return 0;
     }
 

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using System.Linq;
+using UnityX.Geometry;
 
 public class Region : MonoBehaviour {
 	#if UNITY_EDITOR
@@ -38,7 +38,7 @@ public class Region : MonoBehaviour {
 		} set {
 			if(_polygon == value) return;
 			_polygon = value;
-			RebuildProperties();
+			OnPolygonPropertiesChanged();
 		}
 	}
 	
@@ -49,8 +49,14 @@ public class Region : MonoBehaviour {
 			return _height;
 		} set {
 			_height = value;
-			RebuildProperties();
+			OnPolygonPropertiesChanged();
 		}
+	}
+
+	bool rebuildPropertiesOnEnable;
+	void OnPolygonPropertiesChanged () {
+		if(enabled) OnPropertiesChanged();
+		else rebuildPropertiesOnEnable = true;
 	}
 	public bool in2DMode {
 		get {
@@ -214,6 +220,11 @@ public class Region : MonoBehaviour {
 	
 	public System.Action<Region> OnChange;
 
+	void OnEnable () {
+		if(rebuildPropertiesOnEnable)
+			OnPropertiesChanged();
+	}
+
 	private void Reset () {
 		polygon = new Polygon(new Vector2[] {
 			new Vector2(-0.5f, 0.5f),
@@ -308,6 +319,12 @@ public class Region : MonoBehaviour {
 		}
 		if(ContainsPoint(position)) distance = -distance;
 		return distance;
+	}
+
+	public float GetVolume () {
+		float area = polygon.GetArea();
+		if(!in2DMode) area *= height;
+		return area;
 	}
     
 	public Vector3 GetRandomPointInRegion () {
@@ -657,5 +674,6 @@ public class Region : MonoBehaviour {
 			bounds.SetMinMax(min, max);
 			return bounds;
 		}
+		rebuildPropertiesOnEnable = false;
 	}
 }

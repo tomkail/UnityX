@@ -9,18 +9,18 @@ public class WorldSpaceUIElement : UIBehaviour {
 	private bool _updateInEditMode = true;
 
 	[SerializeField]
-	private Camera _camera;
-	public new Camera camera {
+	private Camera _worldCamera;
+	public Camera worldCamera {
 		get {
-			if(_camera == null) {
-				_camera = Camera.main;
-				DebugX.Log(this, "No camera specified. Setting to current value of Camera.main: "+(_camera == null ? "Null" : _camera.transform.HierarchyPath()));
+			if(_worldCamera == null) {
+				_worldCamera = Camera.main;
+				Debug.Log("No camera specified. Setting to current value of Camera.main: "+(_worldCamera == null ? "Null" : _worldCamera.name), this);
 			}
-			return _camera;
+			return _worldCamera;
 		} set {
-			if(_camera == value)
+			if(_worldCamera == value)
 				return;
-			_camera = value;
+			_worldCamera = value;
 			Refresh();
 		}
 	}
@@ -76,7 +76,7 @@ public class WorldSpaceUIElement : UIBehaviour {
 	RectTransform _rectTransform;
 	public RectTransform rectTransform {
 		get {
-			if(_rectTransform == null) rectTransform = this.GetRectTransform();
+			if(_rectTransform == null) rectTransform = transform as RectTransform;
 			return _rectTransform;
 		} private set {
 			_rectTransform = value;
@@ -106,7 +106,7 @@ public class WorldSpaceUIElement : UIBehaviour {
 	RectTransform parentRT {
 		get {
 			if(rectTransform == null) {
-				DebugX.LogWarning(this, transform.HierarchyPath()+" is not a rect transform!");
+				Debug.LogWarning(gameObject.name+" is not a rect transform!", this);
 				return null;
 			}
 			RectTransform parentRT = rectTransform;
@@ -114,7 +114,7 @@ public class WorldSpaceUIElement : UIBehaviour {
 				if(transform.parent is RectTransform) {
 					parentRT = (RectTransform)transform.parent;
 				} else {
-					DebugX.LogWarning(this, "Parent of "+transform.HierarchyPath()+" is not a rect transform!");
+					Debug.LogWarning("Parent of "+gameObject.name+" is not a rect transform!", this);
 					return null;
 				}
 			}
@@ -123,29 +123,33 @@ public class WorldSpaceUIElement : UIBehaviour {
 	}
 	
 	void SetRootCanvas () {
-		Canvas parentCanvas = this.GetParentCanvas();
+		Canvas parentCanvas = transform.GetComponentInParent<Canvas>();
 		rootCanvas = parentCanvas.rootCanvas;
 		rootCanvasRT = rootCanvas.GetComponent<RectTransform>();
 	}
 	
 	public Vector3 GetLocalScale () {
-		float scale = 1;
-		if(rootCanvas.renderMode == RenderMode.WorldSpace && camera.orthographic) {
+		if(rootCanvas.renderMode == RenderMode.WorldSpace && worldCamera.orthographic) {
 //			return parentCanvas.transform.InverseTransformVector(Vector3.one);
-			scale = camera.orthographicSize;
+			var scale = worldCamera.orthographicSize;
+			scale *= scaleMultiplier;
+			return Vector3.one * Mathf.Clamp(scale, minScale, maxScale);
 		} else {
-			var distanceFromCamera = 0f;
-			if(camera.orthographic) {
-				distanceFromCamera = Vector3X.DistanceInDirection(targetPositionInternal, camera.transform.position, camera.transform.forward);
-			} else {
-				distanceFromCamera = Vector3.Distance(targetPositionInternal, camera.transform.position);
-			}
-			float frustrumHeight = camera.GetFrustrumHeightAtDistance(distanceFromCamera);
-			scale = (1f/frustrumHeight);
+			return Vector3.one * GetClampedViewportScale(worldCamera, targetPositionInternal, scaleMultiplier, minScale, maxScale);
 		}
-		scale *= scaleMultiplier;
-		float clampedScale = Mathf.Clamp(scale, minScale, maxScale);
-		return Vector3.one * clampedScale;
+	}
+
+	public static float GetClampedViewportScale (Camera camera, Vector3 targetPoint, float targetScale, float minViewportScale, float maxViewportScale) {
+		var distanceFromCamera = 0f;
+		if(camera.orthographic) {
+			distanceFromCamera = Mathf.Abs(Vector3.Dot(camera.transform.position-targetPoint, camera.transform.forward));
+		} else {
+			distanceFromCamera = Vector3.Distance(targetPoint, camera.transform.position);
+		}
+		float frustrumHeight = camera.ViewportToWorldPoint(new Vector3(0,1,distanceFromCamera)).y-camera.ViewportToWorldPoint(new Vector3(1,0,distanceFromCamera)).y;
+		var scale = (1f/frustrumHeight);
+		scale *= targetScale;
+		return Mathf.Clamp(scale, minViewportScale, maxViewportScale);
 	}
 	
 	protected override void Awake () {
@@ -153,9 +157,9 @@ public class WorldSpaceUIElement : UIBehaviour {
 		if(UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetPrefabStage(gameObject) != null) return;
         if(!Application.isPlaying && !_updateInEditMode) return;
 		#endif
-		rectTransform = this.GetRectTransform();
-		if(camera == null)
-			camera = Camera.main;
+		rectTransform = transform as RectTransform;
+		if(worldCamera == null)
+			worldCamera = Camera.main;
 		SetRootCanvas();
 	}
 
@@ -186,7 +190,7 @@ public class WorldSpaceUIElement : UIBehaviour {
 	}
 
 	public void Refresh () {
-		if(camera == null || rootCanvas == null) 
+		if(worldCamera == null || rootCanvas == null) 
 			return;
 		if(updateScale)
 			ScaleFromDistance();
@@ -211,7 +215,7 @@ public class WorldSpaceUIElement : UIBehaviour {
 			return false;
 		}
         
-		Vector3? targetPositionNullable = rootCanvas.WorldPointToLocalPointInRectangle(camera, parentRT, worldPosition);
+		Vector3? targetPositionNullable = WorldPointToLocalPointInRectangle(rootCanvas, worldCamera, parentRT, worldPosition);
 		if(targetPositionNullable == null) {
 			projectedCanvasPosition = Vector3.zero;
 			return false;
@@ -238,10 +242,10 @@ public class WorldSpaceUIElement : UIBehaviour {
 		rectTransform.localPosition = targetPosition;
 		
 		if(clampToScreen) {
-			Rect smallRect = rectTransform.GetScreenRect(rootCanvas);
-			Rect largeRect = rootCanvasRT.GetScreenRect(rootCanvas);
-			Rect clampedRect = RectX.ClampInsideKeepSize(smallRect, largeRect);
-			Vector3? canvasSpace = rootCanvas.ScreenPointToCanvasSpace(clampedRect.position + smallRect.size * 0.5f);
+			Rect smallRect = GetScreenRect(rectTransform, rootCanvas);
+			Rect largeRect = GetScreenRect(rootCanvasRT, rootCanvas);
+			Rect clampedRect = ClampInsideKeepSize(smallRect, largeRect);
+			Vector3? canvasSpace = ScreenPointToCanvasSpace(rootCanvas, clampedRect.position + smallRect.size * 0.5f);
 			if(canvasSpace != null)
 				rectTransform.position = (Vector3)canvasSpace;
 		}
@@ -250,9 +254,8 @@ public class WorldSpaceUIElement : UIBehaviour {
 	}
 
 	public void SetAngleFromRotation () {
-		if(!targetRotationInternal.IsValid()) return;
-		var rot = targetRotationInternal.Difference(camera.transform.rotation);
-		rectTransform.rotation = rot;
+		// if(!targetRotationInternal.IsValid()) return;
+		rectTransform.rotation = Quaternion.Inverse(worldCamera.transform.rotation) * targetRotationInternal;
 		// float angle = Vector2X.Degrees (Vector3X.ProjectOnPlane(targetRotationInternal * Vector3.forward, new Plane(camera.transform.forward, camera.transform.position)));
 		// rectTransform.localRotation = Quaternion.AngleAxis (angle, -Vector3.forward);
 	}
@@ -272,14 +275,14 @@ public class WorldSpaceUIElement : UIBehaviour {
 
 		var screenSpaceDir = projectedTip - projectedCentre;
 
-		var angle = Vector2X.Degrees(screenSpaceDir.XY());
+		var angle = Vector2.SignedAngle(screenSpaceDir, Vector2.up);
 
 		rectTransform.localRotation = Quaternion.Euler(0, 0, -angle);
 	}
 
 	void CheckOcclusion() {
 		RaycastHit hit;
-		Vector3 offset = targetPositionInternal-camera.transform.position;
+		Vector3 offset = targetPositionInternal-worldCamera.transform.position;
 		float maxDistance = offset.magnitude;
 
 		occluded = false;
@@ -287,25 +290,114 @@ public class WorldSpaceUIElement : UIBehaviour {
 		if(maxDistance > 0.0f) {
 			var ray = offset / maxDistance;
 			if(occlusionMask != 0)
-				occluded = Physics.Raycast(camera.transform.position, ray, out hit, maxDistance, occlusionMask);
+				occluded = Physics.Raycast(worldCamera.transform.position, ray, out hit, maxDistance, occlusionMask);
 		}
 	}
 
 	// Test clamp with this
 	private void _OnDrawGizmos () {
 //		if(!Application.isPlaying) return;
-		Vector3? targetPosition = rootCanvas.WorldPointToLocalPointInRectangle(camera, targetPositionInternal);
+		Vector3? targetPosition = WorldPointToLocalPointInRectangle(rootCanvas, worldCamera, targetPositionInternal);
 		if(targetPosition == null) return;
 		
-		Rect smallRect = rectTransform.GetScreenRect(rootCanvas);
-		Rect largeRect = rootCanvasRT.GetScreenRect(rootCanvas);
+		Rect smallRect = GetScreenRect(rectTransform, rootCanvas);
+		Rect largeRect = GetScreenRect(rootCanvasRT, rootCanvas);
 		Gizmos.color = Color.yellow;
 		Gizmos.DrawWireCube(smallRect.center, smallRect.size);
 		Gizmos.color = Color.blue;
 		Gizmos.DrawWireCube(largeRect.center, largeRect.size);
 		Gizmos.color = Color.red;
 		
-		Rect clampedRect = RectX.ClampInsideKeepSize(smallRect, largeRect);
+		Rect clampedRect = ClampInsideKeepSize(smallRect, largeRect);
 		Gizmos.DrawWireCube(clampedRect.center, clampedRect.size);	
+	}
+
+	
+	static Vector3[] corners = new Vector3[4];
+	static void GetScreenCorners(RectTransform rectTransform, Canvas canvas, Vector3[] fourCornersArray) {
+		rectTransform.GetWorldCorners(corners);
+
+		for (int i = 0; i < 4; i++) {
+			// For Canvas mode Screen Space - Overlay there is no Camera; best solution I've found
+			// is to use RectTransformUtility.WorldToScreenPoint with a null camera.
+			Camera cam = null;
+			if(canvas.renderMode == RenderMode.ScreenSpaceCamera || canvas.renderMode == RenderMode.WorldSpace)
+				cam = canvas.worldCamera;
+			Vector3 screenCoord = RectTransformUtility.WorldToScreenPoint(cam, corners[i]);
+
+            fourCornersArray[i] = screenCoord;
+		}
+	}
+
+	static Rect GetScreenRect(RectTransform rectTransform, Canvas canvas) {
+		GetScreenCorners(rectTransform, canvas, corners);
+		float xMin = float.PositiveInfinity;
+		float xMax = float.NegativeInfinity;
+		float yMin = float.PositiveInfinity;
+		float yMax = float.NegativeInfinity;
+		for (int i = 0; i < 4; i++) {
+            var screenCoord = corners[i];
+			if (screenCoord.x < xMin)
+				xMin = screenCoord.x;
+			if (screenCoord.x > xMax)
+				xMax = screenCoord.x;
+			if (screenCoord.y < yMin)
+				yMin = screenCoord.y;
+			if (screenCoord.y > yMax)
+				yMax = screenCoord.y;
+		}
+		return new Rect(xMin, yMin, xMax - xMin, yMax - yMin);
+	}
+
+	public static Rect ClampInsideKeepSize(Rect r, Rect container) {
+		Rect rect = Rect.zero;
+        rect.xMin = Mathf.Max(r.xMin, container.xMin);
+        rect.xMax = Mathf.Min(r.xMax, container.xMax);
+        rect.yMin = Mathf.Max(r.yMin, container.yMin);
+        rect.yMax = Mathf.Min(r.yMax, container.yMax);
+        
+        if(r.xMin < container.xMin) rect.width += container.xMin - r.xMin;
+        if(r.yMin < container.yMin) rect.height += container.yMin - r.yMin;
+        if(r.xMax > container.xMax) {
+            rect.x -= r.xMax - container.xMax;
+            rect.width += r.xMax - container.xMax;
+        }
+        if(r.yMax > container.yMax) {
+            rect.y -= r.yMax - container.yMax;
+            rect.height += r.yMax - container.yMax;
+        }
+
+        // Finally make sure we're fully contained
+        rect.xMin = Mathf.Max(rect.xMin, container.xMin);
+        rect.xMax = Mathf.Min(rect.xMax, container.xMax);
+        rect.yMin = Mathf.Max(rect.yMin, container.yMin);
+        rect.yMax = Mathf.Min(rect.yMax, container.yMax);
+        return rect;
+	}
+
+	static Vector3? WorldPointToLocalPointInRectangle (Canvas canvas, Camera camera, RectTransform rectTransform, Vector3 worldPosition) {
+		Vector3 screenPoint = camera.WorldToScreenPoint(worldPosition);
+		if (screenPoint.z < 0) return null;
+		return ScreenPointToLocalPointInRectangle(canvas, rectTransform, screenPoint);
+	}
+	static Vector3? WorldPointToLocalPointInRectangle (Canvas canvas, Camera camera, Vector3 worldPosition) {
+		return WorldPointToLocalPointInRectangle(canvas, camera, canvas.GetComponent<RectTransform>(), worldPosition);
+	}
+
+	static Vector3? ScreenPointToLocalPointInRectangle (Canvas canvas, RectTransform rectTransform, Vector2 screenPoint) {
+		Camera camera = canvas.renderMode == RenderMode.ScreenSpaceCamera ? canvas.worldCamera : null;
+		Vector2 localPosition;
+		if(RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, screenPoint, camera, out localPosition))
+			return localPosition;
+		else return null;
+	}
+	
+	static Vector3? ScreenPointToCanvasSpace(Canvas canvas, Vector2 screenPoint) {
+		Camera camera = canvas.renderMode == RenderMode.ScreenSpaceCamera ? canvas.worldCamera : null;
+		Vector3 canvasSpace = Vector3.zero;
+        var rectTransform = canvas.GetComponent<RectTransform>();
+		if(RectTransformUtility.ScreenPointToWorldPointInRectangle(rectTransform, screenPoint, camera, out canvasSpace))
+			return canvasSpace;
+		else return null;
 	}
 }

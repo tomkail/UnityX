@@ -22,6 +22,12 @@ namespace UnityX.MeshBuilder
 			get {
 				AddPlaneParams _standard = new AddPlaneParams();
 				_standard.front = true;
+				
+                _standard.topLeft = new Vector3(-0.5f,0.5f,0f);
+				_standard.topRight = new Vector3(0.5f,0.5f,0f);
+				_standard.bottomRight = new Vector3(0.5f,-0.5f,0f);
+				_standard.bottomLeft = new Vector3(-0.5f,-0.5f,0f);
+
 				_standard.uvTopLeft = new Vector2(0,1);
 				_standard.uvTopRight = new Vector2(1,1);
 				_standard.uvBottomRight = new Vector2(1,0);

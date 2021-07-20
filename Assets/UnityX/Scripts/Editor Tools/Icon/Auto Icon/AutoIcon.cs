@@ -4,7 +4,7 @@ using System.Collections;
 using UnityX.Editor.Icon;
 #endif
 
-[ExecuteInEditMode, DisallowMultipleComponent]
+[DisallowMultipleComponent]
 public class AutoIcon : MonoBehaviour {
 	#if UNITY_EDITOR
 	public enum IconType {
@@ -125,6 +125,10 @@ public class AutoIcon : MonoBehaviour {
 	}
 	void OnDisable () {
 		IconManager.ClearIcon(gameObject);
+	}
+
+	void OnValidate () {
+		SetFromProperties(defaultIconProperties);
 	}
 
 	public void Refresh () {

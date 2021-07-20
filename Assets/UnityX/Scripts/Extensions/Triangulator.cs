@@ -2,8 +2,6 @@ using UnityEngine;
 using System.Collections.Generic;
 
 public static class Triangulator {
-
-	
 	public static void GenerateIndices(IList<Vector2> points, List<int> outputIndices) {
 	
 		int n = points.Count;
@@ -13,7 +11,7 @@ public static class Triangulator {
 
 		_indicesScratch.Clear();
 
-		if (Area(points) > 0) {
+		if (SignedArea(points) > 0) {
 			for (int v = 0; v < n; v++)
 				_indicesScratch.Add(v);
 		}
@@ -56,7 +54,6 @@ public static class Triangulator {
 	
 		outputIndices.Reverse();
 	}
-
 	public static void GenerateIndices(IList<Vector3> points, List<int> outputIndices) {
 	
 		int n = points.Count;
@@ -66,7 +63,7 @@ public static class Triangulator {
 
 		_indicesScratch.Clear();
 
-		if (Area(points) > 0) {
+		if (SignedArea(points) > 0) {
 			for (int v = 0; v < n; v++)
 				_indicesScratch.Add(v);
 		}
@@ -110,7 +107,7 @@ public static class Triangulator {
 		outputIndices.Reverse();
 	}
 	
-	public static float Area (IList<Vector3> points) {
+	public static float SignedArea (IList<Vector3> points) {
 		int n = points.Count;
 		float A = 0.0f;
 		for (int p = n - 1, q = 0; q < n; p = q++) {
@@ -120,8 +117,11 @@ public static class Triangulator {
 		}
 		return (A * 0.5f);
 	}
+	public static float Area (IList<Vector3> points) {
+		return Mathf.Abs(SignedArea(points));
+	}
 
-	public static float Area (IList<Vector2> points) {
+	public static float SignedArea (IList<Vector2> points) {
 		int n = points.Count;
 		float A = 0.0f;
 		for (int p = n - 1, q = 0; q < n; p = q++) {
@@ -130,6 +130,9 @@ public static class Triangulator {
 			A += pval.x * qval.y - qval.x * pval.y;
 		}
 		return (A * 0.5f);
+	}
+	public static float Area (IList<Vector2> points) {
+		return Mathf.Abs(SignedArea(points));
 	}
 	
 	static bool Snip (IList<Vector2> points, int u, int v, int w, int n) {
@@ -148,7 +151,6 @@ public static class Triangulator {
 		}
 		return true;
 	}
-
 	static bool Snip (IList<Vector3> points, int u, int v, int w, int n) {
 		int p;
 		Vector2 A = points[_indicesScratch[u]];

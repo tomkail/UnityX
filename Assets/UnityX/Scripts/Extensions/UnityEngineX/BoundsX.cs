@@ -142,7 +142,7 @@ public static class BoundsX {
 	    return true; 
 	}
 
-	public static bool IntersectRay (this Bounds bounds, UnityX.Geometry.Line3D line, out float inDistance, out float outDistance) {
+	public static bool IntersectRay (this Bounds bounds, Line3D line, out float inDistance, out float outDistance) {
 		return IntersectLineInternal(bounds, line.start, line.end, line.direction, out inDistance, out outDistance);
 	}
 

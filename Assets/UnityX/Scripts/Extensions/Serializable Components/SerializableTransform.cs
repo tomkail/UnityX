@@ -168,7 +168,7 @@ public struct SerializableTransform {
 		return result;
 	}
 
-	[SerializeField, PositionLookAt]
+	[SerializeField]
 	private Vector3 _position;
 	public Vector3 position
 	{

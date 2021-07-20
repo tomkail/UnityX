@@ -99,7 +99,7 @@ public class RegionEditor : Editor {
 		if(region.in2DMode) {
 			var mesh = CreatePolygonMesh(region.polygon.vertices, true);
 			Gizmos.DrawMesh(mesh);
-			for(int i = 0; i < region.polygon.vertices.Length; i++) Gizmos.DrawLine(region.polygon.vertices[i], region.polygon.vertices[i+1 % region.polygon.vertices.Length]);
+			for(int i = 0; i < region.polygon.vertices.Length; i++) Gizmos.DrawLine(region.polygon.vertices[i], region.polygon.vertices[(i+1) % region.polygon.vertices.Length]);
 		} else {
 			DrawExtrudedPolygon(region.polygon.vertices, region.height);
 			DrawExtrudedWirePolygon(region.polygon.vertices, region.height);
@@ -183,10 +183,10 @@ public class RegionEditor : Editor {
 		var mesh = CreatePolygonMesh(points, true);
 		if(mesh.vertexCount > 0 && mesh.normals.Length > 0) {
 			var cachedMatrix = Gizmos.matrix;
-			Gizmos.matrix = Gizmos.matrix * Matrix4x4.TRS(-heightOffset, Quaternion.identity, Vector3.one);
+			Gizmos.matrix = cachedMatrix * Matrix4x4.TRS(-heightOffset, Quaternion.identity, Vector3.one);
 			Gizmos.DrawMesh(mesh);
 
-			Gizmos.matrix = Gizmos.matrix * Matrix4x4.TRS(heightOffset, Quaternion.identity, Vector3.one);
+			Gizmos.matrix = cachedMatrix * Matrix4x4.TRS(heightOffset, Quaternion.identity, Vector3.one);
 			Gizmos.DrawMesh(mesh);
 			Gizmos.matrix = cachedMatrix;
 		}

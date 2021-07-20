@@ -10,7 +10,9 @@ public static class CameraX {
 	#region Extensions for UnityEngine.Camera
 
 	public static Rect ViewportToScreenRect (this Camera camera, Rect rect) {
-		return RectX.MinMaxRect(camera.ViewportToScreenPoint(rect.TopLeft()), camera.ViewportToScreenPoint(rect.BottomRight()));
+		var min = camera.ViewportToScreenPoint(rect.min);
+		var max = camera.ViewportToScreenPoint(rect.max);
+		return Rect.MinMaxRect(min.x, min.y, max.x, max.y);
 	}
 	public static Vector3 ViewportToScreenVector (this Camera camera, Vector2 vector) {
 		return camera.ViewportToScreenPoint(vector) - camera.ViewportToScreenPoint(Vector2.zero);
@@ -22,7 +24,9 @@ public static class CameraX {
 
 
 	public static Rect ScreenToViewportRect (this Camera camera, Rect rect) {
-		return RectX.MinMaxRect(camera.ScreenToViewportPoint(rect.TopLeft()), camera.ScreenToViewportPoint(rect.BottomRight()));
+		var min = camera.ScreenToViewportPoint(rect.min);
+		var max = camera.ScreenToViewportPoint(rect.max);
+		return Rect.MinMaxRect(min.x, min.y, max.x, max.y);
 	}
 	public static Vector3 ScreenToWorldVector (this Camera camera, Vector2 vector, float distance) {
 		return camera.ScreenToWorldPoint(new Vector3(0,0,distance)) - camera.ScreenToWorldPoint(new Vector3(vector.x, vector.y, distance));
@@ -39,7 +43,7 @@ public static class CameraX {
 	public static Rect WorldToViewportRect (this Camera camera, Rect worldRect, float distance) {
 		Vector3 worldTopLeft = camera.WorldToViewportPoint(new Vector3(worldRect.x, worldRect.y, distance));
 		Vector3 worldBottomRight = camera.WorldToViewportPoint(new Vector3(worldRect.x + worldRect.width, worldRect.y + worldRect.height, distance));
-		return RectX.MinMaxRect(worldTopLeft, worldBottomRight);
+		return Rect.MinMaxRect(worldTopLeft.x, worldTopLeft.y, worldBottomRight.x, worldBottomRight.y);
 	}
 
 	public static Vector2[] ScreenToViewportPoints (this Camera camera, Vector2[] screenPoints) {
@@ -59,15 +63,29 @@ public static class CameraX {
         for(int i = 0; i < screenPoints.Length; i++) screenPoints[i] = camera.WorldToScreenPoint(worldPoints[i]);
 	}
 
-	public static Rect WorldToScreenRect (this Camera camera, Bounds worldBounds, float distance) {
-		Vector2[] viewportSpaceTargetPoints = camera.WorldToViewportPoints(worldBounds.GetVertices().ToArray());
-		return RectX.CreateEncapsulating(viewportSpaceTargetPoints);
+	public static Rect WorldToScreenRect (this Camera camera, Bounds worldBounds) {
+		Vector2[] screenSpaceTargetPoints = camera.WorldToScreenPoints(GetVerticesFromBounds(worldBounds));
+		Rect rect = new Rect(screenSpaceTargetPoints[0].x, screenSpaceTargetPoints[0].y, 0, 0);
+		for(int i = 1; i < screenSpaceTargetPoints.Length; i++) {
+			var xMin = Mathf.Min (rect.xMin, screenSpaceTargetPoints[i].x);
+			var xMax = Mathf.Max (rect.xMax, screenSpaceTargetPoints[i].x);
+			var yMin = Mathf.Min (rect.yMin, screenSpaceTargetPoints[i].y);
+			var yMax = Mathf.Max (rect.yMax, screenSpaceTargetPoints[i].y);
+			rect = Rect.MinMaxRect (xMin, yMin, xMax, yMax);
+		}
+		return rect;
+	}
+
+	public static Vector3[] GetVerticesFromBounds(Bounds bounds) {
+		var min = bounds.min;
+		var max = bounds.max;
+		return new Vector3[8]{min, max, new Vector3(min.x, min.y, max.z), new Vector3(min.x, max.y, min.z), new Vector3(max.x, min.y, min.z), new Vector3(min.x, max.y, max.z), new Vector3(max.x, min.y, max.z), new Vector3(max.x, max.y, min.z)};
 	}
 	
 	public static Rect WorldToScreenRect (this Camera camera, Rect worldRect, float distance) {
 		Vector3 worldTopLeft = camera.WorldToScreenPoint(new Vector3(worldRect.x, worldRect.y, distance));
 		Vector3 worldBottomRight = camera.WorldToScreenPoint(new Vector3(worldRect.x + worldRect.width, worldRect.y + worldRect.height, distance));
-		return RectX.MinMaxRect(worldTopLeft, worldBottomRight);
+		return Rect.MinMaxRect(worldTopLeft.x, worldTopLeft.y, worldBottomRight.x, worldBottomRight.y);
 	}
 	
     public static Vector2[] WorldToViewportPoints (this Camera camera, IList<Vector3> input) {
@@ -101,7 +119,7 @@ public static class CameraX {
 		float fov = Mathf.Min(camera.fieldOfView, camera.GetHorizontalFieldOfView());
 		float dist = radius / (Mathf.Sin(fov * 0.5f * Mathf.Deg2Rad));
 		
-		camera.transform.SetLocalPositionZ(dist);
+		camera.transform.localPosition = new Vector3(camera.transform.localPosition.x, camera.transform.localPosition.y, dist);
 		if (camera.orthographic)
 			camera.orthographicSize = radius;
 		
@@ -277,12 +295,36 @@ public static class CameraX {
 		//  - Behind camera: ALWAYS clamp direct onto edge of viewport
 		// Behind camera? Push to screen edge - clamp outwards.
 		var rectCentre = new Vector2(0.5f, 0.5f);
-		if( !viewportWithMargin.Contains(viewportPos.XY()) || viewportPos.z < 0.0f ) {
-			var posFromViewportCentre = viewportPos.XY() - rectCentre;
+		if( !viewportWithMargin.Contains(new Vector2(viewportPos.x, viewportPos.y)) || viewportPos.z < 0.0f ) {
+			var posFromViewportCentre = new Vector2(viewportPos.x, viewportPos.y) - rectCentre;
 			if( !allowOffscreenY ) posFromViewportCentre.y = 0.0f;
-			var viewportPosXY = RectX.SplatVector(viewportWithMargin, posFromViewportCentre);
+			var viewportPosXY = SplatVector(viewportWithMargin, posFromViewportCentre);
 			viewportPos.x = viewportPosXY.x;
 			viewportPos.y = viewportPosXY.y;
+		}
+
+		// Splats the vector in the rect.
+		// Returns the point on the edge of the rect as if you'd fired a ray from the center in the vector direction
+		Vector2 SplatVector(Rect rect, Vector2 vector)  {
+			// Degenerate cases
+			if( vector == Vector2.zero)
+				return rect.center;
+
+			float vecAspect = Mathf.Abs(vector.x / vector.y);
+			float rectAspect = rect.size.x / rect.size.y;
+
+			// Clamp to sides
+			float scale;
+			if( vecAspect > rectAspect ) {
+				scale = Mathf.Abs((0.5f*rect.size.x) / vector.x);
+			} 
+
+			// Clamp to top/bottom
+			else {
+				scale = Mathf.Abs((0.5f*rect.size.y) / vector.y);
+			}
+
+			return (scale * vector) + rect.center;
 		}
 
 		return viewportPos;

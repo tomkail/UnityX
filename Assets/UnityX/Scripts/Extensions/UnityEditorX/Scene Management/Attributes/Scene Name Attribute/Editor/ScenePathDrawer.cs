@@ -74,7 +74,7 @@ public class ScenePathDrawer : PropertyDrawer {
 
         HashSet<string> sceneNames = new HashSet<string>();
 		sceneNames.Add("NONE");
-		scenes.ForEach(scene => sceneNames.Add(scene.path));
+		scenes.ForEach(scene => sceneNames.Add(scene.path.Replace("\\", "/")));
         return sceneNames.ToArray();
     }
 
@@ -85,6 +85,7 @@ public class ScenePathDrawer : PropertyDrawer {
     }
 
     private int GetSceneIndex (string[] sceneNames, string sceneName) {
+		sceneName = sceneName.Replace("\\", "/");
 		for (int i = 0; i < sceneNames.Length; i++) if (sceneName == sceneNames[i]) return i;
         return -1;
     }

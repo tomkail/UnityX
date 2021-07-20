@@ -47,7 +47,10 @@ public struct SerializableCamera  {
                 }
             }
             return _projectionMatrix;
-        }
+        } set {
+			_projectionMatrixSet = true;
+			_projectionMatrix = value;
+		}
     }
     bool _inverseProjectionMatrixSet;
     Matrix4x4 _inverseProjectionMatrix;
@@ -63,7 +66,7 @@ public struct SerializableCamera  {
 
     
 
-	[SerializeField, SetProperty("orthographic")]
+	[SerializeField]
     bool _orthographic;
     public bool orthographic {
         get {
@@ -76,7 +79,7 @@ public struct SerializableCamera  {
     }
 
 
-	[SerializeField, SetProperty("orthographicSize")]
+	[SerializeField]
     float _orthographicSize;
     public float orthographicSize {
         get {
@@ -89,7 +92,7 @@ public struct SerializableCamera  {
     }
 
 
-	[SerializeField, SetProperty("fieldOfView")]
+	[SerializeField]
     float _fieldOfView;
     public float fieldOfView {
         get {
@@ -101,7 +104,7 @@ public struct SerializableCamera  {
         }
     }
 
-	[SerializeField, SetProperty("nearClipPlane")]
+	[SerializeField]
     float _nearClipPlane;
     public float nearClipPlane {
         get {
@@ -113,7 +116,7 @@ public struct SerializableCamera  {
         }
     }
 
-	[SerializeField, SetProperty("farClipPlane")]
+	[SerializeField]
     float _farClipPlane;
     public float farClipPlane {
         get {

@@ -27,18 +27,20 @@ namespace UnityX.Geometry {
 			ab = new Line(a,b);
 			bc = new Line(b,c);
 			ca = new Line(c,a);
+			
+			var abSqrL = ab.sqrLength;
+			var bcSqrL = bc.sqrLength;
+			var caSqrL = ca.sqrLength;
 
-			Line[] lines = new Line[3] {ab, bc, ca};
-			var longest = lines.OrderByDescending(l => l.sqrLength).First();
-			if(longest == ab) {
-				@base = ab.length;
-				height = ab.GetClosestDistanceFromLine(c);
-			} else if(longest == bc) {
+			if(bcSqrL > abSqrL && bcSqrL > caSqrL) {
 				@base = bc.length;
 				height = bc.GetClosestDistanceFromLine(a);
-			} else {
+			} else if(caSqrL > abSqrL && caSqrL > bcSqrL) {
 				@base = ca.length;
 				height = ca.GetClosestDistanceFromLine(b);
+			} else {
+				@base = ab.length;
+				height = ab.GetClosestDistanceFromLine(c);
 			}
 
 			area = height * @base * 0.5f;
@@ -64,6 +66,16 @@ namespace UnityX.Geometry {
 			bCROSScp = bx * cpy - by * cpx;
 		
 			return ((aCROSSbp >= 0.0f) && (bCROSScp >= 0.0f) && (cCROSSap >= 0.0f));
+		}
+
+		public Vector2 RandomPoint () {
+			var r1 = Mathf.Sqrt(Random.Range(0f, 1f));
+			var r2 = Random.Range(0f, 1f);
+			var m1 = 1 - r1;
+			var m2 = r1 * (1 - r2);
+			var m3 = r2 * r1;
+			
+			return (m1 * a) + (m2 * b) + (m3 * c);
 		}
 	}
 }

@@ -5,12 +5,6 @@ using System.Collections.Generic;
 
 [System.Serializable]
 public abstract class SceneTask {
-	public MonoBehaviour coroutineRunner {
-		get {
-			return RuntimeSceneSetLoader.Instance;
-		}
-	}
-
 	public string sceneName {get; private set;}
 	public bool complete {get; protected set;}
 	protected AsyncOperation op;

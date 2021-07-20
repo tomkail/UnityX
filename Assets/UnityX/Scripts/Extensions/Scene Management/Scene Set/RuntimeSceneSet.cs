@@ -10,14 +10,7 @@ using System.Linq;
 
 [CreateAssetMenu(fileName = "New Scene Set", menuName = "Scene Set", order = 1000)]
 public class RuntimeSceneSet : ScriptableObject {
-
 	public RuntimeSceneSet[] sets;
-
-	/// <summary>
-	/// The object representations of .unity scene files.
-	/// </summary>
-	// [SceneAttribute]
-	public Object[] sceneAssets;
 
 	/// <summary>
 	/// The paths of the scenes locally included by this set.
@@ -25,12 +18,22 @@ public class RuntimeSceneSet : ScriptableObject {
 	public string[] scenePaths;
 
 	/// <summary>
+	/// The object representations of .unity scene files.
+	/// This is only used in the editor.
+	/// </summary>
+	// [SceneAttribute]
+	public Object[] sceneAssets;
+
+
+	public RuntimeSceneSet () {}
+
+	/// <summary>
 	/// Calls the method named methodName on every MonoBehaviour in this game object or any of its children.
 	/// </summary>
 	/// <param name="message">Message.</param>
 	public void BroadcastMessageToIncludedScenes (string methodName) {
 		foreach(var scene in GetScenes()) {
-			ComponentX.BroadcastMessageScene(scene, methodName);
+			RuntimeSceneSetLoader.BroadcastMessageScene(scene, methodName);
 		}
 	}
 
@@ -40,7 +43,7 @@ public class RuntimeSceneSet : ScriptableObject {
 	/// <param name="message">Message.</param>
 	public void BroadcastMessageToIncludedScenes (string methodName, object parameter) {
 		foreach(var scene in GetScenes()) {
-			ComponentX.BroadcastMessageScene(scene, methodName, parameter);
+			RuntimeSceneSetLoader.BroadcastMessageScene(scene, methodName, parameter);
 		}
 	}
 
@@ -62,7 +65,7 @@ public class RuntimeSceneSet : ScriptableObject {
 	/// </summary>
 	/// <returns><c>true</c> if this instance is currently included; otherwise, <c>false</c>.</returns>
 	public bool IsCurrentlyIncluded () {
-		string[] currentScenesNames = SceneManagerX.GetCurrentSceneNames();
+		string[] currentScenesNames = RuntimeSceneSetLoader.GetCurrentSceneNames();
 		List<string> allScenesInSet = AllSceneNames();
 		return allScenesInSet.Intersect(currentScenesNames).Count() == allScenesInSet.Count();
 	}
@@ -74,7 +77,7 @@ public class RuntimeSceneSet : ScriptableObject {
 	/// </summary>
 	/// <returns><c>true</c> if this instance is currently fully loaded; otherwise, <c>false</c>.</returns>
 	public bool IsCurrentlyUniquelyLoaded () {
-		var currentScenesPaths = SceneManagerX.GetCurrentScenePaths();
+		var currentScenesPaths = RuntimeSceneSetLoader.GetCurrentScenePaths();
 		var allScenePaths = AllScenePaths();
         return allScenePaths.SequenceEqual(currentScenesPaths);
 	}
@@ -153,7 +156,19 @@ public class RuntimeSceneSet : ScriptableObject {
 			scenesInBuildSettings.Add(scene.path);
 		List<string> allScenesInSet = AllScenePaths();
 		string[] missingScenes = allScenesInSet.Except(scenesInBuildSettings).ToArray();
-		EditorBuildSettingsX.AddToBuildSettings(missingScenes);
+		AddToBuildSettings(missingScenes);
+	}
+
+	static void AddToBuildSettings (params string[] paths) {
+		EditorBuildSettingsScene[] newBuildSettings = new EditorBuildSettingsScene[EditorBuildSettings.scenes.Length + paths.Length];
+		System.Array.Copy(EditorBuildSettings.scenes, newBuildSettings, EditorBuildSettings.scenes.Length);
+		for(int i = 0; i < paths.Length; i++) {
+			EditorBuildSettingsScene settings = new EditorBuildSettingsScene();
+			settings.path = paths[i];
+			settings.enabled = true;
+			newBuildSettings[EditorBuildSettings.scenes.Length + i] = settings;
+		}
+		EditorBuildSettings.scenes = newBuildSettings;
 	}
 
 	/// <summary>
@@ -178,28 +193,32 @@ public class RuntimeSceneSet : ScriptableObject {
 		}
 	}
 
-	public List<SceneSetup> ScenesToSceneSetup () {
+	List<SceneSetup> ScenesToSceneSetup (int sceneIndexToSetActive = -1) {
 		List<SceneSetup> setups = new List<SceneSetup>(); 
-		foreach(RuntimeSceneSet setupSet in sets) {
-			setups.AddRange(setupSet.ScenesToSceneSetup());
-		}
-		for(int i = 0; i < scenePaths.Length; i++) {
-			SceneSetup setup = new SceneSetup();
-			setup.path = scenePaths[i];
-			if(string.IsNullOrWhiteSpace(setup.path)) {
-				Debug.LogWarning("Scene path at index "+i+" in "+this.name+" is empty!");
-				continue;
+		if(sets != null) {
+			foreach(RuntimeSceneSet setupSet in sets) {
+				setups.AddRange(setupSet.ScenesToSceneSetup());
 			}
-			setup.isLoaded = true;
-			setups.Add(setup);
 		}
-		if(setups.Count > 0)
-			setups[0].isActive = true;
+		if(scenePaths != null) {
+			for(int i = 0; i < scenePaths.Length; i++) {
+				SceneSetup setup = new SceneSetup();
+				setup.path = scenePaths[i];
+				if(string.IsNullOrWhiteSpace(setup.path)) {
+					Debug.LogWarning("Scene path at index "+i+" in "+this.name+" is empty!");
+					continue;
+				}
+				setup.isLoaded = true;
+				setups.Add(setup);
+			}
+		}
+		if(setups.ContainsIndex(sceneIndexToSetActive))
+			setups[sceneIndexToSetActive].isActive = true;
 		return setups;
 	}
 
-	public SceneSetup[] ToSceneSetup () {
-		return ScenesToSceneSetup().ToArray();
+	public SceneSetup[] ToSceneSetup (int sceneIndexToSetActive = -1) {
+		return ScenesToSceneSetup(sceneIndexToSetActive).ToArray();
 	}
 
 	public void LoadInEditor () {

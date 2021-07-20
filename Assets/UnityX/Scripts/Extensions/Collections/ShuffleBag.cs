@@ -20,7 +20,7 @@ public class ShuffleBag<T> {
 	}
 
 	public ShuffleBag (List<T> sourceItems) {
-		Debug.Assert(!sourceItems.IsNullOrEmpty());
+		Debug.Assert(sourceItems != null && sourceItems.Count > 0);
 		this._sourceItems = sourceItems;
 		RefreshBag();
 	}
@@ -36,7 +36,7 @@ public class ShuffleBag<T> {
 		foreach(var item in _sourceItems) {
 			_items.Add(item);
 		}
-		_items.Shuffle();
+		Shuffle(_items);
 	}
 
 	public T PeekAhead () {
@@ -63,5 +63,35 @@ public class ShuffleBag<T> {
 			}
 		}
 		return success;
+	}
+
+	/// <summary>
+    /// Shuffles the specified list.
+    /// </summary>
+    /// <param name="list">List.</param>
+    /// <typeparam name="T">The 1st type parameter.</typeparam>
+    public static void Shuffle(IList<T> list) {  
+		int n = list.Count;  
+		while (n > 1) {  
+			n--;  
+			int k = UnityEngine.Random.Range (0, n + 1);  
+			T value = list [k];  
+			list [k] = list [n];  
+			list [n] = value;  
+		}  
+	}
+
+	public static void Shuffle(IList<T> list, int seed) {  
+		var oldState = UnityEngine.Random.state;
+		UnityEngine.Random.InitState(seed);
+		int n = list.Count;  
+		while (n > 1) {  
+			n--;  
+			int k = UnityEngine.Random.Range (0, n + 1);  
+			T value = list [k];  
+			list [k] = list [n];  
+			list [n] = value;  
+		}
+		UnityEngine.Random.state = oldState;
 	}
 }
