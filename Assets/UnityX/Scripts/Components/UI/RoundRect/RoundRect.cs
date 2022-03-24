@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
 using static UnityEngine.Mathf;
 
 /// <summary>
@@ -33,6 +34,7 @@ public class RoundRect : Graphic
     public float cornerRadius {
         get => _cornerRadius;
         set {
+            if(_cornerRadius == value) return;
             _cornerRadius = value;
             _roundRectOutlineParamsDirty = true;
             SetVerticesDirty();
@@ -43,6 +45,7 @@ public class RoundRect : Graphic
     public Color fillColor {
         get => _fillColor;
         set {
+            if(_fillColor == value) return;
             _fillColor = value;
             SetVerticesDirty();
         }
@@ -52,6 +55,7 @@ public class RoundRect : Graphic
     public Color outlineColor {
         get => _outlineColor;
         set {
+            if(_outlineColor == value) return;
             _outlineColor = value;
             SetVerticesDirty();
         }
@@ -66,6 +70,7 @@ public class RoundRect : Graphic
     public OutlineMode outlineMode {
         get => _outlineMode;
         set {
+            if(_outlineMode == value) return;
             _outlineMode = value;
             _roundRectOutlineParamsDirty = true;
             SetVerticesDirty();
@@ -76,23 +81,29 @@ public class RoundRect : Graphic
     public float antiAliasWidth {
         get => _antiAliasWidth;
         set {
+            if(_antiAliasWidth == value) return;
             _antiAliasWidth = value;
             _roundRectOutlineParamsDirty = true;
             SetVerticesDirty();
         }
     }
     [Range(0, 4)]
-    [SerializeField] float _antiAliasWidth = 1.2f;
+    [SerializeField] float _antiAliasWidth = 0.5f;
 
     public float outlineWidth {
         get => _outlineWidth;
         set {
+            if(_outlineWidth == value) return;
             _outlineWidth = value;
             _roundRectOutlineParamsDirty = true;
             SetVerticesDirty();
         }
     }
     [SerializeField] float _outlineWidth = 2.0f;
+
+
+    private List<UIVertex> vertexBuffer = new List<UIVertex>();
+    private List<int> indexBuffer = new List<int>();
 
     // cornerRadius, but constrained by the size of the rect
     float RenderedRadius(float radius, Vector2 rectSize) {
@@ -123,12 +134,6 @@ public class RoundRect : Graphic
             SetVerticesDirty();
             SetLayoutDirty();
         }
-    }
-
-    protected override void OnDisable () {
-        base.OnDisable();
-        _roundRectParamsOutline = default(RoundRectParams);
-        _roundRectOutlineParamsDirty = true;
     }
 
     protected override void Start()
@@ -178,10 +183,11 @@ public class RoundRect : Graphic
         rect.min -= sizeAdjustVec;
         rect.max += sizeAdjustVec;
 
-        corner1.x = -rect.width * rectTransform.pivot.x;
-        corner1.y = -rect.height * rectTransform.pivot.y;
-        corner2.x = rect.width * (1.0f - rectTransform.pivot.x);
-        corner2.y = rect.height * (1.0f - rectTransform.pivot.y);
+        var pivot = rectTransform.pivot;
+        corner1.x = -rect.width * pivot.x;
+        corner1.y = -rect.height * pivot.y;
+        corner2.x = rect.width * (1.0f - pivot.x);
+        corner2.y = rect.height * (1.0f - pivot.y);
 
         float renderedRadius = RenderedRadius(radius, rect.size);
 
@@ -197,6 +203,11 @@ public class RoundRect : Graphic
     {
         var rt = rectTransform;
         if( rt == null ) return;
+        
+        vh.Clear();
+
+        vertexBuffer.Clear();
+        indexBuffer.Clear();
 
         var tintedFillColor = _fillColor * color;
         var tintedOutlineColor = _outlineColor * color;
@@ -271,16 +282,14 @@ public class RoundRect : Graphic
             antialiasWidth = _roundRectParamsOutline.antialiasWidth
         };
 
-        vh.Clear();
-
         // Create outer part of fill geometry (it has a round rect outer shape,
         // the hard inner rect will be added below)
         if( tintedFillColor.a > 0 )
-            MakeRoundRectOutlineGeometry(vh, fillGeom, roundRectParamsFill, tintedFillColor);
+            MakeRoundRectOutlineGeometry(vertexBuffer, indexBuffer, fillGeom, roundRectParamsFill, tintedFillColor);
 
         // Create outline geometry
-        if( tintedOutlineColor.a > 0 )
-            MakeRoundRectOutlineGeometry(vh, outlineGeom, _roundRectParamsOutline, tintedOutlineColor);
+        if( tintedOutlineColor.a > 0 && outlineWidth != 0 )
+            MakeRoundRectOutlineGeometry(vertexBuffer, indexBuffer, outlineGeom, _roundRectParamsOutline, tintedOutlineColor);
 
         // Of 9-slice, innerRect is the middle slice.
         // This is only for the outer corner radius though.
@@ -299,7 +308,7 @@ public class RoundRect : Graphic
         // We render this even if the outline overlaps it fully, since
         // the outline might be drawn in a transparent colour
         if( innerRect.size.x > 0 && innerRect.size.y > 0 && tintedFillColor.a > 0 ) {
-            MakeHardQuad(vh, innerRect, hardFillParams, tintedFillColor);
+            MakeHardQuad(vertexBuffer, indexBuffer, innerRect, hardFillParams, tintedFillColor);
         }
 
         // Cases:
@@ -322,45 +331,45 @@ public class RoundRect : Graphic
                 
                 // Outer band that's the extension of the outline
                 // Bottom
-                MakeHardQuad(vh, new Rect(innerRect.x, innerRect.y, innerRect.width, innerOutlineWidthPx), hardFillParams, tintedOutlineColor);
+                MakeHardQuad(vertexBuffer, indexBuffer, new Rect(innerRect.x, innerRect.y, innerRect.width, innerOutlineWidthPx), hardFillParams, tintedOutlineColor);
 
                 // Top
-                MakeHardQuad(vh, new Rect(innerRect.x, innerRect.yMax-innerOutlineWidthPx, innerRect.width, innerOutlineWidthPx), hardFillParams, tintedOutlineColor);
+                MakeHardQuad(vertexBuffer, indexBuffer, new Rect(innerRect.x, innerRect.yMax-innerOutlineWidthPx, innerRect.width, innerOutlineWidthPx), hardFillParams, tintedOutlineColor);
 
                 // Left
-                MakeHardQuad(vh, new Rect(innerRect.x, innerRect.y+innerOutlineWidthPx, innerOutlineWidthPx, innerRect.height-2*innerOutlineWidthPx), hardFillParams, tintedOutlineColor);
+                MakeHardQuad(vertexBuffer, indexBuffer, new Rect(innerRect.x, innerRect.y+innerOutlineWidthPx, innerOutlineWidthPx, innerRect.height-2*innerOutlineWidthPx), hardFillParams, tintedOutlineColor);
 
                 // Right
-                MakeHardQuad(vh, new Rect(innerRect.xMax-innerOutlineWidthPx, innerRect.y+innerOutlineWidthPx, innerOutlineWidthPx, innerRect.height-2*innerOutlineWidthPx), hardFillParams, tintedOutlineColor);
+                MakeHardQuad(vertexBuffer, indexBuffer, new Rect(innerRect.xMax-innerOutlineWidthPx, innerRect.y+innerOutlineWidthPx, innerOutlineWidthPx, innerRect.height-2*innerOutlineWidthPx), hardFillParams, tintedOutlineColor);
             }
 
             // Outline width encompases entire shape
             else if( innerRect.size.x > 0 && innerRect.size.y > 0) {
-                MakeHardQuad(vh, innerRect, hardFillParams, tintedOutlineColor);
+                MakeHardQuad(vertexBuffer, indexBuffer, innerRect, hardFillParams, tintedOutlineColor);
             }
         }
 
-        
+        vh.AddUIVertexStream(vertexBuffer, indexBuffer);
     }
 
 
 
-    void MakeRoundRectOutlineGeometry(VertexHelper vh, RoundRectOuterGeom geom, RoundRectParams roundRectParams, Color color)
+    void MakeRoundRectOutlineGeometry(List<UIVertex> vertices, List<int> indices, RoundRectOuterGeom geom, RoundRectParams roundRectParams, Color32 color)
     {
         // Corners
         if( geom.radius > 0 ) {
 
             // Bottom left
-            AddCorner(vh, geom.rect.min, new Vector2(geom.radius, geom.radius), roundRectParams, color, false);
+            AddCorner(vertexBuffer, indexBuffer, geom.rect.min, new Vector2(geom.radius, geom.radius), roundRectParams, color, false);
 
             // Bottom right
-            AddCorner(vh, new Vector2(geom.rect.xMax, geom.rect.yMin), new Vector2(-geom.radius, geom.radius), roundRectParams, color, true);
+            AddCorner(vertexBuffer, indexBuffer, new Vector2(geom.rect.xMax, geom.rect.yMin), new Vector2(-geom.radius, geom.radius), roundRectParams, color, true);
 
             // Top left
-            AddCorner(vh, new Vector2(geom.rect.xMin, geom.rect.yMax), new Vector2(geom.radius, -geom.radius), roundRectParams, color, true);
+            AddCorner(vertexBuffer, indexBuffer, new Vector2(geom.rect.xMin, geom.rect.yMax), new Vector2(geom.radius, -geom.radius), roundRectParams, color, true);
 
             // Top right
-            AddCorner(vh, new Vector2(geom.rect.xMax, geom.rect.yMax), new Vector2(-geom.radius, -geom.radius), roundRectParams, color, false);
+            AddCorner(vertexBuffer, indexBuffer, new Vector2(geom.rect.xMax, geom.rect.yMax), new Vector2(-geom.radius, -geom.radius), roundRectParams, color, false);
         }
 
         // Edges
@@ -368,7 +377,7 @@ public class RoundRect : Graphic
         if( edgeWidth > 0 ) {
 
             // Top edge
-            AddEdge(vh, 
+            AddEdge(vertexBuffer, indexBuffer,
                 new Vector2(geom.rect.xMin + geom.radius, geom.rect.yMax), 
                 new Vector2(edgeWidth, -geom.radius),
                 roundRectParams,
@@ -376,7 +385,7 @@ public class RoundRect : Graphic
                 false);
 
             // Bottom edge
-            AddEdge(vh, 
+            AddEdge(vertexBuffer, indexBuffer,
                 new Vector2(geom.rect.xMin + geom.radius + edgeWidth,  geom.rect.yMin), 
                 new Vector2(-edgeWidth, geom.radius),
                 roundRectParams,
@@ -388,7 +397,7 @@ public class RoundRect : Graphic
         if( edgeHeight > 0 ) {
 
             // Left edge
-            AddEdge(vh, 
+            AddEdge(vertexBuffer, indexBuffer,
                 new Vector2(geom.rect.xMin, geom.rect.yMin + geom.radius), 
                 new Vector2(geom.radius, edgeHeight),
                 roundRectParams,
@@ -396,7 +405,7 @@ public class RoundRect : Graphic
                 true);
 
             // Right
-            AddEdge(vh, 
+            AddEdge(vertexBuffer, indexBuffer,
                 new Vector2(geom.rect.xMax, geom.rect.yMax - geom.radius), 
                 new Vector2(-geom.radius, -edgeHeight),
                 roundRectParams,
@@ -405,122 +414,157 @@ public class RoundRect : Graphic
         }
     }
 
-
-    void AddCorner(VertexHelper vh, Vector2 corner, Vector2 toCurveOrigin, RoundRectParams roundRectParams, Color color, bool flipWinding)
+    UIVertex[] verts = new UIVertex[4];
+    int[] inds = new int[6];
+    void AddCorner(List<UIVertex> vertices, List<int> indices, Vector2 corner, Vector2 toCurveOrigin, RoundRectParams roundRectParams, Color32 color, bool flipWinding)
     {
         var vert = UIVertex.simpleVert;
         vert.color = color;
-        int baseIdx = vh.currentVertCount;
+        int baseIdx = vertices.Count;
 
-        vert.position = new Vector2(corner.x, corner.y);
+        vert.position = new Vector3(corner.x, corner.y);
         vert.uv0 = RoundRectUV0(1, 1, roundRectParams);
-        vh.AddVert(vert);
+        verts[0] = vert;
 
-        vert.position = new Vector2(corner.x, corner.y + toCurveOrigin.y);
+        vert.position = new Vector3(corner.x, corner.y + toCurveOrigin.y);
         vert.uv0 = RoundRectUV0(1, 0, roundRectParams);
-        vh.AddVert(vert);
+        verts[1] = vert;
 
-        vert.position = new Vector2(corner.x + toCurveOrigin.x, corner.y + toCurveOrigin.y);
+        vert.position = new Vector3(corner.x + toCurveOrigin.x, corner.y + toCurveOrigin.y);
         vert.uv0 = RoundRectUV0(0, 0, roundRectParams);
-        vh.AddVert(vert);
+        verts[2] = vert;
 
-        vert.position = new Vector2(corner.x + toCurveOrigin.x, corner.y);
+        vert.position = new Vector3(corner.x + toCurveOrigin.x, corner.y);
         vert.uv0 = RoundRectUV0(0, 1, roundRectParams);
-        vh.AddVert(vert);
+        verts[3] = vert;
 
-        if( flipWinding ) {
-            vh.AddTriangle(baseIdx+2, baseIdx+1, baseIdx+0);
-            vh.AddTriangle(baseIdx+0, baseIdx+3, baseIdx+2);
+        if(flipWinding) {
+            inds[0] = baseIdx+2;
+            inds[1] = baseIdx+1;
+            inds[2] = baseIdx+0;
+            inds[3] = baseIdx+0;
+            inds[4] = baseIdx+3;
+            inds[5] = baseIdx+2;
         } else {
-            vh.AddTriangle(baseIdx+0, baseIdx+1, baseIdx+2);
-            vh.AddTriangle(baseIdx+2, baseIdx+3, baseIdx+0);
+            inds[0] = baseIdx+0;
+            inds[1] = baseIdx+1;
+            inds[2] = baseIdx+2;
+            inds[3] = baseIdx+2;
+            inds[4] = baseIdx+3;
+            inds[5] = baseIdx+0;
         }
+        vertices.AddRange(verts);
+        indices.AddRange(inds);
     }
 
-    void AddEdge(VertexHelper vh, Vector2 onEdgeLeft, Vector2 opEdgeCorner, RoundRectParams roundRectParams, Color color, bool isSideEdge)
-    {
+    void AddEdge(List<UIVertex> vertices, List<int> indices, Vector2 onEdgeLeft, Vector2 opEdgeCorner, RoundRectParams roundRectParams, Color32 color, bool isSideEdge) {
         var vert = UIVertex.simpleVert;
         vert.color = color;
-        int baseIdx = vh.currentVertCount;
-
-        vert.position = new Vector2(onEdgeLeft.x, onEdgeLeft.y);
+        int baseIdx = vertices.Count;
+        
+        vert.position = new Vector3(onEdgeLeft.x, onEdgeLeft.y);
         vert.uv0 = isSideEdge ? RoundRectUV0(0, 1, roundRectParams) : RoundRectUV0(0, 1, roundRectParams);
-        vh.AddVert(vert);
+        verts[0] = vert;
 
-        vert.position = new Vector2(onEdgeLeft.x, onEdgeLeft.y + opEdgeCorner.y);
+        vert.position = new Vector3(onEdgeLeft.x, onEdgeLeft.y + opEdgeCorner.y);
         vert.uv0 = isSideEdge ? RoundRectUV0(0, 1, roundRectParams) : RoundRectUV0(0, 0, roundRectParams);
-        vh.AddVert(vert);
+        verts[1] = vert;
 
-        vert.position = new Vector2(onEdgeLeft.x + opEdgeCorner.x, onEdgeLeft.y + opEdgeCorner.y);
+        vert.position = new Vector3(onEdgeLeft.x + opEdgeCorner.x, onEdgeLeft.y + opEdgeCorner.y);
         vert.uv0 = isSideEdge ? RoundRectUV0(0, 0, roundRectParams) : RoundRectUV0(0, 0, roundRectParams);
-        vh.AddVert(vert);
+        verts[2] = vert;
 
-        vert.position = new Vector2(onEdgeLeft.x + opEdgeCorner.x, onEdgeLeft.y);
+        vert.position = new Vector3(onEdgeLeft.x + opEdgeCorner.x, onEdgeLeft.y);
         vert.uv0 = isSideEdge ? RoundRectUV0(0, 0, roundRectParams) : RoundRectUV0(0, 1, roundRectParams);
-        vh.AddVert(vert);
+        verts[3] = vert;
 
-        if( isSideEdge ) {
-            vh.AddTriangle(baseIdx+0, baseIdx+1, baseIdx+2);
-            vh.AddTriangle(baseIdx+2, baseIdx+3, baseIdx+0);
+        if(!isSideEdge) {
+            inds[0] = baseIdx+2;
+            inds[1] = baseIdx+1;
+            inds[2] = baseIdx+0;
+            inds[3] = baseIdx+0;
+            inds[4] = baseIdx+3;
+            inds[5] = baseIdx+2;
         } else {
-            vh.AddTriangle(baseIdx+2, baseIdx+1, baseIdx+0);
-            vh.AddTriangle(baseIdx+0, baseIdx+3, baseIdx+2);
+            inds[0] = baseIdx+0;
+            inds[1] = baseIdx+1;
+            inds[2] = baseIdx+2;
+            inds[3] = baseIdx+2;
+            inds[4] = baseIdx+3;
+            inds[5] = baseIdx+0;
         }
+
+        vertices.AddRange(verts);
+        indices.AddRange(inds);
     }
 
     // TODO: Add a bunch of quads in case outline thickness > corner radius?
     // Or be clever about texture coordinates??
-    void AddMiddle(VertexHelper vh, Vector2 corner1, Vector2 corner2, RoundRectParams roundRectParams, Color color, float renderedRadius)
+    void AddMiddle(List<UIVertex> vertices, List<int> indices, Vector2 corner1, Vector2 corner2, RoundRectParams roundRectParams, Color32 color, float renderedRadius)
     {
         var vert = UIVertex.simpleVert;
         vert.color = color;
-        int baseIdx = vh.currentVertCount;
+        int baseIdx = vertices.Count;
 
-        vert.position = new Vector2(corner1.x+renderedRadius, corner1.y+renderedRadius);
+        vert.position = new Vector3(corner1.x+renderedRadius, corner1.y+renderedRadius);
         vert.uv0 = RoundRectUV0(0, 0, roundRectParams);
-        vh.AddVert(vert);
+        verts[0] = vert;
 
-        vert.position = new Vector2(corner1.x+renderedRadius, corner2.y-renderedRadius);
+        vert.position = new Vector3(corner1.x+renderedRadius, corner2.y-renderedRadius);
         vert.uv0 = RoundRectUV0(0, 0, roundRectParams);
-        vh.AddVert(vert);
+        verts[1] = vert;
 
-        vert.position = new Vector2(corner2.x-renderedRadius, corner2.y-renderedRadius);
+        vert.position = new Vector3(corner2.x-renderedRadius, corner2.y-renderedRadius);
         vert.uv0 = RoundRectUV0(0, 0, roundRectParams);
-        vh.AddVert(vert);
+        verts[2] = vert;
 
-        vert.position = new Vector2(corner2.x-renderedRadius, corner1.y+renderedRadius);
+        vert.position = new Vector3(corner2.x-renderedRadius, corner1.y+renderedRadius);
         vert.uv0 = RoundRectUV0(0, 0, roundRectParams);
-        vh.AddVert(vert);
+        verts[3] = vert;
 
-        vh.AddTriangle(baseIdx+2, baseIdx+1, baseIdx+0);
-        vh.AddTriangle(baseIdx+0, baseIdx+3, baseIdx+2);
+        inds[0] = baseIdx+2;
+        inds[1] = baseIdx+1;
+        inds[2] = baseIdx+0;
+        inds[3] = baseIdx+0;
+        inds[4] = baseIdx+3;
+        inds[5] = baseIdx+2;
+
+        vertices.AddRange(verts);
+        indices.AddRange(inds);
     }
 
 
-    void MakeHardQuad(VertexHelper vh, Rect rect, RoundRectParams fillRoundRectParams, Color color)
+    void MakeHardQuad(List<UIVertex> vertices, List<int> indices, Rect rect, RoundRectParams fillRoundRectParams, Color32 color)
     {
         var vert = UIVertex.simpleVert;
         vert.color = color;
-        int baseIdx = vh.currentVertCount;
+        int baseIdx = vertices.Count;
 
-        vert.position = new Vector2(rect.xMin, rect.yMin);
+        vert.position = new Vector3(rect.xMin, rect.yMin);
         vert.uv0 = RoundRectUV0(0, 0, fillRoundRectParams);
-        vh.AddVert(vert);
+        verts[0] = vert;
 
-        vert.position = new Vector2(rect.xMin, rect.yMax);
+        vert.position = new Vector3(rect.xMin, rect.yMax);
         vert.uv0 = RoundRectUV0(0, 0, fillRoundRectParams);
-        vh.AddVert(vert);
+        verts[1] = vert;
 
-        vert.position = new Vector2(rect.xMax, rect.yMax);
+        vert.position = new Vector3(rect.xMax, rect.yMax);
         vert.uv0 = RoundRectUV0(0, 0, fillRoundRectParams);
-        vh.AddVert(vert);
+        verts[2] = vert;
 
-        vert.position = new Vector2(rect.xMax, rect.yMin);
+        vert.position = new Vector3(rect.xMax, rect.yMin);
         vert.uv0 = RoundRectUV0(0, 0, fillRoundRectParams);
-        vh.AddVert(vert);
+        verts[3] = vert;
 
-        vh.AddTriangle(baseIdx+2, baseIdx+1, baseIdx+0);
-        vh.AddTriangle(baseIdx+0, baseIdx+3, baseIdx+2);
+        inds[0] = baseIdx+2;
+        inds[1] = baseIdx+1;
+        inds[2] = baseIdx+0;
+        inds[3] = baseIdx+0;
+        inds[4] = baseIdx+3;
+        inds[5] = baseIdx+2;
+        
+        vertices.AddRange(verts);
+        indices.AddRange(inds);
     }
     
 

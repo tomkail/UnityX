@@ -106,6 +106,73 @@ public static class BoundsX {
 	public static Vector3 GetRandomPointInBounds (this Bounds bounds) {
 		return new Vector3(Random.Range(bounds.min.x, bounds.max.x), Random.Range(bounds.min.y, bounds.max.y), Random.Range(bounds.min.z, bounds.max.z));
 	}
+    
+    // Gets the closest point on the edge of the bounds.
+    // You'd think there'd be a better way to do this! But I am not a clever man.
+    public static Vector3 ClosestPointOnPerimeter (this Bounds bounds, Vector3 point) {
+        var min = bounds.min;
+        var max = bounds.max;
+        var center = bounds.center;
+        var size = bounds.size;
+        Bounds leftFace = new Bounds(new Vector3(min.x, center.y, center.z), new Vector3(0, size.y, size.z));
+        Bounds rightFace = new Bounds(new Vector3(max.x, center.y, center.z), new Vector3(0, size.y, size.z));
+        Bounds bottomFace = new Bounds(new Vector3(center.x, min.y, center.z), new Vector3(size.x, 0, size.z));
+        Bounds topFace = new Bounds(new Vector3(center.x, max.y, center.z), new Vector3(size.x, 0, size.z));
+        Bounds frontFace = new Bounds(new Vector3(center.x, center.y, min.z), new Vector3(size.x, size.y, 0));
+        Bounds backFace = new Bounds(new Vector3(center.x, center.y, max.z), new Vector3(size.x, size.y, 0));
+
+        Vector3 closestPoint = Vector3.zero;
+        float minDistance = float.MaxValue;
+
+        var leftPoint = leftFace.ClosestPoint(point);
+        var leftDistance = Vector3.Distance(point, leftPoint);
+        if(leftDistance < minDistance) {
+            minDistance = leftDistance;
+            closestPoint = leftPoint;
+        }
+        
+        var rightPoint = rightFace.ClosestPoint(point);
+        var rightDistance = Vector3.Distance(point, rightPoint);
+        if(rightDistance < minDistance) {
+            minDistance = rightDistance;
+            closestPoint = rightPoint;
+        }
+
+        var bottomPoint = bottomFace.ClosestPoint(point);
+        var bottomDistance = Vector3.Distance(point, bottomPoint);
+        if(bottomDistance < minDistance) {
+            minDistance = bottomDistance;
+            closestPoint = bottomPoint;
+        }
+        
+        var topPoint = topFace.ClosestPoint(point);
+        var topDistance = Vector3.Distance(point, topPoint);
+        if(topDistance < minDistance) {
+            minDistance = topDistance;
+            closestPoint = topPoint;
+        }
+
+        var frontPoint = frontFace.ClosestPoint(point);
+        var frontDistance = Vector3.Distance(point, frontPoint);
+        if(frontDistance < minDistance) {
+            minDistance = frontDistance;
+            closestPoint = frontPoint;
+        }
+        
+        var backPoint = backFace.ClosestPoint(point);
+        var backDistance = Vector3.Distance(point, backPoint);
+        if(backDistance < minDistance) {
+            minDistance = backDistance;
+            closestPoint = backPoint;
+        }
+
+        return closestPoint;
+    }
+
+    public static float SignedDistanceFromPoint (this Bounds bounds, Vector3 position) {
+        return (bounds.Contains(position) ? 1 : -1) * Vector3.Distance(position, ClosestPointOnPerimeter(bounds, position));
+	}
+
 
 	// From https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
 	// When clamped, if the corresponding point is inside the bounds, use the point rather than point on the edge of the bounds

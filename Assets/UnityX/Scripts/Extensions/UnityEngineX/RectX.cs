@@ -76,8 +76,7 @@ public static class RectX {
 			rect = rect.Encapsulating(enumerator.Current);
 		return rect;
 	}
-	
-	public static Rect CreateFromCenter (Vector2 centerPosition, Vector2 size) {
+    public static Rect CreateFromCenter (Vector2 centerPosition, Vector2 size) {
 		return CreateFromCenter(centerPosition.x, centerPosition.y, size.x, size.y);
 	}
 	
@@ -124,6 +123,14 @@ public static class RectX {
 
 	public static Rect CopyWithSize(this Rect r, Vector2 size){
 		return new Rect(r.x, r.y, size.x, size.y);
+	}
+	public static Rect Inset(this Rect rect, float pixels) {
+		return new Rect(
+			rect.x + pixels, 
+			rect.y + pixels, 
+			rect.width - 2*pixels, 
+			rect.height - 2*pixels
+		);
 	}
 
 

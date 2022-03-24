@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 
-[CustomEditor(typeof(RoundRect))]
+[CustomEditor(typeof(RoundRect)), CanEditMultipleObjects]
 public class RoundRectEditor : Editor {
 
     public override void OnInspectorGUI() {

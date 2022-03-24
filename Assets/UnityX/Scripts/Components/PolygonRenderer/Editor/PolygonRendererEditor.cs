@@ -14,7 +14,7 @@ public class PolygonRendererEditor : BaseEditor<PolygonRenderer> {
 
 	void OnDisable() {
 		Undo.undoRedoPerformed -= HandleUndoRedoCallback;
-        polygonEditor.Destroy();
+        // polygonEditor.Destroy();
 		if(data == null) return;
 	}
 

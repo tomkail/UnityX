@@ -54,6 +54,7 @@ public static class Triangulator {
 	
 		outputIndices.Reverse();
 	}
+	// These points are assumed to be Vector2s, and are only stored as Vector3s for performance reasons
 	public static void GenerateIndices(IList<Vector3> points, List<int> outputIndices) {
 	
 		int n = points.Count;
@@ -107,6 +108,7 @@ public static class Triangulator {
 		outputIndices.Reverse();
 	}
 	
+	// These points are assumed to be Vector2s, and are only stored as Vector3s for performance reasons
 	public static float SignedArea (IList<Vector3> points) {
 		int n = points.Count;
 		float A = 0.0f;
@@ -117,6 +119,7 @@ public static class Triangulator {
 		}
 		return (A * 0.5f);
 	}
+	// These points are assumed to be Vector2s, and are only stored as Vector3s for performance reasons
 	public static float Area (IList<Vector3> points) {
 		return Mathf.Abs(SignedArea(points));
 	}

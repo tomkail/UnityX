@@ -14,7 +14,7 @@ public class CanvasGroupOpacityInteractionEnabler : UIBehaviour {
             return GetComponent<CanvasGroup>();
         }
     }
-	[ClampAttribute(0f,1f)]
+	[Range(0,1)]
 	public float alphaThreshold = 1;
 	public bool interactable = true;
 	public bool blocksRaycasts = true;

@@ -859,23 +859,21 @@ public partial class SLayout : UIBehaviour {
 
 	void SetRectTransformX(float x)
 	{
-		var parentRT = rectTransform.parent as RectTransform;
+		var parentRT = parentRectTransform;
 		if( parentRT == null ) return; // Happens when SLayout gets displaced outside of UI
 
+		var rt = rectTransform;
+
 		var parentPivotPosX = parentRT.pivot.x * parentRT.rect.width;
-		var ownPivotPosX = rectTransform.pivot.x * rectTransform.rect.width;
+		var ownPivotPosX = rt.pivot.x * rt.rect.width;
 
 		// X local to parent pivot (i.e. the localPosition)
 		var localX = -parentPivotPosX + x + ownPivotPosX;
 
-		var localPos = rectTransform.localPosition;
+		var localPos = rt.localPosition;
+		if(localPos.x == localX) return;
 		localPos.x = localX;
-		rectTransform.localPosition = localPos;
-
-        // Due to an issue introduced in 2017.3, this is necessary, but it's fixed in 2017.4.3f1
-        // Remove this line when we upgrade please!
-        // https://issuetracker.unity3d.com/issues/children-layout-breaks-when-changing-the-hierarchy-layer-and-the-transform-of-their-parent
-        rectTransform.ForceUpdateRectTransforms();
+		rt.localPosition = localPos;
 	}
 
 	void SetRectTransformY(float y)
@@ -885,63 +883,64 @@ public partial class SLayout : UIBehaviour {
 
 		// Find Y local to parent pivot (i.e. the localPosition)
 		float localY;
-
+		
+		var rt = rectTransform;
 		if( originTopLeft ) {
 			var parentPivotPosToTop = (1.0f-parentRT.pivot.y) * parentRT.rect.height;
-			var ownPivotPosToTop = (1.0f-rectTransform.pivot.y) * rectTransform.rect.height;
+			var ownPivotPosToTop = (1.0f-rt.pivot.y) * rt.rect.height;
 			localY = parentPivotPosToTop - y - ownPivotPosToTop;
 		} else {
 			var parentPivotPosY = parentRT.pivot.y * parentRT.rect.height;
-			var ownPivotPosY = rectTransform.pivot.y * rectTransform.rect.height;
+			var ownPivotPosY = rt.pivot.y * rt.rect.height;
 			localY = -parentPivotPosY + y + ownPivotPosY;
 		}
 			
-		var localPos = rectTransform.localPosition;
+		var localPos = rt.localPosition;
+		if(localPos.y == localY) return;
 		localPos.y = localY;
-		rectTransform.localPosition = localPos;
-
-        // Due to an issue introduced in 2017.3, this is necessary, but it's fixed in 2017.4.3f1.
-        // Remove this line when we upgrade please!
-        // https://issuetracker.unity3d.com/issues/children-layout-breaks-when-changing-the-hierarchy-layer-and-the-transform-of-their-parent
-        rectTransform.ForceUpdateRectTransforms();
+		rt.localPosition = localPos;
 	}
 
 	void SetRectTransformWidth(float width)
 	{
+		var rt = rectTransform;
 		// Always grow/shrink outward from left edge.
 		// Reason is so that we have a consistent model and so it doesn't depend on the anchoring.
 		// This can be faff sometimes (for example, if you only want to set the width while it's anchored
 		// automatically to the right edge of the screen). But on balance we prefer the "full manual" model
 		// since if you *do* want to change the X position it becomes a lot more complicated.
-		var originalLeftX = GetRectTransformX(rectTransform);
 			
-		var anchorsSep = (rectTransform.anchorMax.x - rectTransform.anchorMin.x) * parentRect.width;
+		var anchorsSep = (rt.anchorMax.x - rt.anchorMin.x) * parentRect.width;
 
-		var sizeDelta = rectTransform.sizeDelta;
+		var sizeDelta = rt.sizeDelta;
 		sizeDelta.x = width - anchorsSep;
-		rectTransform.sizeDelta = sizeDelta;
-
-		// Restore original X position
-		SetRectTransformX(originalLeftX);
+		if(rt.sizeDelta.x != sizeDelta.x) {
+			var originalLeftX = GetRectTransformX(rt);
+			rt.sizeDelta = sizeDelta;
+			// Restore original X position
+			SetRectTransformX(originalLeftX);
+		}
 	}
 
 	void SetRectTransformHeight(float height)
 	{
+		var rt = rectTransform;
 		// Always grow/shrink outward from consistent edge based on originTopLeft flag.
 		// Reason is so that we have a consistent model and so it doesn't depend on the anchoring.
 		// This can be faff sometimes (for example, if you only want to set the height while it's anchored
 		// automatically to the top edge of the screen). But on balance we prefer the "full manual" model
 		// since if you *do* want to change the Y position it becomes a lot more complicated.
-		var originalY = GetRectTransformY(rectTransform);
 
-		var anchorsSep = (rectTransform.anchorMax.y - rectTransform.anchorMin.y) * parentRect.height;
-
-		var sizeDelta = rectTransform.sizeDelta;
+		var anchorsSep = (rt.anchorMax.y - rt.anchorMin.y) * parentRect.height;
+		
+		var sizeDelta = rt.sizeDelta;
 		sizeDelta.y = height - anchorsSep;
-		rectTransform.sizeDelta = sizeDelta;
-
-		// Restore original Y position after size change
-		SetRectTransformY(originalY);
+		if(rt.sizeDelta.y != sizeDelta.y) {
+			var originalY = GetRectTransformY(rt);
+			rt.sizeDelta = sizeDelta;
+			// Restore original Y position after size change
+			SetRectTransformY(originalY);
+		}
 	}
 
 	void InitX() {

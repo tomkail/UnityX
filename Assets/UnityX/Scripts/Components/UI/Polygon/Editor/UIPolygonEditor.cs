@@ -48,7 +48,7 @@ namespace UnityEditor.UI
         }
 
         void OnDisable() {
-            polygonEditor.Destroy();
+            // polygonEditor.Destroy();
         }
 
     

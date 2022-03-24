@@ -24,6 +24,11 @@ public class ShuffleBag<T> {
 		this._sourceItems = sourceItems;
 		RefreshBag();
 	}
+	public ShuffleBag (List<T> sourceItems, List<T> items) {
+		Debug.Assert(sourceItems != null && sourceItems.Count > 0);
+		this._sourceItems = sourceItems;
+		this._items = items;
+	}
 
 	public ShuffleBag (ShuffleBag<T> otherBag) {
 		Debug.Assert(otherBag != null);

@@ -21,7 +21,7 @@ public class PreviewTextureDrawer : BaseAttributePropertyDrawer<PreviewTextureAt
 		position.height = base.GetPropertyHeight(property, label);
 		EditorGUI.PropertyField(position, property, label);
 
-		Texture2D texture = GetTexture(property);
+		Texture texture = GetTexture(property);
 		if(texture != null) {
 			position.y += base.GetPropertyHeight(property, label);
 			position.width = attribute.width;
@@ -32,7 +32,7 @@ public class PreviewTextureDrawer : BaseAttributePropertyDrawer<PreviewTextureAt
 			} else {
                 Sprite sprite = (Sprite)property.objectReferenceValue;
                 var aspect = sprite.rect.width/sprite.rect.height;
-                position = position.CompressToFitAspectRatio(aspect);
+                position = CompressToFitAspectRatio(position, aspect);
 				GUI.DrawTextureWithTexCoords(position, texture, textureRect);
 			}
 		}
@@ -40,7 +40,7 @@ public class PreviewTextureDrawer : BaseAttributePropertyDrawer<PreviewTextureAt
 		EditorGUI.EndProperty();
 	}
 
-	Texture2D GetTexture (SerializedProperty property) {
+	Texture GetTexture (SerializedProperty property) {
 		if(property.objectReferenceValue == null) 
 			return null;
 		System.Type type = property.objectReferenceValue.GetType();
@@ -48,6 +48,8 @@ public class PreviewTextureDrawer : BaseAttributePropertyDrawer<PreviewTextureAt
 			return ((Texture2D)property.objectReferenceValue);
 		} else if(typeof (Sprite).IsAssignableFrom(type)) {
  			return ((Sprite)property.objectReferenceValue).texture;
+		} else if(typeof (RenderTexture).IsAssignableFrom(type)) {
+ 			return ((RenderTexture)property.objectReferenceValue);
 		} else {
 			return null;
 		}
@@ -64,4 +66,16 @@ public class PreviewTextureDrawer : BaseAttributePropertyDrawer<PreviewTextureAt
 			return new Rect(0,0,1,1);
 		}
 	}
+
+    public static Rect CompressToFitAspectRatio (Rect rect, float targetAspect) {
+        var rectAspect = rect.width/rect.height;
+		var newSize = rect.size;
+        if(targetAspect > rectAspect) {
+            newSize.y = rect.height * (rectAspect / targetAspect);
+        } else if(targetAspect < rectAspect) {
+            newSize.x = rect.width * (targetAspect / rectAspect);
+        }
+		var offset = new Vector2((newSize.x-rect.width) * -0.5f, (newSize.y-rect.height) * -0.5f);
+		return new Rect(rect.min + offset, newSize);
+    }
 }

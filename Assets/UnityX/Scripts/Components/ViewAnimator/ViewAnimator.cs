@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Linq;
 using System.Collections.Generic;
 
 // Can be used to fire off events on a timeline.
@@ -117,6 +118,8 @@ public class ViewAnimator : MonoBehaviour {
     
     void CheckEvents (float lastAnimationTime, float animationTime) {
         if(animationEvents.Count == 0) return;
+        // This generates a small amount of garbage! We could cache it in the class, but I'm slightly wary of this function being called recursively and breaking entirely.
+        // It shouldn't ever be called recursively though, so perhaps that's moot.
         List<ViewAnimationEvent> animationEventsToCheck = new List<ViewAnimationEvent>(animationEvents);
         for(int i = 0; i < animationEventsToCheck.Count; i++) {
             var animEvent = animationEventsToCheck[i];

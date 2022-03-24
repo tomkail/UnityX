@@ -82,11 +82,10 @@ public static class GizmosX {
 
 	public static void DrawWirePolygon (Vector3 position, Quaternion rotation, Vector3 scale, IList<Vector2> points) {
 		GizmosX.BeginMatrix(Matrix4x4.TRS(position, rotation, scale));
-		for(int i = 0; i < points.Count; i++) {
-			Gizmos.DrawLine(points.GetRepeating(i), points.GetRepeating(i+1));
-		}
+		DrawWirePolygon(points);
 		GizmosX.EndMatrix();
 	}
+
 	public static void DrawWirePolygonWithArrows (Vector3 position, Quaternion rotation, Vector3 scale, IList<Vector2> points, Vector3 crossVector) {
 		GizmosX.BeginMatrix(Matrix4x4.TRS(position, rotation, scale));
 		for(int i = 0; i < points.Count; i++) {
@@ -95,11 +94,7 @@ public static class GizmosX {
 		GizmosX.EndMatrix();
 	}
 
-	public static void DrawWire (Vector3 position, Quaternion rotation, Vector3 scale, Vector2[] points) {
-		GizmosX.BeginMatrix(Matrix4x4.TRS(position, rotation, scale));
-		GizmosX.DrawLine(points.Select(v => new Vector3(v.x, v.y, 0)).ToList());
-		GizmosX.EndMatrix();
-	}
+    
 
 	static Mesh CreatePolygonMesh (Vector2[] points, bool doubleSided = false) {
 		var mesh = CreateMesh();
@@ -140,19 +135,19 @@ public static class GizmosX {
 
 	public static void DrawWirePolygon (Vector3 position, Quaternion rotation, IList<Vector2> points) {
 		for(int i = 0; i < points.Count; i++) {
-			Gizmos.DrawLine(position + rotation * points.GetRepeating(i), position + rotation * points.GetRepeating(i+1));
+			Gizmos.DrawLine(position + rotation * points[i], position + rotation * points[(i+1)%points.Count]);
 		}
 	}
 
 	public static void DrawWirePolygon (IList<Vector2> points) {
 		for(int i = 0; i < points.Count; i++) {
-			Gizmos.DrawLine(points.GetRepeating(i), points.GetRepeating(i+1));
+			Gizmos.DrawLine(points[i], points[(i+1)%points.Count]);
 		}
 	}
 	
 	public static void DrawWirePolygon (IList<Vector3> points) {
 		for(int i = 0; i < points.Count; i++) {
-			Gizmos.DrawLine(points.GetRepeating(i), points.GetRepeating(i+1));
+			Gizmos.DrawLine(points[i], points[(i+1)%points.Count]);
 		}
 	}
 
@@ -230,19 +225,23 @@ public static class GizmosX {
 		}
 	}
 
-	public static void DrawWireCylinder (Vector3 position, Quaternion rotation, float radius, float height, int numColumns = 32) {
-		Debug.Assert(numColumns > 2);
+    public static void DrawWireCylinder (Vector3 position, Quaternion rotation, float radius, float height, int numColumns = 32) {
+		GizmosX.BeginMatrix(Matrix4x4.TRS(position, rotation, Vector3.one));
+        Debug.Assert(numColumns > 2);
 		Vector3 aLow, aHigh, bLow, bHigh = Vector3.zero;
 		int i = 0;
-		float radians = MathX.RadiansFromRange(i, numColumns);
-		var localCirclePos = new Vector3(Mathf.Sin(radians), 0, Mathf.Cos(radians)) * radius;
-		aLow = position + rotation * localCirclePos - (rotation * Vector3.up * height * 0.5f);
-		aHigh = aLow + rotation * Vector3.up * height;
+        var r = (1f/numColumns) * 2 * Mathf.PI;
+        var up = new Vector3(0,height,0);
+        var halfUp = new Vector3(0,height*0.5f,0);
+		float radians = i * r;
+		var localCirclePos = new Vector3(Mathf.Sin(radians) * radius, 0, Mathf.Cos(radians) * radius);
+		aLow = localCirclePos - halfUp;
+		aHigh = aLow + up;
 		for(i = 0; i < numColumns; i++) {
-			radians = MathX.RadiansFromRange(i + 1, numColumns);
-			localCirclePos = new Vector3(Mathf.Sin(radians), 0, Mathf.Cos(radians)) * radius;
-			bLow = position + rotation * localCirclePos - (rotation * Vector3.up * height * 0.5f);
-			bHigh = bLow + rotation * Vector3.up * height;
+			radians = (i + 1) * r;
+			localCirclePos = new Vector3(Mathf.Sin(radians) * radius, 0, Mathf.Cos(radians) * radius);
+			bLow = localCirclePos - halfUp;
+			bHigh = bLow + up;
 			Gizmos.DrawLine(aLow, aHigh);
 			Gizmos.DrawLine(aLow, bLow);
 			Gizmos.DrawLine(aHigh, bHigh);
@@ -407,7 +406,7 @@ public static class GizmosX {
 	public static void DrawArrowLine (Vector3 fromPosition, Vector3 toPosition, Vector3 crossVector) {
 		if(fromPosition == toPosition) return;
 		Gizmos.DrawLine(fromPosition, toPosition);
-		var fromTo = Vector3X.FromTo(fromPosition, toPosition);
+		var fromTo = toPosition-fromPosition;
 		DrawArrow(fromPosition + fromTo * 0.75f, Quaternion.LookRotation(fromTo, crossVector), fromTo.magnitude * 0.05f);
 	}
 

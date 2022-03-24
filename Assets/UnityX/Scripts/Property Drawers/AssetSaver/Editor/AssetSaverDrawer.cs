@@ -44,6 +44,7 @@ public class AssetSaverDrawer : BaseAttributePropertyDrawer<AssetSaverAttribute>
 		if (obj == null) return null;
 		path = EditorUtility.SaveFilePanelInProject("Save "+type, type.Name+".asset", "asset", "Enter a file name for the "+type.Name.ToString()+".", path);
 		if (path == "") return null;
+		AssetDatabase.DeleteAsset (path);
 		AssetDatabase.CreateAsset (obj, path);
 		AssetDatabase.SaveAssets ();
 		AssetDatabase.Refresh();

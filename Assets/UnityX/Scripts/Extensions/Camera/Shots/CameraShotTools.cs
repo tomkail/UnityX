@@ -50,14 +50,9 @@ public static class CameraShotTools {
 		Gizmos.DrawLine(bottomLeft, topLeft);
 	}
 	
-	public static void DrawPolygonInScreenSpaceFromViewportVertices (Camera camera, Vector2[] vertices, float drawDistance) {
-		Vector3[] worldSpaceVertices = new Vector3[vertices.Length];
-		var last = GetPointInScreenSpaceFromViewportCoord(camera, vertices[vertices.Length-1], drawDistance);
-		var current = last;
-		for(int i = 0; i < worldSpaceVertices.Length; i++) {
-			current = GetPointInScreenSpaceFromViewportCoord(camera, vertices[i], drawDistance);
-			Gizmos.DrawLine(last,current);
-			last = current;
-		}
-	}
+	// public static void DrawPolygonInScreenSpaceFromViewportVertices (Camera camera, Vector2[] vertices, float drawDistance) {
+	// 	Vector3[] worldSpaceVertices = new Vector3[vertices.Length];
+	// 	for(int i = 0; i < worldSpaceVertices.Length; i++) GetPointInScreenSpaceFromViewportCoord(camera, vertices[i], drawDistance);
+	// 	for(int i = 0; i < points.Count; i++) Gizmos.DrawLine(points.worldSpaceVertices(i), points.worldSpaceVertices(i+1));
+	// }
 }

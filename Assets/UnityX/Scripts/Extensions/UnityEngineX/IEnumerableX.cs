@@ -257,26 +257,21 @@ public static class IEnumerableX {
     // Returns true if any changes were found.
 	public static bool GetChanges<T> (IEnumerable<T> oldList, IEnumerable<T> newList, ref List<T> itemsRemoved, ref List<T> itemsAdded) {
 		if(itemsRemoved == null) itemsRemoved = new List<T>();
-		else itemsRemoved.Clear();
 		if(itemsAdded == null) itemsAdded = new List<T>();
-		else itemsAdded.Clear();
 		
-		foreach(var item in GetRemoved(oldList, newList)) itemsRemoved.Add(item);
-		foreach(var item in GetAdded(oldList, newList)) itemsAdded.Add(item);
+		GetRemovedNonAlloc(oldList, newList, itemsRemoved);
+		GetAddedNonAlloc(oldList, newList, itemsAdded);
 
         return itemsRemoved.Count > 0 || itemsAdded.Count > 0;
 	}
 	public static bool GetChanges<T> (IEnumerable<T> oldList, IEnumerable<T> newList, ref List<T> itemsRemoved, ref List<T> itemsAdded, ref List<T> itemsUnchanged) {
 		if(itemsRemoved == null) itemsRemoved = new List<T>();
-		else itemsRemoved.Clear();
 		if(itemsAdded == null) itemsAdded = new List<T>();
-		else itemsAdded.Clear();
 		if(itemsUnchanged == null) itemsUnchanged = new List<T>();
-		else itemsUnchanged.Clear();
 		
-		foreach(var item in GetRemoved(oldList, newList)) itemsRemoved.Add(item);
-		foreach(var item in GetAdded(oldList, newList)) itemsAdded.Add(item);
-		foreach(var item in GetInBoth(oldList, newList)) itemsUnchanged.Add(item);
+		GetRemovedNonAlloc(oldList, newList, itemsRemoved);
+		GetAddedNonAlloc(oldList, newList, itemsAdded);
+		GetInBothNonAlloc(oldList, newList, itemsUnchanged);
 
         return itemsRemoved.Count > 0 || itemsAdded.Count > 0;
 	}
@@ -290,6 +285,16 @@ public static class IEnumerableX {
         }
 	}
 
+	public static void GetInBothNonAlloc<T> (IEnumerable<T> oldList, IEnumerable<T> newList, List<T> unchangedListToFill) {
+        unchangedListToFill.Clear();
+		if(oldList == null) return;
+        foreach(var oldItem in oldList) {
+            if(newList != null && newList.Contains(oldItem)) {
+                unchangedListToFill.Add(oldItem);
+            }
+        }
+	}
+
 	public static IEnumerable<T> GetRemoved<T> (IEnumerable<T> oldList, IEnumerable<T> newList) {
         if(oldList == null) yield break;
         foreach(var oldItem in oldList) {
@@ -299,11 +304,31 @@ public static class IEnumerableX {
         }
 	}
 
+	public static void GetRemovedNonAlloc<T> (IEnumerable<T> oldList, IEnumerable<T> newList, List<T> removedListToFill) {
+        removedListToFill.Clear();
+        if(oldList == null) return;
+        foreach(var oldItem in oldList) {
+            if(newList == null || !newList.Contains(oldItem)) {
+                removedListToFill.Add(oldItem);
+            }
+        }
+	}
+
 	public static IEnumerable<T> GetAdded<T> (IEnumerable<T> oldList, IEnumerable<T> newList) {
         if(newList == null) yield break;
         foreach(var newItem in newList) {
             if(oldList == null || !oldList.Contains(newItem)) {
                 yield return newItem;
+            }
+        }
+	}
+	
+	public static void GetAddedNonAlloc<T> (IEnumerable<T> oldList, IEnumerable<T> newList, List<T> addedListToFill) {
+        addedListToFill.Clear();
+		if(newList == null) return;
+        foreach(var newItem in newList) {
+            if(oldList == null || !oldList.Contains(newItem)) {
+                addedListToFill.Add(newItem);
             }
         }
 	}

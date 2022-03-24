@@ -73,59 +73,60 @@ public class WorldSpaceUIElement : UIBehaviour {
 	public bool occluded;
 	public int occlusionMask = Physics.DefaultRaycastLayers;
 	
+	bool _rectTransformSet;
 	RectTransform _rectTransform;
 	public RectTransform rectTransform {
 		get {
-			if(_rectTransform == null) rectTransform = transform as RectTransform;
+			if(!_rectTransformSet) {
+				if(transform is RectTransform) {
+					_rectTransform = transform as RectTransform;
+					_rectTransformSet = true;
+				} else {
+					Debug.LogWarning(gameObject.name+" is not a rect transform!", this);
+				}
+			}
 			return _rectTransform;
-		} private set {
-			_rectTransform = value;
 		}
 	}
 
+	bool _rootCanvasSet;
 	Canvas _rootCanvas;
 	public Canvas rootCanvas {
 		get {
-			if(_rootCanvas == null) SetRootCanvas();
+			if(!_rootCanvasSet) SetRootCanvas();
 			return _rootCanvas;
-		} private set {
-			_rootCanvas = value;
 		}
 	}
 
 	RectTransform _rootCanvasRT;
 	public RectTransform rootCanvasRT {
 		get {
-			if(_rootCanvasRT == null) SetRootCanvas();
+			if(!_rootCanvasSet) SetRootCanvas();
 			return _rootCanvasRT;
-		} private set {
-			_rootCanvasRT = value;
 		}
 	}
 
 	RectTransform parentRT {
 		get {
-			if(rectTransform == null) {
-				Debug.LogWarning(gameObject.name+" is not a rect transform!", this);
-				return null;
-			}
-			RectTransform parentRT = rectTransform;
-			if(transform.parent != null) {
-				if(transform.parent is RectTransform) {
-					parentRT = (RectTransform)transform.parent;
+			var parent = transform.parent;
+			if(parent != null) {
+				if(parent is RectTransform) {
+					return (RectTransform)parent;
 				} else {
 					Debug.LogWarning("Parent of "+gameObject.name+" is not a rect transform!", this);
 					return null;
 				}
+			} else {
+				return rectTransform;
 			}
-			return parentRT;
 		}
 	}
 	
 	void SetRootCanvas () {
 		Canvas parentCanvas = transform.GetComponentInParent<Canvas>();
-		rootCanvas = parentCanvas.rootCanvas;
-		rootCanvasRT = rootCanvas.GetComponent<RectTransform>();
+		_rootCanvas = parentCanvas.rootCanvas;
+		_rootCanvasRT = _rootCanvas.GetComponent<RectTransform>();
+		_rootCanvasSet = true;
 	}
 	
 	public Vector3 GetLocalScale () {
@@ -154,10 +155,13 @@ public class WorldSpaceUIElement : UIBehaviour {
 	
 	protected override void Awake () {
 		#if UNITY_EDITOR
-		if(UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetPrefabStage(gameObject) != null) return;
+		if(UnityEditor.SceneManagement.PrefabStageUtility.GetPrefabStage(gameObject) != null) return;
         if(!Application.isPlaying && !_updateInEditMode) return;
 		#endif
-		rectTransform = transform as RectTransform;
+		
+		_rectTransform = transform as RectTransform;
+		_rectTransformSet = _rectTransform != null;
+
 		if(worldCamera == null)
 			worldCamera = Camera.main;
 		SetRootCanvas();
@@ -165,7 +169,7 @@ public class WorldSpaceUIElement : UIBehaviour {
 
 	protected override void OnEnable () {
 		#if UNITY_EDITOR
-		if(UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetPrefabStage(gameObject) != null) return;
+		if(UnityEditor.SceneManagement.PrefabStageUtility.GetPrefabStage(gameObject) != null) return;
         if(!Application.isPlaying && !_updateInEditMode) return;
 		#endif
 		Refresh();
@@ -173,7 +177,7 @@ public class WorldSpaceUIElement : UIBehaviour {
 	
 	protected override void OnTransformParentChanged () {
 		#if UNITY_EDITOR
-		if(UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetPrefabStage(gameObject) != null) return;
+		if(UnityEditor.SceneManagement.PrefabStageUtility.GetPrefabStage(gameObject) != null) return;
         if(!Application.isPlaying && !_updateInEditMode) return;
 		#endif
 		SetRootCanvas();
@@ -183,7 +187,7 @@ public class WorldSpaceUIElement : UIBehaviour {
 	// LateUpdate because we want it to come even after camera updates
 	private void LateUpdate () {
 		#if UNITY_EDITOR
-		if(UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetPrefabStage(gameObject) != null) return;
+		if(UnityEditor.SceneManagement.PrefabStageUtility.GetPrefabStage(gameObject) != null) return;
         if(!Application.isPlaying && !_updateInEditMode) return;
 		#endif
 		Refresh();
@@ -210,12 +214,13 @@ public class WorldSpaceUIElement : UIBehaviour {
 	}
 
 	bool TryProjectWorldPoint(Vector3 worldPosition, out Vector3 projectedCanvasPosition) {
-        if(parentRT == null) {
+        var _parentRT = parentRT;
+		if(_parentRT == null) {
 			projectedCanvasPosition = Vector3.zero;
 			return false;
 		}
         
-		Vector3? targetPositionNullable = WorldPointToLocalPointInRectangle(rootCanvas, worldCamera, parentRT, worldPosition);
+		Vector3? targetPositionNullable = WorldPointToLocalPointInRectangle(rootCanvas, worldCamera, _parentRT, worldPosition);
 		if(targetPositionNullable == null) {
 			projectedCanvasPosition = Vector3.zero;
 			return false;

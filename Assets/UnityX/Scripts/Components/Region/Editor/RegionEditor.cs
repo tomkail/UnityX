@@ -32,7 +32,7 @@ public class RegionEditor : Editor {
 	void OnDisable() {
 		Undo.undoRedoPerformed -= HandleUndoRedoCallback;
 		SceneView.duringSceneGui -= OnSceneView;
-        polygonEditor.Destroy();
+        // polygonEditor.Destroy();
 	}
 
 	public override void OnInspectorGUI() {

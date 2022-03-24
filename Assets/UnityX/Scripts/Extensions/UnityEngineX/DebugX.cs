@@ -284,7 +284,7 @@ public static class DebugX {
 
 
 	public static void LogDictionary<TKey,TValue> (IDictionary<TKey,TValue> dictionary, System.Func<KeyValuePair<TKey, TValue>, string> toString = null, bool showTypeAndCount = true) {
-		if(dictionary.IsNullOrEmpty()) {
+		if(dictionary == null || dictionary.Count == 0) {
 			Debug.Log("Dictionary is null or empty");
 			return;
 		}
