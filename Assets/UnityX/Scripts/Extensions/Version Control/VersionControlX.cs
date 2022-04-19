@@ -2,32 +2,35 @@
 using UnityEngine;
 
 public static class VersionControlX {
-    public static string gitDirectory {
-        get {
-            var currDir = Directory.GetCurrentDirectory();
+    public static bool HasGitRepo () {
+        var gitDir = GetGitDirectory();
+        return gitDir != null && File.Exists(Path.Combine(gitDir, "HEAD"));
+    }
 
-            // Loop up through directories until we find the .git folder
-            bool found = false;
-            while(!found) {
-                found = Directory.Exists(Path.Combine(currDir, ".git"));
-                if( !found ) {
-                    // Go up a directory
-                    currDir = Path.GetDirectoryName(currDir);
+    public static string GetGitDirectory () {
+        var currDir = Directory.GetCurrentDirectory();
 
-                    // Gone past C:\ to nothingness
-                    if( currDir == "" || currDir == null ) {
-                        Debug.LogError("no .git folder could be found.");
-                        return null;
-                    }
+        // Loop up through directories until we find the .git folder
+        bool found = false;
+        while(!found) {
+            found = Directory.Exists(Path.Combine(currDir, ".git"));
+            if( !found ) {
+                // Go up a directory
+                currDir = Path.GetDirectoryName(currDir);
+
+                // Gone past C:\ to nothingness
+                if( currDir == "" || currDir == null ) {
+                    // Debug.LogError("no .git folder could be found.");
+                    return null;
                 }
             }
-
-            return Path.Combine(currDir, ".git");
         }
+
+        return Path.Combine(currDir, ".git");
     }
 
     public static string GetGitBranch() {
-        var gitDir = gitDirectory;
+        var gitDir = GetGitDirectory();
 
         // Find HEAD file that contains either:
         //  ref: refs/heads/2017.4
@@ -57,7 +60,7 @@ public static class VersionControlX {
             return null;
         }
 
-        var gitDir = gitDirectory;
+        var gitDir = GetGitDirectory();
 
         // Find HEAD file that contains either:
         //  ref: refs/heads/2017.4

@@ -4,6 +4,10 @@ using System.Collections.Generic;
 
 // TODO - change new Rect() to rect.Set()!
 public static class RectX {
+	public static float Area(this Rect r) {
+		return r.width * r.height;
+	}
+
 	//Similar to Unity's epsilon comparison, but allows for any precision.
 	public static bool NearlyEqual(Rect a, Rect b, float maxDifference = 0.001f) {
 		if (a == b)  { 
@@ -238,20 +242,6 @@ public static class RectX {
 		var offset = new Vector2((newSize.x-rect.width) * -pivot.x, (newSize.y-rect.height) * -pivot.y);
 		return new Rect(rect.min + offset, newSize);
     }
-	
-	public static Rect Encapsulating(this Rect r, Rect rect) {
-		r = r.Encapsulating(rect.min);
-		r = r.Encapsulating(rect.max);
-		return r;
-	}
-	
-	public static Rect Encapsulating(this Rect r, Vector2 point) {
-		var xMin = Mathf.Min (r.xMin, point.x);
-		var xMax = Mathf.Max (r.xMax, point.x);
-		var yMin = Mathf.Min (r.yMin, point.y);
-		var yMax = Mathf.Max (r.yMax, point.y);
-		return Rect.MinMaxRect (xMin, yMin, xMax, yMax);
-	}
 
 	/// <summary>
 	/// The corners of the rect, in clockwise order from the top left.
@@ -270,19 +260,19 @@ public static class RectX {
 	}
 	
 	public static Vector2 TopLeft(this Rect r){
-		return r.min;
-	}
-	
-	public static Vector2 TopRight(this Rect r){
-		return new Vector2(r.x+r.width, r.y);
-	}
-	
-	public static Vector2 BottomLeft(this Rect r){
 		return new Vector2(r.x, r.y+r.height);
 	}
 	
-	public static Vector2 BottomRight(this Rect r){
+	public static Vector2 TopRight(this Rect r){
 		return r.max;
+	}
+	
+	public static Vector2 BottomLeft(this Rect r){
+		return r.min;
+	}
+	
+	public static Vector2 BottomRight(this Rect r){
+		return new Vector2(r.x+r.width, r.y);
 	}
 
 	/// <summary>
@@ -416,6 +406,22 @@ public static class RectX {
         return r == otherRect || (r.Contains(otherRect.min) && r.Contains(otherRect.max));
     }
 
+	// THIS IS THE SAME AS INTERSECT!
+	public static Rect Encapsulating(this Rect r, Rect rect) {
+		r = r.Encapsulating(rect.min);
+		r = r.Encapsulating(rect.max);
+		return r;
+	}
+	
+	public static Rect Encapsulating(this Rect r, Vector2 point) {
+		var xMin = Mathf.Min (r.xMin, point.x);
+		var xMax = Mathf.Max (r.xMax, point.x);
+		var yMin = Mathf.Min (r.yMin, point.y);
+		var yMax = Mathf.Max (r.yMax, point.y);
+		return Rect.MinMaxRect (xMin, yMin, xMax, yMax);
+	}
+
+
 	/// <summary>
 	/// Returns true if the passed Rect is within the bounds of the receiver rect.
 	/// </summary>
@@ -423,9 +429,13 @@ public static class RectX {
 		return !( r1.xMax < r2.x || r1.x > r2.xMax || r1.yMax < r2.y || r1.y > r2.yMax );
 	}
 	
+	/// <summary>
+	/// Returns true if the passed Rect is within the bounds of the receiver rect.
+	/// </summary>
     public static bool Intersects(float r1xMin, float r1xMax, float r1yMin, float r1yMax, float r2xMin, float r2xMax, float r2yMin, float r2yMax) {
 		return !( r1xMax < r2xMin || r1xMin > r2xMax || r1yMax < r2yMin || r1yMin > r2yMax );
 	}
+
 
 	/// <summary>
 	/// Find the rect of overlap between two other rects.
@@ -462,8 +472,11 @@ public static class RectX {
 		return true;
 	}
 
-	public static bool Intersect(float r1xMin, float r1xMax, float r1yMin, float r1yMax, float r2xMin, float r2xMax, float r2yMin, float r2yMax, ref Rect output)
-	{
+	/// <summary>
+	/// Find the rect of overlap between two other rects.
+	/// Returns false if they don't overlap.
+	/// </summary>
+	public static bool Intersect(float r1xMin, float r1xMax, float r1yMin, float r1yMax, float r2xMin, float r2xMax, float r2yMin, float r2yMax, ref Rect output) {
 		if( r1xMax < r2xMin || r1xMin > r2xMax || r1yMax < r2yMin || r1yMin > r2yMax )
 			return false;
 
@@ -476,10 +489,20 @@ public static class RectX {
 		return true;
 	}
 
-	public static float Area(this Rect r)
-	{
-		return r.width * r.height;
-	}
+	
+	/// <summary>
+	/// Find the closest distance between two rects.
+	/// Returns 0 if they overlap.
+	/// </summary>
+    public static float GetClosestDistance (Rect rect1, Rect rect2) {
+		var centerDiff = rect1.center - rect2.center;
+		var combinedExtents = (rect1.size + rect2.size) * 0.5f;
+		var delta = new Vector2(Mathf.Abs(centerDiff.x), Mathf.Abs(centerDiff.y)) - combinedExtents;
+		delta.x = Mathf.Max(0, delta.x);
+		delta.y = Mathf.Max(0, delta.y);
+        return delta.magnitude;
+    }
+
 
 	/// <summary>
 	/// Gets the vertices.
@@ -505,11 +528,6 @@ public static class RectX {
 		yield return new Vector2(min.x, max.y);
 	}
 
-    public static float GetClosestDistanceBetweenEdges (Rect rect1, Rect rect2) {
-        var minX = Mathf.Min(Mathf.Abs(rect1.xMin - rect2.xMin), Mathf.Abs(rect1.xMin - rect2.xMax), Mathf.Abs(rect1.xMax - rect2.xMin), Mathf.Abs(rect1.xMax - rect2.xMax));
-        var minY = Mathf.Min(Mathf.Abs(rect1.yMin - rect2.yMin), Mathf.Abs(rect1.yMin - rect2.yMax), Mathf.Abs(rect1.yMax - rect2.yMin), Mathf.Abs(rect1.yMax - rect2.yMax));
-        return Mathf.Min(minX, minY);
-    }
     public static float GetAspect (this Rect rect) {
         return rect.size.x/rect.size.y;
     }

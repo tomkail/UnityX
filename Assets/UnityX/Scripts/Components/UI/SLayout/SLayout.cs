@@ -60,7 +60,8 @@ public partial class SLayout : UIBehaviour {
 		_graphic = null;
 		_searchedForTimeScalar = false;
 		_timeScalar = null;
-    	CancelAnimations();
+		if(Application.isPlaying)
+    		CancelAnimations();
 	}
 
 	protected override void OnRectTransformDimensionsChange() {

@@ -18,8 +18,9 @@ MonoBehaviour:
     build: 2
     buildType: 
     platform: GOG
-    buildTarget: StandaloneWindows64
+    buildTarget: iOS
     isDevelopment: 0
-    gitCommitSHA: 47c27b
-    buildDateTimeString: 19/05/2021 07:36:28
+    gitBranch: ???
+    gitCommitSHA: 
+    buildDateTimeString: 19/04/2022 15:57:40
     inkCompileDateTimeString: 19/05/2021 07:33:49

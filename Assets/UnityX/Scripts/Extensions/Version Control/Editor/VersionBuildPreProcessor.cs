@@ -49,8 +49,10 @@ namespace UnityX.Versioning {
 
         public void UpdateCurrentVersion(CurrentVersionSO currentVersion) {
             if(currentVersion == null) return;
-            currentVersion.version.gitBranch = VersionControlX.GetGitBranch();
-            currentVersion.version.gitCommitSHA = VersionControlX.GetGitSHA();
+            if(VersionControlX.HasGitRepo()) {
+                currentVersion.version.gitBranch = VersionControlX.GetGitBranch();
+                currentVersion.version.gitCommitSHA = VersionControlX.GetGitSHA();
+            }
             currentVersion.version.buildTarget = EditorUserBuildSettings.activeBuildTarget.ToString();
             currentVersion.version.isDevelopment = Debug.isDebugBuild;
             currentVersion.version.buildDateTimeString = System.DateTime.Now.ToString();
