@@ -15,8 +15,11 @@ public class ViewAnimationEvent {
             return startTime == endTime;
         }
     }
+    [System.NonSerialized]
     public Action onStart;
+    [System.NonSerialized]
     public Action<float> onChangeProgress;
+    [System.NonSerialized]
     public Action onComplete;
 
     protected ViewAnimationEvent() {}

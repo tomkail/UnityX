@@ -3,7 +3,17 @@
 public static class RectTransformX {
 	static Vector3[] corners = new Vector3[4];
 
-    
+    // Gets the distance between two rect transforms, in the space of the first rect transform.
+    public static float GetClosestDistanceBetweenRectTransforms (RectTransform rectTransform, RectTransform otherRectTransform) {
+        var canvas = rectTransform.GetComponentInParent<Canvas>().rootCanvas;
+        
+        var otherScreenRect = otherRectTransform.GetScreenRect(canvas);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, otherScreenRect.BottomLeft(), canvas.worldCamera, out var localBottomLeft);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, otherScreenRect.TopRight(), canvas.worldCamera, out var localTopRight);
+        var localRect = RectX.CreateEncapsulating(localBottomLeft, localTopRight);
+        return RectX.GetClosestDistance(rectTransform.rect, localRect) * (RectX.Intersects(rectTransform.rect, localRect) ? -1 : 1);
+    }
+	
 	//
     // Summary:
     //     Get the corners of the calculated rectangle in screen space.

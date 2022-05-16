@@ -29,7 +29,7 @@ using static UnityEngine.Mathf;
 /// </summary>
 [ExecuteInEditMode]
 [RequireComponent(typeof(CanvasRenderer))]
-public class RoundRect : Graphic
+public class RoundRect : MaskableGraphic
 {
     public float cornerRadius {
         get => _cornerRadius;

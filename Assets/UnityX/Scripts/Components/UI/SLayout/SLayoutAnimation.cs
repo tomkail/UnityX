@@ -11,13 +11,16 @@ public class SLayoutAnimation {
 	public float duration { get { return _duration; } }
 	public float delay { get { return _delay; } }
 
-	public SLayoutAnimation(float duration, float delay, AnimationCurve customCurve, Action animAction, Action nonAnimatedAction, SLayout owner)
+	public SLayoutAnimation () {
+		time = 0.0f;
+	}
+	public SLayoutAnimation(float duration, float delay, EasingFunction.Function easingFunction, Action animAction, Action nonAnimatedAction, SLayout owner)
 	{
 		_duration = _maxDuration = duration;
 		_delay = _maxDelay = delay;
 		_animAction = animAction;
 		_nonAnimatedAction = nonAnimatedAction;
-		_customCurve = customCurve;
+		_easingFunction = easingFunction;
 		_owner = owner;
 		time = 0.0f;
 	}
@@ -63,35 +66,77 @@ public class SLayoutAnimation {
 		return ThenAnimateInternal(0, delay, null, null, action);
 	}
 
-	public SLayoutAnimation ThenAnimate(float duration, System.Action animAction)
+	public SLayoutAnimation ThenAnimate(float duration, Action animAction)
 	{
 		return ThenAnimate(duration, 0.0f, animAction);
 	}
 
-	public SLayoutAnimation ThenAnimate(float duration, float delay, System.Action animAction)
+	public SLayoutAnimation ThenAnimate(float duration, float delay, Action animAction)
 	{
 		return ThenAnimateInternal(duration, delay, null, animAction, null);
 	}
+	
+	public SLayoutAnimation ThenAnimate(float duration, AnimationCurve curve, Action animAction)
+	{
+		return ThenAnimateInternal(duration, 0.0f, curve, animAction, null);
+	}
 
-	public SLayoutAnimation ThenAnimate(float duration, float delay, AnimationCurve curve, System.Action animAction)
+	public SLayoutAnimation ThenAnimate(float duration, float delay, AnimationCurve curve, Action animAction)
 	{
 		return ThenAnimateInternal(duration, delay, curve, animAction, null);
 	}
 
-	public SLayoutAnimation ThenAnimateCustom(float duration, System.Action<float> customAnimAction)
+	public SLayoutAnimation ThenAnimate(float duration, EasingFunction.Ease easing, Action animAction)
+	{
+		return ThenAnimateInternal(duration, 0.0f, easing, animAction, null);
+	}
+	public SLayoutAnimation ThenAnimate(float duration, float delay, EasingFunction.Ease easing, Action animAction)
+	{
+		return ThenAnimateInternal(duration, delay, easing, animAction, null);
+	}
+
+	public SLayoutAnimation ThenAnimateCustom(float duration, Action<float> customAnimAction)
 	{
         return ThenAnimateInternal(duration, 0, null, () => SLayout.Animatable(customAnimAction), null);
 	}
 
-	public SLayoutAnimation ThenAnimateCustom(float duration, float delay, System.Action<float> customAnimAction)
+	public SLayoutAnimation ThenAnimateCustom(float duration, float delay, Action<float> customAnimAction)
 	{
         return ThenAnimateInternal(duration, delay, null, () => SLayout.Animatable(customAnimAction), null);
 	}
 
-    SLayoutAnimation ThenAnimateInternal(float duration, float delay, AnimationCurve customCurve, System.Action animAction, System.Action nonAnimatedAction)
+    SLayoutAnimation ThenAnimateInternal(float duration, float delay, AnimationCurve customCurve, Action animAction, Action nonAnimatedAction) {
+        Debug.Assert(_chainedAnim == null, "This animation already has a chained animation (called via Then...()");
+        // var nextAnim = new SLayoutAnimation(duration, delay, customCurve, animAction, nonAnimatedAction, _owner);
+		var nextAnim = new SLayoutAnimation() {
+			_duration = duration,
+			_maxDuration = duration,
+			_delay = delay,
+			_maxDelay = delay,
+			_animAction = animAction,
+			_nonAnimatedAction = nonAnimatedAction,
+			_customCurve = customCurve,
+			_owner = owner,
+		};
+        if (this.isComplete) SLayoutAnimator.instance.StartAnimation(nextAnim);
+        else _chainedAnim = nextAnim;
+        return nextAnim;
+	}
+	
+    SLayoutAnimation ThenAnimateInternal(float duration, float delay, EasingFunction.Ease easing, Action animAction, Action nonAnimatedAction)
     {
         Debug.Assert(_chainedAnim == null, "This animation already has a chained animation (called via Then...()");
-        var nextAnim = new SLayoutAnimation(duration, delay, customCurve, animAction, nonAnimatedAction, _owner);
+        // var nextAnim = new SLayoutAnimation(duration, delay, customCurve, animAction, nonAnimatedAction, _owner);
+		var nextAnim = new SLayoutAnimation() {
+			_duration = duration,
+			_maxDuration = duration,
+			_delay = delay,
+			_maxDelay = delay,
+			_animAction = animAction,
+			_nonAnimatedAction = nonAnimatedAction,
+			_easingFunction = EasingFunction.GetEasingFunction(easing),
+			_owner = owner,
+		};
         if (this.isComplete) SLayoutAnimator.instance.StartAnimation(nextAnim);
         else _chainedAnim = nextAnim;
         return nextAnim;
@@ -237,7 +282,9 @@ public class SLayoutAnimation {
 					lerpValue =  Mathf.Clamp01((time-property.delay) / property.duration);
 
 					// TODO: Allow different curves?
-					if( _customCurve != null ) {
+					if( _easingFunction != null ) {
+						lerpValue = _easingFunction(0.0f, 1.0f, lerpValue);
+					} else if( _customCurve != null ) {
 						lerpValue = _customCurve.Evaluate(lerpValue);
 					} else {
 						lerpValue = Mathf.SmoothStep(0.0f, 1.0f, lerpValue);
@@ -292,19 +339,20 @@ public class SLayoutAnimation {
 
 	public float time;
 
-	float _duration;
-	float _delay;
+	public float _duration;
+	public float _delay;
 
-	float _maxDuration;
-	float _maxDelay;
+	public float _maxDuration;
+	public float _maxDelay;
 
-	AnimationCurve _customCurve;
+	public EasingFunction.Function _easingFunction;
+	public AnimationCurve _customCurve;
 
-	Action _animAction;
-	Action _nonAnimatedAction;
-	SLayoutAnimation _chainedAnim;
+	public Action _animAction;
+	public Action _nonAnimatedAction;
+	public SLayoutAnimation _chainedAnim;
 	bool _completed;
-	SLayout _owner;
+	public SLayout _owner;
 
     static bool _preventingAnim;
 	static List<SLayoutAnimation> _animationsBeingDefined;

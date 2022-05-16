@@ -134,7 +134,7 @@ public class ViewAnimator : MonoBehaviour {
         }
     }
 
-    bool CheckEvent (float lastAnimationTime, float animationTime, ViewAnimationEvent animEvent) {
+    static bool CheckEvent (float lastAnimationTime, float animationTime, ViewAnimationEvent animEvent) {
         if(animationTime >= animEvent.startTime && lastAnimationTime < animEvent.startTime) {
             if(animEvent.onStart != null) animEvent.onStart();
         }
@@ -143,7 +143,7 @@ public class ViewAnimator : MonoBehaviour {
             if(animEvent.onChangeProgress != null) {
                 var progress = 1f;
                 // If end time == startTime InverseLerp returns 0, so default to 1!
-                if(animEvent.startTime < animEvent.endTime) progress = Mathf.InverseLerp(animEvent.startTime, animEvent.endTime, _animationTime);
+                if(animEvent.startTime < animEvent.endTime) progress = Mathf.InverseLerp(animEvent.startTime, animEvent.endTime, animationTime);
                 animEvent.onChangeProgress(progress);
             }
         }
