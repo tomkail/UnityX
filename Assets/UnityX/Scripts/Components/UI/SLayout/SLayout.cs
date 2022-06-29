@@ -805,18 +805,31 @@ public partial class SLayout : UIBehaviour {
 
 
     
+	// public Rect ScreenToSLayoutRect (Rect screenRect) {
+    //     return RectX.CreateEncapsulating(ScreenToSLayoutPosition(screenRect.min), ScreenToSLayoutPosition(screenRect.max));
+    // }
     
+	// Converts a screen position to a local position in the layout space.
     public Vector2 ScreenToSLayoutPosition (Vector2 screenPoint) {
 		RectTransformUtility.ScreenPointToWorldPointInRectangle(canvas.rootCanvas.GetRectTransform(), screenPoint, canvas.rootCanvas.worldCamera, out Vector3 worldPoint);
         return WorldToSLayoutPosition(worldPoint);
 		
         // return (Vector2)CanvasToSLayoutSpace(canvas.ScreenToCanvasPoint(screenPoint));
     }
+	
     public Vector2 ScreenToSLayoutVector (Vector2 screenVector) {
         return ScreenToSLayoutPosition(screenVector) - ScreenToSLayoutPosition(Vector2.zero);
     }
+
+	// Converts a screen rect to a local rect in the layout space.
     public Rect ScreenToSLayoutRect (Rect screenRect) {
-        return RectX.CreateEncapsulating(ScreenToSLayoutPosition(screenRect.min), ScreenToSLayoutPosition(screenRect.max));
+		var min = ScreenToSLayoutPosition(screenRect.min);
+		var max = ScreenToSLayoutPosition(screenRect.max);
+        var layoutRect = RectX.CreateEncapsulating(min, max);
+		if(originTopLeft) {
+			layoutRect.y += layoutRect.height;
+		}
+		return layoutRect;
     }
 	
 	// Bit of a hack, gets around the issue described below
@@ -826,6 +839,11 @@ public partial class SLayout : UIBehaviour {
 		transform.position = worldPoint;
 		var anchoredPos = position;
 		transform.position = oldPos;
+		// if(originTopLeft)
+		// 	return anchoredPos;
+		// else
+		// 	return new Vector2(anchoredPos.x, anchoredPos.y+height);
+	
 		// return anchoredPos;
 		// Add the pivot, although if we're using originTopLeft, flip the Y.
 		return anchoredPos + pivot + (originTopLeft ? new Vector2(0, height * -rectTransform.pivot.y * 2) : Vector2.zero);

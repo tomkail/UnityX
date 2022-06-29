@@ -23,4 +23,46 @@ public static class AudioUtils {
 	public static float DBVolumeToLinearVolume (float dbVolume) {
         return Mathf.Pow(10.0f, dbVolume / c);
 	}
+
+
+    
+    public static float ComputePeakAmplitude(float[] buffer, int offset = 0, int length = -1) {
+        if(length == -1) length = buffer.Length;
+		// Clamp length to buffer length
+		if(offset + length > buffer.Length) {
+            length = buffer.Length - offset;
+        }
+        // Getting a peak on the last 128 samples
+        float peakAmplitude = 0;
+        for (int i = 0; i < length; i++) {
+            // The internet has it like this, but I don't really understand why it's not abs? Perhaps because positive and negative peaks might differ?
+            float wavePeak = buffer[i] * buffer[i];
+            // float wavePeak = Mathf.Abs(buffer[i]);
+            if (wavePeak > peakAmplitude) {
+                peakAmplitude = wavePeak;
+            }
+        }
+        // And then you need this to bring it back into linear? Argh...
+        return Mathf.Sqrt(peakAmplitude);
+        // return peakAmplitude;
+    }
+
+    public static float ComputeRMS(float[] buffer, int offset = 0, int length = -1) {
+		if(length == -1) length = buffer.Length;
+		// Clamp length to buffer length
+        if(offset + length > buffer.Length) {
+            length = buffer.Length - offset;
+        }
+
+        // sum of squares
+        float sos = 0f;
+        float val;
+        for(int i = 0; i < length; i++) {
+            val = buffer[ offset ];
+            sos += val * val;
+            offset ++;
+        }
+        // return sqrt of average
+        return Mathf.Sqrt( sos / length );
+    }
 }

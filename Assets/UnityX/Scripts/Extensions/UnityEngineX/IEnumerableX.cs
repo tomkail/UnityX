@@ -332,7 +332,45 @@ public static class IEnumerableX {
             }
         }
 	}
+	
 
+
+	// Same as above, but for dictionaries.
+	public static bool GetChanges<T, Q> (IDictionary<T, Q> oldList, IDictionary<T, Q> newList, ref Dictionary<T, Q> itemsRemoved, ref Dictionary<T, Q> itemsAdded, ref Dictionary<T, Tuple<Q,Q>> itemsChanged) {
+		if(itemsRemoved == null) itemsRemoved = new Dictionary<T, Q>();
+		if(itemsAdded == null) itemsAdded = new Dictionary<T, Q>();
+		
+		GetRemovedNonAlloc(oldList, newList, itemsRemoved);
+		GetAddedNonAlloc(oldList, newList, itemsAdded);
+
+		var changedKeys = itemsRemoved.Select(x => x.Key).Intersect(itemsAdded.Select(x => x.Key)).ToArray();
+		foreach(var changed in changedKeys) {
+			itemsChanged.Add(changed, new Tuple<Q,Q>(itemsRemoved[changed], itemsAdded[changed]));
+			itemsRemoved.Remove(changed);
+			itemsAdded.Remove(changed);
+		}
+		
+
+        return itemsRemoved.Count > 0 || itemsAdded.Count > 0 || itemsChanged.Count > 0;
+	}
+	public static void GetRemovedNonAlloc<T, Q> (IDictionary<T, Q> oldList, IDictionary<T, Q> newList, Dictionary<T, Q> removedListToFill) {
+        removedListToFill.Clear();
+        if(oldList == null) return;
+        foreach(var oldItem in oldList) {
+            if(newList == null || !newList.Contains(oldItem)) {
+                removedListToFill.Add(oldItem.Key, oldItem.Value);
+            }
+        }
+	}
+	public static void GetAddedNonAlloc<T, Q> (IDictionary<T, Q> oldList, IDictionary<T, Q> newList, Dictionary<T, Q> addedListToFill) {
+        addedListToFill.Clear();
+		if(newList == null) return;
+        foreach(var newItem in newList) {
+            if(oldList == null || !oldList.Contains(newItem)) {
+                addedListToFill.Add(newItem.Key, newItem.Value);
+            }
+        }
+	}
 
 
 	public static bool ScrambledEquals<T>(IEnumerable<T> list1, IEnumerable<T> list2) {
