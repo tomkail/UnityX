@@ -183,6 +183,18 @@ public struct CameraProperties {
 		this.orthographicSize = SerializableCamera.defaultOrthographicSize;
 	}
 
+	// Moves the target point, but translation in the the direction of the camera is handled using distance.
+	// Handy if you have a fixed ground plane you don't want the targetPoint going, for example.
+	public void TranslateUsingDistance (Plane floorPlane, Vector3 translation) {
+		var cameraPropertiesWithOffsetTargetPoint = this;
+		cameraPropertiesWithOffsetTargetPoint.targetPoint += translation;
+		var distanceToFloor = floorPlane.GetDistanceToPointInDirection(cameraPropertiesWithOffsetTargetPoint.basePosition, cameraPropertiesWithOffsetTargetPoint.rotation * Vector3.forward);
+		targetPoint = cameraPropertiesWithOffsetTargetPoint.basePosition + cameraPropertiesWithOffsetTargetPoint.rotation * Vector3.forward * distanceToFloor;
+		distance = distanceToFloor;
+		// Clamp it again to fix floating point errors
+		targetPoint = floorPlane.ClosestPointOnPlane(targetPoint);
+	}
+
 	/// <summary>
 	/// Final position of camera. Unfortunately you can't get this without knowing the aspect
 	/// ratio of the camera you're using, since the viewport position is affected by this.
@@ -249,11 +261,12 @@ public struct CameraProperties {
 		properties.axis = Quaternion.SlerpUnclamped(start.axis, end.axis, lerp);
 
 		properties.targetPoint = Vector3.LerpUnclamped(start.targetPoint, end.targetPoint, lerp);
-		properties.basePosition = Vector3.LerpUnclamped(start.basePosition, end.basePosition, lerp);
-		// properties.distance = Mathf.LerpUnclamped(start.distance, end.distance, lerp);
+		// This sets distance and worldEulerAngles, but in a way that doesn't always lead to good results?
+		// properties.basePosition = Vector3.LerpUnclamped(start.basePosition, end.basePosition, lerp);
+		properties.distance = Mathf.LerpUnclamped(start.distance, end.distance, lerp);
 
-		// properties.worldEulerAngles.x = LerpAngleUnclamped(start.worldEulerAngles.x, end.worldEulerAngles.x, lerp);
-		// properties.worldEulerAngles.y = LerpAngleUnclamped(start.worldEulerAngles.y, end.worldEulerAngles.y, lerp);
+		properties.worldEulerAngles.x = LerpAngleUnclamped(start.worldEulerAngles.x, end.worldEulerAngles.x, lerp);
+		properties.worldEulerAngles.y = LerpAngleUnclamped(start.worldEulerAngles.y, end.worldEulerAngles.y, lerp);
 
 		properties.localEulerAngles.x = LerpAngleUnclamped(start.localEulerAngles.x, end.localEulerAngles.x, lerp);
 		properties.localEulerAngles.y = LerpAngleUnclamped(start.localEulerAngles.y, end.localEulerAngles.y, lerp);
@@ -553,5 +566,68 @@ public struct CameraProperties {
 			var rad = degrees * Mathf.Deg2Rad;
 			return new Vector2(Mathf.Sin(rad), Mathf.Cos(rad));
 		}
+	}
+	
+
+	public void DrawGizmos (float nearClipPlane, float farClipPlane, float aspect) {
+		var cachedMatrix = Gizmos.matrix;
+		Gizmos.matrix = Matrix4x4.TRS(basePosition, rotation, Vector3.one);
+		if(orthographic) {
+			float spread = farClipPlane - nearClipPlane;
+			float center = (farClipPlane + nearClipPlane)*0.5f;
+			Gizmos.DrawWireCube(new Vector3(0,0,center), new Vector3(orthographicSize*2*aspect, orthographicSize*2, spread));
+		} else {
+			Gizmos.DrawFrustum(Vector3.zero, fieldOfView, farClipPlane, nearClipPlane, aspect);
+		}
+		Gizmos.matrix = cachedMatrix;
+	}
+
+
+
+
+
+
+
+
+	public override bool Equals(System.Object obj) {
+		return obj is CameraProperties && this == (CameraProperties)obj;
+	}
+	
+	public bool Equals(CameraProperties p) {
+		return 
+		axis == p.axis && 
+		targetPoint == p.targetPoint && 
+		distance == p.distance && 
+		worldEulerAngles == p.worldEulerAngles && 
+		localEulerAngles == p.localEulerAngles && 
+		viewportOffset == p.viewportOffset && 
+		fieldOfView == p.fieldOfView && 
+		orthographic == p.orthographic && 
+		orthographicSize == p.orthographicSize;
+	}
+
+	public override int GetHashCode() {
+		unchecked // Overflow is fine, just wrap
+		{
+			int hash = 27;
+			hash = hash * axis.GetHashCode();
+			hash = hash * targetPoint.GetHashCode();
+			hash = hash * distance.GetHashCode();
+			hash = hash * worldEulerAngles.GetHashCode();
+			hash = hash * localEulerAngles.GetHashCode();
+			hash = hash * viewportOffset.GetHashCode();
+			hash = hash * fieldOfView.GetHashCode();
+			hash = hash * orthographic.GetHashCode();
+			hash = hash * orthographicSize.GetHashCode();
+			return hash;
+		}
+	}
+
+	public static bool operator == (CameraProperties left, CameraProperties right) {
+		return left.Equals(right);
+	}
+
+	public static bool operator != (CameraProperties left, CameraProperties right) {
+		return !(left == right);
 	}
 }

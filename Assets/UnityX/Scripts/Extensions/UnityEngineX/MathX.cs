@@ -425,6 +425,46 @@ public static class MathX {
 		return Mathf.RoundToInt(Mathf.Round(newNum/nearestValue)*nearestValue);
 	}
 
+	/// <summary>
+	/// Ceils to an interval of nearestValue.
+	/// </summary>
+	/// <returns>The Ceiled value.</returns>
+	/// <param name="newNum">Value.</param>
+	/// <param name="nearestValue">Nearest value.</param>
+	public static float CeilToNearest(this float newNum, float nearestValue){
+		return Mathf.Ceil(newNum/nearestValue)*nearestValue;
+	}
+
+	/// <summary>
+	/// Ceils to an interval of nearestValue.
+	/// </summary>
+	/// <returns>The Ceiled value.</returns>
+	/// <param name="newNum">Value.</param>
+	/// <param name="nearestValue">Nearest value.</param>
+	public static int CeilToNearestInt(this float newNum, int nearestValue){
+		return Mathf.CeilToInt(Mathf.Ceil(newNum/nearestValue)*nearestValue);
+	}
+
+	/// <summary>
+	/// Floors to an interval of nearestValue.
+	/// </summary>
+	/// <returns>The Floored value.</returns>
+	/// <param name="newNum">Value.</param>
+	/// <param name="nearestValue">Nearest value.</param>
+	public static float FloorToNearest(this float newNum, float nearestValue){
+		return Mathf.Floor(newNum/nearestValue)*nearestValue;
+	}
+
+	/// <summary>
+	/// Floors to an interval of nearestValue.
+	/// </summary>
+	/// <returns>The Floored value.</returns>
+	/// <param name="newNum">Value.</param>
+	/// <param name="nearestValue">Nearest value.</param>
+	public static int FloorToNearestInt(this float newNum, int nearestValue){
+		return Mathf.FloorToInt(Mathf.Floor(newNum/nearestValue)*nearestValue);
+	}
+
 	//STRING -> INT HASHING
 	// <summary>
 	// Turns a string into a value 0 - 1 in a deterministic but essentially random way

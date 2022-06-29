@@ -124,6 +124,7 @@ public class WorldSpaceUIElement : UIBehaviour {
 	
 	void SetRootCanvas () {
 		Canvas parentCanvas = transform.GetComponentInParent<Canvas>();
+		if(parentCanvas == null) return;
 		_rootCanvas = parentCanvas.rootCanvas;
 		_rootCanvasRT = _rootCanvas.GetComponent<RectTransform>();
 		_rootCanvasSet = true;

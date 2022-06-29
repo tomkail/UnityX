@@ -11,7 +11,7 @@ public class WorldSpaceUIElementEditor : BaseEditor<WorldSpaceUIElement> {
 
 		bool anyUsingWorldSpaceCanvas = false;
 		foreach(var data in datas) {
-			if(data.rootCanvas.renderMode == RenderMode.WorldSpace) {
+			if(data.rootCanvas != null && data.rootCanvas.renderMode == RenderMode.WorldSpace) {
 				anyUsingWorldSpaceCanvas = true;
 				break;
 			}

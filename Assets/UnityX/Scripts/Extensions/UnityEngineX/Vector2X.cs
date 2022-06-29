@@ -121,6 +121,15 @@ public static class Vector2X {
 		float projectedDist = Vector2.Dot(vector, directionNormalized);
 		return directionNormalized * projectedDist;
 	}
+	public static Vector2 ProjectOnPlane(Vector2 vector, Vector2 planeNormal) {
+		float sqrMag = Vector2.Dot(planeNormal, planeNormal);
+		if (sqrMag < Mathf.Epsilon)
+			return vector;
+		else {
+			var dot = Vector2.Dot(vector, planeNormal);
+			return new Vector2(vector.x - planeNormal.x * dot / sqrMag, vector.y - planeNormal.y * dot / sqrMag);
+		}
+	}
 
 	public static float SqrDistance (Vector2 a, Vector2 b) {
 		return (a.x-b.x) * (a.x-b.x) + (a.y-b.y) * (a.y-b.y);

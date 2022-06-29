@@ -21,7 +21,7 @@ public class KeyboardInput {
 
 	}
 	
-	public Vector2 GetCardinalDirectionFromArrowKeys (bool alsoUseWASD = true) {
+	public static Vector2 GetCardinalDirectionFromArrowKeys (bool alsoUseWASD = true) {
 		if(Input.GetKey(KeyCode.UpArrow) || (alsoUseWASD && Input.GetKey(KeyCode.W))) {
 			return Vector2.up;
 		} else if(Input.GetKey(KeyCode.DownArrow) || (alsoUseWASD && Input.GetKey(KeyCode.S))) {
