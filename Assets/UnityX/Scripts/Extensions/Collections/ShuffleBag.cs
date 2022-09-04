@@ -19,10 +19,13 @@ public class ShuffleBag<T> {
 		}
 	}
 
-	public ShuffleBag (List<T> sourceItems) {
+	public bool shuffle = true;
+
+	public ShuffleBag (List<T> sourceItems, bool shuffle = true) {
 		Debug.Assert(sourceItems != null && sourceItems.Count > 0);
 		this._sourceItems = sourceItems;
-		RefreshBag();
+		this.shuffle = shuffle;
+		RefreshBag(true, shuffle);
 	}
 	public ShuffleBag (List<T> sourceItems, List<T> items) {
 		Debug.Assert(sourceItems != null && sourceItems.Count > 0);
@@ -36,12 +39,13 @@ public class ShuffleBag<T> {
 		_items = new List<T>(otherBag.items);
 	}
 
-	private void RefreshBag (bool clearBeforeAdding = true) {
+	public void RefreshBag (bool clearBeforeAdding = true, bool shuffle = true) {
         if(clearBeforeAdding) _items.Clear();
 		foreach(var item in _sourceItems) {
 			_items.Add(item);
 		}
-		Shuffle(_items);
+		if(shuffle)
+			Shuffle(_items);
 	}
 
 	public T PeekAhead () {
@@ -64,7 +68,7 @@ public class ShuffleBag<T> {
 		if(success) {
 			_items.RemoveAt(index);
 			if(_items.Count == 0) {
-				RefreshBag();
+				RefreshBag(true, shuffle);
 			}
 		}
 		return success;

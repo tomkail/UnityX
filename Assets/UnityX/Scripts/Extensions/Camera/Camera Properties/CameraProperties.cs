@@ -220,8 +220,8 @@ public struct CameraProperties {
 
 	public static CameraProperties OrbitingPoint (Vector3 targetPoint, Quaternion axis, Vector2 worldEulerAngles, float distance) {
 		var cameraProperties = new CameraProperties();
-		cameraProperties.targetPoint = targetPoint;
 		cameraProperties.axis = axis;
+		cameraProperties.targetPoint = targetPoint;
 		cameraProperties.worldEulerAngles = worldEulerAngles;
 		cameraProperties.distance = distance;
 		return cameraProperties;
@@ -229,6 +229,7 @@ public struct CameraProperties {
 
 	public static CameraProperties FromTo (Vector3 originPoint, Vector3 targetPoint) {
 		var cameraProperties = new CameraProperties();
+		cameraProperties.axis = Quaternion.identity;
 		cameraProperties.targetPoint = targetPoint;
 		cameraProperties.basePosition = originPoint;
 		return cameraProperties;
@@ -236,8 +237,8 @@ public struct CameraProperties {
 
 	public static CameraProperties FromTo (Vector3 originPoint, Vector3 targetPoint, Quaternion axis) {
 		var cameraProperties = new CameraProperties();
-		cameraProperties.targetPoint = targetPoint;
 		cameraProperties.axis = axis;
+		cameraProperties.targetPoint = targetPoint;
 		cameraProperties.basePosition = originPoint;
 		return cameraProperties;
 	}
@@ -433,17 +434,17 @@ public struct CameraProperties {
 	// 	return false;
 	// }
 
-	// public bool IsValid () {
-	// 	if(Vector3X.HasNaN(targetPoint)) return false;
-	// 	if(QuaternionX.IsNaN(axis)) return false;
-	// 	if(float.IsNaN(distance) || distance < 0) return false;
-	// 	if(Vector3X.HasNaN(worldEulerAngles)) return false;
-	// 	if(Vector3X.HasNaN(localEulerAngles)) return false;
-	// 	if(Vector3X.HasNaN(viewportOffset)) return false;
-	// 	if(orthographic && (float.IsNaN(orthographicSize) || orthographicSize <= 0)) return false;
-	// 	if(!orthographic && (float.IsNaN(fieldOfView) || fieldOfView <= 0)) return false;
-	// 	return true;
-	// }
+	public bool IsValid () {
+		if(Vector3X.HasNaN(targetPoint)) return false;
+		if(QuaternionX.IsNaN(axis)) return false;
+		if(float.IsNaN(distance) || distance < 0) return false;
+		if(Vector3X.HasNaN(worldEulerAngles)) return false;
+		if(Vector3X.HasNaN(localEulerAngles)) return false;
+		if(Vector3X.HasNaN(viewportOffset)) return false;
+		if(orthographic && (float.IsNaN(orthographicSize) || orthographicSize <= 0)) return false;
+		if(!orthographic && (float.IsNaN(fieldOfView) || fieldOfView <= 0)) return false;
+		return true;
+	}
 
 	float GetPitch (Vector3 v){
 		float len = Mathf.Sqrt((v.x * v.x) + (v.z * v.z));    // Length on xz plane.

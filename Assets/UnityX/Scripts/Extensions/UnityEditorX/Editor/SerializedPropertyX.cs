@@ -117,6 +117,8 @@ public static class SerializedPropertyX
 		case SerializedPropertyType.ObjectReference:
 			if(property.serializedObject.targetObject == null) return typeof(UnityEngine.Object);
 			else return ReflectionX.GetTypeFromObject(property.serializedObject.targetObject, property.propertyPath);
+		case SerializedPropertyType.Enum:
+			return ReflectionX.GetTypeFromObject(property.serializedObject.targetObject, property.propertyPath);
 		default: throw new Exception ("Invalid type: " + property.propertyType.ToString());
 		}
 	}

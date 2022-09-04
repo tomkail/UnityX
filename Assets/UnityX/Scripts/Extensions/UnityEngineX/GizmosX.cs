@@ -271,9 +271,28 @@ public static class GizmosX {
 
 	public static void DrawWireArc (Vector3 position, Quaternion rotation, float radius, float startAngle, float endAngle, int numLines = 32) {
 		Debug.Assert(numLines > 1);
+		if(startAngle == endAngle) return;
 		float deltaAngle = Mathf.DeltaAngle(startAngle, endAngle);
-		if(deltaAngle == 0) return;
-		if(deltaAngle == 180) DrawWireCircle(position, rotation, radius, numLines);
+		if(deltaAngle == 0) DrawWireCircle(position, rotation, radius, numLines);
+
+		Vector3 a, b = Vector3.zero;
+		int i = 0;
+
+		a = position + rotation * (MathX.DegreesToVector2(startAngle) * radius);
+		float r = 1f/(numLines-1);
+		for(i = 0; i < numLines; i++) {
+			float angle = Mathf.Lerp(startAngle, endAngle, i * r);
+			b = position + rotation * (MathX.DegreesToVector2(angle) * radius);
+			Gizmos.DrawLine(a, b);
+			a = b;
+		}
+	}
+	
+	public static void DrawWireArcSegment (Vector3 position, Quaternion rotation, float radius, float startAngle, float endAngle, int numLines = 32) {
+		Debug.Assert(numLines > 1);
+		if(startAngle == endAngle) return;
+		float deltaAngle = Mathf.DeltaAngle(startAngle, endAngle);
+		if(deltaAngle == 0) DrawWireCircle(position, rotation, radius, numLines);
 
 		Vector3 a, b = Vector3.zero;
 		int i = 0;
@@ -281,7 +300,7 @@ public static class GizmosX {
 		a = position + rotation * (MathX.DegreesToVector2(startAngle) * radius);
 		if(deltaAngle < 180) Gizmos.DrawLine(position, a);
 		float r = 1f/(numLines-1);
-		for(i = 0; i < numLines-1; i++) {
+		for(i = 0; i < numLines; i++) {
 			float angle = Mathf.Lerp(startAngle, endAngle, i * r);
 			b = position + rotation * (MathX.DegreesToVector2(angle) * radius);
 			Gizmos.DrawLine(a, b);

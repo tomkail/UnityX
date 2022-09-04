@@ -212,12 +212,12 @@ public static class TransformX {
 	}
 	
 	public static List<Transform> GetAllAncestors (this Transform _transform) {
-		List<Transform> parents = new List<Transform>();
+		List<Transform> ancestors = new List<Transform>();
 		while (_transform.parent != null) {
 			_transform = _transform.parent;
-			parents.Add(_transform);
+			ancestors.Add(_transform);
 	    }
-	    return parents;
+	    return ancestors;
 	}
 
 	public static List<Transform> GetAllDescendents(this Transform current) {
@@ -427,6 +427,13 @@ public static class TransformX {
 		} else {
 			return false;
 		}
+	}
+
+	public static int GetHeirarchyIndex(this Transform current) {
+		var index = 0;
+		foreach(var ancestor in current.GetAllAncestors()) index += ancestor.transform.GetSiblingIndex()+1;
+		index += current.GetSiblingIndex();
+		return index;
 	}
 
 	/// <summary>

@@ -55,6 +55,14 @@ public static class HandlesX {
 		Handles.matrix = matricies.Pop();	
 	}
 
+	public static Vector3 ScaledPostionHandle (Vector3 position, Quaternion rotation, float scale) {
+		var matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one * scale);
+		HandlesX.BeginMatrix(matrix);
+		var newPosition = Handles.PositionHandle(position, rotation);
+		HandlesX.EndMatrix();
+		return matrix.inverse.MultiplyPoint3x4(newPosition);
+	}
+
 	static float angleStart;
 	static float lastAngle;
 
