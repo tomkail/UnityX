@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-[ExecuteInEditMode]
+[ExecuteAlways]
 [RequireComponent(typeof(Canvas))]
 public class CanvasWorldScaler : UIMonoBehaviour {
 	

@@ -7,8 +7,7 @@ using System.Collections.Generic;
 [CustomPropertyDrawer(typeof (EnumFlagsButtonGroupAttribute))]
 class EnumFlagsButtonGroupDrawer : PropertyDrawer {
     public override void OnGUI (Rect position, SerializedProperty property, GUIContent label) {
-		if (_properties == null)
-            Initialize(property);
+        Initialize(property);
 		
 		EditorGUI.BeginProperty (position, label, property);
 		var containerRect = EditorGUI.PrefixLabel(new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight), label);
@@ -59,9 +58,7 @@ class EnumFlagsButtonGroupDrawer : PropertyDrawer {
 		// EditorGUI.BeginProperty (position, label, property);
 		var containerRect = EditorGUI.PrefixLabel(new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight), label);
 		
-        var parentType = property.serializedObject.targetObject.GetType();
-        var fieldInfo = parentType.GetField(property.propertyPath);
-        var enumType = fieldInfo.FieldType;
+        var enumType = ReflectionX.GetTypeFromObject(property.serializedObject.targetObject, property.propertyPath);
         var trueNames = System.Enum.GetNames(enumType);
 
         var typedValues = GetTypedValues(property, enumType);
@@ -131,9 +128,7 @@ class EnumFlagsButtonGroupDrawer : PropertyDrawer {
             if (iteratedProperty != null) _properties.Add(iteratedProperty);
         }
 
-        var parentType = property.serializedObject.targetObject.GetType();
-        var fieldInfo = parentType.GetField(property.propertyPath);
-        var enumType = fieldInfo.FieldType;
+        var enumType = ReflectionX.GetTypeFromObject(property.serializedObject.targetObject, property.propertyPath);
         var trueNames = System.Enum.GetNames(enumType);
 
         var typedValues = GetTypedValues(property, enumType);
@@ -195,9 +190,6 @@ class EnumFlagsButtonGroupDrawer : PropertyDrawer {
 
         return typedValues;
     }
-
-
-
 	static GUIStyle GetGUIStyle (int index, int numButtons, bool mixed) {
 		var style = mixed ? miniButtonMixed : EditorStyles.miniButton;
 		if(numButtons > 1) {

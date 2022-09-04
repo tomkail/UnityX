@@ -5,7 +5,7 @@ using System.Collections;
 /// <summary>
 /// Manages screen properties. Must be attached to a GameObject to function.
 /// </summary>
-[ExecuteInEditMode]
+[ExecuteAlways]
 public class ScreenX : MonoSingleton<ScreenX> {
 
 	public const float inchesToCentimeters = 2.54f;
@@ -151,12 +151,23 @@ public class ScreenX : MonoSingleton<ScreenX> {
 	/// </summary>
 	public static float dpi {
 		get {
+			float dpiMultiplier = 1f;
+			#if UNITY_EDITOR
+			// When using a fixed game view resolution, Screen.width/height returns the size of the fixed resolution. If the fixed resolution is more than the actual game view window's size, it's scaled down.
+			// Screen.dpi continues to return the dpi of the screen in this case, without taking the shrinkage into account. 
+			// DPI should return the density of the game view resolution, rather than of the game view window, and so we take this into account here.
+			System.Type T = System.Type.GetType("UnityEditor.PlayModeView,UnityEditor");
+			System.Reflection.MethodInfo GetMainGameView = T.GetMethod("GetMainPlayModeView", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+			var gameView = (UnityEditor.EditorWindow)GetMainGameView.Invoke(null, null);
+			dpiMultiplier = Mathf.Max(1, Screen.width/gameView.position.width, Screen.height/gameView.position.height);
+			#endif
+
 			if(usingCustomDPI){
-				return customDPI;
+				return customDPI * dpiMultiplier;
 			} else if(usingDefaultDPI){
-				return defaultDPI;
+				return defaultDPI * dpiMultiplier;
 			} else {
-				return Screen.dpi;
+				return Screen.dpi * dpiMultiplier;
 			}
 		}
 	}

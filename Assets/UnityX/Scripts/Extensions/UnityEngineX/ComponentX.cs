@@ -112,123 +112,192 @@ public static class ComponentX {
 		}
 	}
 	
-	/// <summary>
-	/// Gets the first component of type T found in the siblings of the transform.
-	/// </summary>
-	/// <returns>The component in siblings.</returns>
-	/// <param name="current">Current.</param>
-	/// <typeparam name="T">The 1st type parameter.</typeparam>
-	public static T GetComponentInSiblings<T>(this Component current) where T : Component {
-		Transform[] transforms = current.transform.GetSiblings();
-		T found;
-		for(int i = 0; i < transforms.Length; i++) {
-			found = transforms[i].GetComponent<T>();
-			if(found != null) {
-				return found;
+
+	
+	// Search params for GetComponentsX.
+	[System.Serializable]
+	public struct ComponentSearchParams<T> {
+		// Depths are inclusive. 0 is the queried object. -1 searches parent, 1 searches children.
+		public int startDepth {get;}
+		public int endDepth {get;}
+		public bool includeInactive {get;}
+		// This is a reference type - should we make this a class for safety?
+		public System.Predicate<T> predicate {get;}
+		public bool sortedTopFirst {get;}
+
+		public ComponentSearchParams (int startDepthInclusive, int endDepthInclusive, bool includeInactive = false, System.Predicate<T> predicate = null) {
+			// We do allow searching from bottom-to-top, but startDepth must be before endDepth for the algorithm to work.
+			// To solve this we flip them and set sortedTopFirst to false so to reverse the list at the end of the algorithm.
+			if(startDepthInclusive > endDepthInclusive) {
+				this.startDepth = endDepthInclusive;
+				this.endDepth = startDepthInclusive;
+				sortedTopFirst = false;
+			} else {
+				this.startDepth = startDepthInclusive;
+				this.endDepth = endDepthInclusive;
+				sortedTopFirst = true;
 			}
+			this.includeInactive = includeInactive;
+			this.predicate = predicate;
 		}
-		return null;
-	}
-	
-	/// <summary>
-	/// Gets all of the components of type T found in the siblings of the transform.
-	/// </summary>
-	/// <returns>The components in siblings.</returns>
-	/// <param name="current">Current.</param>
-	/// <typeparam name="T">The 1st type parameter.</typeparam>
-	public static T[] GetComponentsInSiblings<T>(this Component current) where T : Component {
-		Transform[] transforms = current.transform.GetSiblings();
-		List<T> all = new List<T>();
-		for(int i = 0; i < transforms.Length; i++) {
-			T t = transforms[i].GetComponent<T>();
-			if(t != null) {
-				all.Add(t);
-			}
+
+		// Utility functions for common actions.
+		public static ComponentSearchParams<T> AllDescendents (bool includeInactive = false, System.Predicate<T> predicate = null) {
+			return new ComponentSearchParams<T>(0, int.MaxValue, includeInactive, predicate);
 		}
-		return all.ToArray();
-	}
-	
-	public static T GetComponentInChildren<T>(this Component current, bool includeInactive) where T : Component {
-		if(includeInactive) {
-			return current.GetComponentsInChildren<T>(true).First();
-		} else {
-			return current.GetComponentInChildren<T>();
+		public static ComponentSearchParams<T> AllAncestors (bool includeInactive = false, System.Predicate<T> predicate = null) {
+			return new ComponentSearchParams<T>(0, int.MinValue, includeInactive, predicate);
 		}
-	}
-	
-	public static T GetComponentInChildrenExcludingSelf<T>(this Component current, string name) where T : Component {
-		Transform[] transforms = current.transform.FindAllInChildren(name);
-		T found;
-		for(int i = 0; i < transforms.Length; i++) {
-			found = transforms[i].GetComponent<T>();
-			if(found != null) {
-				return found;
-			}
-		}
-		return null;
-	}
-	
-	
-	public static T GetComponentInImmediateChildrenExcludingSelf<T>(this Component current) where T : Component {
-		Transform[] transforms = current.transform.GetChildren();
-		T found;
-		for(int i = 0; i < transforms.Length; i++) {
-			found = transforms[i].GetComponent<T>();
-			if(found != null) {
-				return found;
-			}
-		}
-		return null;
 	}
 
-	public static T[] GetComponentsInChildren<T>(this Component current, string name) where T : Component {
-		List<Transform> transforms = current.transform.FindAllInChildrenList(name);
-		List<T> all = new List<T>();
-		for(int i = 0; i < transforms.Count; i++) {
-			T t = transforms[i].GetComponent<T>();
-			if(t != null) {
-				all.Add(t);
+	/// <summary>
+	/// Flexible breadth-first search algorithm to find a relative of a particular type.
+	/// Solves some common issues with Unity's system:
+	/// - Inability to control the max search depth
+	/// - Lack of clarity over when the root object/inactive objects are included
+	/// - Lack of GetComponentsInImmediateChildren or GetComponentsInSiblings functions
+	/// - Depth first search
+	/// - Inability to find parents at the same time as children
+	/// - Custom predicate
+	/// </summary>
+	/// <returns>List of components that fit within the search parameters, sorted according to depth (ordered starting from startDepth to endDepth), then by breadth</returns>
+	public static List<T> GetComponentsX<T>(this Component current, ComponentSearchParams<T> searchParams) where T : Component {
+		// We could cache these variables to reduce garbage, but not doing so means this is thread-safe.
+		List<T> components = new List<T>();
+		
+		// Try to add components from ancestors
+		if(searchParams.startDepth < 0) {
+			var transformDepthTuple = new Tuple<Transform, int>(current.transform, 0);
+			for(int i = 0; i < -searchParams.startDepth; i++) {
+				if(transformDepthTuple.Item1.parent != null) {
+					transformDepthTuple = new Tuple<Transform, int>(transformDepthTuple.Item1.parent, transformDepthTuple.Item2-1);
+					TryAddComponent(transformDepthTuple, searchParams, components);
+				} else {
+					break;
+				}
+			}
+			// Reverse the list so that the top-level object is at the start of the list. This ensures the list is entirely sorted with depth top-to-bottom.
+			components.Reverse();
+		}
+
+		// Try to add ourselves
+		{
+			var transformDepthTuple = new Tuple<Transform, int>(current.transform, 0);
+			TryAddComponent(transformDepthTuple, searchParams, components);
+		}
+
+		// Try to add components from children
+		if(searchParams.endDepth > 0) {
+			var transformDepthTuple = new Tuple<Transform, int>(current.transform, 0);
+			Queue<Tuple<Transform, int>> objectDepthQueue = new Queue<Tuple<Transform, int>>();
+			TryEnqueueChildren(transformDepthTuple, searchParams, objectDepthQueue);
+			GetComponentsXInQueue(searchParams, objectDepthQueue, components);
+		}
+
+		if(!searchParams.sortedTopFirst) components.Reverse();
+		return components;
+		
+		static void GetComponentsXInQueue(ComponentSearchParams<T> searchParams, Queue<Tuple<Transform, int>> objectDepthQueue, List<T> components) {
+			var queueCount = objectDepthQueue.Count;
+			if(queueCount == 0) return;
+			
+			for(int i = 0; i < queueCount; i++) {
+				var transformDepthTuple = objectDepthQueue.Dequeue();
+				var current = transformDepthTuple.Item1;
+				var currentDepth = transformDepthTuple.Item2;
+				TryAddComponent(transformDepthTuple, searchParams, components);
+				TryEnqueueChildren(transformDepthTuple, searchParams, objectDepthQueue);
+			}
+			GetComponentsXInQueue(searchParams, objectDepthQueue, components);
+		}
+
+		
+		static void TryAddComponent (Tuple<Transform, int> objectDepthTuple, ComponentSearchParams<T> searchParams, List<T> components) {
+			if(objectDepthTuple.Item2 >= searchParams.startDepth && objectDepthTuple.Item2 <= searchParams.endDepth) {
+				var comp = objectDepthTuple.Item1.GetComponent<T>();
+				if(comp != null && (searchParams.predicate == null || searchParams.predicate(comp))) {
+					components.Add(comp);
+				}
 			}
 		}
-		return all.ToArray();
 	}
-	
-	/// <summary>
-	/// Traverses upwards until it finds the parent or hits the top of the tree. Searches the initial component.
-	/// </summary>
-	/// <returns>The component in parents.</returns>
-	/// <param name="current">Current.</param>
-	/// <param name="name">Name.</param>
-	/// <typeparam name="T">The target component type.</typeparam>
-	public static T GetComponentInSelfOrAncestors<T>(this Component t, bool includeInactive = false) where T : Component {
-		T component = t.GetComponent<T>();
-		if(component != null)
-			return component;
-		if(t.transform.parent != null) {
-			return GetComponentInSelfOrAncestors<T>(t.transform.parent);
-		} else {
-			return null;
+
+	public static T GetComponentX<T>(this Component current, ComponentSearchParams<T> searchParams) where T : Component {
+		T component = null;
+
+		// Try to add components from ancestors
+		if(searchParams.startDepth < 0) {
+			Stack<Tuple<Transform, int>> objectDepthStack = new Stack<Tuple<Transform, int>>();
+			
+			// When searching parents, start from the top level object. We add objects to a stack until hitting the root/search limit, and then pop them in order.
+			var transformDepthTuple = new Tuple<Transform, int>(current.transform, 0);
+
+			for(int i = 0; i < (searchParams.startDepth == int.MinValue ? int.MaxValue : -searchParams.startDepth); i++) {
+				if(transformDepthTuple.Item1.parent != null) {
+					transformDepthTuple = new Tuple<Transform, int>(transformDepthTuple.Item1.parent, transformDepthTuple.Item2-1);
+					objectDepthStack.Push(transformDepthTuple);
+				} else {
+					break;
+				}
+			}
+			for(int i = 0; i < objectDepthStack.Count; i++) {
+				transformDepthTuple = objectDepthStack.Pop();
+				if(TryGetComponent(transformDepthTuple, searchParams, ref component)) return component;
+				i--;
+			}
+		}
+		// Try to add ourselves
+		{
+			var transformDepthTuple = new Tuple<Transform, int>(current.transform, 0);
+			if(TryGetComponent(transformDepthTuple, searchParams, ref component)) return component;
+		}
+		// Try to add components from children
+		if(searchParams.endDepth > 0) {
+			var transformDepthTuple = new Tuple<Transform, int>(current.transform, 0);
+			Queue<Tuple<Transform, int>> objectDepthQueue = new Queue<Tuple<Transform, int>>();
+			TryEnqueueChildren(transformDepthTuple, searchParams, objectDepthQueue);
+			if(GetComponentsXInQueue(searchParams, objectDepthQueue, ref component)) return component;
+		}
+
+		return null;
+		
+		static bool GetComponentsXInQueue(ComponentSearchParams<T> searchParams, Queue<Tuple<Transform, int>> objectDepthQueue, ref T component) {
+			var queueCount = objectDepthQueue.Count;
+			if(queueCount == 0) return false;
+			
+			for(int i = 0; i < queueCount; i++) {
+				var transformDepthTuple = objectDepthQueue.Dequeue();
+				var current = transformDepthTuple.Item1;
+				var currentDepth = transformDepthTuple.Item2;
+				if(TryGetComponent(transformDepthTuple, searchParams, ref component)) return true;
+				TryEnqueueChildren(transformDepthTuple, searchParams, objectDepthQueue);
+			}
+			return GetComponentsXInQueue(searchParams, objectDepthQueue, ref component);
+		}
+
+		static bool TryGetComponent (Tuple<Transform, int> objectDepthTuple, ComponentSearchParams<T> searchParams, ref T component) {
+			if(objectDepthTuple.Item2 >= searchParams.startDepth && objectDepthTuple.Item2 <= searchParams.endDepth) {
+				var comp = objectDepthTuple.Item1.GetComponent<T>();
+				if(comp != null && (searchParams.predicate == null || searchParams.predicate(comp))) {
+					component = comp;
+					return true;
+				}
+			}
+			return false;
+		}
+	}
+
+	static void TryEnqueueChildren<T> (Tuple<Transform, int> transformDepthTuple, ComponentSearchParams<T> searchParams, Queue<Tuple<Transform, int>> objectDepthQueue) {
+		var childDepth = transformDepthTuple.Item2+1;
+		if(childDepth > searchParams.endDepth) return;
+		for(int i = 0; i < transformDepthTuple.Item1.childCount; i++) {
+			// If sortedTopFirst is set we reverse the list before returning. This has the effect of also reversing the order of the breadth-first search, so we enqueue objects in reverse to compensate.
+			var child = searchParams.sortedTopFirst ? transformDepthTuple.Item1.GetChild(i) : transformDepthTuple.Item1.GetChild((transformDepthTuple.Item1.childCount-1)-i);
+			if(searchParams.includeInactive || child.gameObject.activeInHierarchy)
+				objectDepthQueue.Enqueue(new Tuple<Transform, int>(child, childDepth));
 		}
 	}
 	
-	/// <summary>
-	/// Traverses upwards until it finds the parent or hits the top of the tree. Does not search the initial component.
-	/// </summary>
-	/// <returns>The component in parents.</returns>
-	/// <param name="current">Current.</param>
-	/// <param name="name">Name.</param>
-	/// <typeparam name="T">The target component type.</typeparam>
-	public static T GetComponentInAncestors<T>(this Component t, bool includeInactive = false) where T : Component {
-		if(t.transform.parent != null) {
-			T component = t.transform.parent.GetComponent<T>();
-			if(component != null)
-				return component;
-			else
-				return GetComponentInAncestors<T>(t.transform.parent);
-		} else {
-			return null;
-		}
-	}
 	
 	
 	/// <summary>

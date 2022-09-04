@@ -28,7 +28,7 @@ public class PreviewTextureDrawer : BaseAttributePropertyDrawer<PreviewTextureAt
 			position.height = attribute.height;
 			Rect textureRect = GetTextureRectUV(property);
 			if(textureRect == new Rect(0,0,1,1)) {
-				GUI.DrawTexture(position, texture, attribute.scaleMode);
+				EditorGUI.DrawPreviewTexture(position, texture, null, attribute.scaleMode);
 			} else {
                 Sprite sprite = (Sprite)property.objectReferenceValue;
                 var aspect = sprite.rect.width/sprite.rect.height;

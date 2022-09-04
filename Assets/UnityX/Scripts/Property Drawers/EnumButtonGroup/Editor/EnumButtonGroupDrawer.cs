@@ -57,13 +57,13 @@ class EnumButtonGroupDrawer : PropertyDrawer {
         var position = GUILayoutUtility.GetRect(0, EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
         Draw(position, property, label);
     }
-    public static void Draw (Rect position, SerializedProperty property) {
-        Draw(position, property, new GUIContent(property.displayName));
-    }
     public static void Draw (Rect position, SerializedProperty property, GUIContent label) {
+		// EditorGUI.BeginProperty (position, label, property);
 		var containerRect = EditorGUI.PrefixLabel(new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight), label);
-        
-        var enumType = property.GetActualType();
+		
+        var parentType = property.serializedObject.targetObject.GetType();
+        var fieldInfo = parentType.GetField(property.propertyPath);
+        var enumType = fieldInfo.FieldType;
         var trueNames = System.Enum.GetNames(enumType);
 
         var typedValues = GetTypedValues(property, enumType);

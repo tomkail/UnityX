@@ -54,9 +54,10 @@ public static class VersionControlX {
             return "???";
         }
     }
+    
     public static string GetGitSHA() {
         string Error(string msg) {
-            Debug.LogError("Tried to get git SHA to put in Version object, but "+msg);
+            Debug.LogWarning("Tried to get git SHA to put in Version object, but "+msg);
             return null;
         }
 

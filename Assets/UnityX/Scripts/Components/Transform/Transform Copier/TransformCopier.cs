@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-[ExecuteInEditMode]
+[ExecuteAlways]
 public class TransformCopier : MonoBehaviour {
 	/// <summary>
 	/// The target to mirror.

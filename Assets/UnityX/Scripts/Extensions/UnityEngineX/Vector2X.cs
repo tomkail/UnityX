@@ -150,6 +150,11 @@ public static class Vector2X {
 		return Vector2.Distance(projectedA, projectedB);
 	}
 
+	public static float SignedDistanceInDirection (Vector2 fromVector, Vector2 toVector, Vector2 direction) {
+		Vector2 normalizedDirection = direction.sqrMagnitude == 1 ? direction : direction.normalized;
+		return Vector2.Dot(Vector2X.FromTo(fromVector, toVector), normalizedDirection);
+	}
+
 	/// <summary>
 	/// Rotate a 2d vector by a number of degrees, where clockwise is positive.
 	/// </summary>

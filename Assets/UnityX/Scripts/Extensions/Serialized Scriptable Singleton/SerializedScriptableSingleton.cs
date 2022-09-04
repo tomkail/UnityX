@@ -6,11 +6,13 @@ using UnityEditor;
 // This is commonly useful for per-user settings files, especially for development debug settings.
 public class SerializedScriptableSingleton<T> : ScriptableObject where T : ScriptableObject {
 	static string _settingsPrefsKey;
-	static string settingsPrefsKey {
+	public static string settingsPrefsKey {
 		get {
 			if(_settingsPrefsKey == null)
 				_settingsPrefsKey = string.Format("{0} Settings ({1})", typeof(T).Name, Application.productName);
 			return _settingsPrefsKey;
+		} set {
+			_settingsPrefsKey = value;
 		}
 	}
 	public static event Action OnCreateOrLoad;

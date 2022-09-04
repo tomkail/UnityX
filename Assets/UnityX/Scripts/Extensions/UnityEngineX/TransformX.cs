@@ -313,91 +313,6 @@ public static class TransformX {
 		}
 		return count;
 	}
-	
-	
-	/// <summary>
-	/// Finds the first transform in the descendants of the transform with a specified name.
-	/// Searches using a breadth-first search, so it doesn't go too deeply too quickly.
-	/// </summary>
-	/// <returns>The in children.</returns>
-	/// <param name="current">The start transform.</param>
-	/// <param name="name">The name of the child to search for.</param>
-	public static Transform FindInChildren(this Transform current, string name) {
-		return FindInChildren<Transform>(current, name);
-	}
-
-	/// <summary>
-	/// Breadth first search algorithm to find a child of a particular type, optionally with a particular name 
-	/// in the full ancestry below a certain node.
-	/// (We use breadth first so that we find the "shallowest" child possible, so we don't recursively go very
-	/// deep very fast. It's a more complicated algorithm, but will be faster in most use cases.)
-	/// </summary>
-	/// <returns>A child Transform, if one exists with a given name.</returns>
-	/// <param name="name">The exact name to search for.</param>
-	public static T FindInChildren<T>(this Transform current, string name = null) where T : Component {
-		return FindInChildren<T>(current, t => t.name == name);
-	}
-
-	/// <summary>
-	/// Breadth first search algorithm to find a child of a particular type, optionally according to a particular
-	/// predicate in the full ancestry below a certain node.
-	/// (We use breadth first so that we find the "shallowest" child possible, so we don't recursively go very
-	/// deep very fast. It's a more complicated algorithm, but will be faster in most use cases.)
-	/// </summary>
-	/// <returns>A child Transform, if one exists that passes the test of the predicate function.</returns>
-	/// <param name="predicate">An optional predicate that returns true or false depending on whether
-	/// we want to consider the given object.</param>
-	public static T FindInChildren<T>(this Transform current, System.Predicate<T> predicate = null) where T : Component
-	{
-		// Keep queue around so that we allocate as little memory as possible for
-		// multiple find calls.
-		if( _objectQueue == null )
-			_objectQueue = new Queue<Transform>();
-
-		foreach(Transform child in current) {
-			if( child.gameObject.activeInHierarchy )
-				_objectQueue.Enqueue(child);
-		}
-
-		T result = FindInChildrenFromMainQueue<T>(predicate);
-
-		// Clear up after ourselves
-		_objectQueue.Clear();
-
-		return result;
-	}
-
-	/// <summary>
-	/// Private/internal function: using _objectQueue (constructed by FindInChildren for example),
-	/// search for the objects within the queue, as well as within their children.
-	/// </summary>
-	/// <returns>A child component, if one exists with a given name.</returns>
-	/// <param name="predicate">A predicate to test on each object of the given type.</param>
-	/// <typeparam name="T">The specific component type to search for.</typeparam>
-	static T FindInChildrenFromMainQueue<T>(System.Predicate<T> predicate) where T : Component
-	{
-		while(_objectQueue.Count > 0) {
-
-			var child = _objectQueue.Dequeue();
-
-			var comp = child.GetComponent<T>();
-			if( comp ) {
-				if(predicate == null || predicate(comp)) {
-					return comp;
-				}
-			}
-
-			foreach(Transform subChild in child) {
-				_objectQueue.Enqueue(subChild);
-			}
-		}
-
-		return null;
-	}
-
-	// Keep a global pool around so we don't have to keep allocating a new one.
-	// Used for the above breadth first search system.
-	static Queue<Transform> _objectQueue;
 
 	/// <summary>
 	/// Finds all transforms in the descendants of the transform with a specified name.
@@ -421,14 +336,15 @@ public static class TransformX {
 	}
 
 	public static bool IsDescendentOf(this Transform current, Transform ancestor) {
-		if(current.parent != null) {
-			if(current.parent == ancestor) return true;
+		if(current != null) {
+			if(current == ancestor) return true;
 			return IsDescendentOf(current.parent, ancestor);
 		} else {
 			return false;
 		}
 	}
 
+	// Gets the index of the object in the global heirarchy, traversing depth if a given transform has children.
 	public static int GetHeirarchyIndex(this Transform current) {
 		var index = 0;
 		foreach(var ancestor in current.GetAllAncestors()) index += ancestor.transform.GetSiblingIndex()+1;

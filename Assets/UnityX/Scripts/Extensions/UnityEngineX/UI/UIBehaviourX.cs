@@ -12,9 +12,6 @@ public static class UIBehaviourX {
 	
 	public static Canvas GetParentCanvas (this UIBehaviour uiBehaviour) {
 		Debug.Assert(uiBehaviour != null);
-		var canvas = uiBehaviour.transform.GetComponent<Canvas>();
-		if(canvas != null) return canvas;
-		canvas = uiBehaviour.transform.GetComponentInAncestors<Canvas>();
-		return canvas;
+		return uiBehaviour.transform.GetComponentInParent<Canvas>();
 	}
 }

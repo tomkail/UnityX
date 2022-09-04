@@ -5,7 +5,7 @@ using System.Linq;
 using UnityX.Geometry;
 using System.Collections.ObjectModel;
 
-[ExecuteInEditMode]
+[ExecuteAlways]
 public class RadialGrid3Agent : MonoBehaviour {
 	public WorldGrid3 worldGrid;
 	public float spawnRadius = 50;	

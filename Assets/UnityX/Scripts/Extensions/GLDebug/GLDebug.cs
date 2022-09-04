@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-[ExecuteInEditMode]
+[ExecuteAlways]
 public class GLDebug : MonoSingleton<GLDebug> {
     private struct Line {
         public Vector3 start;

@@ -160,7 +160,7 @@ public class Prototype : MonoBehaviour {
 	}
 
 	Prototype _originalPrototype;
-
+	[System.NonSerialized]
 	List<Prototype> _instancePool;
 
     #if UNITY_EDITOR

@@ -4,7 +4,7 @@ using UnityEngine.UI.Extensions;
 using UnityX.Geometry;
 using UnityEngine.EventSystems;
 
-[ExecuteInEditMode]
+[ExecuteAlways]
 [RequireComponent(typeof(RectTransform))]
 public class RoundRectPolygonUI : UIBehaviour, ILayoutElement {
 	RectTransform rectTransform {

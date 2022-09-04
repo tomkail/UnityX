@@ -6,7 +6,7 @@ using UnityEngine;
 using System.Reflection;
 #endif
 
-[ExecuteInEditMode]
+[ExecuteAlways]
 public class GameObjectChangeChecker : MonoBehaviour {
 	[SerializeField, HideInInspector]
 	string lastName;

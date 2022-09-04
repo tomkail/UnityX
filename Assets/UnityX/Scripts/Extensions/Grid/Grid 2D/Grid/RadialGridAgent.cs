@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityX.Geometry;
 
-[ExecuteInEditMode]
+[ExecuteAlways]
 public class RadialGridAgent : MonoBehaviour {
 	public GridRenderer worldGrid;
 	public bool clampToGrid;

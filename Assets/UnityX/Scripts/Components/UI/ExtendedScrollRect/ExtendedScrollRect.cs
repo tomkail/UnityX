@@ -6,6 +6,9 @@ using UnityEngine.EventSystems;
 
 namespace UnityEngine.UI {
 	public class ExtendedScrollRect : ScrollRect {
+		public bool routeScrollEventsToParent = false;
+   		protected bool routeToParent = false;
+
         // The content rect is scaled, so there's some minor inaccuracy when comparing sizes which this helps mitigate.
         const float Epsilon = 0.001f;
 		public new RectTransform viewRect {
@@ -64,15 +67,21 @@ namespace UnityEngine.UI {
 		}
 
         
-
+		// These setters were last edited when I added the horizontal ones. I don't know why the vertical ones are offset by half; my guess is that it's a pivot/anchor thing and that the code for both depends on the setup, and probably wants changing!
         public float distanceToLeft {
             get {
                 return contentOffset.x;
+            } set {
+                var x = -value;
+                content.localPosition = new Vector3(x, content.localPosition.y, content.localPosition.z);
             }
         }
         public float distanceToRight {
             get {
                 return freeMovementSize.x - contentOffset.x;
+            } set {
+                var x = value - freeMovementSize.x;
+                content.localPosition = new Vector3(x, content.localPosition.y, content.localPosition.z);
             }
         }
         public float distanceToTop {
@@ -234,43 +243,73 @@ namespace UnityEngine.UI {
 			base.UpdateBounds();
 		}
 
+		/// <summary>
+		/// Always route initialize potential drag event to parents
+		/// </summary>
+		public override void OnInitializePotentialDrag(PointerEventData eventData)
+		{
+			ExecuteEvents.ExecuteHierarchy(transform.parent.gameObject, eventData, ExecuteEvents.initializePotentialDrag);
+			base.OnInitializePotentialDrag(eventData);
+		}
+
 		public override void OnScroll (PointerEventData eventData) {
-			base.OnScroll (eventData);
-			
-			if (!IsActive())
-				return;
-			
-			onScroll.Invoke(eventData);
+			if (routeScrollEventsToParent)
+				ExecuteEvents.ExecuteHierarchy(transform.parent.gameObject, eventData, ExecuteEvents.scrollHandler);
+			else {
+				base.OnScroll(eventData);
+				if (IsActive()) onScroll.Invoke(eventData);
+			}
 		}
 		
 		public override void OnBeginDrag (PointerEventData eventData) {
-			base.OnBeginDrag (eventData);
-			
-			if (eventData.button != PointerEventData.InputButton.Left)
-				return;
-			
-			if (!IsActive())
-				return;
-			
-			onBeginDrag.Invoke(eventData);
+			if (!horizontal && Math.Abs(eventData.delta.x) > Math.Abs(eventData.delta.y))
+				routeToParent = true;
+			else if (!vertical && Math.Abs(eventData.delta.x) < Math.Abs(eventData.delta.y))
+				routeToParent = true;
+			else
+				routeToParent = false;
+		
+			if (routeToParent)
+				ExecuteEvents.ExecuteHierarchy(transform.parent.gameObject, eventData, ExecuteEvents.beginDragHandler);
+			else {
+				base.OnBeginDrag (eventData);
+				
+				if (eventData.button != PointerEventData.InputButton.Left)
+					return;
+				
+				if (!IsActive())
+					return;
+				
+				onBeginDrag.Invoke(eventData);
+			}	
 		}
 		
 		public override void OnEndDrag (PointerEventData eventData) {
-			base.OnEndDrag (eventData);
-			
-			if (eventData.button != PointerEventData.InputButton.Left)
-				return;
-			onEndDrag.Invoke(eventData);
+			if (routeToParent)
+				ExecuteEvents.ExecuteHierarchy(transform.parent.gameObject, eventData, ExecuteEvents.endDragHandler);
+			else {
+				base.OnEndDrag (eventData);
+				if (eventData.button == PointerEventData.InputButton.Left) onEndDrag.Invoke(eventData);
+			}
+			routeToParent = false;
 		}
 		
 		public override void OnDrag (PointerEventData eventData) {
-			base.OnDrag (eventData);
-			
-			if (eventData.button != PointerEventData.InputButton.Left)
-				return;
-			
-			onDrag.Invoke(eventData);
+			if (routeToParent) {
+				ExecuteEvents.ExecuteHierarchy(transform.parent.gameObject, eventData, ExecuteEvents.dragHandler);
+			} else {
+				base.OnDrag (eventData);
+				
+				if (eventData.button == PointerEventData.InputButton.Left) onDrag.Invoke(eventData);
+			}
 		}
+
+		// #if UNITY_EDITOR
+		// protected override void Reset() {
+		// 	this.viewport = this.transform.Find("Viewport").transform as RectTransform;
+		// 	this.content = this.transform.Find("Viewport/Content").transform as RectTransform;
+		// 	base.Reset();
+		// }
+		// #endif
 	}
-	
 }

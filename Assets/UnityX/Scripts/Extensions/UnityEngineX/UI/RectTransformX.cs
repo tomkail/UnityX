@@ -13,6 +13,15 @@ public static class RectTransformX {
         var localRect = RectX.CreateEncapsulating(localBottomLeft, localTopRight);
         return RectX.GetClosestDistance(rectTransform.rect, localRect) * (RectX.Intersects(rectTransform.rect, localRect) ? -1 : 1);
     }
+
+	public static bool ScreenPointToNormalizedPointInRectangle(RectTransform rect, Vector2 screenPoint, Camera cam, out Vector2 normalizedPosition) {
+		normalizedPosition = default;
+		if(!RectTransformUtility.ScreenPointToLocalPointInRectangle(rect, screenPoint, cam, out var localPosition)) return false;
+		var r = rect.rect;
+		normalizedPosition = new Vector2((localPosition.x - r.x) / r.width, (localPosition.y - r.y) / r.height);
+		normalizedPosition += rect.pivot-(Vector2.one * 0.5f);
+		return true;
+	}
 	
 	//
     // Summary:
@@ -21,6 +30,10 @@ public static class RectTransformX {
     // Parameters:
     //   fourCornersArray:
     //     The array that corners are filled into.
+	public static void GetScreenCorners(this RectTransform rectTransform, Vector3[] fourCornersArray) {
+        var canvas = rectTransform.GetComponentInParent<Canvas>().rootCanvas;
+		rectTransform.GetScreenCorners(canvas, fourCornersArray);
+	}
 	public static void GetScreenCorners(this RectTransform rectTransform, Canvas canvas, Vector3[] fourCornersArray) {
 		rectTransform.GetWorldCorners(corners);
 
@@ -36,6 +49,10 @@ public static class RectTransformX {
 		}
 	}
 
+	public static Rect GetScreenRect(this RectTransform rectTransform) {
+        var canvas = rectTransform.GetComponentInParent<Canvas>().rootCanvas;
+		return rectTransform.GetScreenRect(canvas);
+	}
 	public static Rect GetScreenRect(this RectTransform rectTransform, Canvas canvas) {
 		rectTransform.GetScreenCorners(canvas, corners);
 		float xMin = float.PositiveInfinity;
@@ -54,6 +71,18 @@ public static class RectTransformX {
 				yMax = screenCoord.y;
 		}
 		return new Rect(xMin, yMin, xMax - xMin, yMax - yMin);
+	}
+
+	public static Rect GetScreenRectIgnoringScale(this RectTransform rectTransform) {
+        var canvas = rectTransform.GetComponentInParent<Canvas>().rootCanvas;
+		return rectTransform.GetScreenRectIgnoringScale(canvas);
+	}
+	public static Rect GetScreenRectIgnoringScale (this RectTransform rectTransform, Canvas canvas) {
+		Rect tmpRect = rectTransform.rect;
+		Matrix4x4 localToWorldMatrix = Matrix4x4.TRS(rectTransform.position, rectTransform.rotation, Vector3.one);
+		var min = RectTransformUtility.WorldToScreenPoint(canvas.worldCamera, localToWorldMatrix.MultiplyPoint(tmpRect.min));
+		var max = RectTransformUtility.WorldToScreenPoint(canvas.worldCamera, localToWorldMatrix.MultiplyPoint(tmpRect.max));
+		return RectX.CreateEncapsulating(min, max);
 	}
 
 	public static Bounds GetScaledBounds(this RectTransform rectTransform, Transform relativeTo) {
@@ -82,7 +111,7 @@ public static class RectTransformX {
 	public static Rect GetRectEncapsulatingRectTransformsInCanvasSpace (this RectTransform rectTransform, params RectTransform[] rectTransforms) {
 		Rect[] rects = new Rect[rectTransforms.Length];
 		for (int i = 0; i < rectTransforms.Length; i++) {
-			rects[i] = rectTransforms[i].TransformRectTo(rectTransforms[i].rect, rectTransforms[i].GetComponentInAncestors<Canvas>().GetRectTransform());
+			rects[i] = rectTransforms[i].TransformRectTo(rectTransforms[i].rect, rectTransforms[i].GetComponentInParent<Canvas>().GetRectTransform());
 		}
 		return RectX.CreateEncapsulating(rects);
 	}
@@ -130,7 +159,7 @@ public static class RectTransformX {
 	/// <param name="rectTransform">Rect transform.</param>
 	/// <param name="rect">Rect.</param>
 	public static void SetRectInCanvasSpace(this RectTransform rectTransform, Rect rect) {
-		rectTransform.position = rectTransform.GetComponentInAncestors<Canvas>().GetRectTransform().TransformPoint(rect.position + Vector2.Scale(rect.size, rectTransform.pivot));
+		rectTransform.position = rectTransform.GetComponentInParent<Canvas>().GetRectTransform().TransformPoint(rect.position + Vector2.Scale(rect.size, rectTransform.pivot));
 		rectTransform.SetSizeInCanvasSpace(rect.size);
 	}
 

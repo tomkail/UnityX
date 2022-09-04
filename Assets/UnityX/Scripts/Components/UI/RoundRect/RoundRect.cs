@@ -27,7 +27,7 @@ using static UnityEngine.Mathf;
 /// The geometry from the outline and fill can overlap, this is necessary in case you're
 /// using semi-transparent colours.
 /// </summary>
-[ExecuteInEditMode]
+[ExecuteAlways]
 [RequireComponent(typeof(CanvasRenderer))]
 public class RoundRect : MaskableGraphic
 {

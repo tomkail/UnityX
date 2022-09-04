@@ -3,9 +3,12 @@
 
 // Must be placed within a folder named "Editor"
 using System;
+using System.Reflection;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using Object = UnityEngine.Object;
 
 /// <summary>
 /// Extends how ScriptableObject object references are displayed in the inspector
@@ -17,9 +20,9 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 	
 	public override float GetPropertyHeight (SerializedProperty property, GUIContent label) {
 		float totalHeight = EditorGUIUtility.singleLineHeight;
-        if(property.objectReferenceValue == null || !AreAnySubPropertiesVisible(property)){
-            return totalHeight;
-        }
+		if(property.objectReferenceValue == null || !AreAnySubPropertiesVisible(property)){
+			return totalHeight;
+		}
 		if(property.isExpanded) {
 			var data = property.objectReferenceValue as ScriptableObject;
 			if( data == null ) return EditorGUIUtility.singleLineHeight;
@@ -36,6 +39,7 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 			}
 			// Add a tiny bit of height if open for the background
 			totalHeight += EditorGUIUtility.standardVerticalSpacing;
+			serializedObject.Dispose();
 		}
 		return totalHeight;
 	}
@@ -58,7 +62,7 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 		if(!property.hasMultipleDifferentValues && property.serializedObject.targetObject != null && property.serializedObject.targetObject is ScriptableObject) {
 			propertySO = (ScriptableObject)property.serializedObject.targetObject;
 		}
-        
+		
 		var propertyRect = Rect.zero;
 		var guiContent = new GUIContent(property.displayName);
 		var foldoutRect = new Rect(position.x, position.y, EditorGUIUtility.labelWidth, EditorGUIUtility.singleLineHeight);
@@ -110,7 +114,7 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 				}
 				if (GUI.changed)
 					serializedObject.ApplyModifiedProperties();
-
+				serializedObject.Dispose();
 				EditorGUI.indentLevel--;
 			}
 		} else {
@@ -180,27 +184,28 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 		return objectReferenceValue;
 	}
 
-    static void DrawScriptableObjectChildFields<T> (T objectReferenceValue) where T : ScriptableObject {
-        // Draw a background that shows us clearly which fields are part of the ScriptableObject
-        EditorGUI.indentLevel++;
-        EditorGUILayout.BeginVertical(GUI.skin.box);
+	static void DrawScriptableObjectChildFields<T> (T objectReferenceValue) where T : ScriptableObject {
+		// Draw a background that shows us clearly which fields are part of the ScriptableObject
+		EditorGUI.indentLevel++;
+		EditorGUILayout.BeginVertical(GUI.skin.box);
 
-        var serializedObject = new SerializedObject(objectReferenceValue);
-        // Iterate over all the values and draw them
-        SerializedProperty prop = serializedObject.GetIterator();
-        if (prop.NextVisible(true)) {
-            do {
-                // Don't bother drawing the class file
-                if(prop.name == "m_Script") continue;
-                EditorGUILayout.PropertyField(prop, true);
-            }
-            while (prop.NextVisible(false));
-        }
-        if (GUI.changed)
-            serializedObject.ApplyModifiedProperties();
-        EditorGUILayout.EndVertical();
-        EditorGUI.indentLevel--;
-    }
+		var serializedObject = new SerializedObject(objectReferenceValue);
+		// Iterate over all the values and draw them
+		SerializedProperty prop = serializedObject.GetIterator();
+		if (prop.NextVisible(true)) {
+			do {
+				// Don't bother drawing the class file
+				if(prop.name == "m_Script") continue;
+				EditorGUILayout.PropertyField(prop, true);
+			}
+			while (prop.NextVisible(false));
+		}
+		if (GUI.changed)
+			serializedObject.ApplyModifiedProperties();
+		serializedObject.Dispose();
+		EditorGUILayout.EndVertical();
+		EditorGUI.indentLevel--;
+	}
 
 	public static T DrawScriptableObjectField<T> (GUIContent label, T objectReferenceValue, ref bool isExpanded) where T : ScriptableObject {
 		Rect position = EditorGUILayout.BeginVertical();
@@ -270,13 +275,14 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 	}
 
 	static bool AreAnySubPropertiesVisible(SerializedProperty property) {
-        var data = (ScriptableObject)property.objectReferenceValue;
-        SerializedObject serializedObject = new SerializedObject(data);
-        SerializedProperty prop = serializedObject.GetIterator();
-        while (prop.NextVisible(true)) {
-            if (prop.name == "m_Script") continue;
-            return true; //if theres any visible property other than m_script
-        }
-        return false;
-    }
+		var data = (ScriptableObject)property.objectReferenceValue;
+		SerializedObject serializedObject = new SerializedObject(data);
+		SerializedProperty prop = serializedObject.GetIterator();
+		while (prop.NextVisible(true)) {
+			if (prop.name == "m_Script") continue;
+			return true; //if theres any visible property other than m_script
+		}
+		serializedObject.Dispose();
+		return false;
+	}
 }

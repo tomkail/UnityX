@@ -5,7 +5,7 @@ using UnityX.MeshBuilder;
 using UnityX.Geometry;
 
 
-[ExecuteInEditMode]
+[ExecuteAlways]
 [RequireComponent(typeof(MeshFilter))]
 public class PolygonOutlineRenderer : BasePolygonRenderer {
     [Space]

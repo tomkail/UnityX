@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
-[ExecuteInEditMode]
+[ExecuteAlways]
 public class GridRenderer : MonoBehaviour {
     public event System.Action<GridRenderer> OnRefresh;
 	public Plane floorPlane {

@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System.Collections;
 
-[ExecuteInEditMode]
+[ExecuteAlways]
 public class WorldSpaceUIElement : UIBehaviour {
 	[SerializeField]
 	private bool _updateInEditMode = true;

@@ -13,7 +13,6 @@ using System.Collections;
 		}
 
 		public static EditorWindow GetMainGameView() {
-			EditorApplication.ExecuteMenuItem("Window/Game");
 			System.Type T = System.Type.GetType("UnityEditor.GameView,UnityEditor");
 			System.Reflection.MethodInfo GetMainGameView = T.GetMethod("GetMainGameView", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
 			System.Object Res = GetMainGameView.Invoke(null, null);

@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityX.Geometry;
 
-[ExecuteInEditMode]
+[ExecuteAlways]
 [RequireComponent(typeof(MeshFilter))]
 public abstract class BasePolygonRenderer : MonoBehaviour {
     MeshFilter _meshFilter;

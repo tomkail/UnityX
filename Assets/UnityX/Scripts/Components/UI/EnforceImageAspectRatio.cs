@@ -6,7 +6,7 @@ using UnityEngine.UI;
 /// <summary>
 /// Uses an AspectRatioFitter to enforce the image aspect ratio
 /// </summary>
-[ExecuteInEditMode]
+[ExecuteAlways]
 [RequireComponent(typeof(Image), typeof(AspectRatioFitter))]
 public class EnforceImageAspectRatio : MonoBehaviour {
 

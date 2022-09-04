@@ -7,7 +7,7 @@ using System.Collections;
 /// Useful for allowing raycasts to automatically pass through an invisible CanvasGroup.
 /// </summary>
 [RequireComponent(typeof(CanvasGroup))]
-[ExecuteInEditMode]
+[ExecuteAlways]
 public class CanvasGroupOpacityInteractionEnabler : UIBehaviour {
 	private CanvasGroup canvasGroup {
         get {

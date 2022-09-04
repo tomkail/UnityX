@@ -3,7 +3,7 @@ using UnityEngine;
 // using System.Collections.Generic;
 // using UnityEngine;
 
-// [ExecuteInEditMode]
+// [ExecuteAlways]
 // public class Test : MonoSingleton<Test> {
 //     public bool defaultVisible;
 //     public bool edges;

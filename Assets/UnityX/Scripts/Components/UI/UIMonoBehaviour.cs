@@ -4,7 +4,7 @@ using System.Collections;
 public class UIMonoBehaviour : MonoBehaviour {
 	public Canvas canvas {
 		get {
-			return transform.GetComponentInAncestors<Canvas>();
+			return transform.GetComponentInParent<Canvas>();
 		}
 	}
 

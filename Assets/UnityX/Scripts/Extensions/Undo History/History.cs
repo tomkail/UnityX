@@ -10,6 +10,7 @@ public class History<T> where T : class {
 	
 	public T currentItem {
 		get {
+			if(history == null || history.Count == 0 || historyIndex < 0 || historyIndex >= history.Count) return null;
 			return history[historyIndex];
 		}
 	}

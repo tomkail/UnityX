@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityX.Geometry;
 
-[ExecuteInEditMode]
+[ExecuteAlways]
 public class SquareGridAgent : MonoBehaviour {
 	public GridRenderer worldGrid;
 	public List<Point> chunkPoints = new List<Point>();
