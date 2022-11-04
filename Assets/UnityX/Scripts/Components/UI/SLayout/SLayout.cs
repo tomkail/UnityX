@@ -53,6 +53,7 @@ public partial class SLayout : UIBehaviour {
 		_scale = null;				 
 		_groupAlpha = null;
 		_color = null;
+		_rootCanvas = null;
 		_canvas = null;
 		_canvasGroup = null;
 		_graphic = null;
@@ -103,6 +104,9 @@ public partial class SLayout : UIBehaviour {
 			_owner = this
 		};
 		SLayoutAnimator.instance.StartAnimation(newAnim);
+		#if UNITY_EDITOR
+		if(!Application.isPlaying) newAnim.CompleteImmediate();
+		#endif
 		return newAnim;
 	}
 	
@@ -211,6 +215,7 @@ public partial class SLayout : UIBehaviour {
 
 	public void CancelAnimations()
 	{
+		if(SLayoutAnimator.instance == null) return;
 		SLayoutAnimator.instance.CancelAnimations(this);
 	}
 
@@ -225,10 +230,18 @@ public partial class SLayout : UIBehaviour {
         SLayoutAnimation.EndPreventAnimation();
     }
 
+	public Canvas rootCanvas {
+		get {
+			// if( _rootCanvas == null )
+				_rootCanvas = canvas.rootCanvas;
+			return _rootCanvas;
+		}
+	}
+	Canvas _rootCanvas;
 	public Canvas canvas {
 		get {
-			if( _canvas == null )
-				_canvas = transform.GetComponentInParent<Canvas>();
+			// if( _canvas == null )
+				_canvas = transform.GetComponentInParent<Canvas>(true);
 			return _canvas;
 		}
 	}
@@ -811,9 +824,8 @@ public partial class SLayout : UIBehaviour {
     
 	// Converts a screen position to a local position in the layout space.
     public Vector2 ScreenToSLayoutPosition (Vector2 screenPoint) {
-		RectTransformUtility.ScreenPointToWorldPointInRectangle(canvas.rootCanvas.GetRectTransform(), screenPoint, canvas.rootCanvas.worldCamera, out Vector3 worldPoint);
+		RectTransformUtility.ScreenPointToWorldPointInRectangle(rectTransform, screenPoint, canvas.rootCanvas.worldCamera, out Vector3 worldPoint);
         return WorldToSLayoutPosition(worldPoint);
-		
         // return (Vector2)CanvasToSLayoutSpace(canvas.ScreenToCanvasPoint(screenPoint));
     }
 	
@@ -832,22 +844,36 @@ public partial class SLayout : UIBehaviour {
 		return layoutRect;
     }
 	
-	// Bit of a hack, gets around the issue described below
 	// This returns a coordinate to be applied to this object's position property. Setting it to the center property may result in the object being offset by the pivot!
     public Vector2 WorldToSLayoutPosition (Vector3 worldPoint) {
-		var oldPos = transform.position;
-		transform.position = worldPoint;
-		var anchoredPos = position;
-		transform.position = oldPos;
-		// if(originTopLeft)
-		// 	return anchoredPos;
-		// else
-		// 	return new Vector2(anchoredPos.x, anchoredPos.y+height);
-	
-		// return anchoredPos;
-		// Add the pivot, although if we're using originTopLeft, flip the Y.
-		return anchoredPos + pivot + (originTopLeft ? new Vector2(0, height * -rectTransform.pivot.y * 2) : Vector2.zero);
-		// return (Vector2)CanvasToSLayoutSpace(canvas.WorldToCanvasPoint(worldPoint));
+		var rt = rectTransform;
+		var parentRectT = rt.parent as RectTransform;
+
+		var localPoint = transform.parent.InverseTransformPoint(worldPoint);
+		Vector2 anchoredPos = (Vector2)localPoint + pivot;
+		
+		float toLeftEdge = rt.pivot.x * rt.rect.width;
+		float parentToLeftEdge = parentRectT.pivot.x * parentRectT.rect.width;
+		float leftInset = parentToLeftEdge - toLeftEdge;
+		anchoredPos.x += leftInset;
+		
+		if( originTopLeft ) {
+			// This calculation can almost certainly be simplied a LOT. This system confuses the heck out of me and I worked it out by just hacking things about.
+			float toTopEdge = (1.0f-rt.pivot.y) * rt.rect.height;
+			float parentToTopEdge = (1.0f-parentRectT.pivot.y) * parentRectT.rect.height;
+			float topInset = parentToTopEdge - toTopEdge;
+			anchoredPos.y += topInset;
+			
+			anchoredPos.y = parentRectT.rect.height - anchoredPos.y;
+			anchoredPos.y -= parentRectT.rect.height * (parentRectT.pivot.y - 0.5f) * 2;
+			anchoredPos.y -= rt.rect.height * (1-rt.pivot.y) * 2;
+		} else {
+			float toBottomEdge = rt.pivot.y * rt.rect.height;
+			float parentToBottomEdge = parentRectT.pivot.y * parentRectT.rect.height;
+			float bottomInset = parentToBottomEdge - toBottomEdge;
+			anchoredPos.y += bottomInset;
+		}
+		return anchoredPos;
 	}
 
     // Converts a canvas space coordinate to the space of this slayout.
@@ -858,29 +884,29 @@ public partial class SLayout : UIBehaviour {
 
 	// WARNING! This seems not to work when the object is in a non-full-size container! It moves more than it should from the center. We probably need to offset it by the container's position.
 	// IT's been commented out for that reason.
-    // public Vector2 CanvasToSLayoutSpace (Vector2 canvasSpacePos) {
-    //     Vector2 offset = Vector2.zero;
+    public Vector2 CanvasToSLayoutSpace (Vector2 canvasSpacePos) {
+		Vector2 offset = Vector2.zero;
 
-    //     var rt = rectTransform;
-	// 	var parentRectT = rt.parent as RectTransform;
-	// 	if( parentRectT == null )
-	// 		return offset;
+        var rt = rectTransform;
+		var parentRectT = rt.parent as RectTransform;
+		if( parentRectT == null )
+			return offset;
 		
-	// 	float parentToLeftEdge = parentRectT.pivot.x * parentRectT.rect.width;
-	// 	offset.x = parentToLeftEdge;
+		float parentToLeftEdge = parentRectT.pivot.x * parentRectT.rect.width;
+		offset.x = parentToLeftEdge;
 
-    //     if( originTopLeft ) {
-    //         canvasSpacePos.y = -canvasSpacePos.y;
-	// 		float parentToTopEdge = (1.0f-parentRectT.pivot.y) * parentRectT.rect.height;
-	// 		float topInset = parentToTopEdge;
-	// 		offset.y = topInset;
-	// 	} else {
-	// 		float parentToBottomEdge = parentRectT.pivot.y * parentRectT.rect.height;
-	// 		float bottomInset = parentToBottomEdge;
-	// 		offset.y = bottomInset;
-	// 	}
-    //     return canvasSpacePos + offset;
-    // }
+		if( originTopLeft ) {
+			canvasSpacePos.y = -canvasSpacePos.y;
+			float parentToTopEdge = (1.0f-parentRectT.pivot.y) * parentRectT.rect.height;
+			float topInset = parentToTopEdge;
+			offset.y = topInset;
+		} else {
+			float parentToBottomEdge = parentRectT.pivot.y * parentRectT.rect.height;
+			float bottomInset = parentToBottomEdge;
+			offset.y = bottomInset;
+		}
+        return canvasSpacePos + offset;
+    }
 
 	public Vector2 ConvertPositionToWorldSpace(Vector2 localLayoutPos) {
 		if( originTopLeft ) localLayoutPos.y = height - localLayoutPos.y;
@@ -1114,6 +1140,11 @@ public partial class SLayout : UIBehaviour {
 	}
 	
 
+	protected override void OnTransformParentChanged () {
+		base.OnTransformParentChanged();
+		_rootCanvas = _canvas = null;
+	}
+	
 	SLayoutFloatProperty _x;
 	SLayoutFloatProperty _y;
 	SLayoutFloatProperty _width;
