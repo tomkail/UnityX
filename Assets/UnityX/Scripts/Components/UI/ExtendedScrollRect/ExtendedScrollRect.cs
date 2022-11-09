@@ -33,6 +33,8 @@ namespace UnityEngine.UI {
 
         public Bounds contentBounds {
 			get {
+				// This only runs in update when enabled. Since we want to be able to call this even when disabled, we force the bounds to be calculated here.
+				if(!enabled) ForceUpdateBounds();
 				return base.m_ContentBounds;
 			}
 		}

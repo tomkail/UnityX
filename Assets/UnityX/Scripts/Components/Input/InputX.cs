@@ -107,6 +107,11 @@ public class InputX : MonoSingleton<InputX> {
         ResetInput();
     }
 
+	void OnDestroy () {
+		DestroyMouse();
+		DestroyKeyboard();
+	}
+	
 	//Resets all input values.
 	public void ResetInput(){
 		if(fingers != null) {

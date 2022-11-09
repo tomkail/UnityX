@@ -49,7 +49,7 @@ namespace UnityX.Versioning {
 
         public void UpdateCurrentVersion(CurrentVersionSO currentVersion) {
             if(currentVersion == null) return;
-            if(VersionControlX.HasGitRepo()) {
+            if(VersionControlX.gitDirectory != null) {
                 currentVersion.version.gitBranch = VersionControlX.GetGitBranch();
                 currentVersion.version.gitCommitSHA = VersionControlX.GetGitSHA();
             }

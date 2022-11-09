@@ -14,14 +14,25 @@ public class CanvasGroupOpacityInteractionEnabler : UIBehaviour {
             return GetComponent<CanvasGroup>();
         }
     }
-	[Range(0,1)]
+	[ClampAttribute(0f,1f)]
 	public float alphaThreshold = 1;
+	public bool ignoreParentGroups = false;
 	public bool interactable = true;
 	public bool blocksRaycasts = true;
 
+    void Update () {
+        if(ignoreParentGroups) return;
+        Refresh();
+    }
     protected override void OnCanvasGroupChanged() {
+        if(!ignoreParentGroups) return;
         base.OnCanvasGroupChanged();
-        var alphaIsValid = alphaThreshold == 1 ? canvasGroup.alpha >= alphaThreshold : canvasGroup.alpha > alphaThreshold;
+        Refresh();
+    }
+
+    void Refresh () {
+        var alpha = ignoreParentGroups ? canvasGroup.alpha : CanvasGroupX.CanvasGroupsAlpha(gameObject);
+        var alphaIsValid = alphaThreshold == 1 ? alpha >= alphaThreshold : alpha > alphaThreshold;
         
         var newBlocksRaycasts = blocksRaycasts && alphaIsValid;
 		if(canvasGroup.blocksRaycasts != newBlocksRaycasts) canvasGroup.blocksRaycasts = newBlocksRaycasts;

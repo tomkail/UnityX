@@ -149,17 +149,21 @@ public class ScreenX : MonoSingleton<ScreenX> {
 	/// <summary>
 	/// The DPI of the screen
 	/// </summary>
+	static bool gameViewDpiMultiplierDirty = true;
 	public static float dpi {
 		get {
 			float dpiMultiplier = 1f;
 			#if UNITY_EDITOR
-			// When using a fixed game view resolution, Screen.width/height returns the size of the fixed resolution. If the fixed resolution is more than the actual game view window's size, it's scaled down.
-			// Screen.dpi continues to return the dpi of the screen in this case, without taking the shrinkage into account. 
-			// DPI should return the density of the game view resolution, rather than of the game view window, and so we take this into account here.
-			System.Type T = System.Type.GetType("UnityEditor.PlayModeView,UnityEditor");
-			System.Reflection.MethodInfo GetMainGameView = T.GetMethod("GetMainPlayModeView", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-			var gameView = (UnityEditor.EditorWindow)GetMainGameView.Invoke(null, null);
-			dpiMultiplier = Mathf.Max(1, Screen.width/gameView.position.width, Screen.height/gameView.position.height);
+			if(gameViewDpiMultiplierDirty) {
+				// When using a fixed game view resolution, Screen.width/height returns the size of the fixed resolution. If the fixed resolution is more than the actual game view window's size, it's scaled down.
+				// Screen.dpi continues to return the dpi of the screen in this case, without taking the shrinkage into account. 
+				// DPI should return the density of the game view resolution, rather than of the game view window, and so we take this into account here.
+				System.Type T = System.Type.GetType("UnityEditor.PlayModeView,UnityEditor");
+				System.Reflection.MethodInfo GetMainGameView = T.GetMethod("GetMainPlayModeView", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+				var gameView = (UnityEditor.EditorWindow)GetMainGameView.Invoke(null, null);
+				dpiMultiplier = Mathf.Max(1, Screen.width/gameView.position.width, Screen.height/gameView.position.height);
+				gameViewDpiMultiplierDirty = false;
+			}
 			#endif
 
 			if(usingCustomDPI){
@@ -171,7 +175,7 @@ public class ScreenX : MonoSingleton<ScreenX> {
 			}
 		}
 	}
-	
+
 	/// <summary>
 	/// The orientation of the screen last time the size was changed. Used for measuring screen size change.
 	/// </summary>
@@ -212,6 +216,9 @@ public class ScreenX : MonoSingleton<ScreenX> {
 	}
 
 	private void Update () {
+		#if UNITY_EDITOR
+		gameViewDpiMultiplierDirty = true;
+		#endif
 		CheckSizeChange();
 		CheckOrientationChange();
 	}

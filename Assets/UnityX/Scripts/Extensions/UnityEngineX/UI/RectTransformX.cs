@@ -5,7 +5,7 @@ public static class RectTransformX {
 
     // Gets the distance between two rect transforms, in the space of the first rect transform.
     public static float GetClosestDistanceBetweenRectTransforms (RectTransform rectTransform, RectTransform otherRectTransform) {
-        var canvas = rectTransform.GetComponentInParent<Canvas>().rootCanvas;
+        var canvas = rectTransform.GetComponentInParent<Canvas>(true).rootCanvas;
         
         var otherScreenRect = otherRectTransform.GetScreenRect(canvas);
         RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, otherScreenRect.BottomLeft(), canvas.worldCamera, out var localBottomLeft);
@@ -31,26 +31,21 @@ public static class RectTransformX {
     //   fourCornersArray:
     //     The array that corners are filled into.
 	public static void GetScreenCorners(this RectTransform rectTransform, Vector3[] fourCornersArray) {
-        var canvas = rectTransform.GetComponentInParent<Canvas>().rootCanvas;
+        var canvas = rectTransform.GetComponentInParent<Canvas>(true).rootCanvas;
 		rectTransform.GetScreenCorners(canvas, fourCornersArray);
 	}
 	public static void GetScreenCorners(this RectTransform rectTransform, Canvas canvas, Vector3[] fourCornersArray) {
 		rectTransform.GetWorldCorners(corners);
-
+		// For Canvas mode Screen Space - Overlay there is no Camera; best solution I've found
+		// is to use RectTransformUtility.WorldToScreenPoint with a null camera.
+		Camera cam = canvas.renderMode == RenderMode.ScreenSpaceCamera || canvas.renderMode == RenderMode.WorldSpace ? canvas.worldCamera : null;
 		for (int i = 0; i < 4; i++) {
-			// For Canvas mode Screen Space - Overlay there is no Camera; best solution I've found
-			// is to use RectTransformUtility.WorldToScreenPoint with a null camera.
-			Camera cam = null;
-			if(canvas.renderMode == RenderMode.ScreenSpaceCamera || canvas.renderMode == RenderMode.WorldSpace)
-				cam = canvas.worldCamera;
-			Vector3 screenCoord = RectTransformUtility.WorldToScreenPoint(cam, corners[i]);
-
-            fourCornersArray[i] = screenCoord;
+            fourCornersArray[i] = RectTransformUtility.WorldToScreenPoint(cam, corners[i]);
 		}
 	}
 
 	public static Rect GetScreenRect(this RectTransform rectTransform) {
-        var canvas = rectTransform.GetComponentInParent<Canvas>().rootCanvas;
+        var canvas = rectTransform.GetComponentInParent<Canvas>(true).rootCanvas;
 		return rectTransform.GetScreenRect(canvas);
 	}
 	public static Rect GetScreenRect(this RectTransform rectTransform, Canvas canvas) {
@@ -80,6 +75,17 @@ public static class RectTransformX {
 	public static Rect GetScreenRectIgnoringScale (this RectTransform rectTransform, Canvas canvas) {
 		Rect tmpRect = rectTransform.rect;
 		Matrix4x4 localToWorldMatrix = Matrix4x4.TRS(rectTransform.position, rectTransform.rotation, Vector3.one);
+		var min = RectTransformUtility.WorldToScreenPoint(canvas.worldCamera, localToWorldMatrix.MultiplyPoint(tmpRect.min));
+		var max = RectTransformUtility.WorldToScreenPoint(canvas.worldCamera, localToWorldMatrix.MultiplyPoint(tmpRect.max));
+		return RectX.CreateEncapsulating(min, max);
+	}
+	public static Rect GetScreenRectIgnoringRotation(this RectTransform rectTransform) {
+        var canvas = rectTransform.GetComponentInParent<Canvas>().rootCanvas;
+		return rectTransform.GetScreenRectIgnoringRotation(canvas);
+	}
+	public static Rect GetScreenRectIgnoringRotation(this RectTransform rectTransform, Canvas canvas) {
+		Rect tmpRect = rectTransform.rect;
+		Matrix4x4 localToWorldMatrix = Matrix4x4.TRS(rectTransform.position, Quaternion.identity, rectTransform.lossyScale);
 		var min = RectTransformUtility.WorldToScreenPoint(canvas.worldCamera, localToWorldMatrix.MultiplyPoint(tmpRect.min));
 		var max = RectTransformUtility.WorldToScreenPoint(canvas.worldCamera, localToWorldMatrix.MultiplyPoint(tmpRect.max));
 		return RectX.CreateEncapsulating(min, max);

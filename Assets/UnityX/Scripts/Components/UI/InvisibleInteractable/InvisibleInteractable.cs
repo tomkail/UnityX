@@ -6,6 +6,7 @@ using System.Collections.Generic;
 /// To allow an invisible button without having an image or text
 /// http://answers.unity3d.com/questions/801928/46-ui-making-a-button-transparent.html#answer-851816
 /// </summary>
+[RequireComponent(typeof(CanvasRenderer))]
 public class InvisibleInteractable : MaskableGraphic, ICanvasRaycastFilter
 {
 	public override bool Raycast(Vector2 sp, Camera eventCamera) {

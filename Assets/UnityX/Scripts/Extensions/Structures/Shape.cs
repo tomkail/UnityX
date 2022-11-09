@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-// A collection of points forming a shape. May not be contiguous.
+// A collection of points forming a shape. May or may not be contiguous.
 [System.Serializable]
 public class Shape {
 	public List<Point> points;
@@ -21,7 +21,12 @@ public class Shape {
 		this.points = points;
 		OnChangePoints();
 	}
+	
 
+	public IEnumerable<Point> GetTranslatedPoints(Point offset) {
+		return points.Select(x => x + offset);
+	}
+	
 	public void OnChangePoints () {
 		Vector2[] pointsAsVectors = new Vector2[points.Count];
 		for(int i = 0; i < points.Count; i++)

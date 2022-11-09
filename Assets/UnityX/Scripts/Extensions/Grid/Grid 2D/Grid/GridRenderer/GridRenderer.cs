@@ -228,24 +228,24 @@ public class GridRenderer : MonoBehaviour {
 		public Vector3 LocalVectorToGridVector (Vector2 worldVector) {
 			return gridToLocalMatrix.inverse.MultiplyVector(worldVector);
 		}
-		public Vector3 GridVectorToWorldVector (Vector2 gridVector) {
+		public Vector3 GridToWorldVector (Vector2 gridVector) {
 			return gridToWorldMatrix.MultiplyVector(gridVector);
 		}
 		public Vector3 GridToLocalVector (Vector2 gridVector) {
 			return gridToLocalMatrix.MultiplyVector(gridVector);
 		}
 
-		public Vector3 NormalizedVectorToWorldVector (Vector2 normalizedVector) {
+		public Vector3 NormalizedToWorldVector (Vector2 normalizedVector) {
 			var gridVector = NormalizedToGridPosition(normalizedVector);
-			return GridVectorToWorldVector(gridVector);
+			return GridToWorldVector(gridVector);
 		}
-		public Vector2 WorldVectorToNormalizedVector (Vector3 worldVector) {
+		public Vector2 WorldToNormalizedVector (Vector3 worldVector) {
 			var gridVector = WorldToGridVector(worldVector);
 			return GridToNormalizedPosition(gridVector);
 		}
 
 
-		public Vector3[] GridRectToWorldRect (Rect gridRect) {
+		public Vector3[] GridToWorldRect (Rect gridRect) {
 			Vector3[] worldPoints = new Vector3[4];
 			worldPoints[0] = GridToWorldPoint(gridRect.position);
 			worldPoints[1] = GridToWorldPoint(gridRect.position + new Vector2(gridRect.size.x, 0));
@@ -253,7 +253,7 @@ public class GridRenderer : MonoBehaviour {
 			worldPoints[3] = GridToWorldPoint(gridRect.position + new Vector2(0, gridRect.size.y));
 			return worldPoints;
 		}
-		public void GridRectToWorldRectNonAlloc (Rect gridRect, ref Vector3[] worldPoints) {
+		public void GridToWorldRectNonAlloc (Rect gridRect, ref Vector3[] worldPoints) {
 			if(worldPoints == null || worldPoints.Length != 4)
 				worldPoints = new Vector3[4];
 			worldPoints[0] = GridToWorldPoint(gridRect.position);
@@ -262,7 +262,7 @@ public class GridRenderer : MonoBehaviour {
 			worldPoints[3] = GridToWorldPoint(gridRect.position + new Vector2(0, gridRect.size.y));
 		}
 
-		public Vector2[] GridRectToLocalRect (Rect gridRect) {
+		public Vector2[] GridToLocalRect (Rect gridRect) {
 			Vector2[] worldPoints = new Vector2[4];
 			worldPoints[0] = GridToLocalPoint(gridRect.position);
 			worldPoints[1] = GridToLocalPoint(gridRect.position + new Vector2(gridRect.size.x, 0));
@@ -271,7 +271,7 @@ public class GridRenderer : MonoBehaviour {
 			return worldPoints;
 		}
 		
-		public Vector2[] NormalizedRectToLocalRect (Rect normalizedRect) {
+		public Vector2[] NormalizedToLocalRect (Rect normalizedRect) {
 			Vector2[] worldPoints = new Vector2[4];
 			worldPoints[0] = NormalizedToLocalPoint(normalizedRect.position);
 			worldPoints[1] = NormalizedToLocalPoint(normalizedRect.position + new Vector2(normalizedRect.size.x, 0));
@@ -280,7 +280,7 @@ public class GridRenderer : MonoBehaviour {
 			return worldPoints;
 		}
 
-		public Vector3[] NormalizedRectToWorldRect (Rect normalizedRect) {
+		public Vector3[] NormalizedToWorldRect (Rect normalizedRect) {
 			Vector3[] worldPoints = new Vector3[4];
 			worldPoints[0] = NormalizedToWorldPoint(normalizedRect.position);
 			worldPoints[1] = NormalizedToWorldPoint(normalizedRect.position + new Vector2(normalizedRect.size.x, 0));
@@ -289,7 +289,7 @@ public class GridRenderer : MonoBehaviour {
 			return worldPoints;
 		}
 
-		public void NormalizedRectToWorldRectNonAlloc (Rect normalizedRect, Vector3[] worldPoints) {
+		public void NormalizedToWorldRectNonAlloc (Rect normalizedRect, Vector3[] worldPoints) {
 			worldPoints[0] = NormalizedToWorldPoint(normalizedRect.position);
 			worldPoints[1] = NormalizedToWorldPoint(normalizedRect.position + new Vector2(normalizedRect.size.x, 0));
 			worldPoints[2] = NormalizedToWorldPoint(normalizedRect.position + normalizedRect.size);
@@ -374,7 +374,7 @@ public class GridRenderer : MonoBehaviour {
 		if(!showGizmos) return;
         
 		GizmosX.BeginColor(Color.white.WithAlpha(1f));
-        var bounds = edge.NormalizedRectToWorldRect(new Rect(0,0,1,1));
+        var bounds = edge.NormalizedToWorldRect(new Rect(0,0,1,1));
 		GizmosX.DrawWirePolygon(bounds);
         // bounds = cellCenter.NormalizedRectToWorldRect(new Rect(0,0,1,1));
 		// GizmosX.DrawWirePolygon(bounds);
@@ -392,7 +392,7 @@ public class GridRenderer : MonoBehaviour {
 	#if UNITY_EDITOR
 	public void DrawHandles () {        
 		HandlesX.BeginColor(Color.white.WithAlpha(1f));
-        var bounds = edge.NormalizedRectToWorldRect(new Rect(0,0,1,1));
+        var bounds = edge.NormalizedToWorldRect(new Rect(0,0,1,1));
 		HandlesX.DrawWirePolygon(bounds);
         // bounds = cellCenter.NormalizedRectToWorldRect(new Rect(0,0,1,1));
 		// HandlesX.DrawWirePolygon(bounds);

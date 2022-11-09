@@ -607,4 +607,20 @@ public static class MathX {
 		if(value >= a) return Mathf.InverseLerp(a, b, value);
 		return 0;
 	}
+
+
+
+
+
+
+	public static float Remap(this float val, float aIn1, float aIn2, float aOut1, float aOut2) {
+		float t = (val - aIn1) / (aIn2 - aIn1);
+		return aOut1 + (aOut2 - aOut1) * t;
+	}
+	public static float RemapClamped(this float val, float aIn1, float aIn2, float aOut1, float aOut2) {
+		float t = (val - aIn1) / (aIn2 - aIn1);
+		if (t > 1f) return aOut2;
+		if(t < 0f) return aOut1;
+		return aOut1 + (aOut2 - aOut1) * t;
+	}
 }

@@ -2,35 +2,38 @@
 using UnityEngine;
 
 public static class VersionControlX {
-    public static bool HasGitRepo () {
-        var gitDir = GetGitDirectory();
-        return gitDir != null && File.Exists(Path.Combine(gitDir, "HEAD"));
+    
+    // If this path contains a git repo.
+    public static bool IsGitDirectory (string path) {
+        return Directory.Exists (Path.Combine(path,".git"));
     }
 
-    public static string GetGitDirectory () {
-        var currDir = Directory.GetCurrentDirectory();
+    public static string gitDirectory {
+        get {
+            var currDir = Directory.GetCurrentDirectory();
+            
+            // Loop up through directories until we find the .git folder
+            bool found = false;
+            while(!found) {
+                found = IsGitDirectory(currDir);
+                if( !found ) {
+                    // Go up a directory
+                    currDir = Path.GetDirectoryName(currDir);
 
-        // Loop up through directories until we find the .git folder
-        bool found = false;
-        while(!found) {
-            found = Directory.Exists(Path.Combine(currDir, ".git"));
-            if( !found ) {
-                // Go up a directory
-                currDir = Path.GetDirectoryName(currDir);
-
-                // Gone past C:\ to nothingness
-                if( currDir == "" || currDir == null ) {
-                    // Debug.LogError("no .git folder could be found.");
-                    return null;
+                    // Gone past C:\ to nothingness
+                    if(string.IsNullOrEmpty(currDir)) {
+                        return ReturnNullAndWarn("Tried to get git directory but no .git folder could be found in "+Directory.GetCurrentDirectory());
+                    }
                 }
             }
-        }
 
-        return Path.Combine(currDir, ".git");
+            return Path.Combine(currDir, ".git");
+        }
     }
 
     public static string GetGitBranch() {
-        var gitDir = GetGitDirectory();
+        var gitDir = gitDirectory;
+        if(gitDir == null) return ReturnNullAndWarn("git directory not found");
 
         // Find HEAD file that contains either:
         //  ref: refs/heads/2017.4
@@ -38,8 +41,7 @@ public static class VersionControlX {
         var headFilePath = Path.Combine(gitDir, "HEAD");
 
         if( !File.Exists(headFilePath) ) {
-            Debug.LogError("Tried to get git branch but failed to find "+headFilePath);
-            return "???";
+            return ReturnNullAndWarn("Tried to get git branch but failed to find "+headFilePath);
         }
         
         // Get content of ref file - either a path to a file with a SHA, or the SHA itself
@@ -51,25 +53,20 @@ public static class VersionControlX {
             int pos = headFileContent.LastIndexOf("/") + 1;
             return headFileContent.Substring(pos, headFileContent.Length - pos);
         } else {
-            return "???";
+            return ReturnNullAndWarn("Tried to get git branch but headFileContent doesn't start with 'ref: '"+headFileContent);
         }
     }
-    
     public static string GetGitSHA() {
-        string Error(string msg) {
-            Debug.LogWarning("Tried to get git SHA to put in Version object, but "+msg);
-            return null;
-        }
-
-        var gitDir = GetGitDirectory();
-
+        var gitDir = gitDirectory;
+        if(gitDir == null) return ReturnNullAndWarn("git directory not found");
+        
         // Find HEAD file that contains either:
         //  ref: refs/heads/2017.4
         // or a SHA itself
         var headFilePath = Path.Combine(gitDir, "HEAD");
 
         if( !File.Exists(headFilePath) )
-            return Error("failed to find "+headFilePath);
+            return ReturnNullAndWarn("Tried to get git SHA to put in Version object, but failed to find "+headFilePath);
 
         // Get content of ref file - either a path to a file with a SHA, or the SHA itself
         var headFileContent = File.ReadAllText(headFilePath).Trim();
@@ -83,7 +80,7 @@ public static class VersionControlX {
             refPath = Path.Combine(gitDir, refPath);
             
             if( !File.Exists(refPath) )
-                return Error("path of ref file could not be found: "+refPath);
+                return ReturnNullAndWarn("Tried to get git SHA to put in Version object, but path of ref file could not be found: "+refPath);
             
             gitSha = File.ReadAllText(refPath).Trim();
         }
@@ -95,9 +92,13 @@ public static class VersionControlX {
 
         // Does it look like a git SHA?
         if( gitSha.Length < 6 || gitSha.Length > 42 || gitSha.Contains(" ") )
-            return Error("got unexpected output: "+gitSha);
+            return ReturnNullAndWarn("Tried to get git SHA to put in Version object, but got unexpected output: "+gitSha);
 
         return gitSha.Substring(0, 6);
     }
-        
+    
+    static string ReturnNullAndWarn(string msg) {
+        Debug.LogWarning("VersionControlX: "+msg);
+        return null;
+    }
 }

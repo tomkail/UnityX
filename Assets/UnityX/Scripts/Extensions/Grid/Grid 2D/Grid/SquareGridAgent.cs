@@ -32,8 +32,8 @@ public class SquareGridAgent : MonoBehaviour {
 		GizmosX.BeginColor(Color.green.WithAlpha(0.3f));
 		foreach(var chunkPoint in chunkPoints) {
 			// GizmosX.DrawWirePolygon(worldGrid.edge.GridRectToWorldRect(new Rect(chunkPoint.x, chunkPoint.y, 1, 1)));
-			Gizmos.DrawWireCube(worldGrid.cellCenter.GridToWorldPoint(chunkPoint), worldGrid.cellCenter.GridVectorToWorldVector(Vector2.one));
-			Gizmos.DrawCube(worldGrid.cellCenter.GridToWorldPoint(chunkPoint), worldGrid.cellCenter.GridVectorToWorldVector(Vector2.one));
+			Gizmos.DrawWireCube(worldGrid.cellCenter.GridToWorldPoint(chunkPoint), worldGrid.cellCenter.GridToWorldVector(Vector2.one));
+			Gizmos.DrawCube(worldGrid.cellCenter.GridToWorldPoint(chunkPoint), worldGrid.cellCenter.GridToWorldVector(Vector2.one));
 		}
 		Gizmos.color = Color.blue;
 		GizmosX.DrawWireCube(transform.GetBounds());

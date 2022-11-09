@@ -79,6 +79,9 @@ public static class ColorX {
 	public static Color WithAlpha (this Color c, float alpha) {
 		return new Color(c.r,c.g,c.b,alpha);
 	}
+	public static Color WithMultipliedAlpha (this Color c, float alpha) {
+		return new Color(c.r,c.g,c.b,c.a*alpha);
+	}
 
 	public static Color ToGrayscaleColor (float gray) {
 		return new Color(gray,gray,gray);

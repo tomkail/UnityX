@@ -172,7 +172,7 @@ public class TypeMap<T> : Grid, IEnumerable<TypeMapCellInfo<T>> {
         }
 	}
 
-	public void SetValueAtGridPoints(IList<Point> gridPoints, T val){
+	public void SetValueAtGridPoints(IEnumerable<Point> gridPoints, T val){
 		foreach(Point gridPoint in gridPoints)
 			SetValueAtGridPoint(gridPoint.x, gridPoint.y, val);
 	}

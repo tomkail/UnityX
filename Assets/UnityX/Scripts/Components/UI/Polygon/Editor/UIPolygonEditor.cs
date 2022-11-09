@@ -32,7 +32,6 @@ namespace UnityEditor.UI
 			texture = serializedObject.FindProperty("_texture");
 			polygon = serializedObject.FindProperty("_polygon");
             // centreIsBoundsCentre = serializedObject.FindProperty("centreIsBoundsCentre");
-
             polygonEditor = new PolygonEditorHandles(data.transform, Matrix4x4.Translate(data.GetPixelAdjustedRect().position));
             polygonEditor.snapInterval = 100;
             data.RegisterDirtyLayoutCallback(OnGraphicChange);
@@ -96,9 +95,10 @@ namespace UnityEditor.UI
 
         void OnSceneGUI () {
             Undo.RecordObject(target, "Modified Polygon");
+            polygonEditor.drawPolygon = Selection.activeGameObject == data.gameObject;
 		    if(polygonEditor.OnSceneGUI(data.polygon)) {
+                polygon.SetValue(data.polygon);
                 data.SetVerticesDirty();
-                data.SetMaterialDirty();
             }
         }
 	}

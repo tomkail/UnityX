@@ -64,12 +64,13 @@ namespace UnityEngine.UI.Extensions {
             SetAllDirty();
         }
 
+        static List<int> triangles = new List<int>();
         protected override void OnPopulateMesh(VertexHelper vh) {
             vh.Clear();
 			var points = polygon.vertices;
             var pivotOffset = (Vector3)GetPixelAdjustedRect().position;
 			
-            List<int> triangles = new List<int>();
+            triangles.Clear();
             Triangulator.GenerateIndices(points, triangles);
             var rect = polygon.GetRect();
             Vector2 uvXDirection = MathX.DegreesToVector2(uvXAngle);

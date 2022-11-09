@@ -183,11 +183,64 @@ public class HSVColor {
         }
         return new HSVColor(h, s, Mathf.Lerp(a.v, b.v, t), Mathf.Lerp(a.a, b.a, t));
     }
+    
+    public static HSVColor MoveTowards(HSVColor c1, HSVColor c2, float maxDelta) {
+        return new HSVColor(Mathf.MoveTowards(c1.h, c2.h, maxDelta*180), Mathf.MoveTowards(c1.s, c2.s, maxDelta), Mathf.MoveTowards(c1.v, c2.v, maxDelta), Mathf.MoveTowards(c1.a, c2.a, maxDelta));
+    }
+	
+
+    public static HSVColor Add(HSVColor left, HSVColor right){
+        return new HSVColor(left.h+right.h, left.s+right.s, left.v+right.v, left.a+right.a);
+    }
+
+    public static HSVColor Subtract(HSVColor left, HSVColor right){
+        return new HSVColor(left.h-right.h, left.s-right.s, left.v-right.v, left.a-right.a);
+    }
+    
+    public override bool Equals(System.Object obj) {
+        return obj is HSVColor && this == (HSVColor)obj;
+    }
+
+    public bool Equals(HSVColor p) {
+        return h == p.h && s == p.s && v == p.v && a == p.a;
+    }
+
+    public override int GetHashCode() {
+        unchecked // Overflow is fine, just wrap
+        {
+            int hash = 27;
+            hash = hash * 31 + h.GetHashCode();
+            hash = hash * 31 + s.GetHashCode();
+            hash = hash * 31 + v.GetHashCode();
+            hash = hash * 31 + a.GetHashCode();
+            return hash;
+        }
+    }
+
+    public static bool operator == (HSVColor left, HSVColor right) {
+        return left.Equals(right);
+    }
+
+    public static bool operator != (HSVColor left, HSVColor right) {
+        return !(left == right);
+    }
+
+    public static HSVColor operator +(HSVColor left, HSVColor right) {
+        return Add(left, right);
+    }
+
+    public static HSVColor operator -(HSVColor left) {
+        return new HSVColor(-left.h, -left.s, -left.v, -left.a);
+    }
+
+    public static HSVColor operator -(HSVColor left, HSVColor right) {
+        return Subtract(left, right);
+    }
 
     public static implicit operator HSVColor(Color src) {
         return FromRGBA(src);
     }
-    
+	
     public static implicit operator Color(HSVColor src) {
         return src.ToRGBA();
     }

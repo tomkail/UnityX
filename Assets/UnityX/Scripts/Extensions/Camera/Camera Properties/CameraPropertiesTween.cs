@@ -4,6 +4,7 @@ using UnityEngine;
 /// A tween class for Camera Properties. Saves writing out lots of code for a simple camera effect such as a smooth zoom or pan.
 /// Individual properties 
 /// </summary>
+[System.Serializable]
 public class CameraPropertiesTween : TypeTween<CameraProperties> {
 
 	private AnimationCurve _targetPointEasingCurve;

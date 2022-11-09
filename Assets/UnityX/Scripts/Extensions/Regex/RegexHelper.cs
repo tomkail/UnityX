@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 public static class RegexHelper {
 	public const string emptyOrWhiteSpace = @"^[A-Z\s]*$";
 
-	public const string urlPattern = @"^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$";
+	public const string urlPattern = @"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)";
 	static Regex _url;
 	public static Regex url {get {if(_url == null) _url = new Regex(urlPattern);return _url;}}
 

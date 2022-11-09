@@ -142,10 +142,16 @@ public static class ComponentX {
 		}
 
 		// Utility functions for common actions.
-		public static ComponentSearchParams<T> AllDescendents (bool includeInactive = false, System.Predicate<T> predicate = null) {
+		public static ComponentSearchParams<T> AllDescendentsExcludingSelf (bool includeInactive = false, System.Predicate<T> predicate = null) {
+			return new ComponentSearchParams<T>(1, int.MaxValue, includeInactive, predicate);
+		}
+		public static ComponentSearchParams<T> AllDescendentsIncludingSelf (bool includeInactive = false, System.Predicate<T> predicate = null) {
 			return new ComponentSearchParams<T>(0, int.MaxValue, includeInactive, predicate);
 		}
-		public static ComponentSearchParams<T> AllAncestors (bool includeInactive = false, System.Predicate<T> predicate = null) {
+		public static ComponentSearchParams<T> AllAncestorsExcludingSelf (bool includeInactive = false, System.Predicate<T> predicate = null) {
+			return new ComponentSearchParams<T>(-1, int.MinValue, includeInactive, predicate);
+		}
+		public static ComponentSearchParams<T> AllAncestorsIncludingSelf (bool includeInactive = false, System.Predicate<T> predicate = null) {
 			return new ComponentSearchParams<T>(0, int.MinValue, includeInactive, predicate);
 		}
 	}

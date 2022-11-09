@@ -43,7 +43,7 @@ public class RadialGridAgent : MonoBehaviour {
 			GizmosX.BeginColor(Color.green.WithAlpha(0.3f));
 			foreach(var chunkPoint in chunkPoints) {
 				var center = worldGrid.cellCenter.GridToWorldPoint(chunkPoint);
-				var size = worldGrid.cellCenter.GridVectorToWorldVector(Vector2.one);
+				var size = worldGrid.cellCenter.GridToWorldVector(Vector2.one);
 				// GizmosX.DrawWirePolygon(worldGrid.edge.GridRectToWorldRect(new Rect(chunkPoint.x, chunkPoint.y, 1, 1)));
 				Gizmos.DrawWireCube(center, size);
 				Gizmos.DrawCube(center, size);

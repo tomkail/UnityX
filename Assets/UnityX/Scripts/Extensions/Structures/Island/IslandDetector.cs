@@ -48,7 +48,10 @@ public class IslandDetector<Coord> where Coord : IEquatable<Coord> {
 	}
 
 	void TryConnectTile (Island<Coord> island, Coord gridPoint) {
-		if(testedPoints.Contains(gridPoint)) return;
+		if (testedPoints.Contains(gridPoint)) {
+			islandStartPointsToTest.Remove (gridPoint);
+			return;
+		}
 		if(!GetPointIsValid(gridPoint)) return;
 
 		bool alreadyCheckedInIsland = island.points.Contains(gridPoint);

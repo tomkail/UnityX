@@ -1,13 +1,17 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using System.Linq;
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 
 // Cribbed a lot from https://gamedev.stackexchange.com/questions/154696/picking-multiple-choices-from-an-enum/154699
 [CustomPropertyDrawer(typeof (EnumFlagsButtonGroupAttribute))]
 class EnumFlagsButtonGroupDrawer : PropertyDrawer {
     public override void OnGUI (Rect position, SerializedProperty property, GUIContent label) {
-        Initialize(property);
+		if (_properties == null)
+            Initialize(property);
 		
 		EditorGUI.BeginProperty (position, label, property);
 		var containerRect = EditorGUI.PrefixLabel(new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight), label);
@@ -58,10 +62,12 @@ class EnumFlagsButtonGroupDrawer : PropertyDrawer {
 		// EditorGUI.BeginProperty (position, label, property);
 		var containerRect = EditorGUI.PrefixLabel(new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight), label);
 		
-        var enumType = ReflectionX.GetTypeFromObject(property.serializedObject.targetObject, property.propertyPath);
+        var parentType = property.serializedObject.targetObject.GetType();
+        var fieldInfo = parentType.GetField(property.propertyPath);
+        var enumType = fieldInfo.FieldType;
         var trueNames = System.Enum.GetNames(enumType);
 
-        var typedValues = GetTypedValues(property, enumType);
+        var typedValues = GetTypedValues(enumType);
         var display = property.enumDisplayNames;
         var names = property.enumNames;
 
@@ -101,6 +107,42 @@ class EnumFlagsButtonGroupDrawer : PropertyDrawer {
 		// EditorGUI.EndProperty ();
 	}
 
+
+
+    public static T DrawLayout<T> (T enumm, GUIContent label) where T : Enum {
+        var position = GUILayoutUtility.GetRect(0, EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
+        return Draw(position, enumm, label);
+    }
+    public static T Draw<T> (Rect position, T enumm, GUIContent label) where T : Enum {
+		var containerRect = EditorGUI.PrefixLabel(new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight), label);
+		
+        var enumType = typeof(T);
+        var trueNames = System.Enum.GetNames(enumType);
+
+        var typedValues = GetTypedValues(enumType);
+
+		var numButtons = trueNames.Length;
+		var width = containerRect.width/numButtons;
+
+        var enummAsInt = (int)(object)enumm;
+		for(int i = 0; i < trueNames.Length; i++) {
+            int value = typedValues[i];
+
+			var rect = new Rect(containerRect.x + width * i, containerRect.y, width, containerRect.height);
+            EditorGUI.BeginChangeCheck();
+			bool pressed = (enummAsInt & value) != 0;
+			pressed = GUI.Toggle(rect, pressed, trueNames[i], GetGUIStyle(i, numButtons, false));
+            if (EditorGUI.EndChangeCheck()) {
+                if (pressed) {
+                    enummAsInt |= value;
+                } else {
+                    enummAsInt &= ~value;
+                }
+            }
+        }
+        return (T)(object)enummAsInt;
+	}
+
 	
 	[System.Flags]
     enum TriBool {
@@ -128,10 +170,10 @@ class EnumFlagsButtonGroupDrawer : PropertyDrawer {
             if (iteratedProperty != null) _properties.Add(iteratedProperty);
         }
 
-        var enumType = ReflectionX.GetTypeFromObject(property.serializedObject.targetObject, property.propertyPath);
+        var enumType = GetTypeFromObject(property.serializedObject.targetObject, property.propertyPath);
         var trueNames = System.Enum.GetNames(enumType);
 
-        var typedValues = GetTypedValues(property, enumType);
+        var typedValues = GetTypedValues(enumType);
         var display = property.enumDisplayNames;
         var names = property.enumNames;
 
@@ -162,7 +204,7 @@ class EnumFlagsButtonGroupDrawer : PropertyDrawer {
         }
     }
 
-    static int[] GetTypedValues(SerializedProperty property, System.Type enumType) {
+    static int[] GetTypedValues(System.Type enumType) {
         var values = System.Enum.GetValues(enumType);
         var underlying = System.Enum.GetUnderlyingType(enumType);
 
@@ -190,6 +232,56 @@ class EnumFlagsButtonGroupDrawer : PropertyDrawer {
 
         return typedValues;
     }
+
+    public static Type GetTypeFromObject(object obj, string propertyPath) {
+		Debug.Assert(obj != null);
+		string[] parts = propertyPath.Split('.');
+        FieldInfo fieldInfo = null;
+		PropertyInfo propertyInfo = null;
+		MemberInfo memberInfo = null;
+		Type type = null;
+		for (int i = 0; i < parts.Length; i++) {
+			fieldInfo = null;
+			propertyInfo = null;
+			memberInfo = obj.GetType().GetMember(parts[i], BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.FlattenHierarchy|BindingFlags.Instance).FirstOrDefault();
+			if(memberInfo is FieldInfo) {
+				fieldInfo = (FieldInfo)memberInfo;
+				obj = fieldInfo.GetValue(obj);
+				type = fieldInfo.FieldType;
+			} else if(memberInfo is PropertyInfo) {
+				propertyInfo = (PropertyInfo)memberInfo;
+				obj = propertyInfo.GetValue(obj, null);
+				type = propertyInfo.PropertyType;
+			}
+			bool isArray = type != null && (type.IsArray || type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>));
+			if (i != parts.Length-1 && isArray) {
+				i+=2;
+				int indexStart = parts[i].IndexOf("[")+1;
+				int collectionElementIndex = Int32.Parse(parts[i].Substring(indexStart, parts[i].Length-indexStart-1));
+				if(obj != null) {
+					IList list = obj as IList;
+					if(collectionElementIndex >= 0 && collectionElementIndex < list.Count) {
+						obj = list[collectionElementIndex];
+						if(obj == null) {
+							if(i == parts.Length-1) {
+								break;
+							} else {
+								return null;
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		if(type == null) return null;
+		else if(type.IsArray) return type.GetElementType();
+		else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>)) return type.GetGenericArguments()[0];
+		else return type;
+	}
+
+
+
 	static GUIStyle GetGUIStyle (int index, int numButtons, bool mixed) {
 		var style = mixed ? miniButtonMixed : EditorStyles.miniButton;
 		if(numButtons > 1) {

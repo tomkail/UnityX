@@ -74,6 +74,14 @@ public class MouseInput : InputPoint {
 	}
 
 	public override void End(){
+		leftButton.OnMouseButtonDown -= OnLeftMouseButtonDown;
+		leftButton.OnMouseButtonUp -= OnLeftMouseButtonUp;
+		rightButton.OnMouseButtonDown -= OnRightMouseButtonDown;
+		rightButton.OnMouseButtonUp -= OnRightMouseButtonUp;
+		middleButton.OnMouseButtonDown -= OnMiddleMouseButtonDown;
+		middleButton.OnMouseButtonUp -= OnMiddleMouseButtonUp;
+
+		scrollWheel.OnMouseScroll -= OnMouseWheelScroll;
 		base.End();
 	}
 
