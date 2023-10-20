@@ -1,17 +1,16 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using System.Linq;
 using System.IO;
 
 [CustomPropertyDrawer (typeof(FilePathAttribute))]
 class FilePathDrawer : BaseAttributePropertyDrawer<FilePathAttribute> {
 	const int buttonWidth = 22;
 
-	public static string FilePathLayout (string path, string label, FilePathAttribute.RelativeTo relativeTo, bool removePrefixSlash = false, bool showPrevNextFileControls = false) {
-		return FilePathLayout(path, new GUIContent(label, null, Path.GetFileName(path)), relativeTo, removePrefixSlash);
+	public static string FilePathLayout (string path, string label, FilePathAttribute.RelativeTo relativeTo, bool editable = true, bool removePrefixSlash = false, bool showPrevNextFileControls = false) {
+		return FilePathLayout(path, new GUIContent(label, null, Path.GetFileName(path)), relativeTo, editable, removePrefixSlash, showPrevNextFileControls);
 	}
 
-	public static string FilePathLayout (string path, GUIContent label, FilePathAttribute.RelativeTo relativeTo, bool removePrefixSlash = false, bool showPrevNextFileControls = false) {
+	public static string FilePathLayout (string path, GUIContent label, FilePathAttribute.RelativeTo relativeTo, bool editable = true, bool removePrefixSlash = false, bool showPrevNextFileControls = false) {
 		bool exists = FileExistsOrPathEmpty(path, relativeTo);
 		Color previousColor = GUI.backgroundColor;
         if(!exists) GUI.backgroundColor = Color.red;
@@ -21,7 +20,9 @@ class FilePathDrawer : BaseAttributePropertyDrawer<FilePathAttribute> {
 		EditorGUILayout.PrefixLabel(label);
 		
 		if(path == null) path = "";
+		EditorGUI.BeginDisabledGroup(!editable);
 		path = EditorGUILayout.TextField(path);
+		EditorGUI.EndDisabledGroup();
 		if(showPrevNextFileControls) {
 			string[] filesInDir = null;
             int numFilesInDir;
@@ -34,7 +35,7 @@ class FilePathDrawer : BaseAttributePropertyDrawer<FilePathAttribute> {
 			if(GUILayout.Button(new GUIContent(">", null, GUI.enabled ? Path.GetFileName(filesInDir[indexOfFile+1]) : string.Empty), GUILayout.Width(buttonWidth))) path = filesInDir[indexOfFile+1];
 			EditorGUI.EndDisabledGroup();
 		}
-		if(GUILayout.Button(new GUIContent("...", null, "Show file picker"), GUILayout.Width(buttonWidth))) path = GetPath(path, relativeTo, removePrefixSlash);
+		if(editable && GUILayout.Button(new GUIContent("...", null, "Show file picker"), GUILayout.Width(buttonWidth))) path = GetPath(path, relativeTo, removePrefixSlash);
 		EditorGUI.BeginDisabledGroup(string.IsNullOrWhiteSpace(path) || !exists);
 		if(GUILayout.Button(new GUIContent(">", null, "Show in finder"), GUILayout.Width(buttonWidth))) RevealPathInFinder(path, relativeTo);
 		EditorGUI.EndDisabledGroup();
@@ -43,11 +44,11 @@ class FilePathDrawer : BaseAttributePropertyDrawer<FilePathAttribute> {
 		return path;
 	}
 
-	public static string FilePath (Rect position, string path, string label, FilePathAttribute.RelativeTo relativeTo, bool removePrefixSlash = false, bool showPrevNextFileControls = false) {
-		return FilePath(position, path, new GUIContent(label, null, Path.GetFileName(path)), relativeTo, removePrefixSlash);
+	public static string FilePath (Rect position, string path, string label, FilePathAttribute.RelativeTo relativeTo, bool editable = true, bool removePrefixSlash = false, bool showPrevNextFileControls = false) {
+		return FilePath(position, path, new GUIContent(label, null, Path.GetFileName(path)), relativeTo, editable, removePrefixSlash, showPrevNextFileControls);
 	}
 	
-	public static string FilePath (Rect position, string path, GUIContent label, FilePathAttribute.RelativeTo relativeTo, bool removePrefixSlash = false, bool showPrevNextFileControls = false) {
+	public static string FilePath (Rect position, string path, GUIContent label, FilePathAttribute.RelativeTo relativeTo, bool editable = true, bool removePrefixSlash = false, bool showPrevNextFileControls = false) {
 		bool exists = FileExistsOrPathEmpty(path, relativeTo);
 		Color previousColor = GUI.backgroundColor;
         if(!exists) GUI.backgroundColor = Color.red;
@@ -92,9 +93,10 @@ class FilePathDrawer : BaseAttributePropertyDrawer<FilePathAttribute> {
 		}
 
 		if(path == null) path = "";
-
+		EditorGUI.BeginDisabledGroup(!editable);
 		path = EditorGUI.TextField(textRect, path);
-		if(GUI.Button(buttonRect3, new GUIContent("...", null, "Show file picker") )) path = GetPath(path, relativeTo, removePrefixSlash);
+		EditorGUI.EndDisabledGroup();
+		if(editable && GUI.Button(buttonRect3, new GUIContent("...", null, "Show file picker") )) path = GetPath(path, relativeTo, removePrefixSlash);
 		EditorGUI.BeginDisabledGroup(string.IsNullOrWhiteSpace(path) || !exists);
 		if(GUI.Button(buttonRect4, new GUIContent(">", null, "Show in finder"))) RevealPathInFinder(path, relativeTo);
 		EditorGUI.EndDisabledGroup();
@@ -132,7 +134,7 @@ class FilePathDrawer : BaseAttributePropertyDrawer<FilePathAttribute> {
 
 	static void RevealPathInFinder (string unityRelativePath, FilePathAttribute.RelativeTo relativeTo) {
 		var absolutePath = ToAbsolutePath(unityRelativePath, relativeTo);
-		EditorUtility.RevealInFinder(absolutePath);
+		EditorUtility.RevealInFinder(Path.GetFullPath(absolutePath));
 	}
 
 	// Draw the property inside the given rect
@@ -198,7 +200,7 @@ class FilePathDrawer : BaseAttributePropertyDrawer<FilePathAttribute> {
 	}
 
 	static bool FileExistsOrPathEmpty (string localPath, FilePathAttribute.RelativeTo relativeTo) {
-		return string.IsNullOrWhiteSpace(localPath) || System.IO.File.Exists(ToAbsolutePath(localPath, relativeTo));
+		return string.IsNullOrWhiteSpace(localPath) || File.Exists(ToAbsolutePath(localPath, relativeTo));
 	}
 
 	protected override bool IsSupported(SerializedProperty property) {

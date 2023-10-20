@@ -48,19 +48,6 @@ public class PolygonRenderer : BasePolygonRenderer {
     public float uvXAngle = 0;
     public float uvYAngle = 90;
 
-    [Space]
-    public ColorMode colorMode;
-    public enum ColorMode {
-        White,
-        Rect,
-        Shape,
-        Custom
-    }
-
-    public Gradient gradient;
-    public float colorAngle;
-
-
 
     MaterialPropertyBlock _propBlock = null;
     MaterialPropertyBlock propBlock {

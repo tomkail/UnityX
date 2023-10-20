@@ -56,7 +56,7 @@ namespace UnityEditorX.SceneManagement {
 		}
 
 		public static bool AnySceneDirty () {
-			for(int i = 0; i < EditorSceneManager.loadedSceneCount; i++) {
+			for(int i = 0; i < SceneManager.loadedSceneCount; i++) {
 				if(EditorSceneManager.GetSceneAt(i).isDirty) return true;
 			}
 			return false;
@@ -64,7 +64,7 @@ namespace UnityEditorX.SceneManagement {
 
 		public static List<Scene> GetDirtyScenes () {
 			List<Scene> scenes = new List<Scene>();
-			for(int i = 0; i < EditorSceneManager.loadedSceneCount; i++) {
+			for(int i = 0; i < SceneManager.loadedSceneCount; i++) {
 				var scene = EditorSceneManager.GetSceneAt(i);
 				if(scene.isDirty) scenes.Add(scene);
 			}

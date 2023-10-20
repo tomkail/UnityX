@@ -21,6 +21,9 @@ public class InputX : MonoSingleton<InputX> {
 			}
 		}
 	}
+
+	public bool resetOnLoseFocus = true;
+	public bool resetOnPause = true;
 	
 	public KeyboardInput keyboardInput;
 	public IEnumerable<InputPoint> inputPoints {
@@ -84,10 +87,6 @@ public class InputX : MonoSingleton<InputX> {
 	public delegate void OnMouseScrollEvent(MouseInput inputPoint);
 	public event OnMouseScrollEvent OnMouseScroll;
 
-	public void TouchStartTest (Touch touch) {
-		TouchStart(touch);
-	}
-
 	protected override void Awake () {
         base.Awake();
 	    InitMouse();
@@ -101,23 +100,20 @@ public class InputX : MonoSingleton<InputX> {
 	}
     
     void OnApplicationFocus (bool hasFocus) {
-        ResetInput();
+		if(resetOnLoseFocus)
+        	ResetInput();
     }
     void OnApplicationPause (bool pauseStatus) {
-        ResetInput();
+		if(resetOnPause)
+        	ResetInput();
     }
 
-	void OnDestroy () {
-		DestroyMouse();
-		DestroyKeyboard();
-	}
-	
 	//Resets all input values.
 	public void ResetInput(){
 		if(fingers != null) {
 			for (int i = fingers.Count-1; i >= 0; i--) {
 				fingers[i].ResetInput();
-                TouchEnd(i);
+                RemoveFinger(i);
 			}
 		}
 
@@ -131,7 +127,7 @@ public class InputX : MonoSingleton<InputX> {
 	}
 
 	private void UpdateInput(){
-		if(Input.multiTouchEnabled){
+		if((TouchInputSimulator.Instance != null && TouchInputSimulator.Instance.enabled) || Input.multiTouchEnabled){
 			UpdateTouch();
 			// This allows deltaPosition to work when using left mouse via touch.
 			if (Input.GetMouseButtonDown (0)) {
@@ -161,7 +157,7 @@ public class InputX : MonoSingleton<InputX> {
                         // log += "\nListing Fingers";
                         // for(int j = 0; j < fingers.Count; j++) log += "\n Finger "+j+", fingerId "+fingers[j].fingerId;
                         // Debug.Log(log);
-						TouchEnd((int)fingerIndex);
+						RemoveFinger((int)fingerIndex);
 						continue;
 					} else {
                         Debug.LogError("Touch "+touch.phase+" but no finger found with fingerId "+touch.fingerId);
@@ -274,7 +270,11 @@ public class InputX : MonoSingleton<InputX> {
 	}
 
 	private void TouchStart(Touch _touch){
-		fingers.Add(new Finger(_touch));
+		AddFinger(new Finger(_touch));
+	}
+
+	public void AddFinger (Finger finger) {
+		fingers.Add(finger);
 
         // var log = "Start touch with fingerId "+_touch.fingerId+". Listing touches:";
         // for(int j = 0; j < Input.touchCount; j++) log += "\n Touch "+j+", fingerId "+Input.touches[j].fingerId;
@@ -282,15 +282,19 @@ public class InputX : MonoSingleton<InputX> {
         // for(int j = 0; j < fingers.Count; j++) log += "\n Finger "+j+", fingerId "+fingers[j].fingerId;
         // Debug.Log(log);
 
-		if(OnTouchStart != null){
-			OnTouchStart(fingers[fingers.Count-1]);
-		}
+		if(OnTouchStart != null) OnTouchStart(finger);
 	}
-	private void TouchEnd(int _index) {
-        // Debug.Log("End touch with fingerId "+fingers[_index].fingerId);
-		fingers[_index].End();
+	public void RemoveFinger (Finger finger) {
+		var index = fingers.IndexOf(finger);
+		if(index != -1) RemoveFinger(index);
+	}
 
-		if(OnTouchEnd != null) OnTouchEnd(fingers[_index]);
+	private void RemoveFinger(int _index) {
+		var finger = fingers[_index];
+        // Debug.Log("End touch with fingerId "+finger.fingerId);
+		finger.End();
+
+		if(OnTouchEnd != null) OnTouchEnd(finger);
 
 		fingers.RemoveAt(_index);
 	}
@@ -367,15 +371,6 @@ public class InputX : MonoSingleton<InputX> {
 			}
 		}
 		return null;
-	}
-
-	private void TouchStart (Finger inputPoint) {
-		if(OnTouchStart != null){
-			OnTouchStart(inputPoint);
-		}
-	}
-	private void TouchEnd (Finger inputPoint) {
-		if(OnTouchEnd != null) OnTouchEnd(inputPoint);
 	}
 
 	private void Tap (InputPoint inputPoint) {
@@ -459,17 +454,26 @@ public class InputX : MonoSingleton<InputX> {
     bool drawGUI = false;
     void OnGUI () {
         if(!drawGUI) return;
-        GUI.Box(OnGUIX.ScreenToGUIRect(RectX.CreateFromCenter(mouseInput.position, Vector2.one * 50)), "Mouse");
+        GUI.Box(ScreenToGUIRect(RectX.CreateFromCenter(mouseInput.position, Vector2.one * 50)), "Mouse");
 
         foreach(var finger in fingers) {
-            GUI.Box(OnGUIX.ScreenToGUIRect(RectX.CreateFromCenter(finger.position, Vector2.one * 50)), "Finger "+finger.fingerArrayIndex.ToString());
+            GUI.Box(ScreenToGUIRect(RectX.CreateFromCenter(finger.position, Vector2.one * 50)), "Finger "+finger.fingerArrayIndex.ToString());
         }
 
         foreach(var pinch in pinches) {
-            var start = OnGUIX.ScreenToGUIPoint(pinch.inputPoint1.position);
-            var end = OnGUIX.ScreenToGUIPoint(pinch.inputPoint2.position);
-            OnGUIX.DrawLine(start, end);
+            var start = ScreenToGUIPoint(pinch.inputPoint1.position);
+            var end = ScreenToGUIPoint(pinch.inputPoint2.position);
+            // DrawLine(start, end);
             GUI.Box(RectX.CreateFromCenter(Vector2.Lerp(start, end, 0.5f), new Vector2(60, 40)), pinch.currentPinchDistance.ToString());
         }
+
+		Rect ScreenToGUIRect (Rect rect) {
+			rect.center = ScreenToGUIPoint(rect.center);
+			return rect;
+		}
+
+		Vector2 ScreenToGUIPoint (Vector2 point) {
+			return new Vector2(point.x, Screen.height-point.y);
+		}
     }
 }

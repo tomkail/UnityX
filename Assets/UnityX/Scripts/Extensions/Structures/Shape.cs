@@ -15,14 +15,11 @@ public class Shape {
 		points = new List<Point>();
 	}
 
-	public Shape (Point[] points) : this (points.ToList()) {}
-
-	public Shape (List<Point> points) {
-		this.points = points;
+	public Shape (IEnumerable<Point> points) {
+		this.points = new List<Point>(points);
 		OnChangePoints();
 	}
 	
-
 	public IEnumerable<Point> GetTranslatedPoints(Point offset) {
 		return points.Select(x => x + offset);
 	}

@@ -99,7 +99,7 @@ public class Grid {
 		return new Point(arrayIndex%size.x, Mathf.FloorToInt((float)arrayIndex * sizeReciprocal.x));
 	}
 
-	public Point ArrayIndexToNormalizedPosition (int arrayIndex){
+	public Vector2 ArrayIndexToNormalizedPosition (int arrayIndex){
 		Point gridPoint = ArrayIndexToGridPoint(arrayIndex);
 		return GridToNormalizedPosition(gridPoint);
 	}

@@ -9,13 +9,11 @@ public class PolygonOutlineRendererEditor : BaseEditor<PolygonOutlineRenderer> {
 	public override void OnEnable() {
 		base.OnEnable();
 		Undo.undoRedoPerformed += HandleUndoRedoCallback;
-		polygonEditor = new PolygonEditorHandles(data.transform);
+		polygonEditor = new PolygonEditorHandles(data.transform, data.offsetRotation);
 	}		
 
 	void OnDisable() {
 		Undo.undoRedoPerformed -= HandleUndoRedoCallback;
-        // polygonEditor.Destroy();
-		if(data == null) return;
 	}
 
 	public override void OnInspectorGUI() {
@@ -26,8 +24,7 @@ public class PolygonOutlineRendererEditor : BaseEditor<PolygonOutlineRenderer> {
 		serializedObject.ApplyModifiedProperties();
 	}
 
-    protected override void OnMultiEditSceneGUI () {
-        base.OnMultiEditSceneGUI();
+	protected override void OnMultiEditSceneGUI () {
 		Undo.RecordObject(data, "Edit polygon");
 		polygonEditor.OnSceneGUI(data.polygon);
 	}

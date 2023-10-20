@@ -5,25 +5,22 @@ using System.Linq;
 [ExecuteAlways]
 public class GridRenderer : MonoBehaviour {
     public event System.Action<GridRenderer> OnRefresh;
-	public Plane floorPlane {
-		get {
-			return new Plane(-transform.forward, transform.position);
-		}
-	}
-    public GridRendererModeModule modeModule;
+	public Plane floorPlane => new(-transform.forward, transform.position);
+	public GridRendererModeModule modeModule;
+	public bool scaleWithGridSize = true;
 
 	[SerializeField]
     Point _gridSize;
 	public Point gridSize {
-		get {
-			return _gridSize;
-		} set {
+		get => _gridSize;
+		set {
 			if(_gridSize == value) return;
             _gridSize = value;
             Refresh();
 		}
 	}
-
+	public Vector3 cellSize => scaleWithGridSize ? Vector3.one : new Vector3(1f/gridSize.x, 1f/gridSize.y, 1f/gridSize.x);
+	
 	public bool showGizmos;
 	
 	GridCenterConversion _cellCenter;
@@ -31,19 +28,16 @@ public class GridRenderer : MonoBehaviour {
         get {
             if(_cellCenter == null) Refresh();
             return _cellCenter;
-        } private set {
-            _cellCenter = value;
-        }
-    }
+        } private set => _cellCenter = value;
+	}
 	GridEdgeConversion _edge;
+
 	public GridEdgeConversion edge {
         get {
             if(_edge == null) Refresh();
             return _edge;
-        } private set {
-            _edge = value;
-        }
-    }
+        } private set => _edge = value;
+	}
 
 	void OnEnable () {
 		Refresh();
@@ -71,15 +65,12 @@ public class GridRenderer : MonoBehaviour {
 
     [System.Serializable]
 	public class GridCenterConversion : GridConversion {
-		public override Point gridSize {
-			get {
-				return gridRenderer.gridSize;
-			}
-		}
+		public override Point gridSize => gridRenderer.gridSize;
+
 		public override Matrix4x4 gridToLocalMatrix {
 			get {
                 if(!_gridToLocalMatrixSet) {
-                    _gridToLocalMatrix = gridRenderer.modeModule.GetGridToLocalMatrix(Vector3.one, gridRenderer.gridSize);
+	                _gridToLocalMatrix = gridRenderer.modeModule.GetGridToLocalMatrix(gridRenderer.cellSize, gridRenderer.gridSize);
                     Vector3 halfCellOffset = new Vector3(0.5f, 0.5f, 0);
                     _gridToLocalMatrix *= Matrix4x4.TRS(halfCellOffset, Quaternion.identity, Vector3.one);
                     _gridToLocalMatrixSet = true;
@@ -92,16 +83,12 @@ public class GridRenderer : MonoBehaviour {
 
     [System.Serializable]
 	public class GridEdgeConversion : GridConversion {
-		public override Point gridSize {
-			get {
-				return gridRenderer.gridSize+Point.one;
-			}
-		}
+		public override Point gridSize => gridRenderer.gridSize+Point.one;
 
-        public override Matrix4x4 gridToLocalMatrix {
+		public override Matrix4x4 gridToLocalMatrix {
 			get {
                 if(!_gridToLocalMatrixSet) {
-                    _gridToLocalMatrix = gridRenderer.modeModule.GetGridToLocalMatrix(Vector3.one, gridRenderer.gridSize);
+	                _gridToLocalMatrix = gridRenderer.modeModule.GetGridToLocalMatrix(gridRenderer.cellSize, gridRenderer.gridSize);
                     _gridToLocalMatrixSet = true;
                 }
                 return _gridToLocalMatrix;
@@ -114,12 +101,8 @@ public class GridRenderer : MonoBehaviour {
 	public abstract class GridConversion {
 		protected GridRenderer gridRenderer;
 		public abstract Point gridSize {get;}
-		protected Transform transform {
-			get {
-				return gridRenderer.transform;
-			}
-		}
-		
+		protected Transform transform => gridRenderer.transform;
+
         protected bool _gridToLocalMatrixSet = false;
         protected Matrix4x4 _gridToLocalMatrix = Matrix4x4.identity;
 		public abstract Matrix4x4 gridToLocalMatrix {get;}
@@ -137,11 +120,7 @@ public class GridRenderer : MonoBehaviour {
                 return _normalizedToGridMatrix;
             }
         }
-        public Matrix4x4 gridToNormalizedMatrix {
-            get {
-                return normalizedToGridMatrix.inverse;
-            }
-        }
+        public Matrix4x4 gridToNormalizedMatrix => normalizedToGridMatrix.inverse;
 
         protected bool _normalizedToLocalMatrixSet = false;
         Matrix4x4 _normalizedToLocalMatrix = Matrix4x4.identity;
@@ -222,10 +201,10 @@ public class GridRenderer : MonoBehaviour {
 		}
 		
 
-		public Vector3 WorldToGridVector (Vector2 worldVector) {
+		public Vector3 WorldToGridVector (Vector3 worldVector) {
 			return gridToWorldMatrix.inverse.MultiplyVector(worldVector);
 		}
-		public Vector3 LocalVectorToGridVector (Vector2 worldVector) {
+		public Vector3 LocalVectorToGridVector (Vector3 worldVector) {
 			return gridToLocalMatrix.inverse.MultiplyVector(worldVector);
 		}
 		public Vector3 GridToWorldVector (Vector2 gridVector) {
@@ -297,7 +276,7 @@ public class GridRenderer : MonoBehaviour {
 		}
 	}
 
-	public IEnumerable<Point> GetPointsInWorldBounds (Bounds bounds) {
+	public IEnumerable<Point> GetPointsInWorldBounds (Bounds bounds, bool clamped = true) {
 		Vector2 _min = cellCenter.WorldToGridPosition(bounds.min);
 		Point min = new Point(Mathf.Floor(_min.x), Mathf.Floor(_min.y));
 		Vector2 _max = cellCenter.WorldToGridPosition(bounds.max);
@@ -310,10 +289,16 @@ public class GridRenderer : MonoBehaviour {
 			if(gridVert.x > max.x) max.x = Mathf.CeilToInt(gridVert.x);
 			if(gridVert.y > max.y) max.y = Mathf.CeilToInt(gridVert.y);
 		}
+		if (clamped) {
+			min.x = Mathf.Max(min.x, 0);
+			min.y = Mathf.Max(min.y, 0);
+			max.x = Mathf.Min(max.x, gridSize.x);
+			max.y = Mathf.Min(max.y, gridSize.y);
+		}
 		var pointRect = PointRect.MinMaxRect(min, max);
 
 		foreach(var point in pointRect.GetPoints()) {
-			if(bounds.Contains(cellCenter.GridToWorldPoint(point)))
+			// if(bounds.Contains(cellCenter.GridToWorldPoint(point)))
 				yield return point;
 		}
 	}

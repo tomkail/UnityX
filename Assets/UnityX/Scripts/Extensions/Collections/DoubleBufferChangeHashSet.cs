@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 // A fairly efficient way to update a list in such a way that produces a list of the items added and removed
 public class DoubleBufferChangeHashSet<T> {
-    HashSet<T> last = new HashSet<T>();
+    public HashSet<T> last = new HashSet<T>();
     public HashSet<T> current = new HashSet<T>();
 
     public HashSet<T> removed = new HashSet<T>();
@@ -11,6 +11,13 @@ public class DoubleBufferChangeHashSet<T> {
     public delegate void OnChangeDelegate(HashSet<T> removed, HashSet<T> added);
     public event OnChangeDelegate OnChange;
 
+    public void Clear() {
+        current.Clear();
+        last.Clear();
+        removed.Clear();
+        added.Clear();
+    }
+    
     // Update the current list, using an action to populate the current list
     public void Repopulate (System.Action<HashSet<T>> PopulateListAction) {
         SwapLists(ref last, ref current);

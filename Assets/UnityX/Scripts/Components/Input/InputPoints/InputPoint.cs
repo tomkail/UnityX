@@ -66,10 +66,10 @@ public class InputPoint {
 		}
 	}
 
-	public virtual void UpdatePosition(Vector2 _screenPosition){
-		isOnScreen = new Rect(0,0,Screen.width,Screen.height).Contains(_screenPosition);
+	public virtual void UpdatePosition(Vector2 newPosition){
+		isOnScreen = new Rect(0,0,Screen.width,Screen.height).Contains(newPosition);
 		
-		SetScreenPositionProperties(_screenPosition);
+		SetPosition(newPosition);
 		UpdateDeltaMovement();
 	}
 	
@@ -109,9 +109,9 @@ public class InputPoint {
 		}
 	}
 	
-	private void SetScreenPositionProperties (Vector2 _worldPosition) {
+	private void SetPosition (Vector2 newPosition) {
 		lastPosition = position;
-		position = _worldPosition;
+		position = newPosition;
 	}
 	
 	private void UpdateDeltaMovement () {

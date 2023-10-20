@@ -5,14 +5,14 @@ using System;
 using UnityX.Geometry;
 
 public static class TextureX {
-	public static byte[] GetTextureBytesUsingFormatFromPath (Texture2D texture, string path) {
+	public static byte[] GetTextureBytesUsingFormatFromPath (Texture2D texture, string path, int jpegQuality = 75) {
 		if(texture == null) {
 			Debug.LogError("GetTextureBytesUsingFormatFromPath: Texture is null! "+path);
 			return null;
 		}
 		byte[] textureBytes = null;
 		var extension = System.IO.Path.GetExtension(path);
-		if(string.Equals(extension, ".jpg", StringComparison.OrdinalIgnoreCase) || string.Equals(extension, ".jpeg", StringComparison.OrdinalIgnoreCase)) textureBytes = texture.EncodeToJPG();
+		if(string.Equals(extension, ".jpg", StringComparison.OrdinalIgnoreCase) || string.Equals(extension, ".jpeg", StringComparison.OrdinalIgnoreCase)) textureBytes = texture.EncodeToJPG(jpegQuality);
 		else if(string.Equals(extension, ".png", StringComparison.OrdinalIgnoreCase)) textureBytes = texture.EncodeToPNG();
 		else if(string.Equals(extension, ".tga", StringComparison.OrdinalIgnoreCase)) textureBytes = texture.EncodeToTGA();
 		else if(string.Equals(extension, ".exr", StringComparison.OrdinalIgnoreCase)) textureBytes = texture.EncodeToEXR();

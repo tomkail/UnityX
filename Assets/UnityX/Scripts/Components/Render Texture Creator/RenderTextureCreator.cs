@@ -4,13 +4,9 @@ using UnityEngine;
 
 public class RenderTextureCreator : MonoBehaviour {
     [SerializeField]
-    RenderTexture rt;
-    public RenderTexture renderTexture {
-        get {
-            return rt;
-        }
-    }
-    
+    RenderTexture _renderTexture;
+    public RenderTexture renderTexture => _renderTexture;
+
     public enum RenderTextureDepth {
         _0 = 0, 
         _16 = 16, 
@@ -23,6 +19,8 @@ public class RenderTextureCreator : MonoBehaviour {
     public RenderTextureFormat renderTextureFormat = RenderTextureFormat.ARGB32;
     public RenderTextureReadWrite renderTextureReadWrite = RenderTextureReadWrite.Default;
     public bool enableRandomWrite = false;
+    public Vector2Int calculatedTextureSize => fullScreen ? screenSize : renderTextureSize;
+
 
     // public static Vector2Int screenSize => new Vector2Int(Screen.width, Screen.height);
     public static Vector2Int screenSize => new Vector2Int(screenWidth, screenHeight);
@@ -60,22 +58,36 @@ public class RenderTextureCreator : MonoBehaviour {
     }
     
     public void RefreshRenderTexture () {
-        Vector2Int targetSize = fullScreen ? screenSize : renderTextureSize;
-        if(rt != null && (rt.width != targetSize.x || rt.height != targetSize.y || rt.depth != (int)renderTextureDepth || rt.format != renderTextureFormat)) {
+	    Vector2Int targetSize = calculatedTextureSize;
+        if(_renderTexture != null && (_renderTexture.width != targetSize.x || _renderTexture.height != targetSize.y || _renderTexture.depth != (int)renderTextureDepth || _renderTexture.format != renderTextureFormat || _renderTexture.enableRandomWrite != enableRandomWrite)) {
             ReleaseRenderTexture();
+            _renderTexture.width = targetSize.x;
+            _renderTexture.height = targetSize.y;
+            _renderTexture.depth = (int)renderTextureDepth;
+            _renderTexture.format = renderTextureFormat;
+            _renderTexture.enableRandomWrite = enableRandomWrite;
+            _renderTexture.Create();
         }
-        if(rt == null && targetSize.x > 0 && targetSize.y > 0) {
-            rt = new RenderTexture (targetSize.x, targetSize.y, (int)renderTextureDepth, renderTextureFormat, renderTextureReadWrite);
-            rt.filterMode = FilterMode.Bilinear;
-            rt.hideFlags = HideFlags.HideAndDontSave;
-            rt.enableRandomWrite = enableRandomWrite;
-            if(OnCreateRenderTexture != null) OnCreateRenderTexture(rt);
+        if(_renderTexture == null && targetSize.x > 0 && targetSize.y > 0) {
+            _renderTexture = new RenderTexture (targetSize.x, targetSize.y, (int)renderTextureDepth, renderTextureFormat, renderTextureReadWrite) {
+	            name = $"RenderTextureCreator {transform.HierarchyPath()}",
+	            enableRandomWrite = enableRandomWrite,
+	            filterMode = FilterMode.Bilinear,
+	            hideFlags = HideFlags.HideAndDontSave
+            };
+            if(OnCreateRenderTexture != null) OnCreateRenderTexture(_renderTexture);
         }
     }
 
-    public void ReleaseRenderTexture () {
-        if(rt == null) return;
-        rt.Release();
-        rt = null;
+    void ReleaseRenderTexture () {
+        if(_renderTexture == null) return;
+        _renderTexture.Release();
+    }
+
+    void DestroyRenderTexture() {
+        if(_renderTexture == null) return;
+        if(Application.isPlaying) Destroy(_renderTexture);
+        else DestroyImmediate(_renderTexture);
+        _renderTexture = null;
     }
 }

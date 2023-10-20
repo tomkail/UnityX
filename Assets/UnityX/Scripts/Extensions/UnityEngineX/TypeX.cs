@@ -16,10 +16,6 @@ public static class TypeX {
 	/// <returns><c>true</c> if is type of the specified obj; otherwise, <c>false</c>.</returns>
 	/// <param name="obj">Object.</param>
 	/// <typeparam name="T">The 1st type parameter.</typeparam>
-	public static bool InheritsFrom<T>(this System.Object obj) {
-		return typeof(T).IsAssignableFrom(obj.GetType());
-	}
-
 	public static bool IsAssignableToGenericType(this Type givenType, Type genericType) {
 		var interfaceTypes = givenType.GetInterfaces();
 

@@ -143,16 +143,16 @@ public static class ComponentX {
 
 		// Utility functions for common actions.
 		public static ComponentSearchParams<T> AllDescendentsExcludingSelf (bool includeInactive = false, System.Predicate<T> predicate = null) {
-			return new ComponentSearchParams<T>(1, int.MaxValue, includeInactive, predicate);
+			return new ComponentSearchParams<T>(1, int.MaxValue-1, includeInactive, predicate);
 		}
 		public static ComponentSearchParams<T> AllDescendentsIncludingSelf (bool includeInactive = false, System.Predicate<T> predicate = null) {
-			return new ComponentSearchParams<T>(0, int.MaxValue, includeInactive, predicate);
+			return new ComponentSearchParams<T>(0, int.MaxValue-1, includeInactive, predicate);
 		}
 		public static ComponentSearchParams<T> AllAncestorsExcludingSelf (bool includeInactive = false, System.Predicate<T> predicate = null) {
-			return new ComponentSearchParams<T>(-1, int.MinValue, includeInactive, predicate);
+			return new ComponentSearchParams<T>(-1, int.MinValue+1, includeInactive, predicate);
 		}
 		public static ComponentSearchParams<T> AllAncestorsIncludingSelf (bool includeInactive = false, System.Predicate<T> predicate = null) {
-			return new ComponentSearchParams<T>(0, int.MinValue, includeInactive, predicate);
+			return new ComponentSearchParams<T>(0, int.MinValue+1, includeInactive, predicate);
 		}
 	}
 
@@ -209,8 +209,6 @@ public static class ComponentX {
 			
 			for(int i = 0; i < queueCount; i++) {
 				var transformDepthTuple = objectDepthQueue.Dequeue();
-				var current = transformDepthTuple.Item1;
-				var currentDepth = transformDepthTuple.Item2;
 				TryAddComponent(transformDepthTuple, searchParams, components);
 				TryEnqueueChildren(transformDepthTuple, searchParams, objectDepthQueue);
 			}
@@ -273,8 +271,6 @@ public static class ComponentX {
 			
 			for(int i = 0; i < queueCount; i++) {
 				var transformDepthTuple = objectDepthQueue.Dequeue();
-				var current = transformDepthTuple.Item1;
-				var currentDepth = transformDepthTuple.Item2;
 				if(TryGetComponent(transformDepthTuple, searchParams, ref component)) return true;
 				TryEnqueueChildren(transformDepthTuple, searchParams, objectDepthQueue);
 			}

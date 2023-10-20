@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -68,16 +69,42 @@ public struct Range : IEquatable<Range>
 		return Mathf.Clamp(val, min, max);
 	}
 
+	public Range ExpandedToInclude (float valueToInclude) {
+		if (valueToInclude < min) return new Range(valueToInclude, max);
+		else if (valueToInclude > max) return new Range(min, valueToInclude);
+		else return this;
+	}
+	
+	public Range ShrunkToExclude (float trunctationValue, int directionToShrinkFrom) {
+		if (trunctationValue > min || trunctationValue < max) {
+			if (directionToShrinkFrom == -1) {
+				 return new Range(trunctationValue, max);
+			} else if (directionToShrinkFrom == 1) {
+				return new Range(min, trunctationValue);
+			} else {
+				Debug.LogWarning("directionToShrinkFrom must be -1 or 1, but is set to "+directionToShrinkFrom);
+			}
+		}
+		return this;
+	}
+	
+	public Range ExpandedFromPivot (Range range, float expansion, float pivot) {
+		return new Range(range.min - expansion * pivot, range.min + expansion * (1-pivot));
+	}
+
 
 	// If a point is contained in the range
-	public bool Contains(float x) => x >= min && x <= max;
+	public bool Contains(float x, bool startInclusive = true, bool endInclusive = true) => (startInclusive ? min <= x : min < x) && (endInclusive ? max >= x : max > x);
 
 	// If another range is entirely contained by this range
-	public bool Contains(Range otherRange)  => otherRange.min >= min && otherRange.max <= max;
+	public bool Contains(Range other, bool startInclusive = true, bool endInclusive = true) => (startInclusive ? min <= other.min : min < other.min) && (endInclusive ? max >= other.max : max > other.max);
 
 	// If there's any intersection between this and another range
 	// not( completely on either side of other range )
-	public bool Intersects(Range otherRange) => !(otherRange.min > max || otherRange.max < min);
+	public bool Intersects(Range other, bool startInclusive = true, bool endInclusive = true) {
+		return (startInclusive ? min <= other.max : min < other.max) && (endInclusive ? max >= other.min : max > other.min) ||
+		       (startInclusive ? other.min <= max : other.min < max) && (endInclusive ? other.max >= min : other.max > min);
+	}
 
 	// The shared range between this range and another
 	public Range Intersection (Range otherRange) {
@@ -89,6 +116,41 @@ public struct Range : IEquatable<Range>
 	// The magnitude of the shared range between this range and another
 	public float GetAmountIncludedByRange (Range otherRange) {
 		return Mathf.Max(Mathf.Min(otherRange.max, max) - Mathf.Max(otherRange.min, min), 0);
+	}
+	
+	public List<Range> RemoveRange(Range rangeToRemove, bool startInclusive = true, bool endInclusive = true) {
+		List<Range> newRanges = new List<Range>();
+
+		if (!Intersects(rangeToRemove, startInclusive, endInclusive)) {
+			newRanges.Add(this);
+			return newRanges;
+		}
+		
+		if (startInclusive ? rangeToRemove.min > min : rangeToRemove.min >= min) newRanges.Add(new Range(min, rangeToRemove.min));
+		if (endInclusive ? rangeToRemove.max < max : rangeToRemove.max <= max) newRanges.Add(new Range(rangeToRemove.max, max));
+
+		return newRanges;
+	}
+
+	// It's not really clear what this should do tbh. Remove!
+	public static float SignedDistance (Range rangeA, Range rangeB) {
+		if (rangeB.Contains(rangeA.mid)) {
+			return -rangeA.length * 0.5f;
+		}
+		return Mathf.Min(rangeA.SignedDistance(rangeB.min), rangeA.SignedDistance(rangeB.max));
+	}
+	
+	// The signed distance from the point to the edges of the range. If the point is inside the range values are negative; else positive.
+	public float SignedDistance (float x) {
+		return (Contains(x) ? -1 : 1) * Mathf.Min(Mathf.Abs(x - min), Mathf.Abs(x - max));
+	}
+	
+	public float SignedDistanceFromMin (float x) {
+		return (Contains(x) ? -1 : 1) * Mathf.Abs(x - min);
+	}
+	
+	public float SignedDistanceFromMax (float x) {
+		return (Contains(x) ? -1 : 1) * Mathf.Abs(x - max);
 	}
 
 	// The normalized magnitude of the shared range between this range and another, relative to the length of this range
@@ -310,3 +372,39 @@ public struct Range : IEquatable<Range>
 		return string.Format("[{0:N1} to {1:N1}]", min, max);
 	}
 }
+
+
+// Some visual tests for the range class
+// public class RangeTests : MonoBehaviour {
+// 	public Range container;
+// 	public Range content;
+// 	public Range intersection;
+// 	public float testPoint;
+// 	public float signedDistance;
+// 	public float signedDistanceForRange;
+// 	public float signedDistanceForRangeB;
+//     
+// 	public float signedDistanceFromMin;
+// 	public float signedDistanceFromMax;
+//
+// 	public void OnDrawGizmos() {
+// 		intersection = container.Intersection(content);
+// 		signedDistance = container.SignedDistance(testPoint);
+// 		signedDistanceForRange = Range.SignedDistance(container, content);
+// 		signedDistanceForRangeB = Range.SignedDistance(content, container);
+//
+// 		signedDistanceFromMin = Mathf.Max((container.min-content.min), (container.min-content.max));
+// 		signedDistanceFromMax = Mathf.Max((content.min-container.max), (content.max-container.max));
+//         
+// 		Gizmos.DrawSphere(transform.TransformPoint(new Vector2(testPoint,0)), 0.5f);
+//         
+// 		GizmosX.DrawArrowLine(transform.TransformPoint(new Vector2(container.min,0)), transform.TransformPoint(new Vector2(container.max,0)), Vector3.forward);
+// 		GizmosX.DrawArrowLine(transform.TransformPoint(new Vector2(container.max,0)), transform.TransformPoint(new Vector2(container.min,0)), Vector3.forward);
+// 		GizmosX.DrawArrowLine(transform.TransformPoint(new Vector2(content.min,1)), transform.TransformPoint(new Vector2(content.max,1)), Vector3.forward);
+// 		GizmosX.DrawArrowLine(transform.TransformPoint(new Vector2(content.max,1)), transform.TransformPoint(new Vector2(content.min,1)), Vector3.forward);
+//         
+// 		GizmosX.DrawArrowLine(transform.TransformPoint(new Vector2(intersection.min,2)), transform.TransformPoint(new Vector2(intersection.max,2)), Vector3.forward);
+// 		GizmosX.DrawArrowLine(transform.TransformPoint(new Vector2(intersection.max,2)), transform.TransformPoint(new Vector2(intersection.min,2)), Vector3.forward);
+//
+// 	}
+// }

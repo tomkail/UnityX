@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 [RequireComponent(typeof(AudioSource))]
 public class AudioSourceManager : MonoBehaviour {
@@ -16,7 +17,7 @@ public class AudioSourceManager : MonoBehaviour {
 			else return false;
 		}
 	}
-	AndBlender canPlayBlender = new AndBlender(true);
+	LogicBlender<bool> canPlayBlender = new LogicBlender<bool>(source => source == null || source.All(x => x));
 	public bool startPlayingAtRandomTime;
 
 	private AudioSource _audioSource;

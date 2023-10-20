@@ -1,17 +1,16 @@
 using UnityEngine;
 using UnityEditor;
-using System.Collections;
 using System.IO;
 
 [CustomPropertyDrawer (typeof(FolderPathAttribute))]
 class FolderPathDrawer : BaseAttributePropertyDrawer<FolderPathAttribute> {
 	const int buttonWidth = 22;
 
-	public static string FolderPathLayout (string path, string label, FolderPathAttribute.RelativeTo relativeTo, bool removePrefixSlash = false, bool editable = true) {
-		return FolderPathLayout(path, new GUIContent(label), relativeTo, removePrefixSlash, editable);
+	public static string FolderPathLayout (string path, string label, FolderPathAttribute.RelativeTo relativeTo, bool editable = true, bool removePrefixSlash = false) {
+		return FolderPathLayout(path, new GUIContent(label), relativeTo, editable, removePrefixSlash);
 	}
 
-	public static string FolderPathLayout (string path, GUIContent label, FolderPathAttribute.RelativeTo relativeTo, bool removePrefixSlash = false, bool editable = true) {
+	public static string FolderPathLayout (string path, GUIContent label, FolderPathAttribute.RelativeTo relativeTo, bool editable = true, bool removePrefixSlash = false) {
 		EditorGUILayout.BeginHorizontal();
 		EditorGUILayout.PrefixLabel(label);
 		
@@ -27,11 +26,11 @@ class FolderPathDrawer : BaseAttributePropertyDrawer<FolderPathAttribute> {
 		return path;
 	}
 
-	public static string FolderPath (Rect position, string path, string label, FolderPathAttribute.RelativeTo relativeTo, bool removePrefixSlash = false, bool editable = true) {
-		return FolderPath(position, path, new GUIContent(label), relativeTo, removePrefixSlash, editable);
+	public static string FolderPath (Rect position, string path, string label, FolderPathAttribute.RelativeTo relativeTo, bool editable = true, bool removePrefixSlash = false) {
+		return FolderPath(position, path, new GUIContent(label), relativeTo, editable, removePrefixSlash);
 	}
 	
-	public static string FolderPath (Rect position, string path, GUIContent label, FolderPathAttribute.RelativeTo relativeTo, bool removePrefixSlash = false, bool editable = true) {
+	public static string FolderPath (Rect position, string path, GUIContent label, FolderPathAttribute.RelativeTo relativeTo, bool editable = true, bool removePrefixSlash = false) {
 		var contentRect = EditorGUI.PrefixLabel(position, label);
 		
 		var textRect = contentRect;
@@ -67,7 +66,7 @@ class FolderPathDrawer : BaseAttributePropertyDrawer<FolderPathAttribute> {
 
 	static void RevealPathInFinder (string unityRelativePath, FolderPathAttribute.RelativeTo relativeTo) {
 		var absolutePath = ToAbsolutePath(unityRelativePath, relativeTo);
-		OpenInFileBrowser(absolutePath);
+		OpenInFileBrowser(Path.GetFullPath(absolutePath));
 	}
 
 	static string ToAbsolutePath (string localPath, FolderPathAttribute.RelativeTo relativeTo) {

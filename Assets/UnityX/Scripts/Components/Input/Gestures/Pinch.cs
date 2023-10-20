@@ -36,6 +36,7 @@ public class Pinch : Gesture {
 		}
 	}
 	public Pinch (InputPoint firstFinger, InputPoint secondFinger) {
+		this.name = "Pinch "+((firstFinger is Finger) ? "Finger "+((Finger)firstFinger).fingerId : "Input Point") +" "+((secondFinger is Finger) ? "Finger "+((Finger)secondFinger).fingerId : "Input Point");
 		this.inputPoints = new List<InputPoint>() {firstFinger, secondFinger};
 		foreach(var inputPoint in inputPoints)
 			inputPoint.OnEnd += OnFingerEnd;

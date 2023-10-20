@@ -7,7 +7,7 @@ using UnityEditor;
 public class RenderTextureCreatorEditor : Editor {
     SerializedProperty _renderTextureProperty;
 	void OnEnable() {
-		_renderTextureProperty = serializedObject.FindProperty("rt");
+		_renderTextureProperty = serializedObject.FindProperty("_renderTexture");
 	}
 
 	public override void OnInspectorGUI() {
@@ -17,6 +17,8 @@ public class RenderTextureCreatorEditor : Editor {
 			EditorGUILayout.Vector2IntField("Size", RenderTextureCreator.screenSize);
 			EditorGUI.EndDisabledGroup();
 		}
+
+		serializedObject.ApplyModifiedProperties();
 	}
 
 	public override bool RequiresConstantRepaint() {

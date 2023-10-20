@@ -9,13 +9,12 @@ public class PolygonRendererEditor : BaseEditor<PolygonRenderer> {
 	public override void OnEnable() {
 		base.OnEnable();
 		Undo.undoRedoPerformed += HandleUndoRedoCallback;
-		polygonEditor = new PolygonEditorHandles(data.transform);
+		polygonEditor = new PolygonEditorHandles(data.transform, data.offsetRotation);
 	}		
 
 	void OnDisable() {
 		Undo.undoRedoPerformed -= HandleUndoRedoCallback;
-        // polygonEditor.Destroy();
-		if(data == null) return;
+        if(data == null) return;
 	}
 
 	public override void OnInspectorGUI() {
@@ -26,8 +25,7 @@ public class PolygonRendererEditor : BaseEditor<PolygonRenderer> {
 		serializedObject.ApplyModifiedProperties();
 	}
 
-    protected override void OnMultiEditSceneGUI () {
-        base.OnMultiEditSceneGUI();
+	protected override void OnMultiEditSceneGUI () {
 		Undo.RecordObject(data, "Edit polygon");
 		polygonEditor.OnSceneGUI(data.polygon);
 	}
@@ -36,8 +34,8 @@ public class PolygonRendererEditor : BaseEditor<PolygonRenderer> {
 		data.OnPropertiesChanged();
 	}
 
-	[DrawGizmo(GizmoType.InSelectionHierarchy)]
-	static void DrawGizmoForMyScript(PolygonRenderer polygonRenderer, GizmoType gizmoType) {
-		polygonRenderer.OnPropertiesChanged();
-	}
+	// [DrawGizmo(GizmoType.InSelectionHierarchy)]
+	// static void DrawGizmoForMyScript(PolygonRenderer polygonRenderer, GizmoType gizmoType) {
+	// 	polygonRenderer.OnPropertiesChanged();
+	// }
 }
