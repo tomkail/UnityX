@@ -196,70 +196,45 @@ namespace UnityX.Geometry {
 			return false;
 		}
 		
-		// /// <summary>
-		// /// Tests if the ray intersects with this sphere.
-		// /// </summary>
-		// /// <param name="ray">Ray to test</param>
-		// /// <returns>True if the ray intersects the sphere</returns>
-		// public bool Intersects(Ray ray) {
-		// 	//Test if the origin is inside the sphere
-		// 	Vector3 rOrigin = ray.origin;
-		// 	Vector3 diff;
-		// 	Vector3.Subtract(ref rOrigin, ref center, out diff);
-		// 	float radSquared = radius * radius;
-			
-		// 	float dot;
-		// 	Vector3.Dot(ref diff, ref diff, out dot);
-		// 	float a = dot - radSquared;
-			
-		// 	if(a <= 0.0f) {
-		// 		return true;
-		// 	}
-			
-		// 	//Outside sphere
-		// 	Vector3 rDir = ray.direction;
-		// 	float b;
-		// 	Vector3.Dot(ref rDir, ref diff, out b);
-		// 	if(b >= 0.0f) {
-		// 		return false;
-		// 	}
-			
-		// 	return b * b >= a;
-		// }
-		
-		// /// <summary>
-		// /// Tests if the ray intersects with this sphere.
-		// /// </summary>
-		// /// <param name="ray">Ray to test</param>
-		// /// <param name="result">Bool to hold the result, true if they intersect</param>
-		// public void Intersects(ref Ray ray, out bool result) {
-		// 	//Test if the origin is inside the sphere
-		// 	Vector3 rOrigin = ray.origin;
-		// 	Vector3 diff;
-		// 	Vector3.Subtract(ref rOrigin, ref center, out diff);
-		// 	float radSquared = radius * radius;
-			
-		// 	float dot;
-		// 	Vector3.Dot(ref diff, ref diff, out dot);
-		// 	float a = dot - radSquared;
-			
-		// 	if(a <= 0.0f) {
-		// 		result = true;
-		// 		return;
-		// 	}
-			
-		// 	//Outside sphere
-		// 	Vector3 rDir = ray.direction;
-		// 	float b;
-		// 	Vector3.Dot(ref rDir, ref diff, out b);
-		// 	if(b >= 0.0f) {
-		// 		result = false;
-		// 		return;
-		// 	}
-			
-		// 	result = b * b >= a;
-		// }
+		public bool Raycast(Ray ray, out Vector3 intersectionPoint, bool collideWithBackface = false) {
+			// Calculate the direction from the ray's origin to the sphere's center
+			Vector3 rayToSphere = center - ray.origin;
 
+			// Calculate the dot product of the ray direction and the vector to the sphere's center
+			float dot = Vector3.Dot(ray.direction, rayToSphere);
+
+			// If the dot product is negative, the sphere is behind the ray, so there's no intersection
+			if (dot < 0f)
+			{
+				intersectionPoint = Vector3.zero;
+				return false;
+			}
+
+			// Calculate the closest point on the ray to the sphere's center
+			Vector3 closestPoint = ray.origin + ray.direction * dot;
+
+			// Calculate the distance from the closest point to the sphere's center
+			float distance = Vector3.Distance(closestPoint, center);
+
+			// If the distance is greater than the sphere's radius, there's no intersection
+			if (distance > radius)
+			{
+				intersectionPoint = Vector3.zero;
+				return false;
+			}
+
+			// Calculate the distance along the ray to the intersection point
+			float t = Mathf.Sqrt(radius * radius - distance * distance);
+
+			// Calculate the intersection point
+			if(collideWithBackface) {
+				intersectionPoint = ray.origin + ray.direction * (dot - t);
+			} else {
+				intersectionPoint = ray.origin + ray.direction * (dot + t);
+			}
+			return true;
+		}
+		
 		static float SqrDistance (Vector3 a, Vector3 b) {
 			return (a.x-b.x) * (a.x-b.x) + (a.y-b.y) * (a.y-b.y) + (a.z-b.z) * (a.z-b.z);
 		}
