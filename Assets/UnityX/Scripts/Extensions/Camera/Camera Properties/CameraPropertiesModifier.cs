@@ -1,6 +1,4 @@
 using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
 
 /// <summary>
 /// Modifies selected camera properties using a blend mode.

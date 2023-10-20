@@ -1,5 +1,4 @@
-﻿using UnityEngine;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 /// <summary>
@@ -45,8 +44,11 @@ public class SAnimatedProperty<T> : SAnimatedProperty
 		_reusePool.Push(this);
 	}
 
-	public override void Animate(float lerpValue)
-	{
+	public override void Animate(float lerpValue) {
+		if (!property.isValid()) {
+			// We might consider also removing it from the animation too? If the animation is valid we don't need to query this all the time.
+			return;
+		}
 		property.setter(property.Lerp(start, end, lerpValue));
 	}
 

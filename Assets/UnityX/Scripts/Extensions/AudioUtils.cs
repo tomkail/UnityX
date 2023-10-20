@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -26,16 +25,18 @@ public static class AudioUtils {
 
 
     
-    public static float ComputePeakAmplitude(float[] buffer, int offset = 0, int length = -1) {
-        if(length == -1) length = buffer.Length;
-		// Clamp length to buffer length
-		if(offset + length > buffer.Length) {
-            length = buffer.Length - offset;
-        }
+    public static float ComputePeakAmplitude(IList<float> buffer, int startSample = 0, int length = -1, bool repeatAroundBuffer = false) {
+        if(buffer.IsNullOrEmpty()) return 0;
+	    // Ensure valid input and clamp length to buffer length
+        if(length < 0 || length > buffer.Count) length = buffer.Count;
+        startSample %= buffer.Count;
+		if (startSample < 0) startSample += buffer.Count;
+		if(!repeatAroundBuffer && startSample + length > buffer.Count) length = buffer.Count - startSample;
         
 		float peakAmplitude = 0;
-        for (int i = 0; i < length; i++) {
-            float wavePeak = Mathf.Abs(buffer[i]);
+		int endSample = startSample + length;
+        for (int i = startSample; i < endSample; i++) {
+            float wavePeak = Mathf.Abs(buffer[i % buffer.Count]);
             if (wavePeak > peakAmplitude) {
                 peakAmplitude = wavePeak;
             }
@@ -43,20 +44,21 @@ public static class AudioUtils {
         return peakAmplitude;
     }
 
-    public static float ComputeRMS(float[] buffer, int offset = 0, int length = -1) {
-		if(length == -1) length = buffer.Length;
-		// Clamp length to buffer length
-        if(offset + length > buffer.Length) {
-            length = buffer.Length - offset;
-        }
+    public static float ComputeRMS(IList<float> buffer, int startSample = 0, int length = -1, bool repeatAroundBuffer = false) {
+	    if(buffer.IsNullOrEmpty()) return 0;
+	    // Ensure valid input and clamp length to buffer length
+	    if(length < 0 || length > buffer.Count) length = buffer.Count;
+	    startSample %= buffer.Count;
+	    if (startSample < 0) startSample += buffer.Count;
+	    if(!repeatAroundBuffer && startSample + length > buffer.Count) length = buffer.Count - startSample;
 
         // sum of squares
         float sos = 0f;
         float val;
-        for(int i = 0; i < length; i++) {
-            val = buffer[ offset ];
+        int endSample = startSample + length;
+        for(int i = startSample; i < endSample; i++) {
+            val = buffer[i % buffer.Count];
             sos += val * val;
-            offset ++;
         }
         // return sqrt of average
         return Mathf.Sqrt( sos / length );

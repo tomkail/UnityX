@@ -1,8 +1,3 @@
-using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using UnityX.Geometry;
-
 public class Structure : Shape {
 	public bool Contains (System.Func<Point,bool> checker) {
 		foreach(Point point in points) {

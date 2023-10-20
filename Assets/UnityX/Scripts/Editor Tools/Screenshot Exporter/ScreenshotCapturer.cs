@@ -146,7 +146,7 @@ public class ScreenshotCapturer {
 		RenderTexture.active = savedActiveRenderTexture;
 
 		rt.Release();
-		MonoBehaviour.Destroy(rt);
+		Object.Destroy(rt);
 		rt = null;
 
 		capturingScreenshot = false;

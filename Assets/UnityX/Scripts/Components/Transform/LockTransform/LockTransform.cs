@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 [ExecuteInEditMode, DisallowMultipleComponent]
 public class LockTransform : MonoBehaviour {

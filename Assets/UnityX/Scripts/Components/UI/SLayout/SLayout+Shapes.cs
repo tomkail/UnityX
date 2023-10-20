@@ -1,5 +1,4 @@
 ﻿using System;
-using TMPro;
 using UnityEngine;
 using ThisOtherThing.UI;
 using ThisOtherThing.UI.Shapes;
@@ -109,7 +108,8 @@ public partial class SLayout
 		if( _fillColor == null ) {
 			_fillColor = new SLayoutColorProperty {
 				getter = GetFillColor,
-				setter = SetFillColor
+				setter = SetFillColor,
+				isValid = GetIsValidForAnimation
 			};
 		}
 	}
@@ -154,7 +154,8 @@ public partial class SLayout
 		if( _borderRadius == null ) {
 			_borderRadius = new SLayoutFloatProperty {
 				getter = GetBorderRadius,
-				setter = SetBorderRadius
+				setter = SetBorderRadius,
+				isValid = GetIsValidForAnimation
 			};
 		}
 	}
@@ -212,7 +213,8 @@ public partial class SLayout
 		if( _outlineWeight == null ) {
 			_outlineWeight = new SLayoutFloatProperty {
 				getter = GetOutlineWeight,
-				setter = SetOutlineWeight
+				setter = SetOutlineWeight,
+				isValid = GetIsValidForAnimation
 			};
 		}
 	}
@@ -266,7 +268,8 @@ public partial class SLayout
 		if( _outlineColor == null ) {
 			_outlineColor = new SLayoutColorProperty {
 				getter = GetOutlineColor,
-				setter = SetOutlineColor
+				setter = SetOutlineColor,
+				isValid = GetIsValidForAnimation
 			};
 		}
 	}
@@ -311,7 +314,8 @@ public partial class SLayout
 		if( _shadowColor == null ) {
 			_shadowColor = new SLayoutColorProperty {
 				getter = GetShadowColor,
-				setter = SetShadowColor
+				setter = SetShadowColor,
+				isValid = GetIsValidForAnimation
 			};
 		}
 	}

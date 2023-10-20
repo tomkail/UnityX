@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 // A bunch of utilities for the scene view - useful for culling handles/gizmos for performance reasons.
 public static class SceneViewUtility {

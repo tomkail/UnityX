@@ -1,6 +1,4 @@
 using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
 
 public static class GradientFill {
 	public static Color[] Create (GradientX.GradientType gradientType, Gradient gradient, Vector2 startPosition, Vector2 endPosition, int width, int height) {

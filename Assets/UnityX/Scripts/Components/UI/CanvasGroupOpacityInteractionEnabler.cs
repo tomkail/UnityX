@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
-using System.Collections;
 
 /// <summary>
 /// Toggles properties of a CanvasGroup based on its alpha. 
@@ -14,7 +13,7 @@ public class CanvasGroupOpacityInteractionEnabler : UIBehaviour {
             return GetComponent<CanvasGroup>();
         }
     }
-	[ClampAttribute(0f,1f)]
+	[Range(0f,1f)]
 	public float alphaThreshold = 1;
 	public bool ignoreParentGroups = false;
 	public bool interactable = true;

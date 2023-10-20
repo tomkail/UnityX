@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections;
 
 public class UIMonoBehaviour : MonoBehaviour {
 	public Canvas canvas {

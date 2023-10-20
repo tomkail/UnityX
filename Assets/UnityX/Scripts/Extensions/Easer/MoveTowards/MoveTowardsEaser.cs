@@ -1,8 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
-
 /// <summary>
 /// Handy extendable wrapper for Unity's SmoothDamp functions, tucking away the several variables for each smooth damp you want to have running.
 /// </summary>

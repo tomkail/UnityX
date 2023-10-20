@@ -1,7 +1,4 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
-using System.Reflection;
+﻿using System;
 
 #if UNITY_WINRT
 using UnityEngine.Windows;

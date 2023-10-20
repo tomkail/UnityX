@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -87,25 +85,7 @@ public static class IEnumerableX {
 		if(index == -1) return defaultValue;
 		else return source.ElementAt(index);
 	}
-
-	public static int Sum<T>(this IEnumerable<T> source, Func<T, int> selector) {
-		if (source == null) throw new System.Exception("Source is null!");
-        int sum = 0;
-		foreach (T v in source) {
-            sum += selector(v);
-        }
-        return sum;
-    }
-
-	public static float Sum<T>(this IEnumerable<T> source, Func<T, float> selector) {
-		if (source == null) throw new System.Exception("Source is null!");
-		float sum = 0;
-		foreach (T v in source) {
-            sum += selector(v);
-        }
-        return sum;
-    }
-
+	
 	public static float Multiply<T>(this IEnumerable<T> source, Func<T, float> selector)
 	{
 		if (source == null) throw new System.Exception("Source is null!");

@@ -6,7 +6,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
-using System.Collections.Generic;
 
 
 /// <summary>
@@ -62,7 +61,12 @@ public partial class SLayout : UIBehaviour {
 		_timeScalar = null;
     	CancelAnimations();
 	}
-
+	
+	// This allows us to cancel animations on an SLayout when it's destroyed
+	bool GetIsValidForAnimation() {
+		return this != null;
+	}
+	
 	protected override void OnRectTransformDimensionsChange() {
 		base.OnRectTransformDimensionsChange();
 		if( onRectChange != null ) onRectChange(this);
@@ -90,8 +94,14 @@ public partial class SLayout : UIBehaviour {
 			_owner = this
 		};
 		#if UNITY_EDITOR
-		if(!Application.isPlaying) newAnim.CompleteImmediate();
-		else
+		if (!UnityEditor.EditorApplication.isPlaying) {
+			newAnim.Start();
+			newAnim.CompleteImmediate();
+			return newAnim;
+		}
+		if (SLayoutAnimator.quitting) {
+			return null;
+		}
 		#endif
 		SLayoutAnimator.instance.StartAnimation(newAnim);
 		return newAnim;
@@ -99,14 +109,6 @@ public partial class SLayout : UIBehaviour {
 
 	public SLayoutAnimation Animate(float duration, float delay, AnimationCurve customCurve, System.Action animAction)
 	{
-		#if UNITY_EDITOR
-		if (!Application.isPlaying) {
-			animAction();
-			return null;
-		}
-		if(SLayoutAnimator.quitting) return null;
-		else {
-		#endif
 		var newAnim = new SLayoutAnimation() {
 			_duration = duration, 
 			_maxDuration = duration, 
@@ -116,11 +118,18 @@ public partial class SLayout : UIBehaviour {
 			_animAction = animAction,
 			_owner = this
 		};
-		SLayoutAnimator.instance.StartAnimation(newAnim);
-		return newAnim;
 		#if UNITY_EDITOR
+		if (!UnityEditor.EditorApplication.isPlaying) {
+			newAnim.Start();
+			newAnim.CompleteImmediate();
+			return newAnim;
+		}
+		if (SLayoutAnimator.quitting) {
+			return null;
 		}
 		#endif
+		SLayoutAnimator.instance.StartAnimation(newAnim);
+		return newAnim;
 	}
 	
 	public SLayoutAnimation Animate(float duration, EasingFunction.Ease easing, System.Action animAction)
@@ -141,11 +150,13 @@ public partial class SLayout : UIBehaviour {
 		};
 		#if UNITY_EDITOR
 		if (!UnityEditor.EditorApplication.isPlaying) {
+			newAnim.Start();
 			newAnim.CompleteImmediate();
 			return newAnim;
 		}
-		if(SLayoutAnimator.quitting) return null;
-		else
+		if (SLayoutAnimator.quitting) {
+			return null;
+		}
 		#endif
 		SLayoutAnimator.instance.StartAnimation(newAnim);
 		return newAnim;
@@ -162,9 +173,14 @@ public partial class SLayout : UIBehaviour {
 			_owner = this
 		};
 		#if UNITY_EDITOR
-		if(!Application.isPlaying) newAnim.CompleteImmediate();
-		if(SLayoutAnimator.quitting) return null;
-		else
+		if (!UnityEditor.EditorApplication.isPlaying) {
+			newAnim.Start();
+			newAnim.CompleteImmediate();
+			return newAnim;
+		}
+		if (SLayoutAnimator.quitting) {
+			return null;
+		}
 		#endif
 		SLayoutAnimator.instance.StartAnimation(newAnim);
 		return newAnim;
@@ -181,8 +197,14 @@ public partial class SLayout : UIBehaviour {
 			_owner = this
 		};
 		#if UNITY_EDITOR
-		if(!Application.isPlaying) newAnim.CompleteImmediate();
-		else
+		if (!UnityEditor.EditorApplication.isPlaying) {
+			newAnim.Start();
+			newAnim.CompleteImmediate();
+			return newAnim;
+		}
+		if (SLayoutAnimator.quitting) {
+			return null;
+		}
 		#endif
 		SLayoutAnimator.instance.StartAnimation(newAnim);
 		return newAnim;
@@ -903,6 +925,8 @@ public partial class SLayout : UIBehaviour {
 			
 			anchoredPos.y = parentRectT.rect.height - anchoredPos.y;
 			anchoredPos.y -= parentRectT.rect.height * (parentRectT.pivot.y - 0.5f) * 2;
+			// BUG - this line doesn't work when called when animating the rect, because the height is not yet updated.
+			// Fixing it is probably a pain - we probably need to pass in the height (or really a model of the layout with the height already set)
 			anchoredPos.y -= rt.rect.height * (1-rt.pivot.y) * 2;
 		} else {
 			float toBottomEdge = rt.pivot.y * rt.rect.height;
@@ -963,7 +987,7 @@ public partial class SLayout : UIBehaviour {
 
 		var targetLocalPos = (Vector2) targetRectTransform.InverseTransformPoint(worldSpacePoint);
 		var targetLayoutPos = targetLocalPos + GetPivotPos(targetRectTransform);
-
+		
 		if( targetLayout != null && targetLayout.originTopLeft )
 			targetLayoutPos.y = targetLayout.height - targetLayoutPos.y;
 
@@ -1168,7 +1192,8 @@ public partial class SLayout : UIBehaviour {
 		if( _x == null ) {
 			_x = new SLayoutFloatProperty {
 				getter = () => GetRectTransformX(rectTransform),
-				setter = SetRectTransformX
+				setter = SetRectTransformX,
+				isValid = GetIsValidForAnimation
 			};
 		}
 	}
@@ -1177,7 +1202,8 @@ public partial class SLayout : UIBehaviour {
 		if( _y == null ) {
 			_y = new SLayoutFloatProperty {
 				getter = () => GetRectTransformY(rectTransform),
-				setter = SetRectTransformY
+				setter = SetRectTransformY,
+				isValid = GetIsValidForAnimation
 			};
 		}
 	}
@@ -1186,7 +1212,8 @@ public partial class SLayout : UIBehaviour {
 		if( _width == null ) {
 			_width = new SLayoutFloatProperty {
 				getter = () => rectTransform.rect.width,
-				setter = SetRectTransformWidth
+				setter = SetRectTransformWidth,
+				isValid = GetIsValidForAnimation
 			};
 		}
 	}
@@ -1195,7 +1222,8 @@ public partial class SLayout : UIBehaviour {
 		if( _height == null ) {
 			_height = new SLayoutFloatProperty {
 				getter = () => rectTransform.rect.height,
-				setter = SetRectTransformHeight
+				setter = SetRectTransformHeight,
+				isValid = GetIsValidForAnimation
 			};
 		}
 	}
@@ -1204,7 +1232,8 @@ public partial class SLayout : UIBehaviour {
 		if( _rotation == null ){
 			_rotation = new SLayoutAngleProperty {
 				getter = () => transform.localRotation.eulerAngles.z,
-				setter = r => transform.localRotation = Quaternion.Euler(0.0f, 0.0f, r)
+				setter = r => transform.localRotation = Quaternion.Euler(0.0f, 0.0f, r),
+				isValid = GetIsValidForAnimation
 			};
 		}
 	}
@@ -1213,7 +1242,8 @@ public partial class SLayout : UIBehaviour {
 		if( _scale == null ) {
 			_scale = new SLayoutFloatProperty {
 				getter = () => transform.localScale.x,
-				setter = s =>  transform.localScale = new Vector3(s, s, s)
+				setter = s =>  transform.localScale = new Vector3(s, s, s),
+				isValid = GetIsValidForAnimation
 			};
 		}
 	}
@@ -1222,7 +1252,8 @@ public partial class SLayout : UIBehaviour {
 		if( _groupAlpha == null ) {
 			_groupAlpha = new SLayoutFloatProperty {
 				getter = () => canvasGroup ? canvasGroup.alpha : 1.0f,
-				setter = a => { if( canvasGroup ) canvasGroup.alpha = a; }
+				setter = a => { if( canvasGroup ) canvasGroup.alpha = a; },
+				isValid = GetIsValidForAnimation
 			};
 		}
 	}
@@ -1231,7 +1262,8 @@ public partial class SLayout : UIBehaviour {
 		if( _color == null ) {
 			_color = new SLayoutColorProperty {
 				getter = () => graphic ? graphic.color : Color.white,
-				setter = c => {  if( graphic ) graphic.color = c;  }
+				setter = c => {  if( graphic ) graphic.color = c;  },
+				isValid = GetIsValidForAnimation
 			};
 		}
 	}
@@ -1251,5 +1283,4 @@ public partial class SLayout : UIBehaviour {
 									 
 	SLayoutFloatProperty _groupAlpha;
 	SLayoutColorProperty _color;
-
 }

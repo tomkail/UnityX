@@ -1,7 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
-using System.Collections;
 
 [ExecuteAlways]
 public class WorldSpaceUIElement : UIBehaviour {

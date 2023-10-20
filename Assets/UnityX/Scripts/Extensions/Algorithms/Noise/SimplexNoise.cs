@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
- 
+
 // copied and modified from http://webstaff.itn.liu.se/~stegu/simplexnoise/simplexnoise.pdf
  
 public class SimplexNoise {  // Simplex noise in 2D, 3D and 4D

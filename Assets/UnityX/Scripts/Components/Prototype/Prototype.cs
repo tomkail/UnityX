@@ -36,7 +36,7 @@ public class Prototype : MonoBehaviour {
 		}
 	}
 
-	void Start() 
+	void Awake () 
 	{
 		if( isOriginalPrototype )
 			this.gameObject.SetActive(false);

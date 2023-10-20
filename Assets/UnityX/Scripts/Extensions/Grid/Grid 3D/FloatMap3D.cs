@@ -1,6 +1,4 @@
 using UnityEngine;
-using System.Collections;
-using UnityX.Geometry;
 
 [System.Serializable]
 public class FloatMap3D : TypeMap3D<float> {

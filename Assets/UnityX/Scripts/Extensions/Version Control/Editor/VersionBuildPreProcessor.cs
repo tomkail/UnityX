@@ -55,7 +55,7 @@ namespace UnityX.Versioning {
             }
             currentVersion.version.buildTarget = EditorUserBuildSettings.activeBuildTarget.ToString();
             currentVersion.version.isDevelopment = Debug.isDebugBuild;
-            currentVersion.version.buildDateTimeString = System.DateTime.Now.ToString();
+            currentVersion.version.buildDateTimeString = System.DateTime.Now.ToString("u");
         }
     }
 }

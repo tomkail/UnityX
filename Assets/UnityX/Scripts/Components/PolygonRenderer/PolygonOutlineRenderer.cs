@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityX.MeshBuilder;
-using UnityX.Geometry;
 
 [RequireComponent(typeof(MeshFilter))]
 public class PolygonOutlineRenderer : BasePolygonRenderer {

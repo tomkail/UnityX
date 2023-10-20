@@ -268,6 +268,7 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 	}
 	
 	Type GetFieldType () {
+		if (fieldInfo == null) return null;
 		Type type = fieldInfo.FieldType;
 		if(type.IsArray) type = type.GetElementType();
 		else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>)) type = type.GetGenericArguments()[0];

@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections.Generic;
-using UnityX.Geometry;
 
 public class WorldGrid3 : ScriptableObject {
 	[OnChange("SetAsDirty")]

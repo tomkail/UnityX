@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.UI.Extensions;
-using UnityX.Geometry;
 using UnityEngine.EventSystems;
 
 [ExecuteAlways]

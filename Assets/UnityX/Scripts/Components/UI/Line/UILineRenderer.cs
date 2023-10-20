@@ -3,7 +3,6 @@
 /// Updated/Refactored from - http://forum.unity3d.com/threads/new-ui-and-line-drawing.253772/#post-2528050
 
 using System.Collections.Generic;
-using System;
 
 /// <summary>
 /// Tool script taken from the UI source as it's set to Internal for some reason. So to use in the extensions project it is needed here also.

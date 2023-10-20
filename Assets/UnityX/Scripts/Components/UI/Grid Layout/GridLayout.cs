@@ -125,7 +125,7 @@ public class GridLayout : MonoBehaviour, ILayoutElement {
 			// float spacing;
 			// float offset;
 			// bool _flip;
-			return string.Format ("[GridLayoutAxisSettings: axis={0}, containerSize={1}, sizeMode={2}, fillMode={3}, totalSize (calculated)={4}, itemSize (calculated)={5}, cellCount (calculated)={6}, spacing={7}, offset={8}, flip={9}]", isXAxis?"X":"Y", containerSize, sizeMode, fillMode, GetTotalSize(), GetItemSize(), GetCellCount(), spacing, offset, _flip);
+			return $"[GridLayoutAxisSettings: axis={(isXAxis ? "X" : "Y")}, containerSize={containerSize}, sizeMode={sizeMode}, fillMode={fillMode}, totalSize (calculated)={GetTotalSize()}, itemSize (calculated)={GetItemSize()}, cellCount (calculated)={GetCellCount()}, spacing={spacing}, offset={offset}, flip={_flip}]";
 		}
 	}
 	
@@ -162,22 +162,8 @@ public class GridLayout : MonoBehaviour, ILayoutElement {
 
 
 
-	public Vector2Int gridSize {
-		get {
-			return new Vector2Int(
-				xAxis.GetCellCount(),
-				yAxis.GetCellCount()
-			);
-		}
-	}
-	public Vector2 itemSize {
-		get {
-			return new Vector2(
-				xAxis.GetItemSize(),
-				yAxis.GetItemSize()
-			);
-		}
-	}
+	public Vector2Int gridSize => new(xAxis.GetCellCount(), yAxis.GetCellCount());
+	public Vector2 itemSize => new(xAxis.GetItemSize(), yAxis.GetItemSize());
 
 	public virtual void CalculateLayoutInputHorizontal() {
 		m_Width = xAxis.GetTotalSize();
@@ -197,11 +183,7 @@ public class GridLayout : MonoBehaviour, ILayoutElement {
 	float m_Width;
 	float m_Height;
 
-	bool initialized {
-		get {
-			return _xAxis.isXAxis == true && _yAxis.isXAxis == false && _xAxis.gridLayout == this && _yAxis.gridLayout == this;
-		}
-	}
+	bool initialized => _xAxis.isXAxis == true && _yAxis.isXAxis == false && _xAxis.gridLayout == this && _yAxis.gridLayout == this;
 
 	void OnEnable () {
 		if(!initialized) Init();

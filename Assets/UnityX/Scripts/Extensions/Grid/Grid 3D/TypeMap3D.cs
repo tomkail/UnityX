@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using UnityX.Geometry;
 
 [System.Serializable]
 public class TypeMap3D<T> : Grid3D, IEnumerable<TypeMap3DCellInfo<T>> {

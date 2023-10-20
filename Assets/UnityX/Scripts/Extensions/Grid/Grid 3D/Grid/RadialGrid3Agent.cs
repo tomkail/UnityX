@@ -1,9 +1,6 @@
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityX.Geometry;
-using System.Collections.ObjectModel;
 
 [ExecuteAlways]
 public class RadialGrid3Agent : MonoBehaviour {

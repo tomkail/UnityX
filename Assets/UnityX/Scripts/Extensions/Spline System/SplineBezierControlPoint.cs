@@ -1,7 +1,4 @@
-﻿using System.Linq;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace SplineSystem {
 	[System.Serializable]

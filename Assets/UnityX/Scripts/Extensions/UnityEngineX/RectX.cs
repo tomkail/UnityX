@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 
 // TODO - change new Rect() to rect.Set()!
@@ -73,7 +72,7 @@ public static class RectX {
 	}
     
 	public static Rect CreateEncapsulating (IEnumerable<Rect> rects) {
-		var enumerator = rects.GetEnumerator();
+		using var enumerator = rects.GetEnumerator();
 		enumerator.MoveNext();
 		Rect rect = enumerator.Current;
 		while(enumerator.MoveNext())
@@ -143,8 +142,8 @@ public static class RectX {
 	/// </summary>
 	/// <returns>The position.</returns>
 	/// <param name="r">The red component.</param>
-	/// <param name="minSize">Minimum position.</param>
-	/// <param name="maxSize">Max position.</param>
+	/// <param name="minPosition">Minimum position.</param>
+	/// <param name="maxPosition">Max position.</param>
 	public static Rect ClampPosition(this Rect r, Vector2 minPosition, Vector2 maxPosition) {
 		r.x = Mathf.Clamp(r.x, minPosition.x, maxPosition.x);
 		r.y = Mathf.Clamp(r.y, minPosition.y, maxPosition.y);
@@ -170,8 +169,8 @@ public static class RectX {
 	/// Expands (or contracts) the rect by a specified amount.
 	/// So, half of x expansion will be on left, half of x expansion will be on right, etc.
 	/// </summary>
-	/// <param name="r">The red component.</param>
-	/// <param name="expansion">Expansion.</param>
+	/// <param name="r">The rect.</param>
+	/// <param name="size">Size.</param>
 	public static Rect WithSize(this Rect r, Vector2 size){
 		return WithSize (r, size, new Vector2(0.5f, 0.5f));
 	}
@@ -179,8 +178,8 @@ public static class RectX {
 	/// <summary>
 	/// Expands (or contracts) the rect by a specified amount, using a pivot to control the expansion center point.
 	/// </summary>
-	/// <param name="r">The red component.</param>
-	/// <param name="expansion">Expansion.</param>
+	/// <param name="r">The rect.</param>
+	/// <param name="size">Size.</param>
 	/// <param name="pivot">Pivot.</param>
 	public static Rect WithSize(this Rect r, Vector2 size, Vector2 pivot) {
 		return Create(r.center, size, pivot);

@@ -1,7 +1,4 @@
-﻿using UnityEngine;
-using UnityX.Geometry;
-
-[System.Serializable]
+﻿[System.Serializable]
 public class PolygonPropertyCurve : PropertyCurve<Polygon> {
 
 	public PolygonPropertyCurve(PolygonPropertyCurve curve) : base (curve) {}

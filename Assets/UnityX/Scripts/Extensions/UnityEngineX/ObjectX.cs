@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
 
 public static class ObjectX {
 	
@@ -23,7 +21,6 @@ public static class ObjectX {
 		#else
 		UnityEngine.Object.Destroy (o);
 		#endif
-
 	}
 
 	/// <summary>

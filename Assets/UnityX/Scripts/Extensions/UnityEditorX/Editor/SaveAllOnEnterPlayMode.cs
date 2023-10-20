@@ -36,7 +36,7 @@ public class SaveAllOnEnterPlayMode {
 
 
     static bool AnySceneDirty () {
-        for(int i = 0; i < UnityEngine.SceneManagement.SceneManager.loadedSceneCount; i++) {
+        for(int i = 0; i < EditorSceneManager.loadedSceneCount; i++) {
             if(EditorSceneManager.GetSceneAt(i).isDirty) return true;
         }
         return false;

@@ -1,8 +1,3 @@
-using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using UnityX.Geometry;
-
 public struct TypeMap3DCellInfo<T> {
 	public int index {get; private set;}
 	public Point3 point {get; private set;}

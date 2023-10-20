@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using UnityX.Geometry;
+﻿using System.Collections.Generic;
 
 namespace UnityEngine.UI.Extensions {
     [AddComponentMenu("UI/Extensions/Primitives/UI Polygon")]

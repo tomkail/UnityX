@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 #if UNITY_EDITOR
-using System.Collections;
 using UnityX.Editor.Icon;
 #endif
 

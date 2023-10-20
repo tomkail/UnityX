@@ -1,8 +1,4 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
 
 public static class StringX {
 	//Returns true if string is only white space

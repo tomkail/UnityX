@@ -1,8 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-
-/// <summary>
+﻿/// <summary>
 /// Generic keyframe for a PropertyCurve.
 /// </summary>
 [System.Serializable]

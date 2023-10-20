@@ -259,7 +259,7 @@ namespace SplineSystem {
 
 		private Vector3 DrawEditableControlPointHandle (Vector3 controlPointPosition, Quaternion controlPointRotation) {
 			float handleSize = HandleUtility.GetHandleSize(controlPointPosition) * controlPointHandleSize;
-			return Handles.FreeMoveHandle(controlPointPosition, handleSize, Vector3.zero, ((int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType) => {
+			return Handles.FreeMoveHandle(controlPointPosition, controlPointRotation, handleSize, Vector3.zero, ((int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType) => {
 				Handles.ConeHandleCap(controlID, position, controlPointRotation, handleSize, eventType);
 			}));
 		}

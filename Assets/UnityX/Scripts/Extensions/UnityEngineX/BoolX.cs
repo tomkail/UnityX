@@ -1,8 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-
-public static class BoolX {
+﻿public static class BoolX {
 
 	/// <summary>
 	/// Returns bool based on int value, as defined by C#.

@@ -1,5 +1,3 @@
-using System.Collections;
-
 [System.Serializable]
 public struct NoiseSamplerProperties {
 

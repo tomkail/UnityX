@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 // Supported texture formats. Mirrors the names in the TextureFormat enum.
 public enum ScreenshotSaverTextureFormat {

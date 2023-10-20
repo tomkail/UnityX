@@ -1,7 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using UnityX.Geometry;
 
 public static class PlaneX {
 	public static bool TryGetHitPoint (this Plane plane, Ray ray, ref Vector3 hitPoint) {

@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
-using System.Collections;
 using System;
 
 /// <summary>
@@ -11,6 +9,7 @@ public abstract class SLayoutProperty<T>
 {
 	public Func<T> getter;
 	public Action<T> setter;
+	public Func<bool> isValid;
 
 	public T value {
 		get {

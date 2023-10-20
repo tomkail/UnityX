@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 // Forces some of this gameobject's properties on all children. 
 // If a child contains this component then none of this gameobject's properties are applied to it or it's descendents

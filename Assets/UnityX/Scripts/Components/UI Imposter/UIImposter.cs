@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+// Made by @tomkail
 // Renders a group of UI elements to a rendertexture. Works by moving the UI elements into a special area, rendering it, and returning the UI elements to where they were before.
 [ExecuteAlways]
 public class UIImposter : RawImage {

@@ -1,8 +1,5 @@
 using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
 using System;
-using UnityX.Geometry;
 
 public static class TextureX {
 	public static byte[] GetTextureBytesUsingFormatFromPath (Texture2D texture, string path, int jpegQuality = 75) {
@@ -58,22 +55,25 @@ public static class TextureX {
     }
     
     static void GPUScale(Texture2D src, int width, int height, FilterMode fmode) {
-        //We need the source texture in VRAM because we render with it
-        src.filterMode = fmode;
-        src.Apply(true);
+	    //We need the source texture in VRAM because we render with it
+	    src.filterMode = fmode;
+	    src.Apply(true);
 
-        //Using RTT for best quality and performance
-        RenderTexture rtt = new RenderTexture(width, height, 32);
-        
-        //Set the RTT in order to render to it
-        Graphics.SetRenderTarget(rtt);
-        
-        //Setup 2D matrix in range 0..1, so nobody needs to care about sized
-        GL.LoadPixelMatrix(0,1,1,0);
-        
-        //Then clear & draw the texture to fill the entire RTT.
-        GL.Clear(true,true,new Color(0,0,0,0));
-        Graphics.DrawTexture(new Rect(0,0,1,1),src);
+	    //Using RTT for best quality and performance
+	    RenderTexture rtt = RenderTexture.GetTemporary(width, height, 32);
+
+	    //Set the RTT in order to render to it
+	    Graphics.SetRenderTarget(rtt);
+
+	    //Setup 2D matrix in range 0..1, so nobody needs to care about sizes
+	    GL.LoadPixelMatrix(0,1,1,0);
+
+	    //Then clear & draw the texture to fill the entire RTT.
+	    GL.Clear(true,true,new Color(0,0,0,0));
+	    Graphics.DrawTexture(new Rect(0,0,1,1),src);
+
+	    //Release the RenderTexture when it is no longer needed
+	    RenderTexture.ReleaseTemporary(rtt);
     }
 
 	public enum TextureBlendMode {

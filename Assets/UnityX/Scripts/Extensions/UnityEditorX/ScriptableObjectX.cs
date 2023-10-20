@@ -4,7 +4,6 @@ using UnityEditor;
 using System.IO;
 using System;
 using System.Reflection;
-using System.Collections.Generic;
 
 public static class ScriptableObjectX {
 

@@ -1,7 +1,4 @@
-using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
 /// <summary>
 /// Uses an ordered list of CameraProperties modifier functions to modify an instance of CameraProperties.

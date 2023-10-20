@@ -1,12 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using UnityX.Geometry;
 
 [System.Serializable]
 public class TypeMap<T> : Grid, IEnumerable<TypeMapCellInfo<T>> {
 
-	[System.NonSerialized]
+	// [System.NonSerialized]
 	public T[] values;
 	public float valuesLengthReciprocal {
 		get {

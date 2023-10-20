@@ -1,7 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using System.Linq;
-using UnityX.Geometry;
 
 public class Region : MonoBehaviour {
 	#if UNITY_EDITOR

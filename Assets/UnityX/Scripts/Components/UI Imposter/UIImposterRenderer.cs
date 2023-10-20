@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Linq;
 
 [System.Serializable]
 public struct UIImposterOutputParams {
@@ -124,6 +123,7 @@ public class UIImposterRenderer {
             rtDepth = renderTexture.depth;
             rtFormat = renderTexture.format;
             rtFilterMode = renderTexture.filterMode;
+            if(RenderTexture.active == renderTexture) RenderTexture.active = null;
             renderTexture.Release();
             needsCreateRenderTexture = true;
         }

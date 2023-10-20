@@ -60,6 +60,8 @@ public class MultitouchDraggable : Selectable, IBeginDragHandler, IEndDragHandle
 
 
 	void LateUpdate () {
+		UpdateTestingMode();
+		
 		if(dragInputs.Count == 1) {
 			HandleDrag();
 		} else if(dragInputs.Count == 2) {
@@ -245,5 +247,51 @@ public class MultitouchDraggable : Selectable, IBeginDragHandler, IEndDragHandle
 		normalizedPosition = new Vector2((localPosition.x - r.x) / r.width, (localPosition.y - r.y) / r.height);
 		normalizedPosition += rect.pivot-(Vector2.one * 0.5f);
 		return true;
+	}
+	
+	
+	
+	
+	
+	public bool testingMode = false;
+	Vector2 testingModeInitialScreenPos;
+	void OnGUI() {
+		if (testingMode) {
+			foreach (var dragInput in dragInputs) {
+				GUI.Box(OnGUIX.ScreenToGUIRect(RectX.CreateFromCenter(dragInput.screenPos, Vector2.one * 40)), dragInput.pointerId.ToString());
+			}
+		}
+	}
+	[ContextMenu("Toggle Testing Mode")]
+	public void ToggleTestingMode() {
+		testingMode = !testingMode;
+		if(testingMode) {
+			Camera cam = GetComponentInParent<Canvas>().rootCanvas.worldCamera;
+			testingModeInitialScreenPos = RectTransformUtility.WorldToScreenPoint(cam, target.position);
+			dragInputs.Clear();
+			dragInputs.Add(new DragInput(GetTestDragInput(0)));
+			dragInputs.Add(new DragInput(GetTestDragInput(1)));
+		} else {
+			dragInputs.Clear();
+		}
+	}
+	void UpdateTestingMode() {
+		if(testingMode) {
+			foreach(var dragInput in dragInputs) {
+				dragInput.UpdateDrag(GetTestDragInput(dragInput.pointerId));
+			}
+		}
+	}
+	PointerEventData GetTestDragInput(int pointerId) {
+		float speed = 0.6f;
+		float startDistance = 300;
+		float moveDistance = 400;
+		return new PointerEventData(EventSystem.current) {
+			pointerId = pointerId,
+			position = testingModeInitialScreenPos + new Vector2(
+				Mathf.Lerp(-startDistance*0.5f,startDistance*0.5f,Mathf.InverseLerp(0,1,pointerId))+Mathf.PerlinNoise(Time.time*speed, (1 + pointerId)*13.14f) * moveDistance,
+				Mathf.Lerp(-startDistance*0.5f,startDistance*0.5f,Mathf.InverseLerp(0,1,pointerId))+Mathf.PerlinNoise(Time.time*speed, (1 + pointerId)*33.14f) * moveDistance
+			)
+		};
 	}
 }

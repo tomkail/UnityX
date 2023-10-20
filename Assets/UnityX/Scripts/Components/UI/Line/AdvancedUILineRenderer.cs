@@ -1,7 +1,4 @@
-﻿using UnityEngine.UI;
-using UnityEngine.UI.Extensions;
-using System.Collections.Generic;
-using System;
+﻿using System.Collections.Generic;
 
 namespace UnityEngine.UI.Extensions
 {

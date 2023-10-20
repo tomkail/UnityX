@@ -1,9 +1,6 @@
 ﻿using UnityEngine;
 using System;
-using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
-using UnityX.Geometry;
 
 // Finds islands "owned" by a specific property of the coord, such as the land type
 public class OwnedIslandDetector<Coord, Owner> : IslandDetector<Coord> where Coord : IEquatable<Coord> {

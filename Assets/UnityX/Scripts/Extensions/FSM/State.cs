@@ -1,9 +1,5 @@
 ﻿// A state machine inspired by Prime31's StateKit (https://github.com/prime31/StateKit/tree/master/Assets/StateKit).
 
-using System.Collections;
-using UnityEngine;
-using System.Collections.Generic;
-
 namespace UnityX.StateMachine {	
 	/// <summary>
 	/// State.

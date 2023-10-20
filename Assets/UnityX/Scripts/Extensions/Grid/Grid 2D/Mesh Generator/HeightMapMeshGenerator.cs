@@ -1,7 +1,4 @@
 using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using UnityX.Geometry;
 
 public class HeightMapMeshGenerator : MonoBehaviour {
 	[AssetSaver]

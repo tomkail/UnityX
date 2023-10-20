@@ -72,7 +72,7 @@ public class RegionEditor : Editor {
 			var rotation = Quaternion.LookRotation(data.worldNormal, matrix.MultiplyVector(Vector3.up));
 			var distance = data.height * 0.5f;
 			distance = matrix.MultiplyVector(new Vector3(0,0,distance)).magnitude;
-			Vector3 newPos = Handles.FreeMoveHandle(worldPosition + data.worldNormal * distance, handleSize, Vector3.zero, ((int controlID, Vector3 handlePosition, Quaternion handleRotation, float size, EventType eventType) => {
+			Vector3 newPos = Handles.FreeMoveHandle(worldPosition + data.worldNormal * distance, rotation, handleSize, Vector3.zero, ((int controlID, Vector3 handlePosition, Quaternion handleRotation, float size, EventType eventType) => {
 				handleRotation = rotation;
 				Handles.DrawDottedLine(worldPosition, handlePosition, 5);
 				Handles.ConeHandleCap(controlID, handlePosition, handleRotation, handleSize, eventType);

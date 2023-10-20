@@ -1,5 +1,4 @@
-﻿using System.Linq;  
-using UnityEngine;
+﻿using UnityEngine;
 
 public abstract class ScriptableSingleton<T> : ScriptableObject where T : ScriptableSingleton<T>{
 	private static T _Instance;

@@ -1,7 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-
-public static class SystemInfoX {
+﻿public static class SystemInfoX {
 	
 	public static bool IsMacOS {
 		get {
