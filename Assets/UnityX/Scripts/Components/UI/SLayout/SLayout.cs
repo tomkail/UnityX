@@ -38,6 +38,7 @@ public partial class SLayout : UIBehaviour {
 
 	public bool isAnimating {
 		get {
+			if(SLayoutAnimator.quitting) return false;
 			return SLayoutAnimator.instance.IsAnimating(this);
 		}
 	}
@@ -88,12 +89,24 @@ public partial class SLayout : UIBehaviour {
 			_nonAnimatedAction = nonAnimatedAction,
 			_owner = this
 		};
+		#if UNITY_EDITOR
+		if(!Application.isPlaying) newAnim.CompleteImmediate();
+		else
+		#endif
 		SLayoutAnimator.instance.StartAnimation(newAnim);
 		return newAnim;
 	}
 
 	public SLayoutAnimation Animate(float duration, float delay, AnimationCurve customCurve, System.Action animAction)
 	{
+		#if UNITY_EDITOR
+		if (!Application.isPlaying) {
+			animAction();
+			return null;
+		}
+		if(SLayoutAnimator.quitting) return null;
+		else {
+		#endif
 		var newAnim = new SLayoutAnimation() {
 			_duration = duration, 
 			_maxDuration = duration, 
@@ -104,10 +117,10 @@ public partial class SLayout : UIBehaviour {
 			_owner = this
 		};
 		SLayoutAnimator.instance.StartAnimation(newAnim);
-		#if UNITY_EDITOR
-		if(!Application.isPlaying) newAnim.CompleteImmediate();
-		#endif
 		return newAnim;
+		#if UNITY_EDITOR
+		}
+		#endif
 	}
 	
 	public SLayoutAnimation Animate(float duration, EasingFunction.Ease easing, System.Action animAction)
@@ -126,6 +139,14 @@ public partial class SLayout : UIBehaviour {
 			_animAction = animAction,
 			_owner = this
 		};
+		#if UNITY_EDITOR
+		if (!UnityEditor.EditorApplication.isPlaying) {
+			newAnim.CompleteImmediate();
+			return newAnim;
+		}
+		if(SLayoutAnimator.quitting) return null;
+		else
+		#endif
 		SLayoutAnimator.instance.StartAnimation(newAnim);
 		return newAnim;
 	}
@@ -140,6 +161,11 @@ public partial class SLayout : UIBehaviour {
 			_animAction = () => Animatable(customAnimAction),
 			_owner = this
 		};
+		#if UNITY_EDITOR
+		if(!Application.isPlaying) newAnim.CompleteImmediate();
+		if(SLayoutAnimator.quitting) return null;
+		else
+		#endif
 		SLayoutAnimator.instance.StartAnimation(newAnim);
 		return newAnim;
 	}
@@ -154,6 +180,10 @@ public partial class SLayout : UIBehaviour {
 			_animAction = () => Animatable(customAnimAction),
 			_owner = this
 		};
+		#if UNITY_EDITOR
+		if(!Application.isPlaying) newAnim.CompleteImmediate();
+		else
+		#endif
 		SLayoutAnimator.instance.StartAnimation(newAnim);
 		return newAnim;
 	}
@@ -164,6 +194,7 @@ public partial class SLayout : UIBehaviour {
 	/// </summary>
 	public void AddDelay(float extraDelay)
 	{
+		if(SLayoutAnimator.quitting) return;
 		SLayoutAnimator.instance.AddDelay(extraDelay);
 	}
 
@@ -173,6 +204,7 @@ public partial class SLayout : UIBehaviour {
 	/// </summary>
 	public void AddDuration(float extraDuration)
 	{
+		if(SLayoutAnimator.quitting) return;
 		SLayoutAnimator.instance.AddDuration(extraDuration);
 	}
 
@@ -186,6 +218,7 @@ public partial class SLayout : UIBehaviour {
 	/// </summary>
 	public static void Animatable(Action<float> customAnim)
 	{
+		if(SLayoutAnimator.quitting) return;
 		SLayoutAnimator.instance.Animatable(customAnim);
 	}
 
@@ -198,6 +231,7 @@ public partial class SLayout : UIBehaviour {
 	/// </summary>
 	public static void Animatable(float initial, float target, Action<float> setter)
 	{
+		if(SLayoutAnimator.quitting) return;
 		SLayoutAnimator.instance.Animatable(t => setter(Mathf.LerpUnclamped(initial, target, t)));
 	}
 
@@ -210,17 +244,20 @@ public partial class SLayout : UIBehaviour {
 	/// </summary>
 	public static void Animatable(Color initial, Color target, Action<Color> setter)
 	{
+		if(SLayoutAnimator.quitting) return;
 		SLayoutAnimator.instance.Animatable(t => setter(Color.Lerp(initial, target, t)));
 	}
 
 	public void CancelAnimations()
 	{
+		if(SLayoutAnimator.quitting) return;
 		if(SLayoutAnimator.instance == null) return;
 		SLayoutAnimator.instance.CancelAnimations(this);
 	}
 
 	public void CompleteAnimations()
 	{
+		if(SLayoutAnimator.quitting) return;
 		SLayoutAnimator.instance.CompleteAnimations(this);
 	}
 
@@ -825,7 +862,7 @@ public partial class SLayout : UIBehaviour {
 	// Converts a screen position to a local position in the layout space.
     public Vector2 ScreenToSLayoutPosition (Vector2 screenPoint) {
 		RectTransformUtility.ScreenPointToWorldPointInRectangle(rectTransform, screenPoint, canvas.rootCanvas.worldCamera, out Vector3 worldPoint);
-        return WorldToSLayoutPosition(worldPoint);
+		return WorldToSLayoutPosition(worldPoint);
         // return (Vector2)CanvasToSLayoutSpace(canvas.ScreenToCanvasPoint(screenPoint));
     }
 	
@@ -833,7 +870,7 @@ public partial class SLayout : UIBehaviour {
         return ScreenToSLayoutPosition(screenVector) - ScreenToSLayoutPosition(Vector2.zero);
     }
 
-	// Converts a screen rect to a local rect in the layout space.
+	// Converts a screen rect to a rect that can be applied to this layout
     public Rect ScreenToSLayoutRect (Rect screenRect) {
 		var min = ScreenToSLayoutPosition(screenRect.min);
 		var max = ScreenToSLayoutPosition(screenRect.max);
@@ -883,7 +920,7 @@ public partial class SLayout : UIBehaviour {
     //  (assuming set to top-left mode but this works for either)
 
 	// WARNING! This seems not to work when the object is in a non-full-size container! It moves more than it should from the center. We probably need to offset it by the container's position.
-	// IT's been commented out for that reason.
+	// I suspect this can convert from canvas to world, and then use WorldToSLayoutPosition, which has been tested to work.
     public Vector2 CanvasToSLayoutSpace (Vector2 canvasSpacePos) {
 		Vector2 offset = Vector2.zero;
 
@@ -907,22 +944,22 @@ public partial class SLayout : UIBehaviour {
 		}
         return canvasSpacePos + offset;
     }
-
-	public Vector2 ConvertPositionToWorldSpace(Vector2 localLayoutPos) {
+    
+    public Vector2 ConvertPositionToWorldSpace(Vector2 localLayoutPos) {
 		if( originTopLeft ) localLayoutPos.y = height - localLayoutPos.y;
 		var localPos = localLayoutPos - GetPivotPos(rectTransform);
 		return rectTransform.TransformPoint(localPos);
 	}
+	
 	/// <summary>
-	/// Converts a point in local space of this SLayout to the local space of another SLayout.
+	/// Converts a point in local space of this SLayout to the local space of another SLayout. Local space is relative to the layout's position and direction as specified by the "origin top left" property
 	/// If you pass a null SLayout, it will get the point in the space of the canvas.
-	/// Note - there might be a bug when layout is null, because it returns canvas space relative to the bottom corner rather than the canvas's pivot?
 	/// </summary>
 	public Vector2 ConvertPositionToTarget(Vector2 localLayoutPos, SLayout targetLayout) {
 		var worldSpacePoint = ConvertPositionToWorldSpace(localLayoutPos);
+		if (targetLayout == null) return worldSpacePoint;
 
-		RectTransform targetRectTransform = targetLayout ? targetLayout.rectTransform : null;
-		if( targetRectTransform == null ) targetRectTransform = (RectTransform)canvas.transform;
+		RectTransform targetRectTransform = targetLayout.rectTransform;
 
 		var targetLocalPos = (Vector2) targetRectTransform.InverseTransformPoint(worldSpacePoint);
 		var targetLayoutPos = targetLocalPos + GetPivotPos(targetRectTransform);
@@ -934,7 +971,7 @@ public partial class SLayout : UIBehaviour {
 	}
 
 	/// <summary>
-	/// Converts a rect in local space of this SLayout to the local space of another SLayout.
+	/// Converts a rect in local space of this SLayout to the local space of another SLayout. Local space is relative to the layout's position and direction as specified by the "origin top left" property
 	/// If you pass a null SLayout, it will get the rect in the space of the canvas.
 	/// </summary>
 	public Rect ConvertRectToTarget(Rect localRect, SLayout targetLayout = null)
@@ -952,18 +989,72 @@ public partial class SLayout : UIBehaviour {
 		);
 	}
 
-	float GetRectTransformX(RectTransform rt) {
+	/// <summary>
+	/// Converts a rect in local space of this SLayout to screen space. Local space is relative to the layout's position and direction as specified by the "origin top left" property
+	/// </summary> 
+	static Vector3[] worldCorners = new Vector3[4];
+	public Rect LocalToScreenRect(Rect localRect) {
+		worldCorners[0] = ConvertPositionToTarget(new Vector2(localRect.x, localRect.y), null);
+		worldCorners[1] = ConvertPositionToTarget(new Vector2(localRect.xMax, localRect.y), null);
+		worldCorners[2] = ConvertPositionToTarget(new Vector2(localRect.x, localRect.yMax), null);
+		worldCorners[3] = ConvertPositionToTarget(new Vector2(localRect.xMax, localRect.yMax), null);
+		return WorldToScreenRect(rootCanvas, worldCorners);
+		Rect WorldToScreenRect(Canvas canvas, Vector3[] worldCorners) {
+			Camera cam = canvas.renderMode == RenderMode.ScreenSpaceCamera || canvas.renderMode == RenderMode.WorldSpace ? canvas.worldCamera : null;
+            
+			float xMin = float.PositiveInfinity;
+			float xMax = float.NegativeInfinity;
+			float yMin = float.PositiveInfinity;
+			float yMax = float.NegativeInfinity;
+			for (int i = 0; i < 4; i++) {
+				var screenCoord = RectTransformUtility.WorldToScreenPoint(cam, worldCorners[i]);
+				if (screenCoord.x < xMin)
+					xMin = screenCoord.x;
+				if (screenCoord.x > xMax)
+					xMax = screenCoord.x;
+				if (screenCoord.y < yMin)
+					yMin = screenCoord.y;
+				if (screenCoord.y > yMax)
+					yMax = screenCoord.y;
+			}
+			return new Rect(xMin, yMin, xMax - xMin, yMax - yMin);
+		}
+	}
+	
+	/// <summary>
+	/// Common utility function that uses LocalToScreenRect. Returns the screen space rect of the layout.
+	/// </summary> 
+	public Rect GetScreenRect() {
+		return LocalToScreenRect(localRect);
+	}
+	
+	/// <summary>
+	/// Common utility function that uses LocalToScreenRect. Returns the screen space rect of the layout's target rect.
+	/// </summary>
+	public Rect GetScreenTargetRect() {
+		return LocalToScreenRect(new Rect(targetRect.x-rect.x, targetRect.y-rect.y, targetLocalRect.width, targetLocalRect.height)); 
+	}
+	
+	/// <summary>
+	/// Common utility function that uses LocalToScreenRect. Returns the screen space rect of a target rect.
+	/// </summary>
+	public Rect GetScreenTargetRect(Rect _targetRect) {
+		return LocalToScreenRect(new Rect(_targetRect.x-rect.x, _targetRect.y-rect.y, targetLocalRect.width, targetLocalRect.height)); 
+	}
+	
+
+	public float GetRectTransformX(RectTransform rt, bool usingScale = false) {
 		float toLeftEdge = rt.pivot.x * rt.rect.width;
 		var parentRectT = rt.parent as RectTransform;
 		if( parentRectT == null )
 			return 0.0f;
 		
 		float parentToLeftEdge = parentRectT.pivot.x * parentRectT.rect.width;
-		float leftInset = parentToLeftEdge + transform.localPosition.x - toLeftEdge;
+		float leftInset = parentToLeftEdge + transform.localPosition.x - toLeftEdge * (usingScale ? transform.localScale.x : 1);
 		return leftInset;
 	}
 
-	float GetRectTransformY(RectTransform rt) {
+	public float GetRectTransformY(RectTransform rt, bool usingScale = false) {
 		var parentRectT = rt.parent as RectTransform;
 		if( parentRectT == null )
 			return 0.0f;
@@ -971,17 +1062,20 @@ public partial class SLayout : UIBehaviour {
 		if( originTopLeft ) {
 			float toTopEdge = (1.0f-rt.pivot.y) * rt.rect.height;
 			float parentToTopEdge = (1.0f-parentRectT.pivot.y) * parentRectT.rect.height;
-			float topInset = parentToTopEdge - transform.localPosition.y - toTopEdge;
+			float topInset = parentToTopEdge - transform.localPosition.y - toTopEdge * (usingScale ? transform.localScale.y : 1);
 			return topInset;
 		} else {
 			float toBottomEdge = rt.pivot.y * rt.rect.height;
 			float parentToBottomEdge = parentRectT.pivot.y * parentRectT.rect.height;
-			float bottomInset = parentToBottomEdge + transform.localPosition.y - toBottomEdge;
+			float bottomInset = parentToBottomEdge + transform.localPosition.y - toBottomEdge * (usingScale ? transform.localScale.y : 1);
 			return bottomInset;
 		}
 	}
 
-	void SetRectTransformX(float x)
+	void SetRectTransformX(float x) {
+		SetRectTransformX(x, false);
+	}
+	public void SetRectTransformX(float x, bool usingScale)
 	{
 		var parentRT = parentRectTransform;
 		if( parentRT == null ) return; // Happens when SLayout gets displaced outside of UI
@@ -992,7 +1086,7 @@ public partial class SLayout : UIBehaviour {
 		var ownPivotPosX = rt.pivot.x * rt.rect.width;
 
 		// X local to parent pivot (i.e. the localPosition)
-		var localX = -parentPivotPosX + x + ownPivotPosX;
+		var localX = -parentPivotPosX + x + ownPivotPosX * (usingScale ? transform.localScale.x : 1);
 
 		var localPos = rt.localPosition;
 		if(localPos.x == localX) return;
@@ -1000,7 +1094,10 @@ public partial class SLayout : UIBehaviour {
 		rt.localPosition = localPos;
 	}
 
-	void SetRectTransformY(float y)
+	public void SetRectTransformY(float y) {
+		SetRectTransformY(y, false);
+	}
+	public void SetRectTransformY(float y, bool usingScale)
 	{
 		var parentRT = parentRectTransform;
 		if( parentRT == null ) return; // Happens when SLayout gets displaced outside of UI
@@ -1012,10 +1109,10 @@ public partial class SLayout : UIBehaviour {
 		if( originTopLeft ) {
 			var parentPivotPosToTop = (1.0f-parentRT.pivot.y) * parentRT.rect.height;
 			var ownPivotPosToTop = (1.0f-rt.pivot.y) * rt.rect.height;
-			localY = parentPivotPosToTop - y - ownPivotPosToTop;
+			localY = parentPivotPosToTop - y - ownPivotPosToTop * (usingScale ? transform.localScale.y : 1);
 		} else {
 			var parentPivotPosY = parentRT.pivot.y * parentRT.rect.height;
-			var ownPivotPosY = rt.pivot.y * rt.rect.height;
+			var ownPivotPosY = rt.pivot.y * rt.rect.height * (usingScale ? transform.localScale.y : 1);
 			localY = -parentPivotPosY + y + ownPivotPosY;
 		}
 			

@@ -186,7 +186,7 @@ public static class IEnumerableX {
     }
 
     public static T Random<T>(this IEnumerable<T> source) {
-		if(source.Count() == 0) return default(T);
+		if(!source.Any()) return default(T);
 		return source.ElementAt(source.RandomIndex());
     }
     

@@ -10,7 +10,7 @@ public class ScreenX : MonoSingleton<ScreenX> {
 
 	public const float inchesToCentimeters = 2.54f;
 	public const float centimetersToInches = 0.39370079f;
-
+	
 	/// <summary>
 	/// The length from the bottom-left to the top-right corners. 
 	/// Note: measured in pixels, rather than the standard screen diagonal unit of inches.
@@ -149,22 +149,23 @@ public class ScreenX : MonoSingleton<ScreenX> {
 	/// <summary>
 	/// The DPI of the screen
 	/// </summary>
-	static bool gameViewDpiMultiplierDirty = true;
+	// static bool gameViewDpiMultiplierDirty = true;
 	public static float dpi {
 		get {
 			float dpiMultiplier = 1f;
-			#if UNITY_EDITOR
-			if(gameViewDpiMultiplierDirty) {
-				// When using a fixed game view resolution, Screen.width/height returns the size of the fixed resolution. If the fixed resolution is more than the actual game view window's size, it's scaled down.
-				// Screen.dpi continues to return the dpi of the screen in this case, without taking the shrinkage into account. 
-				// DPI should return the density of the game view resolution, rather than of the game view window, and so we take this into account here.
-				System.Type T = System.Type.GetType("UnityEditor.PlayModeView,UnityEditor");
-				System.Reflection.MethodInfo GetMainGameView = T.GetMethod("GetMainPlayModeView", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-				var gameView = (UnityEditor.EditorWindow)GetMainGameView.Invoke(null, null);
-				dpiMultiplier = Mathf.Max(1, Screen.width/gameView.position.width, Screen.height/gameView.position.height);
-				gameViewDpiMultiplierDirty = false;
-			}
-			#endif
+			// #if UNITY_EDITOR
+			// if(gameViewDpiMultiplierDirty) {
+			// 	// When using a fixed game view resolution, Screen.width/height returns the size of the fixed resolution. If the fixed resolution is more than the actual game view window's size, it's scaled down.
+			// 	// Screen.dpi continues to return the dpi of the screen in this case, without taking the shrinkage into account. 
+			// 	// DPI should return the density of the game view resolution, rather than of the game view window, and so we take this into account here.
+			// 	System.Type T = System.Type.GetType("UnityEditor.PlayModeView,UnityEditor");
+			// 	System.Reflection.MethodInfo GetMainGameView = T.GetMethod("GetMainPlayModeView", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+			// 	var gameView = (UnityEditor.EditorWindow)GetMainGameView.Invoke(null, null);
+			// 	dpiMultiplier = Mathf.Max(1, screenWidth/gameView.position.width, screenHeight/gameView.position.height);
+			// 	Debug.Log("SET M "+dpiMultiplier);
+			// 	gameViewDpiMultiplierDirty = false;
+			// }
+			// #endif
 
 			if(usingCustomDPI){
 				return customDPI * dpiMultiplier;
@@ -216,9 +217,9 @@ public class ScreenX : MonoSingleton<ScreenX> {
 	}
 
 	private void Update () {
-		#if UNITY_EDITOR
-		gameViewDpiMultiplierDirty = true;
-		#endif
+		// #if UNITY_EDITOR
+		// gameViewDpiMultiplierDirty = true;
+		// #endif
 		CheckSizeChange();
 		CheckOrientationChange();
 	}
@@ -333,22 +334,26 @@ public class ScreenX : MonoSingleton<ScreenX> {
 	// ARGH I hate this. It's necessary because screen/display don't return the values for game view in some editor contexts (using inspector windows, for example)
 	static int screenWidth {
 		get {
-			#if UNITY_EDITOR
+#if UNITY_EDITOR
 			var res = UnityEditor.UnityStats.screenRes.Split('x');
-			return int.Parse(res[0]);
-			#else
+			var width = int.Parse(res[0]);
+			if (width != 0) return width;
+#endif
+			// Consider adding target displays, then replace with this.
+			// Display.displays[0].renderingWidth
 			return Screen.width;
-			#endif
 		}
 	}
 	static int screenHeight {
 		get {
-			#if UNITY_EDITOR
+#if UNITY_EDITOR
 			var res = UnityEditor.UnityStats.screenRes.Split('x');
-			return int.Parse(res[1]);
-			#else
+			var height = int.Parse(res[1]);
+			if (height != 0) return height;
+#endif
+			// Consider adding target displays, then replace with this.
+			// Display.displays[0].renderingHeight
 			return Screen.height;
-			#endif
 		}
 	}
 }

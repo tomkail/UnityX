@@ -146,9 +146,8 @@ public sealed class BoundingSphere {
 	/// 
 	/// </summary>
 	/// <param name="points">Collection of points</param>
-	public void CreateFromPoints(Vector3[] points) {
-		Vector3[] copy = new Vector3[points.Length];
-		Array.Copy(points, copy, points.Length);
+	public void CreateFromPoints(IEnumerable<Vector3> points) {
+		var copy = points.ToArray();
 		CalculateWelzl(copy, copy.Length, 0, 0);
 	}
 	

@@ -1,35 +1,38 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-
-public static class PrimitiveHelper {
-    static Dictionary<PrimitiveType, Mesh> primitiveMeshes = new();
  
-     public static GameObject CreatePrimitive(PrimitiveType type, bool withCollider) {
+public static class PrimitiveHelper {
+     private static Dictionary<PrimitiveType, Mesh> primitiveMeshes = new Dictionary<PrimitiveType, Mesh>();
+ 
+     public static GameObject CreatePrimitive(PrimitiveType type, bool withCollider)
+     {
          if (withCollider) { return GameObject.CreatePrimitive(type); }
  
          GameObject gameObject = new GameObject(type.ToString());
          MeshFilter meshFilter = gameObject.AddComponent<MeshFilter>();
-         meshFilter.sharedMesh = GetPrimitiveMesh(type);
+         meshFilter.sharedMesh = PrimitiveHelper.GetPrimitiveMesh(type);
          gameObject.AddComponent<MeshRenderer>();
  
          return gameObject;
      }
  
-     public static Mesh GetPrimitiveMesh(PrimitiveType type) {
-         if (!primitiveMeshes.ContainsKey(type)) {
-             CreatePrimitiveMesh(type);
+     public static Mesh GetPrimitiveMesh(PrimitiveType type)
+     {
+         if (!PrimitiveHelper.primitiveMeshes.ContainsKey(type))
+         {
+             PrimitiveHelper.CreatePrimitiveMesh(type);
          }
  
-         return primitiveMeshes[type];
+         return PrimitiveHelper.primitiveMeshes[type];
      }
-
-     static Mesh CreatePrimitiveMesh(PrimitiveType type) {
+ 
+     private static Mesh CreatePrimitiveMesh(PrimitiveType type)
+     {
          GameObject gameObject = GameObject.CreatePrimitive(type);
          Mesh mesh = gameObject.GetComponent<MeshFilter>().sharedMesh;
-         if(Application.isPlaying) Object.Destroy(gameObject);
-         else Object.DestroyImmediate(gameObject);
+         GameObject.Destroy(gameObject);
  
-         primitiveMeshes[type] = mesh;
+         PrimitiveHelper.primitiveMeshes[type] = mesh;
          return mesh;
      }
  }

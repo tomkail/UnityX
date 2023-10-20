@@ -165,7 +165,7 @@ public static class Vector3X {
 		Vector3 normalizedDirection = direction.sqrMagnitude == 1 ? direction : direction.normalized;
 		Vector3 projectedA = Vector3.ProjectOnPlane(a, normalizedDirection).normalized;
 		Vector3 projectedB = Vector3.ProjectOnPlane(b, normalizedDirection).normalized;
-		return Vector2.SignedAngle(projectedA, projectedB);
+		return Vector3.SignedAngle(projectedA, projectedB, direction);
 	}
 
 	/// <summary>

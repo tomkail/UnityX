@@ -127,6 +127,58 @@ public struct SerializableCamera  {
             _inverseProjectionMatrixSet = false;
         }
     }
+	
+    // This allows using a custom screen instead of the game view. If true, you must supply values to customScreenParams; 
+    public bool useCustomScreen;
+    public ScreenParams customScreenParams;
+
+    public ScreenParams screenParams {
+	    get {
+		    if (useCustomScreen) return customScreenParams;
+		    else return ScreenParams.gameScreenParams;
+	    }
+    }
+    public float screenWidth => screenParams.width;
+    public float screenHeight => screenParams.height;
+    public struct ScreenParams {
+	    public float width;
+	    public float height;
+
+	    public static ScreenParams @default => new ScreenParams(1920, 1080);
+	    public static ScreenParams gameScreenParams => new ScreenParams(gameScreenWidth, gameScreenHeight);
+	    
+	    // ARGH I hate this. It's necessary because screen/display don't return the values for game view in some editor contexts (using inspector windows, for example)
+	    public static int gameScreenWidth {
+		    get {
+#if UNITY_EDITOR
+			    var res = UnityEditor.UnityStats.screenRes.Split('x');
+			    var width = int.Parse(res[0]);
+			    if (width != 0) return width;
+#endif
+			    // Consider adding target displays, then replace with this.
+			    // Display.displays[0].renderingWidth
+			    return Screen.width;
+		    }
+	    }
+	    public static int gameScreenHeight {
+		    get {
+#if UNITY_EDITOR
+			    var res = UnityEditor.UnityStats.screenRes.Split('x');
+			    var height = int.Parse(res[1]);
+			    if (height != 0) return height;
+#endif
+			    // Consider adding target displays, then replace with this.
+			    // Display.displays[0].renderingHeight
+			    return Screen.height;
+		    }
+	    }
+
+	    public ScreenParams(float width, float height) {
+		    this.width = width;
+		    this.height = height;
+	    }
+    }
+    
     Rect _rect;
     public Rect rect {
         get {
@@ -161,31 +213,7 @@ public struct SerializableCamera  {
         }
     }
 
-	// ARGH I hate this. It's necessary because screen/display don't return the values for game view in some editor contexts (using inspector windows, for example)
-	static int screenWidth {
-		get {
-			#if UNITY_EDITOR
-			var res = UnityEditor.UnityStats.screenRes.Split('x');
-			return int.Parse(res[0]);
-			#else
-			// Consider adding target displays, then replace with this.
-			// Display.displays[0].renderingWidth
-			return Screen.width;
-			#endif
-		}
-	}
-	static int screenHeight {
-		get {
-			#if UNITY_EDITOR
-			var res = UnityEditor.UnityStats.screenRes.Split('x');
-			return int.Parse(res[1]);
-			#else
-			// Consider adding target displays, then replace with this.
-			// Display.displays[0].renderingHeight
-			return Screen.height;
-			#endif
-		}
-	}
+	
 
 
 	// https://docs.unity3d.com/ScriptReference/Camera-worldToCameraMatrix
@@ -255,13 +283,31 @@ public struct SerializableCamera  {
 		this._orthographic = defaultOrthographic;
 		this._orthographicSize = defaultOrthographicSize;
         this._rect = defaultRect;
+
+        this.useCustomScreen = false;
+        this.customScreenParams = ScreenParams.@default;
         
         _projectionMatrix = Matrix4x4.identity;
         _projectionMatrixSet = false;
         _inverseProjectionMatrix = Matrix4x4.identity;
         _inverseProjectionMatrixSet = false;
 	}
-	
+
+	// SerializableCamera() {
+	// 	transform = SerializableTransform.identity;
+	// 	_fieldOfView = defaultFieldOfView;
+	// 	_nearClipPlane = defaultNearClipPlane;
+	// 	_farClipPlane = defaultFarClipPlane;
+	// 	_orthographic = defaultOrthographic;
+	// 	_orthographicSize = defaultOrthographicSize;
+	// 	_rect = defaultRect;
+	//
+	// 	_projectionMatrix = Matrix4x4.identity;
+	// 	_projectionMatrixSet = false;
+	// 	_inverseProjectionMatrix = Matrix4x4.identity;
+	// 	_inverseProjectionMatrixSet = false;
+	// }
+
 	public SerializableCamera (Camera camera) {
 		Debug.Assert(camera);
 		this.transform = new SerializableTransform(camera.transform);
@@ -271,6 +317,9 @@ public struct SerializableCamera  {
 		this._orthographic = camera.orthographic;
 		this._orthographicSize = camera.orthographicSize;
         this._rect = camera.rect;
+        
+        this.useCustomScreen = false;
+        this.customScreenParams = ScreenParams.@default;
 
         _projectionMatrix = Matrix4x4.identity;
         _projectionMatrixSet = false;
@@ -287,6 +336,9 @@ public struct SerializableCamera  {
 		this._orthographicSize = defaultOrthographicSize;
         this._rect = defaultRect;
         
+        this.useCustomScreen = false;
+        this.customScreenParams = ScreenParams.@default;
+        
         _projectionMatrix = Matrix4x4.identity;
         _projectionMatrixSet = false;
         _inverseProjectionMatrix = Matrix4x4.identity;
@@ -301,6 +353,9 @@ public struct SerializableCamera  {
 		this._orthographic = defaultOrthographic;
 		this._orthographicSize = defaultOrthographicSize;
         this._rect = defaultRect;
+        
+        this.useCustomScreen = false;
+        this.customScreenParams = ScreenParams.@default;
         
         _projectionMatrix = Matrix4x4.identity;
         _projectionMatrixSet = false;
@@ -363,27 +418,41 @@ public struct SerializableCamera  {
 		viewportPoint.x = (viewportPoint.x - 0.5f) * 2;
 		viewportPoint.y = (viewportPoint.y - 0.5f) * 2;
 		
-        Vector3 p1 = new Vector3(viewportPoint.x, viewportPoint.y, -1);
-		Vector3 p2 = new Vector3(viewportPoint.x, viewportPoint.y, 1);
-		
-		Vector3 worldPointNear = inverseProjectionMatrix.MultiplyPoint(p1);
-		Vector3 worldPointFar = inverseProjectionMatrix.MultiplyPoint(p2);
-		// Compensate for Unity's inverted z
-        worldPointNear.z = -worldPointNear.z;
-        worldPointFar.z = -worldPointFar.z;
-		
-		// Create a direction that can be projected forward in world space.
-		Vector3 dir = worldPointFar-worldPointNear;
-		Vector3 normalizedDir = dir.normalized;
-		
-		// Get the length of the vector required to reach the target direction when using the direction we just calculated.
-		float dotLength = Vector3.Dot (Vector3.forward, normalizedDir);
-		// Debug.Log(dotLength);
-		Vector3 point = normalizedDir * viewportPoint.z/dotLength;
-		
-		// Get this point relative to the camera
-		point = transform.localToWorldDirectionMatrix.MultiplyPoint(point);
-		return point;
+		// Orthographic has to be handled separately because the method below assumes that two points at different distances will have a direction different from that of the camera.
+		// That said, it's just a simpler version of the same code.
+		if (orthographic) {
+			Vector3 p2 = new Vector3(viewportPoint.x, viewportPoint.y, 1);
+			Vector3 worldPointFar = inverseProjectionMatrix.MultiplyPoint(p2);
+			Vector3 point = new Vector3(worldPointFar.x, worldPointFar.y, viewportPoint.z);
+			
+			// Get this point relative to the camera
+			point = transform.localToWorldDirectionMatrix.MultiplyPoint(point);
+			return point;
+		}
+		// This works by tracing a ray in a direction defined by the viewport point and getting it at a distance in the direction of the camera
+		else {
+			Vector3 p1 = new Vector3(viewportPoint.x, viewportPoint.y, -1);
+			Vector3 p2 = new Vector3(viewportPoint.x, viewportPoint.y, 1);
+
+			Vector3 worldPointNear = inverseProjectionMatrix.MultiplyPoint(p1);
+			Vector3 worldPointFar = inverseProjectionMatrix.MultiplyPoint(p2);
+			// Compensate for Unity's inverted z
+			worldPointNear.z = -worldPointNear.z;
+			worldPointFar.z = -worldPointFar.z;
+
+			// Create a direction that can be projected forward in world space.
+			Vector3 dir = worldPointFar - worldPointNear;
+			Vector3 normalizedDir = dir.normalized;
+
+			// Get the length of the vector required to reach the target direction when using the direction we just calculated.
+			float dotLength = Vector3.Dot(Vector3.forward, normalizedDir);
+			// Debug.Log(dotLength);
+			Vector3 point = normalizedDir * viewportPoint.z / dotLength;
+
+			// Get this point relative to the camera
+			point = transform.localToWorldDirectionMatrix.MultiplyPoint(point);
+			return point;
+		}
 	}
 
 	public Ray ViewportPointToRay (Vector3 viewportPoint) {
@@ -406,12 +475,12 @@ public struct SerializableCamera  {
 		return new Ray(transform.localToWorldDirectionMatrix.MultiplyPoint(worldPointNear), transform.localToWorldDirectionMatrix.MultiplyVector(normalizedDir));
 	}
 	
-	public Vector2 ScreenToWorldPoint (Vector3 screenPoint) {
-		return ViewportToWorldPoint(Vector2.Scale(screenPoint, new Vector2(1f/screenWidth, 1f/screenHeight)));
+	public Vector3 ScreenToWorldPoint (Vector3 screenPoint) {
+		return ViewportToWorldPoint(new Vector3(screenPoint.x * 1f/screenWidth, screenPoint.y * 1f/screenHeight, screenPoint.z));
 	}
 	
 	public Ray ScreenPointToRay (Vector3 screenPoint) {
-		return ViewportPointToRay(Vector2.Scale(screenPoint, new Vector2(1f/screenWidth, 1f/screenHeight)));
+		return ViewportPointToRay(new Vector3(screenPoint.x * 1f/screenWidth, screenPoint.y * 1f/screenHeight, screenPoint.z));
 	}
 
     public Vector3 ScreenToViewportPoint (Vector3 screenPoint) {

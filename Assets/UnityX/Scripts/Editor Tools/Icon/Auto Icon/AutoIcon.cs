@@ -138,11 +138,11 @@ public class AutoIcon : MonoBehaviour {
 
 	public void SetFromProperties (AutoIcon.IconProperties iconProperties) {
 		if(iconProperties.iconType == AutoIcon.IconType.Dot) {
-			IconManager.SetIcon(gameObject, iconProperties.icon);
+			UnityEditor.EditorGUIUtility.SetIconForObject(gameObject, IconManager.GetIcon(iconProperties.icon));
 		} else if(iconProperties.iconType == AutoIcon.IconType.Label) {
-			IconManager.SetIcon(gameObject, iconProperties.labelIcon);
+			UnityEditor.EditorGUIUtility.SetIconForObject(gameObject, IconManager.GetIcon(iconProperties.labelIcon));
 		} else if(iconProperties.iconType == AutoIcon.IconType.Custom) {
-			IconManager.SetIcon(gameObject, iconProperties.texture);
+			UnityEditor.EditorGUIUtility.SetIconForObject(gameObject, iconProperties.texture);
 		}
 	}
 	#endif

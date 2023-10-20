@@ -4,22 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityX.Geometry;
 
-[ExecuteAlways]
 [RequireComponent(typeof(MeshFilter))]
 public class PolygonRenderer : BasePolygonRenderer {
-    [Space]
-    public const string colorID = "_Color";
-    [SerializeField]
-    Color _tintColor = Color.white;
-    public Color tintColor {
-        get {
-            return _tintColor;
-        } set {
-            if(_tintColor == value) return;
-            _tintColor = value;
-            RefreshMaterialPropertyBlock();
-        }
-    }
     public const string textureID = "_MainTex";
     [SerializeField]
     Texture2D _texture;
@@ -47,6 +33,7 @@ public class PolygonRenderer : BasePolygonRenderer {
     }
     public float uvXAngle = 0;
     public float uvYAngle = 90;
+
 
 
     MaterialPropertyBlock _propBlock = null;
@@ -84,17 +71,18 @@ public class PolygonRenderer : BasePolygonRenderer {
         // }
 
         // if(back) {
-            mesh.vertices = points.Select(v => new Vector3(v.x, v.y, 0)).ToArray();
+            mesh.vertices = points.Select(v => offsetRotation * v).ToArray();
 			
             List<int> triangles = new List<int>();
             Triangulator.GenerateIndices(points, triangles);
             mesh.SetTriangles(triangles, 0);
             
             mesh.uv = RecalculateUVs(polygonRect, points);
-            mesh.colors = RecalculateColors(polygonRect, points);
+            mesh.colors = colorMode == ColorMode.Custom ? customColors : RecalculateColors(polygonRect, points);
         // }
 
 		mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
         
         if(meshFilter != null)
             meshFilter.mesh = mesh;
@@ -136,67 +124,7 @@ public class PolygonRenderer : BasePolygonRenderer {
         }
         return uvs;
     }
-
-    Color[] RecalculateColors (Rect polygonRect, Vector2[] points) {
-        if(colorMode == ColorMode.Rect || colorMode == ColorMode.Shape) {
-            Color[] colors = new Color[points.Length];
-            Vector2 colorDirection = MathX.DegreesToVector2(colorAngle+90);
-            Vector2 oppositeColorDirection = MathX.DegreesToVector2(colorAngle+90+180);
-            if(colorMode == ColorMode.Rect) {
-                var startPoint = RectX.SplatVector(polygonRect, colorDirection);
-                var endPoint = RectX.SplatVector(polygonRect, oppositeColorDirection);
-                for(int i = 0; i < points.Length; i++) {
-                    Line3D line = new Line3D(startPoint, endPoint);
-                    var n = line.GetNormalizedDistanceOnLine(points[i]);
-                    colors[i] = gradient.Evaluate(n);
-                }
-            } else if(colorMode == ColorMode.Shape) {
-                var distanceColorMin = Mathf.Infinity;
-                var distanceColorMax = Mathf.NegativeInfinity;
-                foreach(var vert in points) {
-                    var colorDir = Vector2.Dot(vert, colorDirection);
-                    distanceColorMin = Mathf.Min(colorDir, distanceColorMin);
-                    distanceColorMax = Mathf.Max(colorDir, distanceColorMax);
-                }
-                for(int i = 0; i < points.Length; i++) {
-                    var colorDir = Vector2.Dot(points[i], colorDirection);
-                    if(colorMode == ColorMode.Shape) {
-                        var colorN = Mathf.InverseLerp(distanceColorMin, distanceColorMax, colorDir);
-                        colors[i] = gradient.Evaluate(colorN);
-                    }
-                }
-
-                // var distanceColorMin = Mathf.Infinity;
-                // var distanceColorMax = Mathf.NegativeInfinity;
-                // var pointColorMin = Vector2.zero;
-                // var pointColorMax = Vector2.zero;
-                // foreach(var vert in points) {
-                //     var colorDir = Vector2.Dot(vert, colorDirection);
-                //     if(colorDir < distanceColorMin) {
-                //         distanceColorMin = colorDir;
-                //         pointColorMin = vert;
-                //     }
-                //     if(colorDir > distanceColorMax) {
-                //         distanceColorMax = colorDir;
-                //         pointColorMax = vert;
-                //     }
-                // }
-                // for(int i = 0; i < points.Length; i++) {
-                //     Line3D line = new Line3D(pointColorMin, pointColorMax);
-                //     var n = line.GetNormalizedDistanceOnLine(points[i]);
-                //     colors[i] = gradient.Evaluate(n);
-                // }
-            }
-           return colors;
-        } else if (colorMode == ColorMode.White) {
-            Color[] colors = new Color[points.Length];
-            for(int i = 0; i < points.Length; i++) {
-                colors[i] = Color.white;
-            }
-            return colors;
-        } else return null;
-    }
-
+    
 	public override void RefreshMaterialPropertyBlock () {
         if(meshRenderer != null) {
             meshRenderer.GetPropertyBlock(propBlock);
@@ -208,7 +136,7 @@ public class PolygonRenderer : BasePolygonRenderer {
     }
 
     void OnDrawGizmosSelected () {
-        GizmosX.BeginMatrix(transform.localToWorldMatrix);
+        GizmosX.BeginMatrix(transform.localToWorldMatrix * Matrix4x4.TRS(Vector3.zero, offsetRotation, Vector3.one));
         var polygonRect = polygon.GetRect();
         GizmosX.DrawWireRect(polygonRect);
 

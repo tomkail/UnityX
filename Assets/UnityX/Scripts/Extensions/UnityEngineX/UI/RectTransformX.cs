@@ -3,18 +3,23 @@
 public static class RectTransformX {
 	static Vector3[] corners = new Vector3[4];
 
-    // Gets the distance between two rect transforms, in the space of the first rect transform.
+	// Gets the distance between two rect transforms, in the space of the first rect transform.
     public static float GetClosestDistanceBetweenRectTransforms (RectTransform rectTransform, RectTransform otherRectTransform) {
         var canvas = rectTransform.GetComponentInParent<Canvas>(true).rootCanvas;
-        
         var otherScreenRect = otherRectTransform.GetScreenRect(canvas);
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, otherScreenRect.BottomLeft(), canvas.worldCamera, out var localBottomLeft);
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, otherScreenRect.TopRight(), canvas.worldCamera, out var localTopRight);
+        return rectTransform.GetClosestDistanceToScreenRect(otherScreenRect);
+    }
+    
+    public static float GetClosestDistanceToScreenRect (this RectTransform rectTransform, Rect screenRect) {
+        var canvas = rectTransform.GetComponentInParent<Canvas>(true).rootCanvas;
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, screenRect.BottomLeft(), canvas.worldCamera, out var localBottomLeft);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, screenRect.TopRight(), canvas.worldCamera, out var localTopRight);
         var localRect = RectX.CreateEncapsulating(localBottomLeft, localTopRight);
         return RectX.GetClosestDistance(rectTransform.rect, localRect) * (RectX.Intersects(rectTransform.rect, localRect) ? -1 : 1);
+        // return RectX.SignedDistance(rectTransform.rect, localRect);
     }
-
-	public static bool ScreenPointToNormalizedPointInRectangle(RectTransform rect, Vector2 screenPoint, Camera cam, out Vector2 normalizedPosition) {
+    
+    public static bool ScreenPointToNormalizedPointInRectangle(RectTransform rect, Vector2 screenPoint, Camera cam, out Vector2 normalizedPosition) {
 		normalizedPosition = default;
 		if(!RectTransformUtility.ScreenPointToLocalPointInRectangle(rect, screenPoint, cam, out var localPosition)) return false;
 		var r = rect.rect;
@@ -129,7 +134,15 @@ public static class RectTransformX {
 		}
 		return RectX.CreateEncapsulating(rects);
 	}
+	
+	
 
+	public static void ScreenRectToLocalRectInRectangle(RectTransform rt, Rect screenRect, Camera camera, out Rect rect) {
+		RectTransformUtility.ScreenPointToLocalPointInRectangle(rt, screenRect.BottomLeft(), camera, out var localBottomLeft);
+		RectTransformUtility.ScreenPointToLocalPointInRectangle(rt, screenRect.TopRight(), camera, out var localTopRight);
+		rect = RectX.CreateEncapsulating(localBottomLeft, localTopRight);
+	}
+	
 	/// <summary>
 	/// Transforms a rect from local to world space
 	/// </summary>
@@ -175,7 +188,15 @@ public static class RectTransformX {
 //		Debug.Log(rect+" "+rectTransform.localPosition+" "+rectTransform.anchoredPosition+" "+rectTransform.rect);
 //	}
 
-
+	public static void SetSizeWithCurrentAnchors(this RectTransform rectTransform, Vector2 size)
+	{
+		RectTransform parent = rectTransform.parent as RectTransform;
+		var parentSize = !(bool) (Object) parent ? Vector2.zero : parent.rect.size;
+		var anchor = rectTransform.anchorMax - rectTransform.anchorMin;
+		var anchoredParentSize = parentSize * anchor;
+		rectTransform.sizeDelta = size - anchoredParentSize;
+	}
+	
 	/// <summary>
 	/// Sets the size of the rect transform relative to the canvas, subtracting the effect of the rectTransform's anchors.
 	/// SizeDelta is relative to anchors, so if the anchors are not together, the rect transform will have a larger actual width.
@@ -217,6 +238,37 @@ public static class RectTransformX {
 		float newParent = size + anchorSeparation * toParent;
 		
 		return newParent;
+	}
+	
+	
+	// Add this to convert a local position to an anchored position
+	public static Vector2 GetLocalToAnchoredPositionOffset(this RectTransform rectTransform) {
+		var parentRT = (RectTransform) rectTransform.parent;
+		var pivotAnchor = new Vector2(Mathf.LerpUnclamped(rectTransform.anchorMin.x, rectTransform.anchorMax.x, rectTransform.pivot.x), Mathf.LerpUnclamped(rectTransform.anchorMin.y, rectTransform.anchorMax.y, rectTransform.pivot.y));
+		return -parentRT.rect.size * (pivotAnchor - parentRT.pivot);
+	}
+	
+	// Add this to convert a local position to an anchored position
+	public static Vector2 GetAnchoredToLocalPositionOffset(this RectTransform rectTransform) {
+		return -rectTransform.GetLocalToAnchoredPositionOffset();
+	}
+	
+	
+	// Returns the anchored position required to make a custom pivot point for a rect transform move to the specified anchor point on the targetZ. 
+	public static Vector2 GetAnchoredPositionForTargetAnchorAndPivot(this RectTransform content, RectTransform target, Vector2 targetAnchor, Vector2 contentPivot) {
+		var targetRect = target.rect;
+		var localTargetAnchorPosition = new Vector2(Mathf.LerpUnclamped(targetRect.x, targetRect.xMax, targetAnchor.x), Mathf.LerpUnclamped(targetRect.y, targetRect.yMax, targetAnchor.y));
+		var worldTargetAnchorPosition = target.TransformPoint(localTargetAnchorPosition);
+		return content.GetAnchoredPositionForWorldPointAndPivot(worldTargetAnchorPosition, contentPivot);
+	}
+	
+	// Returns the anchored position required to make a custom pivot point for a rect transform move to a given world point.
+	public static Vector2 GetAnchoredPositionForWorldPointAndPivot(this RectTransform content, Vector3 worldPos, Vector2 contentPivot) {
+		var parent = content.parent as RectTransform;
+		var localPointInContainer = (Vector2)parent.InverseTransformPoint(worldPos);
+		var anchoredPositionOffset = content.GetLocalToAnchoredPositionOffset();
+		var pivotOffset = (content.pivot - contentPivot) * content.rect.size;
+		return localPointInContainer + anchoredPositionOffset + pivotOffset;
 	}
 	
 	

@@ -100,8 +100,13 @@ public class ExtendedSlider : Slider {
 	public override void OnDrag (PointerEventData eventData) {
 		base.OnDrag (eventData);
 
-		if (!IsActive() || !IsInteractable())
-            return;
+		if (!MayDrag(eventData)) 
+			return;
 		onDrag.Invoke();
+	}
+	
+	bool MayDrag(PointerEventData eventData)
+	{
+		return IsActive() && IsInteractable() && eventData.button == PointerEventData.InputButton.Left;
 	}
 }

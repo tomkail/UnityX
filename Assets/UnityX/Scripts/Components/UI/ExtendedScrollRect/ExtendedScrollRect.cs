@@ -8,9 +8,12 @@ namespace UnityEngine.UI {
 	public class ExtendedScrollRect : ScrollRect {
 		public bool routeScrollEventsToParent = false;
    		protected bool routeToParent = false;
+        
+        public bool dragging { get; private set; }
 
         // The content rect is scaled, so there's some minor inaccuracy when comparing sizes which this helps mitigate.
         const float Epsilon = 0.001f;
+        // The viewport rect transform. Uses this component's rect transform if none is specified.
 		public new RectTransform viewRect {
 			get {
 				return base.viewRect;
@@ -51,7 +54,8 @@ namespace UnityEngine.UI {
 				return scaledContentRect.size-viewRect.rect.size;
 			}
 		}
-
+		
+		// This is the offset from the pivot point to the side of the content rect that matches the pivot
         public Vector2 contentOffset {
 			get {
 				return viewRect.rect.position - (Vector2)scaledContentRect.position;
@@ -67,138 +71,119 @@ namespace UnityEngine.UI {
 				return new Vector2(_contentOffset.x/_freeMovementSize.x, _contentOffset.y/_freeMovementSize.y);
 			}
 		}
+        
+        public Vector2 CalculateOffset()
+        {
+	        return InternalCalculateOffset(viewBounds, contentBounds);
+        }
+
+        internal static Vector2 InternalCalculateOffset(Bounds viewBounds, Bounds contentBounds) {
+	        Vector2 offset = Vector2.zero;
+	        
+	        Vector2 min = contentBounds.min;
+	        Vector2 max = contentBounds.max;
+
+	        {
+		        // min.x += delta.x;
+		        // max.x += delta.x;
+
+		        float maxOffset = viewBounds.max.x - max.x;
+		        float minOffset = viewBounds.min.x - min.x;
+
+		        if (minOffset < -0.001f)
+			        offset.x = minOffset;
+		        else if (maxOffset > 0.001f)
+			        offset.x = maxOffset;
+	        }
+
+
+	        {
+		        // min.y += delta.y;
+		        // max.y += delta.y;
+
+		        float maxOffset = viewBounds.max.y - max.y;
+		        float minOffset = viewBounds.min.y - min.y;
+
+		        if (maxOffset > 0.001f)
+			        offset.y = maxOffset;
+		        else if (minOffset < -0.001f)
+			        offset.y = minOffset;
+	        }
+
+	        return offset;
+        }
 
         
-		// These setters were last edited when I added the horizontal ones. I don't know why the vertical ones are offset by half; my guess is that it's a pivot/anchor thing and that the code for both depends on the setup, and probably wants changing!
-        public float distanceToLeft {
-            get {
-                return contentOffset.x;
-            } set {
-                var x = -value;
-                content.localPosition = new Vector3(x, content.localPosition.y, content.localPosition.z);
-            }
-        }
-        public float distanceToRight {
-            get {
-                return freeMovementSize.x - contentOffset.x;
-            } set {
-                var x = value - freeMovementSize.x;
-                content.localPosition = new Vector3(x, content.localPosition.y, content.localPosition.z);
-            }
-        }
-        public float distanceToTop {
-            get {
-                return freeMovementSize.y - contentOffset.y;        
-            } set {
-                var y = value - freeMovementSize.y * 0.5f;
-                content.localPosition = new Vector3(content.localPosition.x, y, content.localPosition.z);
-            }
-        }
-        public float distanceToBottom {
-            get {
-                return contentOffset.y;
-            } set {
-                var y = value + freeMovementSize.y * 0.5f;
-                content.localPosition = new Vector3(content.localPosition.x, y, content.localPosition.z);
-            }
-        }
-
-        public bool canScrollLeft {
-            get {
-                return contentExceedsViewportX && distanceToLeft > Epsilon;
-            }
-        }
-        public bool canScrollRight {
-            get {
-                return contentExceedsViewportX && distanceToRight > -Epsilon;
-            }
-        }
-        public bool canScrollUp {
-            get {
-                return contentExceedsViewportY && distanceToTop > Epsilon;            
-            }
-        }
-        public bool canScrollDown {
-            get {
-                return contentExceedsViewportY && distanceToBottom > -Epsilon;
-            }
-        }
-        public bool contentExceedsViewportX {
-			get {
-				return freeMovementSize.x > Epsilon;
-			}
-		}
-        public bool contentExceedsViewportY {
-			get {
-				return freeMovementSize.y > Epsilon;
-			}
-		}
-
-		public float xMinScroll {
-			get {
-				return Mathf.Max(0, (contentBounds.size.x - viewRect.rect.width) * 0.5f);
-			}
-		}
-
-		public float xMaxScroll {
-			get {
-				return -xMinScroll;
-			}
-		}
-
-        public bool yContentLargerThanViewport {
-			get {
-				// This takes scale into account
-				return ySpareSpace < 0;
-				// return hScrollingNeeded;
-			}
-		}
-
-		public float ySpareSpace {
-			get {
-				return viewRect.rect.width - contentBounds.size.y;
-			}
-		}
-
-		public float yMinScroll {
-			get {
-				return Mathf.Max(0, (contentBounds.size.y - viewRect.rect.width) * 0.5f);
-			}
-		}
-
-		public float yMaxScroll {
-			get {
-				return -yMinScroll;
-			}
-		}
+		
 
         
+        public Vector2 contentBottomLeftAnchoredPosition => content.GetAnchoredPositionForTargetAnchorAndPivot(viewRect, new Vector2(0, 0), new Vector2(0, 0));
+        public Vector2 contentTopRightAnchoredPosition => content.GetAnchoredPositionForTargetAnchorAndPivot(viewRect, new Vector2(1, 1), new Vector2(1, 1));
 
-        public Vector2 minScroll {
-            get {
-                var _minScroll = (Vector2)contentBounds.size - viewRect.rect.size;
-                return new Vector2(Mathf.Max(0, (_minScroll.x) * 0.5f), Mathf.Max(0, (_minScroll.y) * 0.5f));
-            }
-        }
+		// Get and set the distance of the content from the left edge, in the anchored space of the content.
+		// These values are signed as if they were signed distance fields - Moving the content outside of the viewport results in positive values, and when the content is inside the viewport the values are negative. 
+		public float signedAnchoredDistanceFromLeftEdge {
+			get => contentBottomLeftAnchoredPosition.x - content.anchoredPosition.x;
+			set => content.anchoredPosition = new Vector2(contentBottomLeftAnchoredPosition.x - value, content.anchoredPosition.y);
+		}
 
-        public Vector2 maxScroll {
-            get {
-                return -minScroll;
-            }
-        }
+		public float signedAnchoredDistanceFromRightEdge {
+			get => content.anchoredPosition.x - contentTopRightAnchoredPosition.x;
+			set => content.anchoredPosition = new Vector2(contentTopRightAnchoredPosition.x + value, content.anchoredPosition.y);
+		}
+		public float signedAnchoredDistanceFromBottomEdge {
+			get => contentBottomLeftAnchoredPosition.y - content.anchoredPosition.y;
+			set => content.anchoredPosition = new Vector2(content.anchoredPosition.x, contentBottomLeftAnchoredPosition.y - value);
+		}
 
+		public float signedAnchoredDistanceFromTopEdge {
+			get => content.anchoredPosition.y - contentTopRightAnchoredPosition.y;
+			set => content.anchoredPosition = new Vector2(content.anchoredPosition.x, contentTopRightAnchoredPosition.y + value);
+		}
+		
+		
+		public bool canScrollLeft => contentExceedsViewportX && signedAnchoredDistanceFromLeftEdge > Epsilon;
+
+		public bool canScrollRight => contentExceedsViewportX && signedAnchoredDistanceFromRightEdge > -Epsilon;
+
+		public bool canScrollUp => contentExceedsViewportY && signedAnchoredDistanceFromTopEdge > Epsilon;
+
+		public bool canScrollDown => contentExceedsViewportY && signedAnchoredDistanceFromBottomEdge > -Epsilon;
+
+		public bool contentExceedsViewportX => freeMovementSize.x > Epsilon;
+
+		public bool contentExceedsViewportY => freeMovementSize.y > Epsilon;
+		
+		
         public float GetClampedAnchoredPositionX (float contentAnchoredPositionX) {
-            return Mathf.Clamp(contentAnchoredPositionX, maxScroll.x, minScroll.x);
+	        var min = contentBottomLeftAnchoredPosition.x;
+	        var max = contentTopRightAnchoredPosition.x;
+	        if(min > max) (min, max) = (max, min);
+	        return Mathf.Clamp(contentAnchoredPositionX, min, max);
         }
         public float GetClampedAnchoredPositionY (float contentAnchoredPositionY) {
-            return Mathf.Clamp(contentAnchoredPositionY, maxScroll.y, minScroll.y);
+	        var min = contentBottomLeftAnchoredPosition.y;
+	        var max = contentTopRightAnchoredPosition.y;
+	        if(min > max) (min, max) = (max, min);
+	        return Mathf.Clamp(contentAnchoredPositionY, min, max);
         }
         public Vector2 GetClampedAnchoredPosition (Vector2 contentAnchoredPosition) {
             return new Vector2(GetClampedAnchoredPositionX(contentAnchoredPosition.x), GetClampedAnchoredPositionY(contentAnchoredPosition.y));
         }
+        
+        // Gets the anchored position for the content of the scroll rect so that a world position is framed at the pivot point.
+        // To make the scroll rect show child object in its vertical center, we might call: 
+        // scrollRect.content.anchoredPosition = new Vector2(scrollRect.content.anchoredPosition.x, scrollRect.GetAnchoredPositionForWorldPoint(childRT.TransformPoint(childRT.rect.center), new Vector2(0.5f, 0.5f).y);
+        public Vector2 GetAnchoredPositionForWorldPoint (Vector3 worldPoint, Vector2 pivot) {
+	        var transformedPoint = content.InverseTransformPoint(worldPoint);
+	        var targetPos = -(Vector2) transformedPoint;
+	        targetPos += (viewport == null ? (RectTransform)transform : viewport).rect.GetPointFromNormalizedPoint(pivot);
+	        targetPos += content.GetLocalToAnchoredPositionOffset();
+	        return targetPos;
+        }
+        
 
-
-		private readonly Vector3[] m_Corners = new Vector3[4];
+        private readonly Vector3[] m_Corners = new Vector3[4];
 		public Bounds GetContentBounds() {
             if (content == null) return new Bounds();
             content.GetWorldCorners(m_Corners);
@@ -283,7 +268,8 @@ namespace UnityEngine.UI {
 					return;
 				
 				onBeginDrag.Invoke(eventData);
-			}	
+				dragging = true;
+			}
 		}
 		
 		public override void OnEndDrag (PointerEventData eventData) {
@@ -294,6 +280,7 @@ namespace UnityEngine.UI {
 				if (eventData.button == PointerEventData.InputButton.Left) onEndDrag.Invoke(eventData);
 			}
 			routeToParent = false;
+			dragging = false;
 		}
 		
 		public override void OnDrag (PointerEventData eventData) {
@@ -306,6 +293,10 @@ namespace UnityEngine.UI {
 			}
 		}
 
+		protected override void OnDisable() {
+			dragging = false;
+			base.OnDisable();
+		}
 		// #if UNITY_EDITOR
 		// protected override void Reset() {
 		// 	this.viewport = this.transform.Find("Viewport").transform as RectTransform;
@@ -313,5 +304,30 @@ namespace UnityEngine.UI {
 		// 	base.Reset();
 		// }
 		// #endif
+		
+		
+		
+		// Implementation from https://www.youtube.com/watch?v=c0JpOjLaQaE
+		// Other useful looking links that I never got working are:
+		// https://forum.unity.com/threads/calculate-velocity-needed-to-reach-destination-height-with-drag-linear-damping.1042576/
+		// http://hyperphysics.phy-astr.gsu.edu/hbase/lindrg2.html#c2
+		public static Vector2 CalculateFinalPosition(Vector2 position, Vector2 velocityInitial, Vector2 velocityFinal, float drag) {
+			return position + new Vector2(CalculateExpectedDisplacement(velocityInitial.x, velocityFinal.x, drag), CalculateExpectedDisplacement(velocityInitial.y, velocityFinal.y, drag));
+		}
+		
+		public static float CalculateExpectedDisplacement(float velocityInitial, float velocityFinal, float drag) {
+			// We can't take the log of a negative number so save the sign
+			// and use the absolute value for the calculations.
+			float sign = Mathf.Sign(velocityInitial);
+			velocityInitial = Mathf.Abs(velocityInitial);
+			return (velocityFinal - velocityInitial) / Mathf.Log(drag) * sign;
+		}
+		
+		public static float CalculateExpectedDuration(float velocityInitial, float velocityFinal, float drag) {
+			// We can't take the log of a negative number so save the sign
+			// and use the absolute value for the calculations.
+			velocityInitial = Mathf.Abs(velocityInitial);
+			return Mathf.Log(velocityFinal / velocityInitial) / Mathf.Log(drag);
+		}
 	}
 }

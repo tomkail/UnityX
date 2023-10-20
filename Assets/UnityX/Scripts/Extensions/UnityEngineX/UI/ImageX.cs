@@ -6,8 +6,9 @@ using UnityEngine.UI;
 public static class ImageX
 {
 	public static Rect GetCroppedRect (this Image image) {
-		var sprite = image.sprite;
 		var rect = image.rectTransform.rect;
+		var sprite = image.sprite;
+		if (sprite == null) return rect;
 		return new Rect(
 				rect.x + (sprite.textureRect.x / sprite.rect.width) * rect.width,
 				rect.y + (sprite.textureRect.y / sprite.rect.height) * rect.height,

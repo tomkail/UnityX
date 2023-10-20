@@ -1,5 +1,8 @@
+using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 [ExecuteAlways]
 public class VirtualKeyboardManager : MonoSingleton<VirtualKeyboardManager> {
@@ -15,19 +18,15 @@ public class VirtualKeyboardManager : MonoSingleton<VirtualKeyboardManager> {
     public bool simulateInEditor {
         get {
             if(editorSimulationMode == EditorSimulationMode.On) return true;
-            else if(editorSimulationMode == EditorSimulationMode.OnWhenTextFieldSelected) {
-                if(EventSystem.current != null && EventSystem.current.currentSelectedGameObject != null) {
-                    if(EventSystem.current.currentSelectedGameObject.GetComponentInParent<TMPro.TMP_InputField>() != null) return true;
-                    if(EventSystem.current.currentSelectedGameObject.GetComponentInParent<UnityEngine.UI.InputField>() != null) return true;
-                }
-            }
+            else if (editorSimulationMode == EditorSimulationMode.OnWhenTextFieldSelected) return GetSelectedInputFieldRectTransform() != null;
             return false;
         }
     }
     
-    [System.Flags]
+    [Flags]
     public enum EditorSimulationFlags {
-        VisualizeKeyboardArea
+        None = 0,
+        VisualizeKeyboardArea = 1 << 0,
     }
     public EditorSimulationFlags editorSimulationFlags;
 
@@ -46,39 +45,137 @@ public class VirtualKeyboardManager : MonoSingleton<VirtualKeyboardManager> {
     public Rect animatedKeyboardScreenRect => new Rect(lastCachedScreenRect.x, lastCachedScreenRect.y, lastCachedScreenRect.width == 0 ? Screen.width : lastCachedScreenRect.width, lastCachedScreenRect.height * showAmount);
     public Rect animatedRemainingScreenRect => new Rect(0, animatedKeyboardScreenRect.height, Screen.width, Screen.height-animatedKeyboardScreenRect.height);
 
-    float _showAmount = 0;
-    public float showAmount => _showAmount;
+    public enum VisibilityState {
+        FullyHidden,
+        Showing,
+        FullyShown,
+        Hiding,
+    }
+    VisibilityState _visibilityState = VisibilityState.FullyHidden;
+    public VisibilityState visibilityState {
+        get => _visibilityState;
+        private set {
+            if (_visibilityState == value) return;
+            var previousVisibilityState = _visibilityState;
+            _visibilityState = value;
+            if (OnChangeVisibilityState != null) OnChangeVisibilityState(previousVisibilityState, _visibilityState);
+        }
+    }
+    public delegate void OnChangeVisibilityStateDelegate(VisibilityState previousVisibilityState, VisibilityState newVisibilityState);
+    public OnChangeVisibilityStateDelegate OnChangeVisibilityState;
+    
+    float _showAmount;
+    public float showAmount {
+        get => _showAmount;
+        private set {
+            if (_showAmount == value) return;
+            var previousShowAmount = _showAmount;
+            _showAmount = value;
+            if (OnChangeShowAmount != null) OnChangeShowAmount(previousShowAmount, _showAmount);
+        }
+    }
+    public delegate void OnChangeShowAmountDelegate(float previousVisibleAmount, float currentVisibleAmount);
+    public OnChangeShowAmountDelegate OnChangeShowAmount;
+
+
+    RectTransform _selectedInputField;
+    public RectTransform selectedInputField {
+        get => _selectedInputField; 
+        private set {
+            if (_selectedInputField == value) return;
+            var previousSelectedInputField = _selectedInputField;
+            _selectedInputField = value;
+            if (OnChangeSelectedInputField != null) OnChangeSelectedInputField(previousSelectedInputField, _selectedInputField);
+        }
+    }
+    public delegate void OnChangeSelectedInputFieldDelegate(RectTransform previousInputField, RectTransform currentInputField);
+    public OnChangeSelectedInputFieldDelegate OnChangeSelectedInputField;
+    
     // float timeWaitingForVirtualKeyboardToAppear = 0;
-    float timer = 0;
+    float showHideTimer;
     const float showAnimationDuration = 0.475f;
     const float hideAnimationDuration = 0.475f;
     const EasingFunction.Ease easing = EasingFunction.Ease.EaseOutExpo;
 
     void Update () {
-        var visible = TouchScreenKeyboard.isSupported ? correctedDeviceKeyboardScreenRect.height > 0 : simulateInEditor;
+        selectedInputField = GetSelectedInputFieldRectTransform();
+        bool visible = TouchScreenKeyboard.isSupported ? correctedDeviceKeyboardScreenRect.height > 0 : simulateInEditor;
         if(correctedDeviceKeyboardScreenRect.height > 0) lastCachedDeviceScreenRect = correctedDeviceKeyboardScreenRect;
         // Some easing modes don't actually reset to 0/1 when the progress is 0/1, so we force to 0/1 when the timer is in those states
+        float newShowAmount;
         if(visible) {
-            timer = showAnimationDuration > 0 ? Mathf.Clamp01(timer + (Time.unscaledDeltaTime/showAnimationDuration)) : 1;
-            _showAmount = timer == 1 ? 1 : EasingFunction.GetEasingFunction(easing)(0,1,timer);
+            showHideTimer = showAnimationDuration > 0 ? Mathf.Clamp01(showHideTimer + (Time.unscaledDeltaTime/showAnimationDuration)) : 1;
+            newShowAmount = showHideTimer == 1 ? 1 : EasingFunction.GetEasingFunction(easing)(0,1,showHideTimer);
+            if(newShowAmount == 1) visibilityState = VisibilityState.FullyShown;
+            else visibilityState = VisibilityState.Showing;
         } else {
-            timer = hideAnimationDuration > 0 ? Mathf.Clamp01(timer - (Time.unscaledDeltaTime/hideAnimationDuration)) : 0;
-            _showAmount = timer == 0 ? 0 : EasingFunction.GetEasingFunction(easing)(1,0,1-timer);
+            showHideTimer = hideAnimationDuration > 0 ? Mathf.Clamp01(showHideTimer - (Time.unscaledDeltaTime/hideAnimationDuration)) : 0;
+            newShowAmount = showHideTimer == 0 ? 0 : EasingFunction.GetEasingFunction(easing)(1,0,1-showHideTimer);
+            if(newShowAmount == 0) visibilityState = VisibilityState.FullyHidden;
+            else visibilityState = VisibilityState.Hiding;
         }
+        showAmount = newShowAmount;
     }
 
-    public static TMPro.TMP_InputField GetSelectedInputField () {
-        var selectedGO = EventSystem.current.currentSelectedGameObject;
-        return selectedGO == null ? null : selectedGO.GetComponentInParent<TMPro.TMP_InputField>();
+    public static RectTransform GetSelectedInputFieldRectTransform() {
+        return GetSelectedTMPInputField()?.gameObject.GetComponent<RectTransform>() ?? GetSelectedUGUIInputField()?.gameObject.GetComponent<RectTransform>();
     }
-    public static float GetScreenOffsetToShowSelectedInputField (SLayout layout) {
-        var selectedInputFieldRT = GetSelectedInputField()?.gameObject.GetComponent<RectTransform>();
+
+    public static TMP_InputField GetSelectedTMPInputField () {
+        if(EventSystem.current == null) return null;
+        var selectedGO = EventSystem.current.currentSelectedGameObject;
+        if (selectedGO == null) return null;
+        var inputField = selectedGO.GetComponentInParent<TMP_InputField>();
+        return inputField != null && inputField.isFocused ? inputField : null;
+    }
+    
+    public static InputField GetSelectedUGUIInputField () {
+        if(EventSystem.current == null) return null;
+        var selectedGO = EventSystem.current.currentSelectedGameObject;
+        if (selectedGO == null) return null;
+        var inputField = selectedGO.GetComponentInParent<InputField>();
+        return inputField != null && inputField.isFocused ? inputField : null;
+    }
+
+    // public Vector2 targetScreenRectPivot;
+    // public Vector2 remainingScreenRectPivot;
+    // public static float GetScreenOffsetToShowSelectedInputField (SLayout layout, Rect remainingScreenRect) {
+    //     var selectedInputField = GetSelectedInputField();
+    //     selectedInputField = FindObjectOfType<TMP_InputField>();
+    //     var selectedInputFieldRT = selectedInputField == null ? null : selectedInputField.gameObject.GetComponent<RectTransform>();
+    //     if(selectedInputFieldRT != null) {
+    //         var inputFieldTextBoundsScreenRect = TextMeshProUtils.GetScreenRectOfTextBounds(selectedInputField.textComponent);
+    //         var inputFieldTextScreenRect = selectedInputFieldRT.GetScreenRect();
+    //         var screenCenter = inputFieldTextBoundsScreenRect.GetPointFromNormalizedPoint(Instance.targetScreenRectPivot);
+    //         var targetScreenCenter = remainingScreenRect.GetPointFromNormalizedPoint(Instance.remainingScreenRectPivot);
+    //         var offset = targetScreenCenter.y - screenCenter.y;
+    //
+    //         var amountLargerThanRect = inputFieldTextBoundsScreenRect.height - inputFieldTextScreenRect.height;
+    //         var amountOffScreen = inputFieldTextBoundsScreenRect.height - remainingScreenRect.height;
+    //         if (amountOffScreen > 0) offset += amountOffScreen * 0.5f;
+    //         if (amountLargerThanRect > 0) offset += amountLargerThanRect * 0.5f;
+    //         Debug.Log(offset+ " "+ amountOffScreen+" "+ inputFieldTextBoundsScreenRect+" "+inputFieldTextScreenRect);
+    //         return offset;
+    //     }
+    //     return 0;
+    // }
+    
+    public static float GetScreenOffsetToShowSelectedInputField (SLayout layout, Rect remainingScreenRect) {
+        var selectedInputFieldRT = GetSelectedInputFieldRectTransform();
         if(selectedInputFieldRT != null && selectedInputFieldRT.IsDescendentOf(layout.transform)) {
             var screenCenter = selectedInputFieldRT.GetScreenRect().center;
-            var targetScreenCenter = VirtualKeyboardManager.Instance.nonAnimatedRemainingScreenRect.center;
+            var targetScreenCenter = remainingScreenRect.center;
             return targetScreenCenter.y-screenCenter.y;
         }
         return 0;
+    }
+    public static float GetScreenOffsetToShowSelectedInputField (SLayout layout) {
+        return GetScreenOffsetToShowSelectedInputField(layout, Instance.nonAnimatedRemainingScreenRect);
+    }
+    
+    public static float GetOffsetToShowSelectedInputField (SLayout layout, Rect remainingScreenRect) {
+        var screenOffsetY = GetScreenOffsetToShowSelectedInputField(layout, remainingScreenRect);
+        return layout.ScreenToSLayoutVector(new Vector2(0,screenOffsetY)).y;
     }
     public static float GetOffsetToShowSelectedInputField (SLayout layout) {
         var screenOffsetY = GetScreenOffsetToShowSelectedInputField(layout);

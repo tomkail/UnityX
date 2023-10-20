@@ -403,6 +403,7 @@ public static class TransformX {
 
 	// Gets world space axis-aligned bounds
 	public static Bounds GetBounds (this Transform transform) {
-		return BoundsX.CreateEncapsulating(GetVertices(transform));
+		Vector3 halfLocalScale = transform.localScale * 0.5f;
+		return BoundsX.CreateEncapsulating(new Vector3[]{transform.position + transform.rotation * new Vector3(-halfLocalScale.x, -halfLocalScale.y, -halfLocalScale.z), transform.position + transform.rotation * new Vector3(halfLocalScale.x, halfLocalScale.y, halfLocalScale.z)});
 	}
 }

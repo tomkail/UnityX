@@ -1,37 +1,49 @@
-﻿using System.Collections;
+﻿#define AVPRO_PACKAGE_UNITYUI
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 /// <summary>
 /// Uses an AspectRatioFitter to enforce the image aspect ratio
 /// </summary>
 [ExecuteAlways]
-[RequireComponent(typeof(Image), typeof(AspectRatioFitter))]
+[RequireComponent(typeof(AspectRatioFitter))]
 public class EnforceImageAspectRatio : MonoBehaviour {
-
-	private AspectRatioFitter _aspectRatioFitter;
+	AspectRatioFitter _aspectRatioFitter;
 	public AspectRatioFitter aspectRatioFitter {
 		get {
 			if(_aspectRatioFitter == null) _aspectRatioFitter = GetComponent<AspectRatioFitter>();
 			return _aspectRatioFitter;
 		}
 	}
-
-	private Image __image;
-	private Image _image {
+	[FormerlySerializedAs("__graphic")] [SerializeField]
+	private Graphic _graphic;
+	private Graphic graphic {
 		get {
-			if(__image == null) __image = GetComponent<Image>();
-			return __image;
+			if(_graphic == null) _graphic = GetComponent<Graphic>();
+			return _graphic;
 		}
 	}
 
-	private Vector2 _lastSize;
-
+	private float lastAspectRatio;
+	
 	void Update () {
-		if(_image.sprite == null) return;
-		if(_lastSize == _image.sprite.rect.size) return;
-		aspectRatioFitter.aspectRatio = (float)_image.sprite.rect.width/_image.sprite.rect.height;
-		_lastSize = _image.sprite.rect.size;
+		if (graphic is Image) {
+			var image = graphic as Image;
+			if(image.sprite == null) return;
+			var newAspectRatio = (float) (image.sprite.rect.width / image.sprite.rect.height);
+			if(lastAspectRatio == newAspectRatio) return;
+			lastAspectRatio = newAspectRatio;
+			aspectRatioFitter.aspectRatio = newAspectRatio;
+		} else if (graphic is RawImage) {
+			var image = graphic as RawImage;
+			if(image.texture == null) return;
+			var newAspectRatio = ((float) image.texture.width / image.texture.height);
+			if(lastAspectRatio == newAspectRatio) return;
+			lastAspectRatio = newAspectRatio;
+			aspectRatioFitter.aspectRatio = newAspectRatio;
+		}
 	}
 }

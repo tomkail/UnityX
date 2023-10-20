@@ -22,13 +22,20 @@ public static class MathX {
         if (n == 0) throw new ArgumentOutOfRangeException("n", "(a mod 0) is undefined.");
 
         //puts a in the [-n+1, n-1] range using the remainder operator
-        int remainder = a%n;
+        var remainder = a%n;
 
         //if the remainder is less than zero, add n to put it in the [0, n-1] range if n is positive
         //if the remainder is greater than zero, add n to put it in the [n-1, 0] range if n is negative
         if ((n > 0 && remainder < 0) || (n < 0 && remainder > 0)) return remainder + n;
         return remainder;
     }
+	
+	public static float ModF(this float a, float n) {
+		if (n == 0) throw new ArgumentOutOfRangeException("n", "(a mod 0) is undefined.");
+		var remainder = a%n;
+		if ((n > 0 && remainder < 0) || (n < 0 && remainder > 0)) return remainder + n;
+		return remainder;
+	}
 
 	/// <summary>
 	/// Repeat the specified value around a min and max.
@@ -622,5 +629,40 @@ public static class MathX {
 		if (t > 1f) return aOut2;
 		if(t < 0f) return aOut1;
 		return aOut1 + (aOut2 - aOut1) * t;
+	}
+	
+	
+	// Returns the interpolated index of a target number within an ordered list. 
+	// If the target falls between two numbers, it calculates the index based on relative distances.
+	// If the target is outside the range, it extrapolates using the scale of the closest two numbers.
+	public static float FindIndexPosition(IList<float> list, float target) {
+		if (list.Count == 0) return 0;
+        
+		// Check if the target is less than the first element
+		if (target < list[0]) {
+			var diff = list[1] - list[0];
+			var offset = (target - list[0]) / diff;
+			return offset; // It's below the first element, so it will be a negative index
+		}
+
+		// Check if the target is greater than the last element
+		if (target > list[^1]) {
+			var diff = list[^1] - list[^2];
+			var offset = (target - list[^1]) / diff;
+			return list.Count - 1 + offset; // The last index is Count - 1, so we add the offset to it
+		}
+        
+		for (int i = 0; i < list.Count; i++) {
+			// If the target matches a value in the list exactly
+			if (list[i] == target) return i;
+
+			// If it's less than the first value in the list
+			if (i < list.Count - 1 && list[i] < target && target < list[i + 1]) {
+				var diff = list[i + 1] - list[i];
+				var offset = (target - list[i]) / diff;
+				return i + offset;
+			}
+		}
+		return 0;
 	}
 }

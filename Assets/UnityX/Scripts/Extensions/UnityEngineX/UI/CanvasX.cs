@@ -24,10 +24,7 @@ public static class CanvasX {
 		} else if(canvas.rootCanvas.renderMode == RenderMode.ScreenSpaceCamera) {
 			camera = canvas.rootCanvas.worldCamera;
 		} else if(canvas.rootCanvas.renderMode == RenderMode.WorldSpace && camera == null) {
-			if(canvas.rootCanvas.worldCamera != null)
-				camera = canvas.rootCanvas.worldCamera;
-			else
-				Debug.LogError("Canvas is in world space, but camera is null and no event camera exists on canvas.");
+			camera = canvas.rootCanvas.worldCamera;
 		}
 	}
 

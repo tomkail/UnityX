@@ -6,6 +6,7 @@ using System.Collections;
 [InitializeOnLoad]
 #endif
 public class EditorTime {
+	#if UNITY_EDITOR
 
 	public static float time {
 		get {
@@ -30,4 +31,5 @@ public class EditorTime {
 		lastTime = Time.realtimeSinceStartup;
 		Shader.SetGlobalFloat("_EditorTime", EditorTime.time);
 	}
+	#endif
 }

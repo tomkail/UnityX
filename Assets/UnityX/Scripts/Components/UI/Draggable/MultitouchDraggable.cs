@@ -21,25 +21,22 @@ public class MultitouchDraggable : Selectable, IBeginDragHandler, IEndDragHandle
 
 	[Space]
 	public bool canRotate = true;
-	[Space]
+
+	[Space] 
 	public float minScale = 0.5f;
 	public float maxScale = 2f;
 	public float targetScaleElasticity = 1f;
+	public float currentScale => target.localScale.x;
 
 	// This is set true before a drag begins so that isHolding is true as soon as the hold starts. When any drag ends, or a mouse up event occurs it's unset.
 	public bool isPointerDown;
-	public bool isHolding {
-		get {
-			return dragInputs.Any() || isPointerDown;
-		}
-	}
+	public bool isHolding => dragInputs.Any() || isPointerDown;
 	List<DragInput> dragInputs = new List<DragInput>();
 	[System.Serializable]
 	public class DragInput {
 		public int pointerId;
 		public Vector2 screenPos;
 		public Vector2 lastScreenPos;
-		public Vector2 deltaScreenPos => screenPos - lastScreenPos;
 
 		public DragInput (PointerEventData eventData) {
 			pointerId = eventData.pointerId;
@@ -63,47 +60,54 @@ public class MultitouchDraggable : Selectable, IBeginDragHandler, IEndDragHandle
 
 
 	void LateUpdate () {
-		if(dragInputs.Count > 0) {
-			// This really wants to use whatever camera the PointerEventData used, but it's this in pretty much all cases I ever deal with.
-			var camera = GetComponentInParent<Canvas>().rootCanvas.worldCamera;
-			
-			if(dragInputs.Count == 1) {
-				RectTransformUtility.ScreenPointToWorldPointInRectangle(target, dragInputs[0].screenPos, camera, out Vector3 newWorldPos);
-				RectTransformUtility.ScreenPointToWorldPointInRectangle(target, dragInputs[0].lastScreenPos, camera, out Vector3 lastWorldPos);
-				var translation = newWorldPos - lastWorldPos;
-				target.position += translation;
-			} else if(dragInputs.Count == 2) {
-				DoPinch(dragInputs[0], dragInputs[1]);
-				DoPinch(dragInputs[1], dragInputs[0]);
-				// Perform the pinch gesture using one finger as a static pivot and the other finger's delta movement
-				void DoPinch (DragInput pivotFinger, DragInput movingFinger) {
-					RectTransformUtility.ScreenPointToWorldPointInRectangle(target, pivotFinger.lastScreenPos, camera, out Vector3 worldPivotPos);
-					ScreenPointToNormalizedPointInRectangle(target, pivotFinger.lastScreenPos, camera, out Vector2 normalizedPivotFingerScreenPos);
+		if(dragInputs.Count == 1) {
+			HandleDrag();
+		} else if(dragInputs.Count == 2) {
+			HandlePinch();
+		}
+		foreach(var dragInput in dragInputs) {
+			dragInput.ClearDeltas();
+		}
+	}
 
-					// Rotate
-					if(canRotate) {
-						var deltaAngle = Vector2.SignedAngle(Vector2.up, movingFinger.screenPos-pivotFinger.lastScreenPos) - Vector2.SignedAngle(Vector2.up, movingFinger.lastScreenPos-pivotFinger.lastScreenPos);
-						target.RotateAround(worldPivotPos, new Vector3(0,0,1), deltaAngle);
-					}
-					
-					// Scale + Movement
-					ScreenPointToNormalizedPointInRectangle(target, movingFinger.lastScreenPos, camera, out Vector2 normalizedLastFingerPoint);
-					ScreenPointToNormalizedPointInRectangle(target, movingFinger.screenPos, camera, out Vector2 normalizedFingerPoint);
-					var lastDistanceFromPivot = Vector2.Distance(normalizedLastFingerPoint, normalizedPivotFingerScreenPos);
-					var delta = SignedDistanceInDirection(normalizedFingerPoint, normalizedLastFingerPoint, normalizedPivotFingerScreenPos-normalizedFingerPoint);
-					float SignedDistanceInDirection (Vector2 fromVector, Vector2 toVector, Vector2 direction) {
-						Vector2 normalizedDirection = direction.sqrMagnitude == 1 ? direction : direction.normalized;
-						return Vector2.Dot(toVector-fromVector, normalizedDirection);
-					}
-					if(delta != 0 && lastDistanceFromPivot != 0) {
-						var targetScale = target.localScale.x * (1+(delta/lastDistanceFromPivot));
-						targetScale = Mathf.Clamp(targetScale, minScale, maxScale);
-						ScaleAround(target, worldPivotPos, Vector3.one * targetScale);
-					}
-				}
+	void HandleDrag() {
+		// This really wants to use whatever camera the PointerEventData used, but it's this in pretty much all cases I ever deal with.
+		Camera cam = GetComponentInParent<Canvas>().rootCanvas.worldCamera;
+		RectTransformUtility.ScreenPointToWorldPointInRectangle(target, dragInputs[0].screenPos, cam, out Vector3 newWorldPos);
+		RectTransformUtility.ScreenPointToWorldPointInRectangle(target, dragInputs[0].lastScreenPos, cam, out Vector3 lastWorldPos);
+		var translation = newWorldPos - lastWorldPos;
+		target.position += translation;
+	}
+
+	void HandlePinch() {
+		// This really wants to use whatever camera the PointerEventData used, but it's this in pretty much all cases I ever deal with.
+		var cam = GetComponentInParent<Canvas>().rootCanvas.worldCamera;
+		DoPinch(dragInputs[0], dragInputs[1]);
+		DoPinch(dragInputs[1], dragInputs[0]);
+		// Perform the pinch gesture using one finger as a static pivot and the other finger's delta movement
+		void DoPinch (DragInput pivotFinger, DragInput movingFinger) {
+			RectTransformUtility.ScreenPointToWorldPointInRectangle(target, pivotFinger.lastScreenPos, cam, out Vector3 worldPivotPos);
+			ScreenPointToNormalizedPointInRectangle(target, pivotFinger.lastScreenPos, cam, out Vector2 normalizedPivotFingerScreenPos);
+
+			// Rotate
+			if(canRotate) {
+				var deltaAngle = Vector2.SignedAngle(Vector2.up, movingFinger.screenPos-pivotFinger.lastScreenPos) - Vector2.SignedAngle(Vector2.up, movingFinger.lastScreenPos-pivotFinger.lastScreenPos);
+				target.RotateAround(worldPivotPos, new Vector3(0,0,1), deltaAngle);
 			}
-			foreach(var dragInput in dragInputs) {
-				dragInput.ClearDeltas();
+					
+			// Scale + Movement
+			ScreenPointToNormalizedPointInRectangle(target, movingFinger.lastScreenPos, cam, out Vector2 normalizedLastFingerPoint);
+			ScreenPointToNormalizedPointInRectangle(target, movingFinger.screenPos, cam, out Vector2 normalizedFingerPoint);
+			var lastDistanceFromPivot = Vector2.Distance(normalizedLastFingerPoint, normalizedPivotFingerScreenPos);
+			var delta = SignedDistanceInDirection(normalizedFingerPoint, normalizedLastFingerPoint, normalizedPivotFingerScreenPos-normalizedFingerPoint);
+			float SignedDistanceInDirection (Vector2 fromVector, Vector2 toVector, Vector2 direction) {
+				Vector2 normalizedDirection = direction.sqrMagnitude == 1 ? direction : direction.normalized;
+				return Vector2.Dot(toVector-fromVector, normalizedDirection);
+			}
+			if(delta != 0 && lastDistanceFromPivot != 0) {
+				var targetScale = currentScale * (1+(delta/lastDistanceFromPivot));
+				targetScale = Mathf.Clamp(targetScale, minScale, maxScale);
+				SetScaleAround(target, worldPivotPos, Vector3.one * targetScale);
 			}
 		}
 	}
@@ -134,12 +138,10 @@ public class MultitouchDraggable : Selectable, IBeginDragHandler, IEndDragHandle
 			dragInputs.RemoveRange(1,dragInputs.Count-1);
 			// This code path is used for testing in editor, where the second click is treated as a new input and the first is turned into a static input point.
 			dragInput.pointerId = 0;
-			var pointerStartLocalCursor = Vector2.zero;
 			dragInputs.Add(new DragInput(eventData));
 			#endif
 			Debug.LogWarning("Drag started but input tracker was found!");
 		} else {
-			var pointerStartLocalCursor = Vector2.zero;
 			dragInputs.Add(new DragInput(eventData));
 		}
 	}
@@ -170,6 +172,18 @@ public class MultitouchDraggable : Selectable, IBeginDragHandler, IEndDragHandle
 
 
 
+
+	public void OnScroll(PointerEventData data) {
+		if (!IsActive())
+			return;
+
+		Vector2 delta = data.scrollDelta;
+		// Down is positive for scroll events, while in UI system up is positive.
+		delta.y *= -1;
+		var targetScale = currentScale * delta.y * 1.1f;
+		targetScale = Mathf.Clamp(targetScale, minScale, maxScale);
+		SetScaleAround(target, target.position, Vector3.one * targetScale);
+	}
 
 
 
@@ -208,8 +222,8 @@ public class MultitouchDraggable : Selectable, IBeginDragHandler, IEndDragHandle
 	/// </summary>
 	/// <param name="target">The object to scale.</param>
 	/// <param name="pivot">The point to scale around in the space of target.</param>
-	/// <param name="scaleFactor">The new localScale the target object will have after scaling.</param>
-	public static void ScaleAround(Transform target, Vector3 pivot, Vector3 newScale)
+	/// <param name="newScale">The new localScale the target object will have after scaling.</param>
+	public static void SetScaleAround(Transform target, Vector3 pivot, Vector3 newScale)
 	{
 		// pivot
 		Vector3 pivotDelta = target.position - pivot; // diff from object pivot to desired pivot/origin

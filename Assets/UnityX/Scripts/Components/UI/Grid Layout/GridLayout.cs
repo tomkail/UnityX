@@ -4,14 +4,14 @@ using UnityEngine.UI;
 [RequireComponent(typeof(RectTransform))]
 public class GridLayout : MonoBehaviour, ILayoutElement {
 	public RectTransform rectTransform => (RectTransform)transform;
-
+	
 	[System.Serializable]
 	public class GridLayoutAxisSettings {
 		[System.NonSerialized]
 		public GridLayout gridLayout;
 		[System.NonSerialized]
 		public bool isXAxis;
-		GridLayoutAxisSettings otherAxis => isXAxis ? gridLayout.yAxis : gridLayout.xAxis;
+		public GridLayoutAxisSettings otherAxis => isXAxis ? gridLayout.yAxis : gridLayout.xAxis;
 		public float containerSize => isXAxis ? gridLayout.rectTransform.rect.width : gridLayout.rectTransform.rect.height;
 		
 		[SerializeField]
@@ -56,13 +56,14 @@ public class GridLayout : MonoBehaviour, ILayoutElement {
 		[SerializeField]
 		bool _flip;
 		
+		public Vector2 margin => isXAxis ? new Vector2(gridLayout.padding.left, gridLayout.padding.right) : new Vector2(gridLayout.padding.bottom, gridLayout.padding.top);
 		
 		public void SetTargetCellCount (int newCellCount) {
 			_cellCount = newCellCount;
 		}
 		
-		public void SetTargetAspectRatio (float aspectRatio) {
-			_aspectRatio = aspectRatio;
+		public void SetTargetAspectRatio (float newAspectRatio) {
+			_aspectRatio = newAspectRatio;
 		}
 		public void SetTargetItemSize (float newItemSize) {
 			_itemSize = newItemSize;
@@ -74,12 +75,12 @@ public class GridLayout : MonoBehaviour, ILayoutElement {
 
 		public float GetTotalSize () {
 			if(_sizeMode == CellSizeMode.FillContainer) return containerSize;
-			return CalculateTotalSize(GetItemSize(), GetCellCount(), _spacing, _offset, otherAxis.GetCellCount());
+			return CalculateTotalSize(GetItemSize(), GetCellCount(), _spacing, margin, _offset, otherAxis.GetCellCount());
 		}
 
 		public float GetItemSize () {
 			if(_sizeMode == CellSizeMode.Defined) return _itemSize;
-			else if(_sizeMode == CellSizeMode.FillContainer) return CalculateItemSize(containerSize, _cellCount, _spacing);
+			else if(_sizeMode == CellSizeMode.FillContainer) return CalculateItemSize(containerSize, _cellCount, _spacing, margin);
 			else if(_sizeMode == CellSizeMode.AspectRatio && otherAxis._sizeMode != CellSizeMode.AspectRatio) return _aspectRatio * otherAxis.GetItemSize();
 
 			// if(_axisMode == Calculation.CellCount) return CalculateItemSize(containerSize, _cellCount, _spacing);
@@ -90,7 +91,7 @@ public class GridLayout : MonoBehaviour, ILayoutElement {
 		
 		public int GetCellCount () {
 			if(_fillMode == CellCountMode.Defined) return _cellCount;
-			else if(_fillMode == CellCountMode.FitContainer) return Mathf.FloorToInt((containerSize - GetItemSize()) / (GetItemSize() + _spacing) + 1);
+			else if (_fillMode == CellCountMode.FitContainer) return CalculateCellCount(containerSize, GetItemSize(), _spacing, margin);
 
 			// if(_axisMode == Calculation.CellCount || _axisMode == Calculation.CellCountAndCellSize || _axisMode == Calculation.AspectRatioAndCellCount) return _cellCount;
 			// else if(_axisMode == Calculation.CellSize || _axisMode == Calculation.AspectRatio) return Mathf.FloorToInt(containerSize / (GetItemSize() + _spacing));
@@ -99,20 +100,20 @@ public class GridLayout : MonoBehaviour, ILayoutElement {
 
 		public float GetLocalPositionForGridCoord (float index, float otherAxisIndex) {
 			if(_flip) index = Mathf.Max(0, GetCellCount() - 1) - index;
-			return CalculatePositionForGridCoord(index, otherAxisIndex, GetItemSize(), _spacing, _offset, otherAxis.GetCellCount());
+			return CalculatePositionForGridCoord(index, otherAxisIndex, GetItemSize(), _spacing, margin, _offset, otherAxis.GetCellCount());
 		}
 		public float GetLocalPositionForGridCoord (float index) {
 			if(_flip) index = Mathf.Max(0, GetCellCount() - 1) - index;
-			return CalculatePositionForGridCoord(index, GetItemSize(), _spacing);
+			return CalculatePositionForGridCoord(index, GetItemSize(), _spacing, margin);
 		}
 
 		public float GetLocalCenterPositionForGridCoord (float index, float otherAxisIndex) {
 			if(_flip) index = Mathf.Max(0, GetCellCount() - 1) - index;
-			return CalculateCenterPositionForGridCoord(index, otherAxisIndex, GetItemSize(), _spacing, _offset, otherAxis.GetCellCount());
+			return CalculateCenterPositionForGridCoord(index, otherAxisIndex, GetItemSize(), _spacing, margin, _offset, otherAxis.GetCellCount());
 		}
 		public float GetLocalCenterPositionForGridCoord (float index) {
 			if(_flip) index = Mathf.Max(0, GetCellCount() - 1) - index;
-			return CalculateCenterPositionForGridCoord(index, GetItemSize(), _spacing);
+			return CalculateCenterPositionForGridCoord(index, GetItemSize(), _spacing, margin);
 		}
 
 		public float GetOffsetPositionForGridCoord (float otherAxisIndex) {
@@ -127,6 +128,9 @@ public class GridLayout : MonoBehaviour, ILayoutElement {
 			return string.Format ("[GridLayoutAxisSettings: axis={0}, containerSize={1}, sizeMode={2}, fillMode={3}, totalSize (calculated)={4}, itemSize (calculated)={5}, cellCount (calculated)={6}, spacing={7}, offset={8}, flip={9}]", isXAxis?"X":"Y", containerSize, sizeMode, fillMode, GetTotalSize(), GetItemSize(), GetCellCount(), spacing, offset, _flip);
 		}
 	}
+	
+	
+	public RectOffset padding = new RectOffset();
 
 	[SerializeField]
 	GridLayoutAxisSettings _xAxis = new GridLayoutAxisSettings();
@@ -174,7 +178,6 @@ public class GridLayout : MonoBehaviour, ILayoutElement {
 			);
 		}
 	}
-
 
 	public virtual void CalculateLayoutInputHorizontal() {
 		m_Width = xAxis.GetTotalSize();
@@ -240,8 +243,8 @@ public class GridLayout : MonoBehaviour, ILayoutElement {
 	public Rect GetLocalRectForGridCoord (Vector2Int coord) {
 		var localPosition = GetLocalPositionForGridCoord(coord);
 		return new Rect(
-			rectTransform.rect.x + localPosition.x,
-			rectTransform.rect.y + localPosition.y,
+			localPosition.x,
+			localPosition.y,
 			xAxis.GetItemSize(),
 			yAxis.GetItemSize()
 		);
@@ -254,8 +257,8 @@ public class GridLayout : MonoBehaviour, ILayoutElement {
 	}
 	public Rect GetWorldRectForGridCoord (Vector2Int coord) {
 		var localRect = GetLocalRectForGridCoord(coord);
-		var min = transform.TransformPoint(localRect.min);
-		var max = transform.TransformPoint(localRect.max);
+		var min = transform.TransformPoint(rectTransform.rect.position + localRect.min);
+		var max = transform.TransformPoint(rectTransform.rect.position + localRect.max);
 		return Rect.MinMaxRect(min.x, min.y, max.x, max.y);
 	}
 	public Vector2 GetItemSize () {
@@ -269,6 +272,7 @@ public class GridLayout : MonoBehaviour, ILayoutElement {
 		return string.Format ("[GridLayout: X={0}, Y={1}]", xAxis.ToString(), yAxis.ToString());
 	}
 	
+	
 	public static int GridCoordToArrayIndex (Vector2Int coord, int numCellsX){
 		return coord.y * numCellsX + coord.x;
 	}
@@ -278,28 +282,38 @@ public class GridLayout : MonoBehaviour, ILayoutElement {
 	}
 	
 	
-	public static float CalculatePositionForGridCoord (float coord, float otherAxisCoord, float itemSize, float spacing, float offset, int otherAxisCellCount) {
-		return CalculatePositionForGridCoord(coord, itemSize, spacing) + CalculateOffsetForGridCoord(otherAxisCoord, offset, otherAxisCellCount);
+	public static float CalculatePositionForGridCoord (float coord, float otherAxisCoord, float itemSize, float spacing, Vector2 margin, float offset, int otherAxisCellCount) {
+		return CalculatePositionForGridCoord(coord, itemSize, spacing, margin) + CalculateOffsetForGridCoord(otherAxisCoord, offset, otherAxisCellCount);
 	}
-	public static float CalculateCenterPositionForGridCoord (float coord, float otherAxisCoord, float itemSize, float spacing, float offset, int otherAxisCellCount) {
-		return CalculateCenterPositionForGridCoord(coord, itemSize, spacing) + CalculateOffsetForGridCoord(otherAxisCoord, offset, otherAxisCellCount);
+	public static float CalculateCenterPositionForGridCoord (float coord, float otherAxisCoord, float itemSize, float spacing, Vector2 margin, float offset, int otherAxisCellCount) {
+		return CalculateCenterPositionForGridCoord(coord, itemSize, spacing, margin) + CalculateOffsetForGridCoord(otherAxisCoord, offset, otherAxisCellCount);
 	}
-	public static float CalculatePositionForGridCoord (float coord, float itemSize, float spacing) {
-		return (spacing * coord) + (itemSize * coord);
+	public static float CalculatePositionForGridCoord (float coord, float itemSize, float spacing, Vector2 margin) {
+		return margin.x + (spacing * coord) + (itemSize * coord);
 	}
-	public static float CalculateCenterPositionForGridCoord (float coord, float itemSize, float spacing) {
-		return CalculatePositionForGridCoord(coord, itemSize, spacing) + (itemSize / 2);
+	public static float CalculateCenterPositionForGridCoord (float coord, float itemSize, float spacing, Vector2 margin) {
+		return CalculatePositionForGridCoord(coord, itemSize, spacing, margin) + (itemSize / 2);
 	}
-
+	
 	public static float CalculateOffsetForGridCoord (float otherAxisIndex, float offset, int otherAxisCellCount) {   
 		var calculatedOffset = offset * otherAxisIndex;
 		if(offset < 0) return calculatedOffset - (offset * (otherAxisCellCount-1));
 		else return calculatedOffset;
 	}
-	public static float CalculateItemSize (float containerSize, int numItems, float spacing = 0) {
-		return numItems == 0 ? 0 : (containerSize - (spacing * (numItems - 1))) / numItems;
+	
+	
+	// Given a container, a number of items, spacing and margins; calculate the sizes of the items such that they would fill the container
+	public static float CalculateItemSize (float containerSize, int numItems, float spacing, Vector2 margin) {
+		return numItems == 0 ? 0 : (containerSize - (spacing * (numItems - 1)) - (margin.x + margin.y)) / numItems;
 	}
-	public static float CalculateTotalSize (float itemSize, int numItems, float spacing = 0, float offset = 0, int otherAxisCellCount = 0) {
+	
+	// Given a container size, items of a certain size, spacing and margins; calculate the maximum number of items that could fit inside the container without going out of bounds.
+	public static int CalculateCellCount (float containerSize, float itemSize, float spacing, Vector2 margin) {
+		return Mathf.FloorToInt((containerSize - (margin.x + margin.y) - itemSize) / (itemSize + spacing) + 1);
+	}
+	
+	// Given a number of items with a fixed size, spacing, margins, and an offset to be multiplied by the number of cells on the other axis; calculate the total size of the container
+	public static float CalculateTotalSize (float itemSize, int numItems, float spacing, Vector2 margin, float offset, int otherAxisCellCount) {
 		if(float.IsNaN(itemSize)) {
 			Debug.LogError("Item size is NaN!");
 			return 0;
@@ -315,6 +329,6 @@ public class GridLayout : MonoBehaviour, ILayoutElement {
 		if(numItems == 0) return 0;
 		var totalOffset = (otherAxisCellCount-1) * offset;
 		var blockSize = (itemSize * numItems) + (spacing * (numItems - 1));
-		return blockSize + Mathf.Abs(totalOffset);
+		return blockSize + Mathf.Abs(totalOffset) + (margin.x + margin.y);
 	}
 }

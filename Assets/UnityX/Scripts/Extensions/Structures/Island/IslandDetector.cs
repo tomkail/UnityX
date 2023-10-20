@@ -35,12 +35,7 @@ public class IslandDetector<Coord> where Coord : IEquatable<Coord> {
 		return islands;
 	}
 	
-	void ConnectAdjacentTiles (Island<Coord> island, Coord gridPoint) {
-		island.points.Add(gridPoint);
-		islandStartPointsToTest.Remove (gridPoint);
-		
-		testedPoints.Add (gridPoint);
-
+	void TryConnectAdjacentTiles (Island<Coord> island, Coord gridPoint) {
 		var adjacentPoints = GetAdjacentPoints(gridPoint);
 		foreach(Coord adjacentPoint in adjacentPoints) {
 			TryConnectTile(island, adjacentPoint);
@@ -48,15 +43,16 @@ public class IslandDetector<Coord> where Coord : IEquatable<Coord> {
 	}
 
 	void TryConnectTile (Island<Coord> island, Coord gridPoint) {
-		if (testedPoints.Contains(gridPoint)) {
-			islandStartPointsToTest.Remove (gridPoint);
-			return;
-		}
+		islandStartPointsToTest.Remove (gridPoint);
+		if (testedPoints.Contains(gridPoint)) return;
+		
+		testedPoints.Add (gridPoint);
 		if(!GetPointIsValid(gridPoint)) return;
 
 		bool alreadyCheckedInIsland = island.points.Contains(gridPoint);
 		if(!alreadyCheckedInIsland) {
-			ConnectAdjacentTiles(island, gridPoint);
+			island.points.Add(gridPoint);
+			TryConnectAdjacentTiles(island, gridPoint);
 			return;
 		}
 

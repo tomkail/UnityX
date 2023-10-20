@@ -20,7 +20,7 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 	
 	public override float GetPropertyHeight (SerializedProperty property, GUIContent label) {
 		float totalHeight = EditorGUIUtility.singleLineHeight;
-		if(property.objectReferenceValue == null || !AreAnySubPropertiesVisible(property)){
+		if(property.objectReferenceValue == null || !(property.objectReferenceValue is ScriptableObject) || !AreAnySubPropertiesVisible(property)){
 			return totalHeight;
 		}
 		if(property.isExpanded) {
@@ -275,7 +275,8 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 	}
 
 	static bool AreAnySubPropertiesVisible(SerializedProperty property) {
-		var data = (ScriptableObject)property.objectReferenceValue;
+		var data = property.objectReferenceValue as ScriptableObject;
+		if (data == null) return false;
 		SerializedObject serializedObject = new SerializedObject(data);
 		SerializedProperty prop = serializedObject.GetIterator();
 		while (prop.NextVisible(true)) {

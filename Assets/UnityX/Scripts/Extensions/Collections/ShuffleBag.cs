@@ -1,36 +1,31 @@
-using UnityEngine;
-using System.Collections.ObjectModel;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using UnityEngine;
+using Random = UnityEngine.Random;
 
-[System.Serializable]
+[Serializable]
 public class ShuffleBag<T> {
-	[SerializeField]
-	private List<T> _sourceItems = new List<T>();
-	public ReadOnlyCollection<T> sourceItems {
-		get {
-			return _sourceItems.AsReadOnly();
-		}
-	}
-	[SerializeField]
-	private List<T> _items = new List<T>();
-	public ReadOnlyCollection<T> items {
-		get {
-			return _items.AsReadOnly();
-		}
-	}
+	[SerializeField] List<T> _sourceItems = new List<T>();
+	public ReadOnlyCollection<T> sourceItems => _sourceItems.AsReadOnly();
+
+	[SerializeField] List<T> _items = new List<T>();
+	public ReadOnlyCollection<T> items => _items.AsReadOnly();
 
 	public bool shuffle = true;
 
+	ShuffleBag () {}
+	
 	public ShuffleBag (List<T> sourceItems, bool shuffle = true) {
 		Debug.Assert(sourceItems != null && sourceItems.Count > 0);
-		this._sourceItems = sourceItems;
+		_sourceItems = sourceItems;
 		this.shuffle = shuffle;
 		RefreshBag(true, shuffle);
 	}
 	public ShuffleBag (List<T> sourceItems, List<T> items) {
 		Debug.Assert(sourceItems != null && sourceItems.Count > 0);
-		this._sourceItems = sourceItems;
-		this._items = items;
+		_sourceItems = sourceItems;
+		_items = items;
 	}
 
 	public ShuffleBag (ShuffleBag<T> otherBag) {
@@ -83,24 +78,20 @@ public class ShuffleBag<T> {
 		int n = list.Count;  
 		while (n > 1) {  
 			n--;  
-			int k = UnityEngine.Random.Range (0, n + 1);  
-			T value = list [k];  
-			list [k] = list [n];  
-			list [n] = value;  
+			int k = Random.Range (0, n + 1);  
+			(list [k], list [n]) = (list [n], list [k]);
 		}  
 	}
 
 	public static void Shuffle(IList<T> list, int seed) {  
-		var oldState = UnityEngine.Random.state;
-		UnityEngine.Random.InitState(seed);
+		var oldState = Random.state;
+		Random.InitState(seed);
 		int n = list.Count;  
 		while (n > 1) {  
 			n--;  
-			int k = UnityEngine.Random.Range (0, n + 1);  
-			T value = list [k];  
-			list [k] = list [n];  
-			list [n] = value;  
+			int k = Random.Range (0, n + 1);  
+			(list [k], list [n]) = (list [n], list [k]);
 		}
-		UnityEngine.Random.state = oldState;
+		Random.state = oldState;
 	}
 }

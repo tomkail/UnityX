@@ -62,7 +62,7 @@ public class Prototype : MonoBehaviour {
 		return instance;
 	}
 	
-	public T Instantiate<T>(Transform parent = null)  where T : Component
+	public T Instantiate<T>(Transform parent = null, bool setActive = true)  where T : Component
 	{
 		Prototype instance = null;
 
@@ -78,6 +78,10 @@ public class Prototype : MonoBehaviour {
 
 		// Instantiate fresh instance
 		else {
+			if (!Application.isPlaying) {
+				gameObject.SetActive(false);
+			}
+
 			instance = UnityEngine.Object.Instantiate(this, parent ?? transform.parent, false);
 
 			var protoRT = transform as RectTransform;
@@ -97,7 +101,10 @@ public class Prototype : MonoBehaviour {
         instance.transform.localScale    = transform.localScale;
         instance.inUse = true;
 		
-		instance.gameObject.SetActive(true);
+		instance.gameObject.SetActive(setActive);
+		if (!Application.isPlaying) {
+			instance.gameObject.hideFlags = HideFlags.DontSaveInBuild | HideFlags.DontSaveInEditor;
+		}
 
 		var comp = instance.GetComponent<T>();
 		if(comp == null) Debug.LogError("Cant find component "+typeof(T).Name+" when creating "+transform.HierarchyPath());
@@ -111,8 +118,12 @@ public class Prototype : MonoBehaviour {
 			Destroy(gameObject);
 			return;
 		}
-			
-		_originalPrototype.AddToPool(this);
+
+		if (Application.isPlaying) {
+			_originalPrototype.AddToPool(this);
+		} else {
+			DestroyImmediate(gameObject);
+		}
 	}
 
 	public void DestroyPool()

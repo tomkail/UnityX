@@ -8,6 +8,8 @@ public class CameraShotGeneratorProperties {
 	public Quaternion rotation = Quaternion.identity;
 
 	public bool orthographic = false;
+	public float orthographicDistanceFromNearestTarget = 1;
+	
 	public float fieldOfView = 60;
 	
 	public float zoom = 1f;

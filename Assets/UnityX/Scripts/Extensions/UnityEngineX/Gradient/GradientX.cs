@@ -73,18 +73,28 @@ public static class GradientX {
 		return gradient;
 	}
 	
-	public static Gradient Create(Color color, float time = 0f){
+	public static Gradient Create(params Color[] colors)
+	{
 		Gradient gradient = new Gradient();
-		GradientColorKey[] colorKeys = new GradientColorKey[1];
-		GradientAlphaKey[] alphaKeys = new GradientAlphaKey[1];
-		
-		colorKeys[0].color = color;
-		colorKeys[0].time = time;
-		alphaKeys[0].alpha = color.a;
-		alphaKeys[0].time = time;
-		
+
+		// Create color keys
+		GradientColorKey[] colorKeys = new GradientColorKey[colors.Length];
+		for (int i = 0; i < colors.Length; i++)
+		{
+			colorKeys[i].color = colors[i];
+			colorKeys[i].time = colors.Length == 1 ? 0 : (float)i / (colors.Length - 1); // normalize index to [0, 1] range
+		}
+
+		// Create alpha keys from the color list
+		GradientAlphaKey[] alphaKeys = new GradientAlphaKey[colors.Length];
+		for (int i = 0; i < colors.Length; i++)
+		{
+			alphaKeys[i].alpha = colors[i].a;
+			alphaKeys[i].time = colors.Length == 1 ? 0 : (float)i / (colors.Length - 1); // normalize index to [0, 1] range
+		}
+
 		gradient.SetKeys(colorKeys, alphaKeys);
-		
+
 		return gradient;
 	}
 	
@@ -93,11 +103,18 @@ public static class GradientX {
 		GradientColorKey[] colorKeys = new GradientColorKey[2];
 		GradientAlphaKey[] alphaKeys = new GradientAlphaKey[2];
 
+		if (start > stop) {
+			(stop, start) = (start, stop);
+			(stopColor, startColor) = (startColor, stopColor);
+		}
+		
+		if (start < 0) startColor = Color.LerpUnclamped(startColor, stopColor, -start);
 		colorKeys[0].color = startColor;
 		colorKeys[0].time = start;
 		alphaKeys[0].alpha = startColor.a;
 		alphaKeys[0].time = start;
 
+		if (stop > 1) stopColor = Color.LerpUnclamped(stopColor, startColor, stop-1);
 		colorKeys[1].color = stopColor;
 		colorKeys[1].time = stop;
 		alphaKeys[1].alpha = stopColor.a;

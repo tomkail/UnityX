@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 /// <summary>
 /// Invisibly created singleton that's created when an Animate call to SLayout is made, and runs
@@ -17,22 +20,26 @@ using UnityEngine;
 /// </summary>
 public sealed class SLayoutAnimator : MonoBehaviour
 {
+	public static bool quitting { get; private set; }
+	
 	#if UNITY_EDITOR
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     public static void CompileReset() {
         DestroyInstance();
-        UnityEditor.EditorApplication.playModeStateChanged -= PlayModeStateChanged;
-        UnityEditor.EditorApplication.playModeStateChanged += PlayModeStateChanged;
+        EditorApplication.playModeStateChanged -= PlayModeStateChanged;
+        EditorApplication.playModeStateChanged += PlayModeStateChanged;
     }
     
-    static void PlayModeStateChanged (UnityEditor.PlayModeStateChange playModeStateChange) {
+    static void PlayModeStateChanged (PlayModeStateChange playModeStateChange) {
+	    // This fires AFTER Awake, which is too late.
+	    if (playModeStateChange == PlayModeStateChange.EnteredPlayMode) return;
 		DestroyInstance();
     }
 	
 	static void DestroyInstance () {
 		if(_instance != null) {
-            if(Application.isPlaying) UnityEngine.Object.Destroy(_instance.gameObject);
-            else UnityEngine.Object.DestroyImmediate(_instance.gameObject);
+            if(Application.isPlaying) Destroy(_instance.gameObject);
+            else DestroyImmediate(_instance.gameObject);
         }
 	}
     #endif
@@ -107,7 +114,7 @@ public sealed class SLayoutAnimator : MonoBehaviour
 			if( _instance == null ) {
 				#if UNITY_EDITOR
 				// If we're between modes, then just exit out!
-				if(!UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode && UnityEditor.EditorApplication.isPlaying) 
+				if(quitting || !EditorApplication.isPlaying) 
 					return null;
 				#endif
 				GameObject ownerGO = null;
@@ -146,9 +153,12 @@ public sealed class SLayoutAnimator : MonoBehaviour
 			return;
 		}
 		_instance = this;
+		
+		// Tom disabled this because it was stopping the first animation if this component was created as a result of starting that animation. 
+		// _animations.Clear();
+		// _animationsToRemove.Clear();
 
-		_animations.Clear();
-		_animationsToRemove.Clear();
+		Application.quitting += () => quitting = true;
 	}
 	void OnDisable() {
 		_animations.Clear();
@@ -178,7 +188,6 @@ public sealed class SLayoutAnimator : MonoBehaviour
 				if( anim.isComplete )
 					_animationsToRemove.Add(anim);
 			}
-
 			foreach(var anim in _animationsToRemove)
 				_animations.Remove(anim);
 

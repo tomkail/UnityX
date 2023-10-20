@@ -25,7 +25,7 @@ public class OwnedIslandDetector<Coord, Owner> : IslandDetector<Coord> where Coo
 
 		islandStartPointsToTest.AddRange(startPoints);
 		while(islandStartPointsToTest.Count > 0) {
-			Coord pointToTest = islandStartPointsToTest.First();
+			Coord pointToTest = islandStartPointsToTest[0];
 			var ownedIsland = CreateIsland(GetPointOwner(pointToTest));
 			ConnectAdjacentTilesWithSameOwner(ownedIsland, pointToTest);
 		}

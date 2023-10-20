@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public static class ScaleToContainerUtils {
 
@@ -51,6 +52,23 @@ public static class ScaleToContainerUtils {
         Fill
     }
     
+    public static AspectRatioFitter.AspectMode ScalingModeToAspectRatioFitterMode(ScalingMode scalingMode) {
+        switch (scalingMode) {
+            case ScalingMode.AspectFitWidthOnly:
+                return AspectRatioFitter.AspectMode.WidthControlsHeight;
+            case ScalingMode.AspectFitHeightOnly:
+                return AspectRatioFitter.AspectMode.HeightControlsWidth;
+            case ScalingMode.AspectFit:
+                return AspectRatioFitter.AspectMode.FitInParent;
+            case ScalingMode.AspectFill:
+                return AspectRatioFitter.AspectMode.EnvelopeParent;
+            case ScalingMode.Fill:
+                return AspectRatioFitter.AspectMode.None;
+            default:
+                return AspectRatioFitter.AspectMode.None;
+        }
+    }
+
     public static Vector2 Resize(Vector2 containerSize, Vector2 contentSize, ScalingMode scalingMode) {
         return Resize(containerSize, contentSize.x/contentSize.y, scalingMode);
     }

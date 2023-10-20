@@ -1,26 +1,11 @@
-﻿using System.Collections;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityX.MeshBuilder;
 using UnityX.Geometry;
 
-
-[ExecuteAlways]
 [RequireComponent(typeof(MeshFilter))]
 public class PolygonOutlineRenderer : BasePolygonRenderer {
-    [Space]
-    public const string colorID = "_Color";
-    [SerializeField]
-    Color _tintColor = Color.white;
-    public Color tintColor {
-        get {
-            return _tintColor;
-        } set {
-            if(_tintColor == value) return;
-            _tintColor = value;
-            RefreshMaterialPropertyBlock();
-        }
-    }
     public const string textureID = "_MainTex";
     [SerializeField]
     Texture2D _texture;
@@ -54,124 +39,96 @@ public class PolygonOutlineRenderer : BasePolygonRenderer {
         }
     }
 
+    public StrokeGeometryAttributes attributes;
+    public float extrusion;
+    static MeshBuilder mb = new MeshBuilder();
 	public override void RebuildMesh () {
 		GetMesh();
 		mesh.Clear();
         
+        var polygonRect = polygon.GetRect();
         var points = polygon.vertices;
-
-		MeshBuilder mb = new MeshBuilder();
+        
+        mb.Clear();
         
         var clockwise = polygon.GetIsClockwise();
-        Vector2 startCorner;
-        Vector2 startCornerInner;
-        Vector2 startCornerOuter;
-        GetVertPoints(0, clockwise, out startCorner, out startCornerInner, out startCornerOuter);
-		for(int i = 0; i < points.Length; i++) {
-            Vector2 endCorner;
-			Vector2 endCornerInner;
-			Vector2 endCornerOuter;
-            GetVertPoints(i+1, clockwise, out endCorner, out endCornerInner, out endCornerOuter);
+        Vector2[] extrudedPoints = Polygon.GetExtruded(polygon, extrusion);
 
 
-			AddPlaneParams planeInput = new AddPlaneParams();
-			planeInput.front = front ^ !clockwise;
-			planeInput.back = back ^ !clockwise;
+        var tris = LineDraw.getStrokeGeometry(extrudedPoints, attributes);
+        if(!tris.IsNullOrEmpty()) {
+            List<Vector3> verts = new List<Vector3>(tris.Count);
+            for (var i = 0; i < tris.Count; i++) {
+                verts.Add(offsetRotation * tris[i]);
+            }
 
-			AddTriangleParams triangleInput = new AddTriangleParams();
-			triangleInput.front = front ^ !clockwise;
-			triangleInput.back = back ^ !clockwise;
-			
-			triangleInput.uvTopLeft = new Vector2(0,1);
-			triangleInput.uvTopRight = new Vector2(1,1);
-			triangleInput.uvBottom = new Vector2(0.5f,0);
-            
-			// var cornerDistance = Vector2.Distance(startCorner, endCorner);
+            for (var i = 0; i < verts.Count; i += 3) {
+                var triangle = new AddTriangleParams();
+                triangle.front = true;
+                triangle.colorTopLeft = triangle.colorTopRight = triangle.colorBottom = tintColor;
+                triangle.topLeft = verts[i];
+                triangle.topRight = verts[i+1];
+                triangle.bottom = verts[i+2];
 
-			// Inner
-			// var quadStartCornerInner = startCornerInner+edgeNormal * Vector3X.DistanceInDirection(startCorner, startCornerInner, edgeNormal);
-			// var quadEndCornerInner = endCornerInner+edgeNormal * Vector3X.DistanceInDirection(endCorner, endCornerInner, edgeNormal);
-			
-			// var innerCornerDistance = Vector2.Distance(startCornerInner, endCornerInner);
-			// var innerQuadUVOffset = ((cornerDistance - innerCornerDistance) / cornerDistance) * 0.5f;
-			// innerQuadUVOffset = 0;
+                if (signedArea(triangle.topLeft, triangle.topRight, triangle.bottom) > 0) {
+                    triangle.topLeft = verts[i+2];
+                    triangle.topRight = verts[i+1];
+                    triangle.bottom = verts[i];
+                }
+                float signedArea(Vector2 p0, Vector2 p1, Vector2 p2) {
+                    return (p1.x - p0.x) * (p2.y - p0.y) - (p2.x - p0.x) * (p1.y - p0.y);
+                }
 
-			/*
-			planeInput.topLeft = quadStartCornerInner; planeInput.topRight = quadEndCornerInner; planeInput.bottomRight = endCornerInner; planeInput.bottomLeft = startCornerInner;
-
-			
-			planeInput.uvBottomLeft = new Vector2(innerQuadUVOffset,0);
-			planeInput.uvBottomRight = new Vector2(1-innerQuadUVOffset,0);
-
-			AddPlane(mb, planeInput);
-
-			planeInput.uvBottomLeft = new Vector2(0,0);
-			planeInput.uvBottomRight = new Vector2(1,0);
-			
-			triangleInput.topLeft = startCorner; triangleInput.topRight = quadStartCornerInner; triangleInput.bottom = startCornerInner;
-			AddTriangle(mb, triangleInput);
-			triangleInput.topLeft = quadEndCornerInner; triangleInput.topRight = endCorner; triangleInput.bottom = endCornerInner;
-			AddTriangle(mb, triangleInput);
-			 */
-			
-			// Outer 
-			// var quadStartCornerOuter = startCorner+edgeNormal * Vector3X.DistanceInDirection(startCorner, startCornerOuter, edgeNormal);
-			// var quadEndCornerOuter = endCorner+edgeNormal * Vector3X.DistanceInDirection(endCorner, endCornerOuter, edgeNormal);
-			
-			/* 
-			var outerCornerDistance = Vector2.Distance(startCornerOuter, endCornerOuter);
-			var outerQuadUVOffset = ((cornerDistance - outerCornerDistance) / cornerDistance) * 0.5f;
-			outerQuadUVOffset = 0;
-
-			planeInput.topLeft = quadStartCornerOuter; planeInput.topRight = quadEndCornerOuter; planeInput.bottomRight = endCorner; planeInput.bottomLeft = startCorner;
-			
-			planeInput.uvTopLeft = new Vector2(outerQuadUVOffset,1);
-			planeInput.uvTopRight = new Vector2(1-outerQuadUVOffset,1);
-
-			AddPlane(mb, planeInput);
-
-			planeInput.uvTopLeft = new Vector2(0,1);
-			planeInput.uvTopRight = new Vector2(1,1);
-
-			triangleInput.topLeft = startCornerOuter; triangleInput.topRight = quadStartCornerOuter; triangleInput.bottom = startCorner;
-			AddTriangle(mb, triangleInput);
-			triangleInput.topLeft = quadEndCornerOuter; triangleInput.topRight = endCornerOuter; triangleInput.bottom = endCorner;
-			AddTriangle(mb, triangleInput);
-			*/
-
-            // if(innerDistance > 0) {
-            //     planeInput.uvTopLeft = new Vector2(0,1);
-            //     planeInput.uvTopRight = new Vector2(1,1);
-            //     planeInput.uvBottomRight = new Vector2(1,0);
-            //     planeInput.uvBottomLeft = new Vector2(0,0);
-
-            //     planeInput.topLeft = startCorner; planeInput.topRight = endCorner; planeInput.bottomRight = endCornerInner; planeInput.bottomLeft = startCornerInner;
-            //     mb.AddPlane(planeInput);
-            // }
-
-            // if(outerDistance > 0) {
-            //     planeInput.uvBottomLeft = new Vector2(0,1);
-            //     planeInput.uvBottomRight = new Vector2(1,1);
-            //     planeInput.uvTopRight = new Vector2(1,0);
-            //     planeInput.uvTopLeft = new Vector2(0,0);
                 
-            //     planeInput.topLeft = startCornerOuter; planeInput.topRight = endCornerOuter; planeInput.bottomRight = endCorner; planeInput.bottomLeft = startCorner;
-            //     mb.AddPlane(planeInput);
-            // }
+                mb.AddTriangle(triangle);
+                // Debug.Log("ADD TRI")
+            }
+        }
+
+        
+        // var clockwise = polygon.GetIsClockwise();
+        // Vector2 startCorner;
+        // Vector2 startCornerInner;
+        // Vector2 startCornerOuter;
+        // GetVertPoints(0, clockwise, out startCorner, out startCornerInner, out startCornerOuter);
+		// for(int i = 0; i < points.Length; i++) {
+        //     Vector2 endCorner;
+		// 	Vector2 endCornerInner;
+		// 	Vector2 endCornerOuter;
+        //     GetVertPoints(i+1, clockwise, out endCorner, out endCornerInner, out endCornerOuter);
+
+        //     Color startColor = Color.white;
+        //     Color endColor = Color.white;
+        //     // GetColors(i+1, clockwise, out endCorner, out endCornerInner, out endCornerOuter);
             
-            planeInput.uvBottomLeft = new Vector2(0,1);
-            planeInput.uvBottomRight = new Vector2(1,1);
-            planeInput.uvTopRight = new Vector2(1,0);
-            planeInput.uvTopLeft = new Vector2(0,0);
+
+		// 	AddPlaneParams planeInput = new AddPlaneParams();
+		// 	planeInput.front = front ^ !clockwise;
+		// 	planeInput.back = back ^ !clockwise;
+
+		// 	AddTriangleParams triangleInput = new AddTriangleParams();
+		// 	triangleInput.front = front ^ !clockwise;
+		// 	triangleInput.back = back ^ !clockwise;
+			
+		// 	triangleInput.uvTopLeft = new Vector2(0,1);
+		// 	triangleInput.uvTopRight = new Vector2(1,1);
+		// 	triangleInput.uvBottom = new Vector2(0.5f,0);
+
+        //     planeInput.uvBottomLeft = new Vector2(0,1);
+        //     planeInput.uvBottomRight = new Vector2(1,1);
+        //     planeInput.uvTopRight = new Vector2(1,0);
+        //     planeInput.uvTopLeft = new Vector2(0,0);
             
-            planeInput.topLeft = startCornerOuter; planeInput.topRight = endCornerOuter; planeInput.bottomRight = endCornerInner; planeInput.bottomLeft = startCornerInner;
-            mb.AddPlane(planeInput);
+        //     planeInput.topLeft = startCornerOuter; planeInput.topRight = endCornerOuter; planeInput.bottomRight = endCornerInner; planeInput.bottomLeft = startCornerInner;
+
+        //     planeInput.colorTopLeft = startColor; planeInput.colorTopRight = startColor; planeInput.colorBottomRight = endColor; planeInput.colorBottomLeft = endColor;
+        //     mb.AddPlane(planeInput);
 
 
-            startCorner = endCorner;
-            startCornerInner = endCornerInner;
-            startCornerOuter = endCornerOuter;
-		}
+        //     startCorner = endCorner;
+        //     startCornerInner = endCornerInner;
+        //     startCornerOuter = endCornerOuter;
+		// }
 
         mb.ToMesh(mesh, bakeParams);
 
@@ -189,13 +146,15 @@ public class PolygonOutlineRenderer : BasePolygonRenderer {
         var edgeBTangent = polygon.GetEdgeTangentAtEdgeIndex(i);
         var edgeBNormal = Polygon.GetEdgeNormalAtEdgeIndex(edgeBTangent, clockwise);
         
-        var edgeAOffsetInnerLine = new Line(point + edgeANormal * innerDistance, point + edgeANormal * innerDistance - edgeATangent);
+        // var directionDot = Vector2.Dot(edgeATangent, edgeBTangent);
+
+        var edgeAOffsetInnerLine = new Line(point + edgeANormal * innerDistance, point + edgeANormal * innerDistance + edgeATangent);
         var edgeBOffsetInnerLine = new Line(point + edgeBNormal * innerDistance, point + edgeBNormal * innerDistance + edgeBTangent);
         if(!Line.LineIntersectionPoint(edgeAOffsetInnerLine, edgeBOffsetInnerLine, out innerPoint, false)) {
             innerPoint = point + edgeANormal * innerDistance;
         }
         
-        var edgeAOffsetOuterLine = new Line(point + edgeANormal * outerDistance, point + edgeANormal * outerDistance - edgeATangent);
+        var edgeAOffsetOuterLine = new Line(point + edgeANormal * outerDistance, point + edgeANormal * outerDistance + edgeATangent);
         var edgeBOffsetOuterLine = new Line(point + edgeBNormal * outerDistance, point + edgeBNormal * outerDistance + edgeBTangent);
         if(!Line.LineIntersectionPoint(edgeAOffsetOuterLine, edgeBOffsetOuterLine, out outerPoint, false)) {
             outerPoint = point + edgeANormal * outerDistance;
@@ -211,6 +170,16 @@ public class PolygonOutlineRenderer : BasePolygonRenderer {
             meshRenderer.SetPropertyBlock(propBlock);
         }
     }
+
+    // void OnDrawGizmos () {
+        
+        // var points = polygon.vertices;
+        // var tris = LineDraw.getStrokeGeometry(points, attributes);
+        // if(tris != null) {
+        //     GizmosX.DrawWirePolygonWithArrows(transform.position, transform.rotation, transform.localScale, tris, Vector3.forward);
+        //     RebuildMesh();
+        // }
+    // }
 
 
     // void OnDrawGizmos () {
