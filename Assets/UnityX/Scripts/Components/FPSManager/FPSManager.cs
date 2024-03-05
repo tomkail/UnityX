@@ -111,7 +111,11 @@ public class FPSManager : MonoSingleton<FPSManager> {
             else if (!Debug.isDebugBuild && debugSettings.showInReleaseBuilds) show = true;
         }
 		if(show) {
-            StringBuilder sb = new StringBuilder();
+			var guiScale = Mathf.Max(Screen.width/320, Screen.height/600f);
+			var oldM = GUI.matrix;
+			GUI.matrix = Matrix4x4.Scale(guiScale*Vector3.one);
+			
+			StringBuilder sb = new StringBuilder();
             sb.AppendLine("FPS");
             sb.Append("TAR: ");
             sb.AppendLine(string.Format("{0:n1}",settings.targetFrameRate));
@@ -121,8 +125,10 @@ public class FPSManager : MonoSingleton<FPSManager> {
             sb.AppendLine(string.Format("{0:n1}",maxFPS));
             sb.Append("MIN: ");
             sb.AppendLine(string.Format("{0:n1}",minFPS));
-            GUI.Label (debugSettings.fpsPos, sb.ToString());
-        }
+            GUI.Box (debugSettings.fpsPos, sb.ToString());
+
+            GUI.matrix = oldM;
+		}
 	}
 	
 	private List<float> deltaTimes = new List<float>();

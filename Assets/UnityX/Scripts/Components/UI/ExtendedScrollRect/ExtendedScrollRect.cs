@@ -12,25 +12,13 @@ namespace UnityEngine.UI {
         // The content rect is scaled, so there's some minor inaccuracy when comparing sizes which this helps mitigate.
         const float Epsilon = 0.001f;
         // The viewport rect transform. Uses this component's rect transform if none is specified.
-		public new RectTransform viewRect {
-			get {
-				return base.viewRect;
-			}
-		}
-		
-        public Rect containerRect {
-			get {
-				return RectX.MinMaxRect((Vector2)viewBounds.min, (Vector2)viewBounds.max);
-			}
-		}
+		public new RectTransform viewRect => base.viewRect;
+
+		public Rect containerRect => RectX.MinMaxRect(viewBounds.min, viewBounds.max);
 
 
-        // Content rect, also taking the scale of the content into account (as Unity's scrollrect does)
-        public Rect scaledContentRect {
-			get {
-				return RectX.MinMaxRect((Vector2)contentBounds.min, (Vector2)contentBounds.max);
-			}
-		}
+		// Content rect, also taking the scale of the content into account (as Unity's scrollrect does)
+        public Rect scaledContentRect => RectX.MinMaxRect(contentBounds.min, contentBounds.max);
 
         public Bounds contentBounds {
 			get {
@@ -41,24 +29,12 @@ namespace UnityEngine.UI {
 		}
         
         // Note - we should stop using bounds and use contentRect and viewRect.rect instead
-		public Bounds viewBounds {
-			get {
-				return new Bounds(viewRect.rect.center, viewRect.rect.size);
-			}
-		}
-        
-		public Vector2 freeMovementSize {
-			get {
-				return scaledContentRect.size-viewRect.rect.size;
-			}
-		}
-		
+		public Bounds viewBounds => new(viewRect.rect.center, viewRect.rect.size);
+
+		public Vector2 freeMovementSize => scaledContentRect.size-viewRect.rect.size;
+
 		// This is the offset from the pivot point to the side of the content rect that matches the pivot
-        public Vector2 contentOffset {
-			get {
-				return viewRect.rect.position - (Vector2)scaledContentRect.position;
-			}
-		}
+        public Vector2 contentOffset => viewRect.rect.position - (Vector2)scaledContentRect.position;
 
         // 0,0 when the bottom-left of the content matches that of the container; 1, when the top-right of the content matches that of the container.
         // When container is larger than content the axis tends to return 0.5, but is a bit unpredictable since _freeMovementSize is 0 or near it.
@@ -70,11 +46,7 @@ namespace UnityEngine.UI {
 			}
 		}
         
-        public Vector2 CalculateOffset()
-        {
-	        return InternalCalculateOffset(viewBounds, contentBounds);
-        }
-
+        public Vector2 CalculateOffset() => InternalCalculateOffset(viewBounds, contentBounds);
         internal static Vector2 InternalCalculateOffset(Bounds viewBounds, Bounds contentBounds) {
 	        Vector2 offset = Vector2.zero;
 	        
@@ -140,17 +112,17 @@ namespace UnityEngine.UI {
 		}
 		
 		
-		public bool canScrollLeft => contentExceedsViewportX && signedAnchoredDistanceFromLeftEdge > Epsilon;
+		public bool canScrollLeft => contentSizeExceedsViewportX && signedAnchoredDistanceFromLeftEdge > Epsilon;
 
-		public bool canScrollRight => contentExceedsViewportX && signedAnchoredDistanceFromRightEdge > -Epsilon;
+		public bool canScrollRight => contentSizeExceedsViewportX && signedAnchoredDistanceFromRightEdge > -Epsilon;
 
-		public bool canScrollUp => contentExceedsViewportY && signedAnchoredDistanceFromTopEdge > Epsilon;
+		public bool canScrollUp => contentSizeExceedsViewportY && signedAnchoredDistanceFromTopEdge > Epsilon;
 
-		public bool canScrollDown => contentExceedsViewportY && signedAnchoredDistanceFromBottomEdge > -Epsilon;
+		public bool canScrollDown => contentSizeExceedsViewportY && signedAnchoredDistanceFromBottomEdge > -Epsilon;
 
-		public bool contentExceedsViewportX => freeMovementSize.x > Epsilon;
+		public bool contentSizeExceedsViewportX => freeMovementSize.x > Epsilon;
 
-		public bool contentExceedsViewportY => freeMovementSize.y > Epsilon;
+		public bool contentSizeExceedsViewportY => freeMovementSize.y > Epsilon;
 		
 		
         public float GetClampedAnchoredPositionX (float contentAnchoredPositionX) {
@@ -175,7 +147,7 @@ namespace UnityEngine.UI {
         public Vector2 GetAnchoredPositionForWorldPoint (Vector3 worldPoint, Vector2 pivot) {
 	        var transformedPoint = content.InverseTransformPoint(worldPoint);
 	        var targetPos = -(Vector2) transformedPoint;
-	        targetPos += (viewport == null ? (RectTransform)transform : viewport).rect.GetPointFromNormalizedPoint(pivot);
+	        targetPos += Rect.NormalizedToPoint((viewport == null ? (RectTransform) transform : viewport).rect, pivot);
 	        targetPos += content.GetLocalToAnchoredPositionOffset();
 	        return targetPos;
         }

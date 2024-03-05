@@ -1,19 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using Newtonsoft.Json;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 [Serializable]
 public class ShuffleBag<T> {
-	[SerializeField] List<T> _sourceItems = new List<T>();
-	public ReadOnlyCollection<T> sourceItems => _sourceItems.AsReadOnly();
+	[SerializeField, JsonProperty] List<T> _sourceItems = new List<T>();
+	[JsonIgnore] public ReadOnlyCollection<T> sourceItems => _sourceItems.AsReadOnly();
 
-	[SerializeField] List<T> _items = new List<T>();
-	public ReadOnlyCollection<T> items => _items.AsReadOnly();
+	[SerializeField, JsonProperty] List<T> _items = new List<T>();
+	[JsonIgnore] public ReadOnlyCollection<T> items => _items.AsReadOnly();
 
 	public bool shuffle = true;
 
+	[JsonConstructor]
 	ShuffleBag () {}
 	
 	public ShuffleBag (List<T> sourceItems, bool shuffle = true) {

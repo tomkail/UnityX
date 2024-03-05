@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using UnityEngine;
 
 /// <summary>
@@ -11,15 +12,20 @@ public struct Range : IEquatable<Range>
 {
 	public float min;
 	public float max;
+	[JsonIgnore]
 	public float mid => 0.5f*(min+max);
 
+	[JsonIgnore]
 	public float length => max - min;
 
+	[JsonIgnore]
 	public Range negated => new Range(-max, -min);
 
 
+	[JsonIgnore]
 	public static readonly Range infinity = new Range(float.NegativeInfinity, float.PositiveInfinity);
 
+	[JsonIgnore]
 	public static readonly Range zero = default(Range);
 
 	public Range(float min, float max) {

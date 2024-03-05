@@ -47,6 +47,12 @@ public static class ColorX {
 		);
 	}
 
+	public static string ComponentToHex(float channel, bool toUpper = false) {
+		channel = Mathf.Clamp(channel, 0f, 1f);
+		int intValue = (int)(channel * 255);
+		return intValue.ToString("X2");
+	}
+
 	public static string ToHex(this Color32 color, bool alpha = true, bool toUpper = false) {
 		if(toUpper) {
 			return color.r.ToString("X2") + color.g.ToString("X2") + color.b.ToString("X2") + (alpha?color.a.ToString("X2"):"");

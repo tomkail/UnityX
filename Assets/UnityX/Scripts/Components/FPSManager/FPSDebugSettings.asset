@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c06b13ccb47976e49aac4ef1d8851976, type: 3}
+  m_Script: {fileID: 11500000, guid: 3de28897739ed4c3c88db915910ade32, type: 3}
   m_Name: FPSDebugSettings
   m_EditorClassIdentifier: 
   fpsGraphHistoryTime: 1
@@ -18,7 +18,7 @@ MonoBehaviour:
     x: 10
     y: 10
     width: 100
-    height: 400
-  showInEditor: 1
-  showInDevBuilds: 0
+    height: 80
+  showInEditor: 0
+  showInDevBuilds: 1
   showInReleaseBuilds: 0

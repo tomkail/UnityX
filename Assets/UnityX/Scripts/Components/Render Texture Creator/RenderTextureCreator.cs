@@ -1,8 +1,8 @@
+using System;
 using UnityEngine;
 
 public class RenderTextureCreator : MonoBehaviour {
-    [SerializeField]
-    RenderTexture _renderTexture;
+    [SerializeField] RenderTexture _renderTexture;
     public RenderTexture renderTexture => _renderTexture;
 
     public enum RenderTextureDepth {
@@ -20,7 +20,7 @@ public class RenderTextureCreator : MonoBehaviour {
     public bool fullScreen = false;
     public Vector2Int renderTextureSize = new Vector2Int(512, 512);
     public FilterMode filterMode = FilterMode.Bilinear;
-    public RenderTextureDepth renderTextureDepth = RenderTextureDepth._24;
+    public RenderTextureDepth renderTextureDepth = RenderTextureDepth._0;
     public RenderTextureFormat renderTextureFormat = RenderTextureFormat.ARGB32;
     public RenderTextureReadWrite renderTextureReadWrite = RenderTextureReadWrite.Default;
     public bool enableRandomWrite = false;
@@ -58,6 +58,10 @@ public class RenderTextureCreator : MonoBehaviour {
     
     public System.Action<RenderTexture> OnCreateRenderTexture;
 
+    void Awake() {
+	    _renderTexture = null;
+    }
+
     protected virtual void OnValidate () {
         // ReleaseRenderTexture();
         RefreshRenderTexture();
@@ -65,30 +69,12 @@ public class RenderTextureCreator : MonoBehaviour {
     
     public void RefreshRenderTexture () {
 	    Vector2Int targetSize = calculatedTextureSize;
+	    if (targetSize.x <= 0 || targetSize.y <= 0) {
+		    Debug.LogWarning($"{GetType().Name}: Target size is {targetSize}, so not creating RenderTexture.", this);
+		    return;
+	    }
 	    
-	    var textureIsNullOrRequiresChange = 
-		    _renderTexture != null && 
-		    (_renderTexture.width != targetSize.x || 
-			_renderTexture.height != targetSize.y || 
-			_renderTexture.depth != (int)renderTextureDepth || 
-			_renderTexture.format != renderTextureFormat || 
-			_renderTexture.enableRandomWrite != enableRandomWrite || 
-			_renderTexture.filterMode != filterMode ||
-			_renderTexture.antiAliasing != (int)antiAliasing
-		    );
-	    
-        if(textureIsNullOrRequiresChange) {
-            ReleaseRenderTexture();
-            _renderTexture.width = targetSize.x;
-            _renderTexture.height = targetSize.y;
-            _renderTexture.depth = (int)renderTextureDepth;
-            _renderTexture.format = renderTextureFormat;
-            _renderTexture.enableRandomWrite = enableRandomWrite;
-            _renderTexture.filterMode = filterMode;
-            _renderTexture.antiAliasing = (int)antiAliasing;
-            _renderTexture.Create();
-        }
-        if(_renderTexture == null && targetSize.x > 0 && targetSize.y > 0) {
+        if(_renderTexture == null) {
             _renderTexture = new RenderTexture (targetSize.x, targetSize.y, (int)renderTextureDepth, renderTextureFormat, renderTextureReadWrite) {
 	            name = $"RenderTextureCreator {transform.HierarchyPath()}",
 	            enableRandomWrite = enableRandomWrite,
@@ -97,20 +83,45 @@ public class RenderTextureCreator : MonoBehaviour {
 	            hideFlags = HideFlags.HideAndDontSave
             };
             if(OnCreateRenderTexture != null) OnCreateRenderTexture(_renderTexture);
+        } else {
+	        var textureRequiresChange = 
+		        _renderTexture != null && 
+		        (_renderTexture.width != targetSize.x || 
+		         _renderTexture.height != targetSize.y || 
+		         _renderTexture.depth != (int)renderTextureDepth || 
+		         _renderTexture.format != renderTextureFormat || 
+		         _renderTexture.enableRandomWrite != enableRandomWrite || 
+		         _renderTexture.filterMode != filterMode ||
+		         _renderTexture.antiAliasing != (int)antiAliasing
+		        );
+	    
+	        if(textureRequiresChange) {
+		        ReleaseRenderTexture();
+		        _renderTexture.width = targetSize.x;
+		        _renderTexture.height = targetSize.y;
+		        _renderTexture.depth = (int)renderTextureDepth;
+		        _renderTexture.format = renderTextureFormat;
+		        _renderTexture.enableRandomWrite = enableRandomWrite;
+		        _renderTexture.filterMode = filterMode;
+		        _renderTexture.antiAliasing = (int)antiAliasing;
+		        _renderTexture.Create();
+		        if(OnCreateRenderTexture != null) OnCreateRenderTexture(_renderTexture);
+	        }
         }
         if (_renderTexture.depth != (int) renderTextureDepth) {
-	        Debug.LogWarning($"{GetType().Name}: Depth {(int)renderTextureDepth} appears not to be supported. You should change this so that the RenderTexture doesn't change each frame.");
+	        Debug.LogWarning($"{GetType().Name}: Depth {(int)renderTextureDepth} appears not to be supported. You should change this so that the RenderTexture doesn't change each frame.", this);
         }
     }
 
-    void ReleaseRenderTexture () {
+    public void ReleaseRenderTexture () {
         if(_renderTexture == null) return;
         if(RenderTexture.active == _renderTexture) RenderTexture.active = null;
         _renderTexture.Release();
     }
 
-    void DestroyRenderTexture() {
+    public void DestroyRenderTexture() {
         if(_renderTexture == null) return;
+        if(RenderTexture.active == _renderTexture) RenderTexture.active = null;
         if(Application.isPlaying) Destroy(_renderTexture);
         else DestroyImmediate(_renderTexture);
         _renderTexture = null;

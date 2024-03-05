@@ -16,7 +16,7 @@ public class NoiseSamplerPropertyDrawer : PropertyDrawer {
 
 		EditorGUI.BeginProperty (position, label, property);
 
-		Rect currentRect = position.CopyWithHeight(EditorGUIUtility.singleLineHeight);
+		Rect currentRect = position.WithHeight(EditorGUIUtility.singleLineHeight);
 		currentRect.y = EditorGUIX.DrawSerializedProperty(position, property) + EditorGUIUtility.standardVerticalSpacing;
 
 		if(property.isExpanded) {

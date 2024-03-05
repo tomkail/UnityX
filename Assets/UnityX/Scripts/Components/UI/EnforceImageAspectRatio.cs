@@ -16,32 +16,25 @@ public class EnforceImageAspectRatio : MonoBehaviour {
 			return _aspectRatioFitter;
 		}
 	}
-	[FormerlySerializedAs("__graphic")] [SerializeField]
-	private Graphic _graphic;
-	private Graphic graphic {
+	[SerializeField]
+	Graphic _graphic;
+	Graphic graphic {
 		get {
 			if(_graphic == null) _graphic = GetComponent<Graphic>();
 			return _graphic;
 		}
 	}
 
-	private float lastAspectRatio;
-	
 	void Update () {
-		if (graphic is Image) {
-			var image = graphic as Image;
+		var newAspectRatio = aspectRatioFitter.aspectRatio;
+		if (graphic is Image image) {
 			if(image.sprite == null) return;
-			var newAspectRatio = (float) (image.sprite.rect.width / image.sprite.rect.height);
-			if(lastAspectRatio == newAspectRatio) return;
-			lastAspectRatio = newAspectRatio;
-			aspectRatioFitter.aspectRatio = newAspectRatio;
-		} else if (graphic is RawImage) {
-			var image = graphic as RawImage;
-			if(image.texture == null) return;
-			var newAspectRatio = ((float) image.texture.width / image.texture.height);
-			if(lastAspectRatio == newAspectRatio) return;
-			lastAspectRatio = newAspectRatio;
-			aspectRatioFitter.aspectRatio = newAspectRatio;
+			newAspectRatio = image.sprite.rect.width / image.sprite.rect.height;
+		} else {
+			if(graphic.mainTexture == null) return;
+			newAspectRatio = (float) graphic.mainTexture.width / graphic.mainTexture.height;
 		}
+		if(aspectRatioFitter.aspectRatio == newAspectRatio) return;
+		aspectRatioFitter.aspectRatio = newAspectRatio;
 	}
 }

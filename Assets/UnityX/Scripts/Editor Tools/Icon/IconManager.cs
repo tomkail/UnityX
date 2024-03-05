@@ -14,12 +14,12 @@ namespace UnityX.Editor.Icon {
 		public static void ClearIcon (GameObject gObj) {
 			EditorGUIUtility.SetIconForObject(gObj, null);
 		}
-	    public static Texture2D GetIcon( LabelIcon icon ) {
+	    public static Texture2D GetIcon( EditorDefaultLabelIcon icon ) {
 	        if ( labelIcons == null ) labelIcons = GetTextures( "sv_label_", string.Empty, 0, 8 );
 	        return labelIcons[(int) icon].image as Texture2D;
 	    }
 	 
-	    public static Texture2D GetIcon (Icon icon) {
+	    public static Texture2D GetIcon (EditorDefaultIcon icon) {
 	        if ( largeIcons == null ) largeIcons = GetTextures( "sv_icon_dot", "_pix16_gizmo", 0, 16 );
 	        return largeIcons[(int) icon].image as Texture2D;
 	    }

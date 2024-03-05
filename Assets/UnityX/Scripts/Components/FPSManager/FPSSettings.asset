@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d9fc80d2d09d87e46bebf39d52fdc7a5, type: 3}
+  m_Script: {fileID: 11500000, guid: b8b234e0a0aa04deaa22bb2fa03e9b86, type: 3}
   m_Name: FPSSettings
   m_EditorClassIdentifier: 
   targetFrameRate: 60

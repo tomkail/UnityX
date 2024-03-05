@@ -1,3 +1,1 @@
-﻿using UnityEngine;
-
-public class RadialGradientRenderer : BaseGradientRenderer {}
+﻿public class RadialGradientRenderer : BaseGradientRenderer {}

@@ -84,7 +84,7 @@ public static class MathX {
         return val;
     }
 
-    // Calculates the shortest difference between two given angles.
+    // Calculates the shortest difference between two given values.
     public static float SignedDeltaRepeating(float a, float b, float val, float target) {
         b-=a;
         val-=a;

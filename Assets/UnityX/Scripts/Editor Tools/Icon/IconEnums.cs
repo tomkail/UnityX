@@ -1,5 +1,5 @@
 ﻿namespace UnityX.Editor.Icon {
-	public enum LabelIcon {
+	public enum EditorDefaultLabelIcon {
 		Gray,
 		Blue,
 		Teal,
@@ -10,7 +10,7 @@
 		Purple
 	}
 	
-	public enum Icon {
+	public enum EditorDefaultIcon {
 		CircleGray,
 		CircleBlue,
 		CircleTeal,

@@ -20,7 +20,7 @@ public class RadialGrid3Agent : MonoBehaviour {
 		var newChunkPoints = worldGrid.GetPointsInRadius(transform.position, spawnRadius);
 		
 		if(!chunkPoints.SequenceEqual(newChunkPoints)) {
-			IEnumerableX.GetChanges(chunkPoints, newChunkPoints, ref exited, ref entered);
+			IEnumerableX.GetChanges(chunkPoints, newChunkPoints, exited, entered);
 			chunkPoints.Clear();
 			chunkPoints.AddRange(newChunkPoints);
 			if(!entered.IsEmpty()) if(OnEnterPoints != null) OnEnterPoints(entered);

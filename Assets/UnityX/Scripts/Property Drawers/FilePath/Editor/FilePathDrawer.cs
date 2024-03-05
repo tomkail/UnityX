@@ -143,7 +143,7 @@ class FilePathDrawer : BaseAttributePropertyDrawer<FilePathAttribute> {
 			DrawNotSupportedGUI(position, property, label);
 			return;
 		}
-		var newValue = FilePath(position, property.stringValue, label, attribute.relativeTo, false, attribute.showPrevNextFileControls);
+		var newValue = FilePath(position, property.stringValue, label, attribute.relativeTo, true, false, attribute.showPrevNextFileControls);
 		if(property.stringValue != newValue) {
 			property.serializedObject.Update();
 			property.stringValue = newValue;

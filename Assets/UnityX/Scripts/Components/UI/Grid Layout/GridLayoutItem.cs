@@ -1,38 +1,40 @@
 using UnityEngine;
 
-[ExecuteAlways]
-[RequireComponent(typeof(RectTransform))]
-public class GridLayoutItem : MonoBehaviour {
-	public RectTransform rectTransform => (RectTransform)transform;
+namespace UnityEngine.UI {
+	[ExecuteAlways]
+	[RequireComponent(typeof(RectTransform))]
+	public class GridLayoutItem : MonoBehaviour {
+		public RectTransform rectTransform => (RectTransform) transform;
 
-	public GridLayout gridLayout;
-	public Vector2 gridCoordinate;
+		public GridLayout gridLayout;
+		public Vector2 gridCoordinate;
 
-	DrivenRectTransformTracker drivenRectTransformTracker;
-	
-	void OnEnable() {
-		Refresh();
-	}
+		DrivenRectTransformTracker drivenRectTransformTracker;
 
-	void OnDisable() {
-		drivenRectTransformTracker.Clear();
-	}
+		void OnEnable() {
+			Refresh();
+		}
 
-	void Update () {
-		Refresh();
-	}
+		void OnDisable() {
+			drivenRectTransformTracker.Clear();
+		}
 
-	void Refresh () {
-		drivenRectTransformTracker.Clear();
+		void Update() {
+			Refresh();
+		}
 
-		
-		var size = gridLayout.GetItemSize();
-		rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size.x);
-		rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size.y);
+		void Refresh() {
+			drivenRectTransformTracker.Clear();
 
-		rectTransform.position = gridLayout.GetWorldPositionForGridCoord(gridCoordinate);
-		rectTransform.anchoredPosition += new Vector2(size.x * (rectTransform.pivot.x), size.y * (rectTransform.pivot.y));
 
-		drivenRectTransformTracker.Add(this, rectTransform, DrivenTransformProperties.SizeDelta | DrivenTransformProperties.AnchoredPosition3D);
+			var size = gridLayout.GetItemSize();
+			rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size.x);
+			rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size.y);
+
+			rectTransform.position = gridLayout.GetWorldPositionForGridCoord(gridCoordinate);
+			rectTransform.anchoredPosition += new Vector2(size.x * (rectTransform.pivot.x), size.y * (rectTransform.pivot.y));
+
+			drivenRectTransformTracker.Add(this, rectTransform, DrivenTransformProperties.SizeDelta | DrivenTransformProperties.AnchoredPosition3D);
+		}
 	}
 }

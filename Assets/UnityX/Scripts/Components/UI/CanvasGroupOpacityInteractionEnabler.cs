@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.EventSystems;
 
 /// <summary>
@@ -8,11 +9,8 @@ using UnityEngine.EventSystems;
 [RequireComponent(typeof(CanvasGroup))]
 [ExecuteAlways]
 public class CanvasGroupOpacityInteractionEnabler : UIBehaviour {
-	private CanvasGroup canvasGroup {
-        get {
-            return GetComponent<CanvasGroup>();
-        }
-    }
+    CanvasGroup canvasGroup => GetComponent<CanvasGroup>();
+    
 	[Range(0f,1f)]
 	public float alphaThreshold = 1;
 	public bool ignoreParentGroups = false;
@@ -30,7 +28,7 @@ public class CanvasGroupOpacityInteractionEnabler : UIBehaviour {
     }
 
     void Refresh () {
-        var alpha = ignoreParentGroups ? canvasGroup.alpha : CanvasGroupX.CanvasGroupsAlpha(gameObject);
+        var alpha = ignoreParentGroups ? canvasGroup.alpha : CanvasGroupsAlpha(gameObject);
         var alphaIsValid = alphaThreshold == 1 ? alpha >= alphaThreshold : alpha > alphaThreshold;
         
         var newBlocksRaycasts = blocksRaycasts && alphaIsValid;
@@ -38,5 +36,29 @@ public class CanvasGroupOpacityInteractionEnabler : UIBehaviour {
 
         var newInteractable = interactable && alphaIsValid;
 		if(canvasGroup.interactable != newInteractable) canvasGroup.interactable = newInteractable;
+    }
+    
+    static readonly List<CanvasGroup> m_CanvasGroupCache = new List<CanvasGroup>();
+    static float CanvasGroupsAlpha (GameObject gameObject) {
+        var groupAlpha = 1f;
+        Transform t = gameObject.transform;
+        while (t != null) {
+            t.GetComponents(m_CanvasGroupCache);
+            bool shouldBreak = false;
+            for (var i = 0; i < m_CanvasGroupCache.Count; i++)
+            {
+                groupAlpha *= m_CanvasGroupCache[i].alpha;
+                
+                // if this is a 'fresh' group, then break
+                // as we should not consider parents
+                if (m_CanvasGroupCache[i].ignoreParentGroups)
+                    shouldBreak = true;
+            }
+            if (shouldBreak)
+                break;
+
+            t = t.parent;
+        }
+        return groupAlpha;
     }
 }

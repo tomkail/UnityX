@@ -5,25 +5,25 @@ using System;
 /// Wraps an accessor to a particular property on the SLayout (e.g. x, width, color, etc) that can be 
 /// animated, so that the animation can detect when properties are changed, and cause those properties to be animated.
 /// </summary>
-public abstract class SLayoutProperty<T> 
-{
+public abstract class SLayoutProperty<T> {
+	// The reference to the layout is used to sort animatable properties and to validate animations.
+	public SLayout layout;
 	public Func<T> getter;
 	public Action<T> setter;
 	public Func<bool> isValid;
 
 	public T value {
-		get {
-			return getter();
-		}
+		get => getter();
 		set {
-
 			var currentAnim = SLayoutAnimation.AnimationUnderDefinition();
+			// If we're in an animation block, then set up an animation (or tweak the existing one)
 			if( currentAnim != null ) {
-				currentAnim.SetupPropertyAnim<T>(this);
-				this.animatedProperty.end = value;
+				currentAnim.SetupPropertyAnim(this, value);
 			}
-			
-			setter(value);
+			// If not, then just run the setter.
+			else {
+				setter(value);
+			}
 		}
 	}
 
@@ -32,7 +32,7 @@ public abstract class SLayoutProperty<T>
 	// When this property is being animated, it receives an instance
 	// of a SAnimatedProperty, which contains the start value,
 	// target value, the delay and the duration.
-	public SAnimatedProperty<T> animatedProperty;
+	public SAnimatedLayoutProperty<T> animatedProperty;
 }
 
 public class SLayoutFloatProperty : SLayoutProperty<float> {

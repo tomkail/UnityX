@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEditor;
 
 /// <summary>
 /// Instance of an active animation that's created by SLayout's Animate method. The animations currently being defined are stored
@@ -39,20 +41,44 @@ public class SLayoutAnimation {
 		if( _animAction != null ) {
 			_properties = new List<SAnimatedProperty>();
 
+			// This gathers all the properties that are being animated
 			_animAction();
 
-			// Rewind animation back to beginning
-			// But only if our duration > 0
+			// Order the properties.
+			// Layout properties are sorted by transform depth so that the shallowest transforms are animated first.
+			// All other properties are run afterwards.
+			OrderByTransformDepth(_properties);
+			static void OrderByTransformDepth(List<SAnimatedProperty> properties) {
+				properties.Sort((property1, property2) => GetSortIndex(property1).CompareTo(GetSortIndex(property2)));
+				static int GetSortIndex(SAnimatedProperty animatedProperty) {
+					if(animatedProperty is SAnimatedLayoutProperty animatedLayoutProperty) return GetTransformDepth(animatedLayoutProperty.GetLayout().transform);
+					return int.MaxValue;
+				}
+				static int GetTransformDepth(Transform transform) {
+					if (transform.parent == null) return 0;
+					else return 1 + GetTransformDepth(transform.parent);
+				}
+			}
+
 			if( !instant ) {
-				foreach(var property in _properties)
-					property.Start();
+				// Layout properties are sorted against each other, so are processed as a block.
+				// The order of operations ensures that the start and end values are set correctly, since performing an animation on a parent element can affect the properties of the children 
+				foreach(var layoutProperty in _properties.OfType<SAnimatedLayoutProperty>()) layoutProperty.GetStart();
+				foreach(var layoutProperty in _properties.OfType<SAnimatedLayoutProperty>()) layoutProperty.PerformAndSetEnd();
+				foreach(var layoutProperty in _properties.OfType<SAnimatedLayoutProperty>()) layoutProperty.ResetToStart();
+				AnimateProperties();
 			}
 		}
 
 		_animationsBeingDefined.RemoveAt(_animationsBeingDefined.Count-1);	
 
-		// Duration = zero? Done already
-		if( instant ) Done();
+		// If it's an instant animation, set properties to the end and complete it immediately so that we don't need to process it in update.
+		if (instant) {
+			if(_properties != null)
+				foreach(var property in _properties)
+					property.Animate(1);
+			Done();
+		}
 	}
 
 	public SLayoutAnimation Then(Action action)
@@ -164,9 +190,9 @@ public class SLayoutAnimation {
 		
 	// Called when setting the value of an SLayoutProperty (i.e. on an SLayout) when
 	// this animation is under definition.
-	public void SetupPropertyAnim<T>(SLayoutProperty<T> layoutProperty)
+	public void SetupPropertyAnim<T>(SLayoutProperty<T> layoutProperty, T targetValue)
 	{
-		SAnimatedProperty<T> animatedProperty = layoutProperty.animatedProperty;
+		SAnimatedLayoutProperty<T> animatedProperty = layoutProperty.animatedProperty;
 
 		// Already being animated as part of a DIFFERENT animation?
 		// Cancel the animation of this property in that animation, and instead
@@ -185,7 +211,7 @@ public class SLayoutAnimation {
 		// (But only if necessary: This property may have already been set 
 		// as part of this animation)
 		if( animatedProperty == null ) {
-			animatedProperty = SAnimatedProperty<T>.Create(_duration, _delay, layoutProperty, this);
+			animatedProperty = SAnimatedLayoutProperty<T>.Create(_duration, _delay, layoutProperty, this);
 			_properties.Add(animatedProperty);
 
             // Set up initial value for the animation
@@ -201,6 +227,8 @@ public class SLayoutAnimation {
             // ...then animate from -100 to +100, from 20 to 100. (which would jump)
             animatedProperty.start = layoutProperty.getter();
 		}
+		
+		animatedProperty.end = targetValue;
 	}
 
 	public void Cancel()
@@ -231,17 +259,9 @@ public class SLayoutAnimation {
 			_properties.Remove(animProperty);
 	}
 
-	public bool isComplete {
-		get {
-			return _completed;
-		}
-	}
+	public bool isComplete => _completed;
 
-	public SLayout owner {
-		get {
-			return _owner;
-		}
-	}
+	public SLayout owner => _owner;
 
 	public void AddDelay(float extraDelay) {
 		_delay += extraDelay;
@@ -258,12 +278,8 @@ public class SLayoutAnimation {
 		_properties.Add(new SAnimatedCustomProperty(customAnim, _duration, _delay));
 	}
 
-	bool timeIsUp {
-		get {
-			return time >= _maxDelay + _maxDuration;
-		}
-	}
-	
+	bool timeIsUp => time >= _maxDelay + _maxDuration;
+
 	public void Update() 
 	{
 		// The first frame's delta time can be huge so just skip it
@@ -273,30 +289,33 @@ public class SLayoutAnimation {
 		if( isComplete )
 			return;
 
-		if( _properties != null ) {
-			// Properties may be removed during this loop
-			for(int i=0; i<_properties.Count; i++) {
-				var property = _properties[i];
-				float lerpValue = 0.0f;
-				if( time > property.delay ) {
-					lerpValue =  Mathf.Clamp01((time-property.delay) / property.duration);
-
-					// TODO: Allow different curves?
-					if( _easingFunction != null ) {
-						lerpValue = _easingFunction(0.0f, 1.0f, lerpValue);
-					} else if( _customCurve != null ) {
-						lerpValue = _customCurve.Evaluate(lerpValue);
-					} else {
-						lerpValue = Mathf.SmoothStep(0.0f, 1.0f, lerpValue);
-					}
-
-					property.Animate(lerpValue);
-				}
-			}
-		}
+		AnimateProperties();
 
 		if( timeIsUp )
 			Done();
+	}
+
+	void AnimateProperties() {
+		if (_properties == null) return;
+		// Properties may be removed during this loop
+		for(int i=0; i<_properties.Count; i++) {
+			var property = _properties[i];
+			float lerpValue = 0.0f;
+			if( time > property.delay ) {
+				lerpValue =  Mathf.Clamp01((time-property.delay) / property.duration);
+
+				// TODO: Allow different curves?
+				if( _easingFunction != null ) {
+					lerpValue = _easingFunction(0.0f, 1.0f, lerpValue);
+				} else if( _customCurve != null ) {
+					lerpValue = _customCurve.Evaluate(lerpValue);
+				} else {
+					lerpValue = Mathf.SmoothStep(0.0f, 1.0f, lerpValue);
+				}
+
+				property.Animate(lerpValue);
+			}
+		}
 	}
 
 	public void CompleteImmediate()

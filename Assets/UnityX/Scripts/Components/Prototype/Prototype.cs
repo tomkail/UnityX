@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System;
+using System.Linq;
 
 /// <summary>
 /// Convenience way to create objects in the hierarchy that are a bit like prefabs, except that they
@@ -68,10 +69,9 @@ public class Prototype : MonoBehaviour {
 
 		// Re-use instance from pool
 		if( _instancePool != null && _instancePool.Count > 0 ) {
-			var instanceIdx = _instancePool.Count-1;
-			instance = _instancePool[instanceIdx];
-            instance.transform.SetParent(parent ?? transform.parent, false);
-			_instancePool.RemoveAt(instanceIdx);
+			instance = _instancePool.First();
+			_instancePool.Remove(instance);
+			instance.transform.SetParent(parent ?? transform.parent, false);
 			if(instance == null)
 				Debug.LogError("Prototype instance for type "+typeof(T).Name+" in pool is null!");
 		} 
@@ -155,7 +155,9 @@ public class Prototype : MonoBehaviour {
 	{
 		if( !isOriginalPrototype )
 			Debug.LogError("Adding "+instancePrototype.name+" to prototype pool of "+this.name+" but this appears to be an instance itself?");
-		
+		if(!instancePrototype.inUse)
+			Debug.LogError("Adding "+instancePrototype.name+" to prototype pool of "+this.name+" but it's already in the pool!");
+			
 		if( instancePrototype.OnPreReturnToPool != null )
 			instancePrototype.OnPreReturnToPool(this);
 
@@ -163,7 +165,7 @@ public class Prototype : MonoBehaviour {
         if(instancePrototype.transform.parent != transform.parent) instancePrototype.transform.SetParent(transform.parent);
         instancePrototype.inUse = false;
 		
-		if( _instancePool == null ) _instancePool = new List<Prototype>();
+		if( _instancePool == null ) _instancePool = new HashSet<Prototype>();
 		_instancePool.Add(instancePrototype);
 
 		if( instancePrototype.OnReturnToPool != null )
@@ -172,7 +174,7 @@ public class Prototype : MonoBehaviour {
 
 	Prototype _originalPrototype;
 	[System.NonSerialized]
-	List<Prototype> _instancePool;
+	HashSet<Prototype> _instancePool;
 
     #if UNITY_EDITOR
     static bool applicationQuitting;

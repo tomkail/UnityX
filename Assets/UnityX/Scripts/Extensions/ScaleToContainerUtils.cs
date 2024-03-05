@@ -68,9 +68,16 @@ public static class ScaleToContainerUtils {
                 return AspectRatioFitter.AspectMode.None;
         }
     }
-
+    public static Vector2Int ResizeInt(Vector2 containerSize, Vector2 contentSize, ScalingMode scalingMode) {
+        var resized = Resize(containerSize, contentSize, scalingMode);
+        return new Vector2Int(Mathf.RoundToInt(resized.x), Mathf.RoundToInt(resized.y));
+    }
     public static Vector2 Resize(Vector2 containerSize, Vector2 contentSize, ScalingMode scalingMode) {
         return Resize(containerSize, contentSize.x/contentSize.y, scalingMode);
+    }
+    public static Vector2Int ResizeInt(Vector2 containerSize, float contentAspect, ScalingMode scalingMode) {
+        var resized = Resize(containerSize, contentAspect, scalingMode);
+        return new Vector2Int(Mathf.RoundToInt(resized.x), Mathf.RoundToInt(resized.y));
     }
     public static Vector2 Resize(Vector2 containerSize, float contentAspect, ScalingMode scalingMode) {
         if(float.IsNaN(contentAspect)) return containerSize;

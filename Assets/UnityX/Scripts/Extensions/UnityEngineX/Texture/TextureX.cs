@@ -26,9 +26,9 @@ public static class TextureX {
     /// <param name="width">Destination texture width</param>
     /// <param name="height">Destination texture height</param>
     /// <param name="mode">Filtering mode</param>
-    public static Texture2D CopyWithSizeScaled(this Texture2D src, int width, int height, FilterMode mode = FilterMode.Trilinear) {
+    public static Texture2D CopyWithSizeScaled(this Texture src, int width, int height) {
         Rect texR = new Rect(0,0,width,height);
-        GPUScale(src,width,height,mode);
+        GPUScale(src,width,height);
         
         //Get rendered data back to a new texture
         Texture2D result = new Texture2D(width, height, TextureFormat.ARGB32, true);
@@ -44,9 +44,9 @@ public static class TextureX {
     /// <param name="width">New width</param>
     /// <param name="height">New height</param>
     /// <param name="mode">Filtering mode</param>
-    public static void ResizeScaled(this Texture2D tex, int width, int height, FilterMode mode = FilterMode.Trilinear) {
+    public static void ResizeScaled(this Texture2D tex, int width, int height) {
         Rect texR = new Rect(0,0,width,height);
-        GPUScale(tex,width,height,mode);
+        GPUScale(tex,width,height);
         
         // Update new texture
         tex.Reinitialize(width, height);
@@ -54,17 +54,18 @@ public static class TextureX {
         tex.Apply(true);
     }
     
-    static void GPUScale(Texture2D src, int width, int height, FilterMode fmode) {
+    static void GPUScale(Texture src, int width, int height, int depth = 0) {
 	    //We need the source texture in VRAM because we render with it
-	    src.filterMode = fmode;
-	    src.Apply(true);
+	    // src.filterMode = fmode;
+	    // src.Apply(true);
 
 	    //Using RTT for best quality and performance
-	    RenderTexture rtt = RenderTexture.GetTemporary(width, height, 32);
+	    RenderTexture rtt = RenderTexture.GetTemporary(width, height, depth);
 
 	    //Set the RTT in order to render to it
 	    Graphics.SetRenderTarget(rtt);
 
+	    
 	    //Setup 2D matrix in range 0..1, so nobody needs to care about sizes
 	    GL.LoadPixelMatrix(0,1,1,0);
 

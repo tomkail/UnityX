@@ -33,15 +33,15 @@ using UnityEditor;
 
 public static class SavWav {
 
-	public const string fileExtention = ".wav";
+	public const string fileExtension = ".wav";
 	const int HEADER_SIZE = 44;
 
     #if UNITY_EDITOR
     public static AudioClip SaveAssetWithPrompt (AudioClip clip, string defaultPath = "Assets") {
 		if (clip == null) return null;
-		var path = EditorUtility.SaveFilePanelInProject("Save AudioClip as WAV", clip.name+fileExtention, fileExtention.Substring(1), "Enter a file name for the AudioClip.", defaultPath);
+		var path = EditorUtility.SaveFilePanelInProject("Save AudioClip as WAV", clip.name+fileExtension, fileExtension.Substring(1), "Enter a file name for the AudioClip.", defaultPath);
 		if (path == "") return null;
-		if (!path.EndsWith(fileExtention, true, System.Globalization.CultureInfo.InvariantCulture)) path += fileExtention;
+		if (!path.EndsWith(fileExtension, true, System.Globalization.CultureInfo.InvariantCulture)) path += fileExtension;
         using (var fileStream = CreateEmpty(path)) {
 			ConvertAndWrite(fileStream, clip);
 			WriteHeader(fileStream, clip);
@@ -53,7 +53,7 @@ public static class SavWav {
 	}
 
 	public static AudioClip SaveAsset(string filePath, AudioClip clip) {
-		if (!filePath.EndsWith(fileExtention, true, System.Globalization.CultureInfo.InvariantCulture)) filePath += fileExtention;
+		if (!filePath.EndsWith(fileExtension, true, System.Globalization.CultureInfo.InvariantCulture)) filePath += fileExtension;
 		var absoluteFilePath = Path.Combine(Application.dataPath, filePath);
 		if(Save(absoluteFilePath, clip)) {
 			var relativeFilePath = "Assets/"+filePath;
@@ -68,20 +68,20 @@ public static class SavWav {
 
 	public static string SaveToPersistentDataPath(string fileName, AudioClip clip) {
 		var filePath = Path.Combine(Application.persistentDataPath, fileName);
-		if (!filePath.EndsWith(fileExtention, true, System.Globalization.CultureInfo.InvariantCulture)) filePath += fileExtention;
+		if (!filePath.EndsWith(fileExtension, true, System.Globalization.CultureInfo.InvariantCulture)) filePath += fileExtension;
 		if(Save(filePath, clip)) return filePath;
 		else return null;
 	}
 
 	public static string SaveToTemporaryCachePath(string fileName, AudioClip clip) {
 		var filePath = Path.Combine(Application.temporaryCachePath, fileName);
-		if (!filePath.EndsWith(fileExtention, true, System.Globalization.CultureInfo.InvariantCulture)) filePath += fileExtention;
+		if (!filePath.EndsWith(fileExtension, true, System.Globalization.CultureInfo.InvariantCulture)) filePath += fileExtension;
 		if(Save(filePath, clip)) return filePath;
 		else return null;
 	}
 
 	public static bool Save(string filePath, AudioClip clip) {
-		if (!filePath.EndsWith(fileExtention, true, System.Globalization.CultureInfo.InvariantCulture)) {
+		if (!filePath.EndsWith(fileExtension, true, System.Globalization.CultureInfo.InvariantCulture)) {
 			Debug.LogError("The file path does not end with the correct file extension.");
 			return false;
 		}

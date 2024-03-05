@@ -228,86 +228,97 @@ public static class IEnumerableX {
 		return false;
 	}
 
-	
-
 	// Finds the differences between items in two lists of the same type. Only checks if items exist, not their positions.
 	// A faster version of 
 	// var entered = newChunkPoints.Except(chunkPoints).ToList();
 	// var exited = chunkPoints.Except(newChunkPoints).ToList();	
     // Returns true if any changes were found.
-	public static bool GetChanges<T> (IEnumerable<T> oldList, IEnumerable<T> newList, ref List<T> itemsRemoved, ref List<T> itemsAdded) {
+    public static bool GetChanges<T>(IEnumerable<T> oldList, IEnumerable<T> newList, out List<T> itemsRemoved, out List<T> itemsAdded, IEqualityComparer<T> comparer = default) {
+	    itemsRemoved = new List<T>();
+	    itemsAdded = new List<T>();
+	    return GetChanges(oldList, newList, itemsRemoved, itemsAdded, comparer);
+    }
+    public static bool GetChanges<T> (IEnumerable<T> oldList, IEnumerable<T> newList, List<T> itemsRemoved, List<T> itemsAdded, IEqualityComparer<T> comparer = default) {
 		if(itemsRemoved == null) itemsRemoved = new List<T>();
 		if(itemsAdded == null) itemsAdded = new List<T>();
 		
-		GetRemovedNonAlloc(oldList, newList, itemsRemoved);
-		GetAddedNonAlloc(oldList, newList, itemsAdded);
+		GetRemovedNonAlloc(oldList, newList, itemsRemoved, comparer);
+		GetAddedNonAlloc(oldList, newList, itemsAdded, comparer);
 
         return itemsRemoved.Count > 0 || itemsAdded.Count > 0;
 	}
-	public static bool GetChanges<T> (IEnumerable<T> oldList, IEnumerable<T> newList, ref List<T> itemsRemoved, ref List<T> itemsAdded, ref List<T> itemsUnchanged) {
+    
+
+	public static bool GetChanges<T>(IEnumerable<T> oldList, IEnumerable<T> newList, out List<T> itemsRemoved, out List<T> itemsAdded, out List<T> itemsUnchanged, IEqualityComparer<T> comparer = default) {
+		itemsRemoved = new List<T>();
+		itemsAdded = new List<T>();
+		itemsUnchanged = new List<T>();
+		return GetChanges(oldList, newList, itemsRemoved, itemsAdded, itemsUnchanged, comparer);
+	}
+	public static bool GetChanges<T> (IEnumerable<T> oldList, IEnumerable<T> newList, List<T> itemsRemoved, List<T> itemsAdded, List<T> itemsUnchanged, IEqualityComparer<T> comparer = default) {
 		if(itemsRemoved == null) itemsRemoved = new List<T>();
 		if(itemsAdded == null) itemsAdded = new List<T>();
 		if(itemsUnchanged == null) itemsUnchanged = new List<T>();
 		
-		GetRemovedNonAlloc(oldList, newList, itemsRemoved);
-		GetAddedNonAlloc(oldList, newList, itemsAdded);
-		GetInBothNonAlloc(oldList, newList, itemsUnchanged);
+		GetRemovedNonAlloc(oldList, newList, itemsRemoved, comparer);
+		GetAddedNonAlloc(oldList, newList, itemsAdded, comparer);
+		GetInBothNonAlloc(oldList, newList, itemsUnchanged, comparer);
 
         return itemsRemoved.Count > 0 || itemsAdded.Count > 0;
 	}
 
-	public static IEnumerable<T> GetInBoth<T> (IEnumerable<T> oldList, IEnumerable<T> newList) {
+	public static IEnumerable<T> GetInBoth<T> (IEnumerable<T> oldList, IEnumerable<T> newList, IEqualityComparer<T> comparer = default) {
         if(oldList == null) yield break;
         foreach(var oldItem in oldList) {
-            if(newList != null && newList.Contains(oldItem)) {
+            if(newList != null && newList.Contains(oldItem, comparer)) {
                 yield return oldItem;
             }
         }
 	}
 
-	public static void GetInBothNonAlloc<T> (IEnumerable<T> oldList, IEnumerable<T> newList, List<T> unchangedListToFill) {
+	public static void GetInBothNonAlloc<T> (IEnumerable<T> oldList, IEnumerable<T> newList, List<T> unchangedListToFill, IEqualityComparer<T> comparer = default) {
         unchangedListToFill.Clear();
 		if(oldList == null) return;
         foreach(var oldItem in oldList) {
-            if(newList != null && newList.Contains(oldItem)) {
+            if(newList != null && newList.Contains(oldItem, comparer)) {
                 unchangedListToFill.Add(oldItem);
             }
         }
 	}
 
-	public static IEnumerable<T> GetRemoved<T> (IEnumerable<T> oldList, IEnumerable<T> newList) {
+	public static IEnumerable<T> GetRemoved<T> (IEnumerable<T> oldList, IEnumerable<T> newList, IEqualityComparer<T> comparer = default) {
         if(oldList == null) yield break;
         foreach(var oldItem in oldList) {
-            if(newList == null || !newList.Contains(oldItem)) {
+            if(newList == null || !newList.Contains(oldItem, comparer)) {
                 yield return oldItem;
             }
         }
 	}
 
-	public static void GetRemovedNonAlloc<T> (IEnumerable<T> oldList, IEnumerable<T> newList, List<T> removedListToFill) {
+	public static void GetRemovedNonAlloc<T> (IEnumerable<T> oldList, IEnumerable<T> newList, List<T> removedListToFill, IEqualityComparer<T> comparer = default) {
         removedListToFill.Clear();
         if(oldList == null) return;
         foreach(var oldItem in oldList) {
-            if(newList == null || !newList.Contains(oldItem)) {
+            if(newList == null || !newList.Contains(oldItem, comparer)) {
                 removedListToFill.Add(oldItem);
             }
         }
 	}
 
-	public static IEnumerable<T> GetAdded<T> (IEnumerable<T> oldList, IEnumerable<T> newList) {
+	public static IEnumerable<T> GetAdded<T> (IEnumerable<T> oldList, IEnumerable<T> newList, IEqualityComparer<T> comparer = default) {
         if(newList == null) yield break;
         foreach(var newItem in newList) {
-            if(oldList == null || !oldList.Contains(newItem)) {
+            if(oldList == null || !oldList.Contains(newItem, comparer)) {
                 yield return newItem;
             }
         }
 	}
 	
-	public static void GetAddedNonAlloc<T> (IEnumerable<T> oldList, IEnumerable<T> newList, List<T> addedListToFill) {
+	public static void GetAddedNonAlloc<T> (IEnumerable<T> oldList, IEnumerable<T> newList, List<T> addedListToFill, IEqualityComparer<T> comparer = default) {
         addedListToFill.Clear();
 		if(newList == null) return;
         foreach(var newItem in newList) {
-            if(oldList == null || !oldList.Contains(newItem)) {
+            if(oldList == null || !oldList.Contains(newItem, comparer)) {
                 addedListToFill.Add(newItem);
             }
         }
@@ -316,7 +327,13 @@ public static class IEnumerableX {
 
 
 	// Same as above, but for dictionaries.
-	public static bool GetChanges<T, Q> (IDictionary<T, Q> oldList, IDictionary<T, Q> newList, ref Dictionary<T, Q> itemsRemoved, ref Dictionary<T, Q> itemsAdded, ref Dictionary<T, Tuple<Q,Q>> itemsChanged) {
+	public static bool GetChanges<T, Q> (IDictionary<T, Q> oldList, IDictionary<T, Q> newList, out Dictionary<T, Q> itemsRemoved, out Dictionary<T, Q> itemsAdded, out Dictionary<T, Tuple<Q,Q>> itemsChanged) {
+		itemsRemoved = new Dictionary<T, Q>();
+		itemsAdded = new Dictionary<T, Q>();
+		itemsChanged = new Dictionary<T, Tuple<Q,Q>>();
+		return GetChanges(oldList, newList, itemsRemoved, itemsAdded, itemsChanged);
+	}
+	public static bool GetChanges<T, Q> (IDictionary<T, Q> oldList, IDictionary<T, Q> newList, Dictionary<T, Q> itemsRemoved, Dictionary<T, Q> itemsAdded, Dictionary<T, Tuple<Q,Q>> itemsChanged) {
 		if(itemsRemoved == null) itemsRemoved = new Dictionary<T, Q>();
 		if(itemsAdded == null) itemsAdded = new Dictionary<T, Q>();
 		
@@ -370,5 +387,31 @@ public static class IEnumerableX {
 			}
 		}
 		return cnt.Values.All(c => c == 0);
+	}
+	
+	
+	// Remove this when Unity upgrades to .NET 6!
+	public static IEnumerable<IEnumerable<T>> Chunk<T>(this IEnumerable<T> source, int chunkSize)
+	{
+		if (chunkSize <= 0)
+		{
+			throw new ArgumentException("Chunk size must be greater than 0.", nameof(chunkSize));
+		}
+
+		using (var enumerator = source.GetEnumerator())
+		{
+			while (enumerator.MoveNext())
+			{
+				yield return GetChunk(enumerator, chunkSize);
+			}
+		}
+		
+		static IEnumerable<T> GetChunk(IEnumerator<T> enumerator, int chunkSize)
+		{
+			do
+			{
+				yield return enumerator.Current;
+			} while (--chunkSize > 0 && enumerator.MoveNext());
+		}
 	}
 }

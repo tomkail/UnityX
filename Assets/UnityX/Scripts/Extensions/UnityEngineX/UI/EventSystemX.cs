@@ -144,4 +144,16 @@ public static class EventSystemX {
             ExecuteEvents.ExecuteHierarchy(focusedOption, eventData, ExecuteEvents.pointerClickHandler);
         }
 	}
+	
+	// This allows you to manually begin a drag on a given object. It should implement the draggable interfaces, obviously.
+	// Pointer event allows you to make use of the existing event, if this is triggered from a pointer event.
+	public static void ForceStartDrag(GameObject gameObject, PointerEventData pointerEvent = null) {
+		EventSystem.current.SetSelectedGameObject(gameObject);
+		ExecuteEvents.Execute(pointerEvent.selectedObject, pointerEvent, ExecuteEvents.pointerDownHandler);
+		pointerEvent.pointerDrag = gameObject;
+		ExecuteEvents.Execute(pointerEvent.pointerDrag, pointerEvent, ExecuteEvents.initializePotentialDrag);
+		ExecuteEvents.Execute(pointerEvent.pointerDrag, pointerEvent, ExecuteEvents.beginDragHandler);
+		ExecuteEvents.Execute(pointerEvent.pointerDrag, pointerEvent, ExecuteEvents.dragHandler);
+		pointerEvent.dragging = true;
+	}
 }
