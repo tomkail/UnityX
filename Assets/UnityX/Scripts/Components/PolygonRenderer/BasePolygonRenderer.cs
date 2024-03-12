@@ -9,9 +9,8 @@ public abstract class BasePolygonRenderer : MonoBehaviour {
     [SerializeField]
     Color _tintColor = Color.white;
     public Color tintColor {
-        get {
-            return _tintColor;
-        } set {
+        get => _tintColor;
+        set {
             if(_tintColor == value) return;
             _tintColor = value;
             RefreshMaterialPropertyBlock();
@@ -27,27 +26,20 @@ public abstract class BasePolygonRenderer : MonoBehaviour {
     }
     [SerializeField]
     MeshRenderer _meshRenderer = null;
-    public MeshRenderer meshRenderer {
-        get {
-            return _meshRenderer;
-        }
-    }
+    public MeshRenderer meshRenderer => _meshRenderer;
+
     [SerializeField]
     MeshCollider _meshCollider = null;
-    public MeshCollider meshCollider {
-        get {
-            return _meshCollider;
-        }
-    }
+    public MeshCollider meshCollider => _meshCollider;
+
     [SerializeField, AssetSaver]
     protected Mesh mesh;
 
     [SerializeField]
-    Polygon _polygon = new Polygon(new RegularPolygon(4, 45).ToPolygonVerts());
+    Polygon _polygon = new(new RegularPolygon(4, 45).ToPolygonVerts());
     public Polygon polygon {
-        get {
-            return _polygon;
-        } set {
+        get => _polygon;
+        set {
             _polygon = value;
             RebuildMesh();
         }

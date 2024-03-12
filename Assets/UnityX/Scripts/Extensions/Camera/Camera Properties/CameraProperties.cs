@@ -10,11 +10,7 @@ using System.Collections.Generic;
 public struct CameraProperties {
 	public const float defaultDistance = 10;
 
-	public static CameraProperties @default {
-		get {
-			return new CameraProperties(Vector3.zero);
-		}
-	}
+	public static CameraProperties @default => new(Vector3.zero);
 
 	/// <summary>
 	/// The various "axis" of control allowed by camera properties.
@@ -55,72 +51,44 @@ public struct CameraProperties {
 
 	// Convenience accessor
 	public float yaw {
-		get {
-			return worldEulerAngles.y;
-		}
-		set {
-			worldEulerAngles.y = value;
-		}
+		get => worldEulerAngles.y;
+		set => worldEulerAngles.y = value;
 	}
 
 	// Convenience accessor
 	public float pitch {
-		get {
-			return worldEulerAngles.x;
-		}
-		set {
-			worldEulerAngles.x = value;
-		}
+		get => worldEulerAngles.x;
+		set => worldEulerAngles.x = value;
 	}
 
 	// Convenience accessor
 	public float localYaw {
-		get {
-			return localEulerAngles.y;
-		}
-		set {
-			localEulerAngles.y = value;
-		}
+		get => localEulerAngles.y;
+		set => localEulerAngles.y = value;
 	}
 
 	// Convenience accessor
 	public float localPitch {
-		get {
-			return localEulerAngles.x;
-		}
-		set {
-			localEulerAngles.x = value;
-		}
+		get => localEulerAngles.x;
+		set => localEulerAngles.x = value;
 	}
 
 	// Convenience accessor
 	public float localRoll {
-		get {
-			return localEulerAngles.z;
-		}
-		set {
-			localEulerAngles.z = value;
-		}
+		get => localEulerAngles.z;
+		set => localEulerAngles.z = value;
 	}
 
 	// Convenience accessor
 	public float horizontalViewportOffset {
-		get {
-			return viewportOffset.x;
-		}
-		set {
-			viewportOffset.x = value;
-		}
+		get => viewportOffset.x;
+		set => viewportOffset.x = value;
 	}
 
 	// Convenience accessor
 	public float verticalViewportOffset {
-		get {
-			return viewportOffset.y;
-		}
-		set {
-			viewportOffset.y = value;
-		}
+		get => viewportOffset.y;
+		set => viewportOffset.y = value;
 	}
 
 	public Quaternion rotation {
@@ -131,24 +99,11 @@ public struct CameraProperties {
 		}
 	}
 
-	public Vector3 forward {
-		get {
-			return rotation * Vector3.forward;
-		}
-	}
+	public Vector3 forward => rotation * Vector3.forward;
 
-	public Vector3 right {
-		get {
-			return rotation * Vector3.right;
-		}
-	}
+	public Vector3 right => rotation * Vector3.right;
 
-	public Vector3 up {
-		get {
-			return rotation * Vector3.up;
-		}
-	}
-
+	public Vector3 up => rotation * Vector3.up;
 
 
 	/// <summary>

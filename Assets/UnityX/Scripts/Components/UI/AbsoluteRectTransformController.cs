@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 [ExecuteAlways]
 [RequireComponent(typeof(RectTransform))]
 public class AbsoluteRectTransformController : UIBehaviour {
-	public Rect viewportRect = new Rect(0,0,1,1);
+	public Rect viewportRect = new(0,0,1,1);
 	public bool ignoreSafeArea;
 	public bool ignoreScale;
 	static Vector3[] canvasWorldCorners = new Vector3[4];
@@ -52,7 +52,7 @@ public class AbsoluteRectTransformController : UIBehaviour {
 		
 		var parent = rectTransform.parent as RectTransform;
 		if(parent == null) {
-			Debug.LogWarning("Parent of "+this.GetType().Name+" is not null!", this);
+			Debug.LogWarning("Parent of "+GetType().Name+" is not null!", this);
 			return;
 		}
 

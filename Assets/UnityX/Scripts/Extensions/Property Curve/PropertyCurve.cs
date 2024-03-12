@@ -18,22 +18,15 @@ public abstract class PropertyCurve<T> {
 	/// Gets the number of keys in the curve.
 	/// </summary>
 	/// <value>The length.</value>
-	public int length {
-		get {
-			return keys.Count;
-		}
-	}
-	
+	public int length => keys.Count;
+
 	/// <summary>
 	/// Gets or sets the <see cref="PropertyCurve`1"/> with the specified i.
 	/// </summary>
 	/// <param name="i">The index.</param>
 	public PropertyCurveKeyframe<T> this[int i] {
-		get { 
-			return keys[i]; 
-		} set { 
-			keys[i] = value; 
-		}
+		get => keys[i];
+		set => keys[i] = value;
 	}
 	
 	/// <summary>
@@ -119,7 +112,7 @@ public abstract class PropertyCurve<T> {
 	
 		if(keys.Count == 0){
 			Debug.Log("No keys in this type exist!");
-			return default (T);
+			return default;
 		} else if(keys.Count == 1){
 			//Ensures there are two values to lerp if smoothing further on
 			return keys[0].value;

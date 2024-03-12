@@ -1,7 +1,5 @@
 using UnityEngine;
 using UnityEditor;
-using System;
-using System.Reflection;
 
 [CustomPropertyDrawer(typeof(VisibleIfAttribute))]
 public class VisibleIfAttributeDrawer : BaseIfAttributeDrawer<VisibleIfAttribute> {

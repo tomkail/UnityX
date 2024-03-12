@@ -1,5 +1,5 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public static class CanvasX {
 	public static RectTransform GetRectTransform (this Canvas canvas) {
@@ -15,7 +15,7 @@ public static class CanvasX {
         canvas.enabled = true;
 	}
 
-	private static void GetCameraFromCanvas (Canvas canvas, ref Camera camera) {
+	static void GetCameraFromCanvas (Canvas canvas, ref Camera camera) {
 		if(canvas.rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay) {
 			camera = null;
 		} else if(canvas.rootCanvas.renderMode == RenderMode.ScreenSpaceCamera) {
@@ -123,7 +123,7 @@ public static class CanvasX {
 
 
     // Taken from https://github.com/Unity-Technologies/uGUI/blob/2019.1/UnityEngine.UI/UI/Core/Selectable.cs
-    private static readonly List<CanvasGroup> m_CanvasGroupCache = new List<CanvasGroup>();
+    static readonly List<CanvasGroup> m_CanvasGroupCache = new();
     public static bool CanvasGroupsAllowInteraction (GameObject gameObject) {
         // Figure out if parent groups allow interaction
         // If no interaction is alowed... then we need

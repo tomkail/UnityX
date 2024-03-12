@@ -1,9 +1,7 @@
 #if UNITY_EDITOR
 using UnityEngine;
 using UnityEditor;
-using System.Collections;
 using System.IO;
-using System.Reflection;
 
 public class CreateCustomTextureWindow : EditorWindow {
 	
@@ -26,9 +24,7 @@ public class CreateCustomTextureWindow : EditorWindow {
 	
 	private TextureType _textureType;
 	public TextureType textureType {
-		get {
-			return _textureType;
-		}
+		get => _textureType;
 		set {
 			if(_textureType == value)
 				return;
@@ -39,9 +35,7 @@ public class CreateCustomTextureWindow : EditorWindow {
 
 	private TextureTypeSettings _currentSettings;
 	public TextureTypeSettings currentSettings {
-		get {
-			return _currentSettings;
-		}
+		get => _currentSettings;
 		set {
 			if(_currentSettings == value)
 				return;

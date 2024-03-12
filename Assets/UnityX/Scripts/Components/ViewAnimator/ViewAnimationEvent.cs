@@ -5,16 +5,10 @@ public class ViewAnimationEvent {
     public string name;
     public float startTime;
     public float endTime;
-    public float duration {
-        get {
-            return endTime-startTime;
-        }
-    }
-    public bool isTrigger {
-        get {
-            return startTime == endTime;
-        }
-    }
+    public float duration => endTime-startTime;
+
+    public bool isTrigger => startTime == endTime;
+
     [System.NonSerialized]
     public Action onStart;
     [System.NonSerialized]

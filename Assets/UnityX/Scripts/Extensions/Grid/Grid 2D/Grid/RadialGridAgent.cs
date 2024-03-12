@@ -7,14 +7,10 @@ public class RadialGridAgent : MonoBehaviour {
 	public GridRenderer worldGrid;
 	public bool clampToGrid;
 	public float radius = 50;
-	public float worldRadius {
-		get {
-			return Mathf.Max(transform.localScale.x, transform.localScale.y, transform.localScale.z) * radius;
-		}
-	}
+	public float worldRadius => Mathf.Max(transform.localScale.x, transform.localScale.y, transform.localScale.z) * radius;
 
 	[System.NonSerialized]
-	public List<Point> chunkPoints = new List<Point>();
+	public List<Point> chunkPoints = new();
 	public System.Action<List<Point>> OnEnterPoints;
 	public System.Action<List<Point>> OnExitPoints;
 	public bool showGizmos;

@@ -10,12 +10,8 @@ namespace UnityX.Geometry {
 	
 		private int numVertices;
 		public int NumVertices {
-			get {
-				return numVertices;
-			}
-			set {
-				numVertices = Mathf.RoundToInt(Mathf.Clamp (value, 3, Mathf.Infinity));
-			}
+			get => numVertices;
+			set => numVertices = Mathf.RoundToInt(Mathf.Clamp (value, 3, Mathf.Infinity));
 		}
 
 		public float rotation = 0f;

@@ -5,7 +5,7 @@ using System.Linq;
 [ExecuteAlways]
 public class SquareGridAgent : MonoBehaviour {
 	public GridRenderer worldGrid;
-	public List<Point> chunkPoints = new List<Point>();
+	public List<Point> chunkPoints = new();
 	public System.Action<List<Point>> OnEnterPoints;
 	public System.Action<List<Point>> OnExitPoints;
 

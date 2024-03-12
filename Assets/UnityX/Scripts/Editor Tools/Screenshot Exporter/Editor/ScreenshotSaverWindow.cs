@@ -1,13 +1,10 @@
 ﻿#if UNITY_EDITOR
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEditor;
 using System;
 using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 
 public class ScreenshotSaverWindowProperties {
 	public string folderRoot = "Screenshots";
@@ -64,44 +61,26 @@ public class ScreenshotSaverWindowProperties {
 
 public class ScreenshotSaverWindow : EditorWindow {
 	static ScreenshotSaverWindow Instance;
-	private string propertiesKey {
-		get {
-			return Application.productName+"_ScreenshotSaverProperties";
-		}
-	}
+	private string propertiesKey => Application.productName+"_ScreenshotSaverProperties";
 	private ScreenshotSaverWindowProperties properties;
 	
 	private string folderRoot {
-		get {
-			return properties.folderRoot;
-		} set {
+		get => properties.folderRoot;
+		set {
 			if(properties.folderRoot == value) return;
 			properties.folderRoot = value;
 		}
 	}
 	
-	private string defaultPath {
-		get {
-			return Directory.GetCurrentDirectory()+"/"+folderRoot;
-		}
-	}
-	
-	private string automaticFileName {
-		get {
-			return string.Format("{0}_{1}", Application.productName, System.DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"));
-		}
-	}
-	
-	private string automaticFilePathAndName {
-		get {
-			return defaultPath+"/"+automaticFileName;
-		}
-	}
-	
+	private string defaultPath => Directory.GetCurrentDirectory()+"/"+folderRoot;
+
+	private string automaticFileName => string.Format("{0}_{1}", Application.productName, System.DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"));
+
+	private string automaticFilePathAndName => defaultPath+"/"+automaticFileName;
+
 	private bool openSavePrompt {
-		get {
-			return properties.openSavePrompt;
-		} set {
+		get => properties.openSavePrompt;
+		set {
 			if(properties.openSavePrompt == value) return;
 			properties.openSavePrompt = value;
 			SaveProperties();
@@ -109,9 +88,8 @@ public class ScreenshotSaverWindow : EditorWindow {
 	}
 	
 	public ScreenshotSaverTextureFormat textureFormat {
-		get {
-			return properties.textureFormat;
-		} set {
+		get => properties.textureFormat;
+		set {
 			if(properties.textureFormat == value) return;
 			properties.textureFormat = value;
 			SaveProperties();
@@ -119,18 +97,16 @@ public class ScreenshotSaverWindow : EditorWindow {
 	}
 	
 	public ScreenshotExportFormat exportFormat {
-		get {
-			return properties.exportFormat;
-		} set {
+		get => properties.exportFormat;
+		set {
 			if(properties.exportFormat == value) return;
 			properties.exportFormat = value;
 			SaveProperties();
 		}
 	}
 	public int jpegQuality {
-		get {
-			return properties.jpegQuality;
-		} set {
+		get => properties.jpegQuality;
+		set {
 			if(properties.jpegQuality == value) return;
 			properties.jpegQuality = value;
 			SaveProperties();
@@ -143,34 +119,27 @@ public class ScreenshotSaverWindow : EditorWindow {
 	private bool retinaGameViewResolution = true;
 
 	private List<ScreenshotResolution> resolutions {
-		get {
-			return properties.resolutions;
-		} set {
+		get => properties.resolutions;
+		set {
 			if(properties.resolutions == value) return;
 			properties.resolutions = value;
 			SaveProperties();
 		}
 	}
 	
-	private ScreenshotResolution currentResolution {
-		get {
-			return properties.currentResolution;
-		}
-	}
+	private ScreenshotResolution currentResolution => properties.currentResolution;
 
 	private int currentResolutionIndex {
-		get {
-			return properties.currentResolutionIndex;
-		} set {
+		get => properties.currentResolutionIndex;
+		set {
 			if(properties.currentResolutionIndex == value) return;
 			properties.currentResolutionIndex = value;
 			SaveProperties();
 		}
 	}
 	private ScreenshotResolution customResolution {
-		get {
-			return properties.customResolution;
-		} set {
+		get => properties.customResolution;
+		set {
 			if(properties.customResolution == value) return;
 			properties.customResolution = value;
 			SaveProperties();
@@ -178,9 +147,8 @@ public class ScreenshotSaverWindow : EditorWindow {
 	}
 	
 	private KeyCode captureKeycode {
-		get {
-			return properties.captureKeycode;
-		} set {
+		get => properties.captureKeycode;
+		set {
 			if(properties.captureKeycode == value) return;
 			properties.captureKeycode = value;
 			SaveProperties();

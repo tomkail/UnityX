@@ -48,11 +48,7 @@ public struct BitField<TEnum> where TEnum : struct, IConvertible // enum
 		return (_bits & Bit(t)) > 0;
 	}
 
-	public bool isEmpty {
-		get {
-			return _bits == 0;
-		}
-	}
+	public bool isEmpty => _bits == 0;
 
 	public override string ToString ()
 	{

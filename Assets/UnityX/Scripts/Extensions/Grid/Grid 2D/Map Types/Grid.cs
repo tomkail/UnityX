@@ -20,44 +20,28 @@ public class Grid {
 	/// Gets the number of cells in the grid.
 	/// </summary>
 	/// <value>The length.</value>
-	public int cellCount {
-		get {
-			return size.area;
-		}
-	}
-	
+	public int cellCount => size.area;
+
 	/// <summary>
 	/// The size of the grid, minus one.
 	/// Many functions calculate starting from zero rather than one, where this value is used instead of size.
 	/// </summary>
-	public Point sizeMinusOne {
-		get {
-			return new Point(size.x-1, size.y-1);
-		}
-	}
-	
+	public Point sizeMinusOne => new(size.x-1, size.y-1);
+
 	/// <summary>
 	/// The reciprocal of the size of the grid. 
 	/// An optimization, used as a multiplier instead of division by the grid size by various functions.
 	/// </summary>
-	public Vector2 sizeReciprocal {
-		get {
-			return new Vector2(1f/size.x, 1f/size.y);
-		}
-	}
-	
+	public Vector2 sizeReciprocal => new(1f/size.x, 1f/size.y);
+
 	/// <summary>
 	/// The reciprocal of the size of the grid minus one.
 	/// An optimization, used as a multiplier instead of division by the grid size minus one by various functions.
 	/// </summary>
-	public Vector2 sizeMinusOneReciprocal {
-		get {
-			return new Vector2(1f/sizeMinusOne.x, 1f/sizeMinusOne.y);
-		}
-	}
+	public Vector2 sizeMinusOneReciprocal => new(1f/sizeMinusOne.x, 1f/sizeMinusOne.y);
 
 
-    public int longSide {
+	public int longSide {
         get {
             if(size.x > size.y) return size.x;
             else return size.y;

@@ -1,5 +1,4 @@
 ﻿using System;
-
 #if UNITY_WINRT
 using UnityEngine.Windows;
 #endif

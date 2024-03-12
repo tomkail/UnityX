@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using System.Collections;
 
 [CustomPropertyDrawer(typeof(CompactMatrix4x4Attribute))]
 public class CompactMatrix4x4Drawer : PropertyDrawer {

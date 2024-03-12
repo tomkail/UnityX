@@ -8,7 +8,6 @@
 
 using UnityEngine;
 using UnityEditor;
-using System.Linq;
 
 public class UGroup : EditorWindow {
     static private GameObject groupParent;

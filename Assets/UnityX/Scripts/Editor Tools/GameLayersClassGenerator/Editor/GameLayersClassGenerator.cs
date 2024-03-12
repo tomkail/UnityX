@@ -1,11 +1,6 @@
 using UnityEngine;
-using UnityEditor;
-using System;
 using System.Text;
 using System.IO;
-using System.Collections;
-using System.Collections.Generic;
-using System.Reflection;
 
 // [InitializeOnLoad]
 public static class GameLayersClassGenerator {

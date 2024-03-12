@@ -1,19 +1,17 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using UnityX.Geometry;
 
 public class Region : MonoBehaviour {
 	#if UNITY_EDITOR
 	[SerializeField]
-	Color _selectedFillColor = new Color(1,0,0,0.5f);
+	Color _selectedFillColor = new(1,0,0,0.5f);
 	public Color selectedFillColor {
-		get {
-			return _selectedFillColor;
-		} set {
-			_selectedFillColor = value;
-		}
+		get => _selectedFillColor;
+		set => _selectedFillColor = value;
 	}
 	#endif
-	public static List<Region> activeRegions = new List<Region>();
+	public static List<Region> activeRegions = new();
 	public static Region GetRegionAtPosition (Vector3 position) {
 		foreach(Region region in activeRegions) {
 			if(region.ContainsPoint(position))
@@ -34,9 +32,8 @@ public class Region : MonoBehaviour {
 	[SerializeField]
 	Polygon _polygon;
 	public Polygon polygon {
-		get {
-			return _polygon;
-		} set {
+		get => _polygon;
+		set {
 			if(_polygon == value) return;
 			_polygon = value;
 			OnPolygonPropertiesChanged();
@@ -46,9 +43,8 @@ public class Region : MonoBehaviour {
 	[SerializeField]
 	float _height = 1;
 	public float height {
-		get {
-			return _height;
-		} set {
+		get => _height;
+		set {
 			_height = value;
 			OnPolygonPropertiesChanged();
 		}
@@ -59,22 +55,11 @@ public class Region : MonoBehaviour {
 		if(enabled) OnPropertiesChanged();
 		else rebuildPropertiesOnEnable = true;
 	}
-	public bool in2DMode {
-		get {
-			return height <= 0 || height == Mathf.Infinity;
-		}
-	}
+	public bool in2DMode => height <= 0 || height == Mathf.Infinity;
 
-	public Vector3 worldNormal {
-		get {
-			return matrix.MultiplyVector(Vector3.forward).normalized;
-		}
-	}
-	public Plane floorPlane {
-		get {
-			return new Plane(worldNormal, matrix.MultiplyPoint3x4(Vector3.zero));
-		}
-	}
+	public Vector3 worldNormal => matrix.MultiplyVector(Vector3.forward).normalized;
+
+	public Plane floorPlane => new(worldNormal, matrix.MultiplyPoint3x4(Vector3.zero));
 
 	public Plane frontPlane {
 		get {
@@ -109,11 +94,8 @@ public class Region : MonoBehaviour {
 	
 	// The bounding rect of the polygon in local space
 	public Rect polygonRect {
-		get {
-			return _polygonRect;
-		} private set {
-			_polygonRect = value;
-		}
+		get => _polygonRect;
+		private set => _polygonRect = value;
 	}
 	[SerializeField]
 	Rect _polygonRect;
@@ -155,11 +137,8 @@ public class Region : MonoBehaviour {
 
 	// The polygon rect (in local space) with height in the Z axis
 	public Bounds localBounds {
-		get {
-			return _localBounds;
-		} private set {
-			_localBounds = value;
-		}
+		get => _localBounds;
+		private set => _localBounds = value;
 	}
 	[SerializeField]
 	Bounds _localBounds;
@@ -186,9 +165,8 @@ public class Region : MonoBehaviour {
 	[SerializeField]
 	Matrix4x4 _offsetMatrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one);
 	public Matrix4x4 offsetMatrix {
-		get {
-			return _offsetMatrix;
-		} set {
+		get => _offsetMatrix;
+		set {
 			if(_offsetMatrix == value) return;
 			_offsetMatrix = value;
 			_matrixDirty = true;
@@ -228,10 +206,10 @@ public class Region : MonoBehaviour {
 
 	private void Reset () {
 		polygon = new Polygon(new Vector2[] {
-			new Vector2(-0.5f, 0.5f),
-			new Vector2(0.5f, 0.5f),
-			new Vector2(0.5f, -0.5f),
-			new Vector2(-0.5f, -0.5f),
+			new(-0.5f, 0.5f),
+			new(0.5f, 0.5f),
+			new(0.5f, -0.5f),
+			new(-0.5f, -0.5f),
 		});
 		height = 1;
 	}

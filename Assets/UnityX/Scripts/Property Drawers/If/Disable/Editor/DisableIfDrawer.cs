@@ -1,7 +1,5 @@
 using UnityEngine;
 using UnityEditor;
-using System;
-using System.Reflection;
 
 [CustomPropertyDrawer(typeof(DisableIfAttribute))]
 public class DisableIfDrawer : BaseIfAttributeDrawer<DisableIfAttribute> {

@@ -1,9 +1,5 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using System;
-using System.Reflection;
-using System.Collections;
-using System.Collections.Generic;
 
 [CustomEditor(typeof(TransformCopier)), CanEditMultipleObjects]
 public class TransformCopierEditor : BaseEditor<TransformCopier> {

@@ -35,9 +35,8 @@ public class ViewAnimator : MonoBehaviour {
     [SerializeField]
     float _animationTime;
     public float animationTime {
-        get {
-            return _animationTime;
-        } set {
+        get => _animationTime;
+        set {
             if(_animationTime == value) return;
             _lastAnimationTime = _animationTime;
             _animationTime = value;
@@ -45,11 +44,8 @@ public class ViewAnimator : MonoBehaviour {
         }
     }
     
-    public bool isPlayingOrHasFutureEvents {
-        get {
-            return animationEvents.Count != 0;
-        }
-    }
+    public bool isPlayingOrHasFutureEvents => animationEvents.Count != 0;
+
     public bool isCurrentlyPlayingAnyAnimation {
         get {
             for(int i = animationEvents.Count-1; i >= 0; i--) {
@@ -62,10 +58,10 @@ public class ViewAnimator : MonoBehaviour {
     }
 
     [SerializeField]
-    List<ViewAnimationEvent> animationEvents = new List<ViewAnimationEvent>();
+    List<ViewAnimationEvent> animationEvents = new();
     // This is just for debugging
     [SerializeField]
-    List<ViewAnimationEvent> animationEventHistory = new List<ViewAnimationEvent>();
+    List<ViewAnimationEvent> animationEventHistory = new();
 
     public void Clear () {
         animationEvents.Clear();

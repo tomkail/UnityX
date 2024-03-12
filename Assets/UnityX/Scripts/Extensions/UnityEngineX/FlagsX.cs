@@ -1,7 +1,7 @@
-﻿using UnityEngine;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 public static class FlagsX {	
 	/// <summary>
@@ -48,8 +48,8 @@ public static class FlagsX {
 		}
 		return (T)(object) Create(flagValues);
 	}
-	
-	private static int Create(params int[] flags) {
+
+	static int Create(params int[] flags) {
 		int flagsValue = 0;
 		foreach(int flag in flags) {
 			if(!IsSet(flagsValue, flag)) {
@@ -94,7 +94,7 @@ public static class FlagsX {
         return (int)(object)(CreateEverything<T>()) & ~(flags);
     }
 
-    static Dictionary<Type, Enum[]> individualFlagsCache = new Dictionary<Type, Enum[]>();
+    static Dictionary<Type, Enum[]> individualFlagsCache = new();
     public static IEnumerable<Enum> GetIndividualFlags(this Enum value) {
         var type = value.GetType();
         Enum[] individualFlags = null;
@@ -104,7 +104,7 @@ public static class FlagsX {
         return GetFlags(value, individualFlags);
     }
 
-    private static IEnumerable<Enum> GetFlags(Enum value, Enum[] values)
+    static IEnumerable<Enum> GetFlags(Enum value, Enum[] values)
     {
         ulong bits = Convert.ToUInt64(value);
         List<Enum> results = new List<Enum>();
@@ -128,7 +128,7 @@ public static class FlagsX {
         return Enumerable.Empty<Enum>();
     }
 
-    private static IEnumerable<Enum> GetFlagValues(Type enumType) {
+    static IEnumerable<Enum> GetFlagValues(Type enumType) {
         ulong flag = 0x1;
         foreach (var value in Enum.GetValues(enumType).Cast<Enum>())
         {

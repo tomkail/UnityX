@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEditor;
-using System.Linq;
 using System.Collections.Generic;
 
 // Cribbed a lot from https://gamedev.stackexchange.com/questions/154696/picking-multiple-choices-from-an-enum/154699

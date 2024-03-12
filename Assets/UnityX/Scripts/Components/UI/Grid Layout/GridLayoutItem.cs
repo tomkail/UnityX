@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace UnityEngine.UI {
 	[ExecuteAlways]
 	[RequireComponent(typeof(RectTransform))]

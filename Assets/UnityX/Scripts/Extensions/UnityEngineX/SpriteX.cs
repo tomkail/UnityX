@@ -18,7 +18,11 @@ public static class SpriteX {
 	/// <param name="newColor">New color.</param>
 	/// <param name="pixelsPerUnit">Pixels per unit.</param>
 	public static Sprite CreateColoredSprite (Color newColor, float pixelsPerUnit) {
-		Texture2D newTexture = TextureX.Create(newColor);
+		Texture2D newTexture = new Texture2D(1,1, TextureFormat.ARGB32, false);
+		newTexture.SetPixel(0, 0, newColor);
+		newTexture.filterMode = FilterMode.Bilinear;
+		newTexture.wrapMode = TextureWrapMode.Clamp;
+		
 		newTexture.Apply();
 		Sprite newSprite = Sprite.Create(newTexture, new Rect(0,0,1,1), new Vector2(0.5f,0.5f), pixelsPerUnit);
 		return newSprite;

@@ -1,9 +1,12 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using UnityEngine;
+using Object = UnityEngine.Object;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
-using System.Collections.Generic;
-using System.Linq;
 
 public static class AssetDatabaseX {
 	#if UNITY_EDITOR
@@ -21,7 +24,7 @@ public static class AssetDatabaseX {
 		if (absolutePath.StartsWith(Application.dataPath)) {
 			return "Assets" + absolutePath.Substring(Application.dataPath.Length);
 		} else {
-			throw new System.ArgumentException("Full path does not contain the current project's Assets folder", "absolutePath");
+			throw new ArgumentException("Full path does not contain the current project's Assets folder", "absolutePath");
 		}
 	}
 
@@ -35,14 +38,14 @@ public static class AssetDatabaseX {
 		if(path.EndsWith("/")) {
 			path = path.TrimEnd('/');
 		}
-		string[] GUIDs = AssetDatabase.FindAssets("", new string[] {path}).Distinct().ToArray();
+		string[] GUIDs = AssetDatabase.FindAssets("", new[] {path}).Distinct().ToArray();
 
 		Object[] objectList = new Object[GUIDs.Length];
 		for (int index = 0; index < GUIDs.Length; index++)
 		{
 			string guid = GUIDs[index];
 			string assetPath = AssetDatabase.GUIDToAssetPath(guid);
-			Object asset = AssetDatabase.LoadAssetAtPath(assetPath, typeof(Object)) as Object;
+			Object asset = AssetDatabase.LoadAssetAtPath(assetPath, typeof(Object));
 			objectList[index] = asset;
 		}
 		
@@ -51,7 +54,7 @@ public static class AssetDatabaseX {
 	
 	
 	public static T[] LoadAllAssetsAtPath<T> (string path) {
-		Object[] assets = AssetDatabaseX.LoadAllAssetsAtPath(path);
+		Object[] assets = LoadAllAssetsAtPath(path);
 		T[] castAssets = assets.Where(asset => asset.GetType() == typeof(T)).Cast<T>().ToArray ();
 		return castAssets;
 	}
@@ -67,9 +70,9 @@ public static class AssetDatabaseX {
 			if(optionalPath.EndsWith("/")) {
 				optionalPath = optionalPath.TrimEnd('/');
 			}
-			GUIDs = AssetDatabase.FindAssets("t:" + typeof (T).ToString(),new string[] { optionalPath });
+			GUIDs = AssetDatabase.FindAssets("t:" + typeof (T),new[] { optionalPath });
 		} else {
-			GUIDs = AssetDatabase.FindAssets("t:" + typeof (T).ToString());
+			GUIDs = AssetDatabase.FindAssets("t:" + typeof (T));
 		}
 		T[] objectList = new T[GUIDs.Length];
 		
@@ -91,7 +94,7 @@ public static class AssetDatabaseX {
 
 	public static T LoadNamedAssetOfType<T>(string name) where T : Object
 	{
-		return LoadNamedAsset<T>("t:" + typeof (T).ToString()+" "+name);
+		return LoadNamedAsset<T>("t:" + typeof (T)+" "+name);
 	}
 
 	public static T LoadNamedAsset<T>(string name) where T : Object
@@ -111,7 +114,7 @@ public static class AssetDatabaseX {
 		string path = AssetDatabase.GetAssetPath(parent);
 		Object[] assets = AssetDatabase.LoadAllAssetsAtPath(path);
 		foreach(Object asset in assets) {
-			if (UnityEditor.AssetDatabase.IsMainAsset(asset) || asset is GameObject || asset is Component) continue;
+			if (AssetDatabase.IsMainAsset(asset) || asset is GameObject || asset is Component) continue;
 			else Object.DestroyImmediate(asset, true);
 		}
 	}
@@ -157,13 +160,14 @@ public static class AssetDatabaseX {
 
 		// This returns the parent path, not the child path (since it has none)
 		var parentAssetPath = AssetDatabase.GetAssetPath(asset);
-		var newAssetPath = PathX.GetFullPathWithNewFileName(parentAssetPath, asset.name);
+		var newAssetPath = GetFullPathWithNewFileName(parentAssetPath, asset.name);
 
+		static string GetFullPathWithNewFileName(string fullPath, string newFileName) => Path.Combine(Path.GetDirectoryName(fullPath) ?? string.Empty, newFileName)+Path.GetExtension(fullPath);
 		// Clone the asset since you can't add assets that already have a file.
 		Object objectCopy = Object.Instantiate(asset);
         objectCopy.name = asset.name;
         AssetDatabase.CreateAsset(objectCopy, newAssetPath);
-		UnityEngine.Object.DestroyImmediate(asset, true);
+		Object.DestroyImmediate(asset, true);
         AssetDatabase.ImportAsset(newAssetPath);
 		AssetDatabase.SaveAssets ();
 		asset = objectCopy as T;
@@ -223,13 +227,13 @@ public static class AssetDatabaseX {
 	// FROM https://answers.unity.com/questions/1377941/getassetpath-returning-incomplete-path-for-default.html
 	// Allows finding default assets
 	// Eg: AssetDatabaseHelper.LoadAssetFromUniqueAssetPath<Mesh> ( "Library/unity default resources::Cube");
-	public static T LoadAssetFromUniqueAssetPath<T>(string aAssetPath) where T : UnityEngine.Object {
+	public static T LoadAssetFromUniqueAssetPath<T>(string aAssetPath) where T : Object {
 		if (aAssetPath.Contains("::")) {
-			string[] parts = aAssetPath.Split(new string[] { "::" },System.StringSplitOptions.RemoveEmptyEntries);
+			string[] parts = aAssetPath.Split(new[] { "::" },StringSplitOptions.RemoveEmptyEntries);
 			aAssetPath = parts[0];
 			if (parts.Length > 1) {
 				string assetName = parts[1];
-				System.Type t = typeof(T);
+				Type t = typeof(T);
 				var assets = AssetDatabase.LoadAllAssetsAtPath(aAssetPath)
 				.Where(i => t.IsAssignableFrom(i.GetType())).Cast<T>();
 				var obj = assets.Where(i => i.name == assetName).FirstOrDefault();
@@ -244,7 +248,7 @@ public static class AssetDatabaseX {
 			}
 		return AssetDatabase.LoadAssetAtPath<T>(aAssetPath);
 	}
-	public static string GetUniqueAssetPath(UnityEngine.Object aObj) {
+	public static string GetUniqueAssetPath(Object aObj) {
 		if (!aObj) return "";
 		string path = AssetDatabase.GetAssetPath(aObj);
 		if (!string.IsNullOrEmpty(aObj.name))

@@ -1,6 +1,6 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
+using UnityEngine;
 
 public static class TransformX {
 	///
@@ -180,8 +180,8 @@ public static class TransformX {
 		_hierarchyPathList.Clear();
 		return str;
 	}
-	static StringBuilder _hierarchyPathSB = new StringBuilder(); 		// reuse to avoid excessive allocations
-	static List<Transform> _hierarchyPathList = new List<Transform>();	// reuse to avoid excessive allocations
+	static StringBuilder _hierarchyPathSB = new(); 		// reuse to avoid excessive allocations
+	static List<Transform> _hierarchyPathList = new();	// reuse to avoid excessive allocations
 
 	/// <summary>
 	/// Destroys all children.
@@ -402,6 +402,6 @@ public static class TransformX {
 	// Gets world space axis-aligned bounds
 	public static Bounds GetBounds (this Transform transform) {
 		Vector3 halfLocalScale = transform.localScale * 0.5f;
-		return BoundsX.CreateEncapsulating(new Vector3[]{transform.position + transform.rotation * new Vector3(-halfLocalScale.x, -halfLocalScale.y, -halfLocalScale.z), transform.position + transform.rotation * new Vector3(halfLocalScale.x, halfLocalScale.y, halfLocalScale.z)});
+		return BoundsX.CreateEncapsulating(transform.position + transform.rotation * new Vector3(-halfLocalScale.x, -halfLocalScale.y, -halfLocalScale.z), transform.position + transform.rotation * new Vector3(halfLocalScale.x, halfLocalScale.y, halfLocalScale.z));
 	}
 }

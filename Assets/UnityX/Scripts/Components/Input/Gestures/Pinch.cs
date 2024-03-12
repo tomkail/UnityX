@@ -3,18 +3,11 @@ using System.Collections.Generic;
 
 [System.Serializable]
 public class Pinch : Gesture {
-	public InputPoint inputPoint1 {
-		get {
-			return inputPoints[0];
-		}
-	}
-	public InputPoint inputPoint2 {
-		get {
-			return inputPoints[1];
-		}
-	}
+	public InputPoint inputPoint1 => inputPoints[0];
 
-    // Sum of the delta of both fingers from the center.
+	public InputPoint inputPoint2 => inputPoints[1];
+
+	// Sum of the delta of both fingers from the center.
     // UNTESTED
 	public Vector2 deltaPinch;
 
@@ -29,11 +22,8 @@ public class Pinch : Gesture {
 	public Vector2 lastPinchCenter;
 	public Vector2 deltaPinchCenter;
 
-	public bool hasChanged {
-		get {
-			return deltaPinchCenter != Vector2.zero || deltaPinchDistance != 0;
-		}
-	}
+	public bool hasChanged => deltaPinchCenter != Vector2.zero || deltaPinchDistance != 0;
+
 	public Pinch (InputPoint firstFinger, InputPoint secondFinger) {
 		this.name = "Pinch "+((firstFinger is Finger) ? "Finger "+((Finger)firstFinger).fingerId : "Input Point") +" "+((secondFinger is Finger) ? "Finger "+((Finger)secondFinger).fingerId : "Input Point");
 		this.inputPoints = new List<InputPoint>() {firstFinger, secondFinger};

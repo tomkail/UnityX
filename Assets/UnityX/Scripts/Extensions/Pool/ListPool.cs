@@ -66,7 +66,7 @@ public class ListPool<T>
         _pool.Push (list);
     }
 
-    Stack<List<T>> _pool = new Stack<List<T>>();
+    Stack<List<T>> _pool = new();
 
     static ListPool() {
         _instance = new ListPool<T> ();

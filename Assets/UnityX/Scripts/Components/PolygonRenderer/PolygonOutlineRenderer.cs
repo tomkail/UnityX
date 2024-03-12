@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityX.Geometry;
 using UnityX.MeshBuilder;
 
 [RequireComponent(typeof(MeshFilter))]
@@ -8,9 +9,8 @@ public class PolygonOutlineRenderer : BasePolygonRenderer {
     [SerializeField]
     Texture2D _texture;
     public Texture2D texture {
-        get {
-            return _texture;
-        } set {
+        get => _texture;
+        set {
             if(_texture == value) return;
             _texture = value;
             RefreshMaterialPropertyBlock();
@@ -22,7 +22,7 @@ public class PolygonOutlineRenderer : BasePolygonRenderer {
     [Space]
 	public bool front = true;
 	public bool back;
-	public MeshBakeParams bakeParams = new MeshBakeParams(true, true);
+	public MeshBakeParams bakeParams = new(true, true);
     
     [Space]
 	public float innerDistance = 0f;
@@ -39,7 +39,7 @@ public class PolygonOutlineRenderer : BasePolygonRenderer {
 
     public StrokeGeometryAttributes attributes;
     public float extrusion;
-    static MeshBuilder mb = new MeshBuilder();
+    static MeshBuilder mb = new();
 	public override void RebuildMesh () {
 		GetMesh();
 		mesh.Clear();

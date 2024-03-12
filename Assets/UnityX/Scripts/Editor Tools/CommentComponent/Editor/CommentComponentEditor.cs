@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using System.Collections;
 
 [CustomEditor(typeof(CommentComponent))]
 public class CommentComponentEditor : BaseEditor<CommentComponent> {

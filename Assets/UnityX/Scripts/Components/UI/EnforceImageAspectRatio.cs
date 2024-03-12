@@ -1,6 +1,4 @@
-﻿#define AVPRO_PACKAGE_UNITYUI
-using UnityEngine;
-using UnityEngine.Serialization;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>

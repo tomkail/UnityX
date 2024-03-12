@@ -94,9 +94,5 @@ public class PopupDrawer : BaseAttributePropertyDrawer<PopupAttribute> {
         }
     }
 
-    private Type variableType {
-        get {
-            return attribute.list[0].GetType();
-        }
-    }
+    private Type variableType => attribute.list[0].GetType();
 }

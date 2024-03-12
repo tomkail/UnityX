@@ -11,7 +11,7 @@ public class CameraPropertiesBuilderQueue {
 	public delegate void UpdateCameraPropertiesDelegate (float deltaTime);
 	public delegate void ModifyCameraPropertiesDelegate (ref CameraProperties SpaceCameraProperties);
 	// [SerializeField, Disable]
-	private List<SetCameraPropertiesDelegateQueueItem> modifiers = new List<SetCameraPropertiesDelegateQueueItem>();
+	private List<SetCameraPropertiesDelegateQueueItem> modifiers = new();
 
 	/// <summary>
 	/// Uses a sort index and a delegate to edit camera properties.

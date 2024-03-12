@@ -4,53 +4,21 @@ using UnityEngine;
 public struct Point3 {
 	public int x, y, z;
 
-	public static Point3 zero {
-		get {
-			return new Point3(0,0,0);
-		}
-	}
-	
-	public static Point3 one {
-		get {
-			return new Point3(1,1,1);
-		}
-	}
+	public static Point3 zero => new(0,0,0);
 
-	public static Point3 up {
-		get {
-			return new Point3(0,1,0);
-		}
-	}
+	public static Point3 one => new(1,1,1);
 
-	public static Point3 down {
-		get {
-			return new Point3(0,-1,0);
-		}
-	}
+	public static Point3 up => new(0,1,0);
 
-	public static Point3 left {
-		get {
-			return new Point3(-1,0,0);
-		}
-	}
+	public static Point3 down => new(0,-1,0);
 
-	public static Point3 right {
-		get {
-			return new Point3(1,0,0);
-		}
-	}
+	public static Point3 left => new(-1,0,0);
 
-	public static Point3 forward {
-		get {
-			return new Point3(0,0,1);
-		}
-	}
+	public static Point3 right => new(1,0,0);
 
-	public static Point3 back {
-		get {
-			return new Point3(0,0,-1);
-		}
-	}
+	public static Point3 forward => new(0,0,1);
+
+	public static Point3 back => new(0,0,-1);
 
 	public Point3(int _x, int _y, int _z) {
 		x = _x;
@@ -98,21 +66,13 @@ public struct Point3 {
 		return "X: " + x + " Y: " + y + " Z: " + y;
 	}
 
-	public int area {
-		get { return x * y * z; }
-	}
+	public int area => x * y * z;
 
-	public int magnitude {
-		get { return x * x + y * y + z * z; }
-	}
+	public int magnitude => x * x + y * y + z * z;
 
-	public int normalized {
-		get { return 1; }
-	}
+	public int normalized => 1;
 
-	public int sqrMagnitude {
-		get { return 1; }
-	}
+	public int sqrMagnitude => 1;
 
 	public static Point3 Add(Point3 left, Point3 right){
 		return new Point3(left.x+right.x, left.y+right.y, left.z+right.z);

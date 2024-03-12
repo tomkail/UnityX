@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using System.Collections;
 
 [CustomPropertyDrawer (typeof (MinMaxAttribute))]
 public class MinMaxDrawer : BaseAttributePropertyDrawer<MinMaxAttribute> {

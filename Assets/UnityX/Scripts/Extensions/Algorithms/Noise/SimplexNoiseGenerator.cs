@@ -2,8 +2,8 @@
 
 public class SimplexNoiseGenerator {
 	
-	public static float[] Generate (Point size, Vector3 position, float scale, float offset, float contrast, float height, bool clamp = false) {
-		int mapArrayLength = size.area;
+	public static float[] Generate (Vector2Int size, Vector3 position, float scale, float offset, float contrast, float height, bool clamp = false) {
+		int mapArrayLength = size.x*size.y;
 		float[] map = new float[mapArrayLength];
 		float xCoord, yCoord, sample;
 		float _contrast = (contrast-0.5f) * 2;
@@ -36,8 +36,8 @@ public class SimplexNoiseGenerator {
 		return map;
 	}
 	
-	public static float[] GenerateRepeating (Point size, Vector3 position, float scale, float offset, float contrast, float height, bool clamp = false) {
-		int mapArrayLength = size.area;
+	public static float[] GenerateRepeating (Vector2Int size, Vector3 position, float scale, float offset, float contrast, float height, bool clamp = false) {
+		int mapArrayLength = size.x*size.y;
 		float[] map = new float[mapArrayLength];
 		float xCoord, yCoord, sample;
 		float _contrast = (contrast-0.5f) * 2;

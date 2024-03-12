@@ -14,41 +14,25 @@ public class Grid3D {
 	/// Gets the number of cells in the grid.
 	/// </summary>
 	/// <value>The length.</value>
-	public int cellCount {
-		get {
-			return size.area;
-		}
-	}
-	
+	public int cellCount => size.area;
+
 	/// <summary>
 	/// The size of the grid, minus one.
 	/// Many functions calculate starting from zero rather than one, where this value is used instead of size.
 	/// </summary>
-	public Point3 sizeMinusOne {
-		get {
-			return new Point3(size.x-1, size.y-1, size.z-1);
-		}
-	}
-	
+	public Point3 sizeMinusOne => new(size.x-1, size.y-1, size.z-1);
+
 	/// <summary>
 	/// The reciprocal of the size of the grid. 
 	/// An optimization, used as a multiplier instead of division by the grid size by various functions.
 	/// </summary>
-	public Vector3 sizeReciprocal {
-		get {
-			return new Vector3(1f/size.x, 1f/size.y, 1f/size.z);
-		}
-	}
-	
+	public Vector3 sizeReciprocal => new(1f/size.x, 1f/size.y, 1f/size.z);
+
 	/// <summary>
 	/// The reciprocal of the size of the grid minus one.
 	/// An optimization, used as a multiplier instead of division by the grid size minus one by various functions.
 	/// </summary>
-	public Vector3 sizeMinusOneReciprocal {
-		get {
-			return new Vector3(1f/sizeMinusOne.x, 1f/sizeMinusOne.y, 1f/sizeMinusOne.z);
-		}
-	}
+	public Vector3 sizeMinusOneReciprocal => new(1f/sizeMinusOne.x, 1f/sizeMinusOne.y, 1f/sizeMinusOne.z);
 
 	public delegate void OnResizeEvent(Point3 lastSize, Point3 newSize);
 	public event OnResizeEvent OnResize;

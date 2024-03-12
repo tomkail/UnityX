@@ -2,11 +2,11 @@
 //#define DEBUG_SLAYOUT
 #endif
 
-using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.EventSystems;
 using System;
-
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 /// <summary>
 /// SLayout does two things:
@@ -71,21 +71,82 @@ public partial class SLayout : UIBehaviour {
 		base.OnRectTransformDimensionsChange();
 		if( onRectChange != null ) onRectChange(this);
 	}
+	
 
-	public SLayoutAnimation Animate(float duration, System.Action animAction)
-	{
+	public AutoSLayoutAnimation Animate(float duration, Action animAction) {
 		return Animate(duration, 0.0f, animAction);
 	}
 
-	public SLayoutAnimation Animate(float duration, float delay, System.Action animAction)
-	{
-		return Animate(duration, delay, null, animAction);
+	public AutoSLayoutAnimation Animate(float duration, float delay, Action animAction) {
+		return Animate(duration, delay, (SLayoutAnimation.EasingFunc)default, animAction);
+	}
+	
+	public AutoSLayoutAnimation Animate(float duration, float delay, SLayoutAnimation.EasingFunc easingFunction, Action animAction) {
+		var newAnim = new AutoSLayoutAnimation {
+			_duration = duration, 
+			_maxDuration = duration, 
+			_delay = delay, 
+			_maxDelay = delay, 
+			_easingFunction = easingFunction, 
+			_animAction = animAction,
+			_owner = this
+		};
+		#if UNITY_EDITOR
+		if (!EditorApplication.isPlaying) {
+			newAnim.Start();
+			newAnim.CompleteImmediate();
+			return newAnim;
+		}
+		if (SLayoutAnimator.quitting) {
+			return null;
+		}
+		#endif
+		SLayoutAnimator.instance.StartAnimation(newAnim);
+		return newAnim;
 	}
 
-	public SLayoutAnimation After(float delay, System.Action nonAnimatedAction)
+	public AutoSLayoutAnimation Animate(float duration, float delay, AnimationCurve customCurve, Action animAction) {
+		return Animate(duration, delay, customCurve.Evaluate, animAction);
+	}
+	
+	public AutoSLayoutAnimation Animate(float duration, EasingFunction.Ease easing, Action animAction) {
+		return Animate(duration, 0.0f, easing, animAction);
+	}
+	
+	public AutoSLayoutAnimation Animate(float duration, float delay, EasingFunction.Ease easing, Action animAction) {
+		return Animate(duration, delay, v => EasingFunction.GetEasingFunction(easing)(0,1,v), animAction);
+	}
+
+	public AutoSLayoutAnimation AnimateCustom(float duration, Action<float> customAnimAction) {
+		return AnimateCustom(duration, 0, customAnimAction);
+	}
+
+	public AutoSLayoutAnimation AnimateCustom(float duration, float delay, Action<float> customAnimAction)
 	{
-		// null curve, null animAction
-		var newAnim = new SLayoutAnimation() {
+		var newAnim = new AutoSLayoutAnimation {
+			_duration = duration, 
+			_maxDuration = duration, 
+			_delay = delay, 
+			_maxDelay = delay, 
+			_animAction = () => Animatable(customAnimAction),
+			_owner = this
+		};
+		#if UNITY_EDITOR
+		if (!EditorApplication.isPlaying) {
+			newAnim.Start();
+			newAnim.CompleteImmediate();
+			return newAnim;
+		}
+		if (SLayoutAnimator.quitting) {
+			return null;
+		}
+		#endif
+		SLayoutAnimator.instance.StartAnimation(newAnim);
+		return newAnim;
+	}
+	
+	public AutoSLayoutAnimation After(float delay, Action nonAnimatedAction) {
+		var newAnim = new AutoSLayoutAnimation {
 			_duration = 0.0f, 
 			_maxDuration = 0.0f, 
 			_delay = delay, 
@@ -93,8 +154,8 @@ public partial class SLayout : UIBehaviour {
 			_nonAnimatedAction = nonAnimatedAction,
 			_owner = this
 		};
-		#if UNITY_EDITOR
-		if (!UnityEditor.EditorApplication.isPlaying) {
+#if UNITY_EDITOR
+		if (!EditorApplication.isPlaying) {
 			newAnim.Start();
 			newAnim.CompleteImmediate();
 			return newAnim;
@@ -102,114 +163,11 @@ public partial class SLayout : UIBehaviour {
 		if (SLayoutAnimator.quitting) {
 			return null;
 		}
-		#endif
-		SLayoutAnimator.instance.StartAnimation(newAnim);
-		return newAnim;
-	}
-
-	public SLayoutAnimation Animate(float duration, float delay, AnimationCurve customCurve, System.Action animAction)
-	{
-		var newAnim = new SLayoutAnimation() {
-			_duration = duration, 
-			_maxDuration = duration, 
-			_delay = delay, 
-			_maxDelay = delay, 
-			_customCurve = customCurve, 
-			_animAction = animAction,
-			_owner = this
-		};
-		#if UNITY_EDITOR
-		if (!UnityEditor.EditorApplication.isPlaying) {
-			newAnim.Start();
-			newAnim.CompleteImmediate();
-			return newAnim;
-		}
-		if (SLayoutAnimator.quitting) {
-			return null;
-		}
-		#endif
+#endif
 		SLayoutAnimator.instance.StartAnimation(newAnim);
 		return newAnim;
 	}
 	
-	public SLayoutAnimation Animate(float duration, EasingFunction.Ease easing, System.Action animAction)
-	{
-		return Animate(duration, 0.0f, easing, animAction);
-	}
-	
-	public SLayoutAnimation Animate(float duration, float delay, EasingFunction.Ease easing, System.Action animAction)
-	{
-		var newAnim = new SLayoutAnimation() {
-			_duration = duration, 
-			_maxDuration = duration, 
-			_delay = delay, 
-			_maxDelay = delay, 
-			_easingFunction = EasingFunction.GetEasingFunction(easing), 
-			_animAction = animAction,
-			_owner = this
-		};
-		#if UNITY_EDITOR
-		if (!UnityEditor.EditorApplication.isPlaying) {
-			newAnim.Start();
-			newAnim.CompleteImmediate();
-			return newAnim;
-		}
-		if (SLayoutAnimator.quitting) {
-			return null;
-		}
-		#endif
-		SLayoutAnimator.instance.StartAnimation(newAnim);
-		return newAnim;
-	}
-
-	public SLayoutAnimation AnimateCustom(float duration, System.Action<float> customAnimAction)
-	{
-		var newAnim = new SLayoutAnimation() {
-			_duration = duration, 
-			_maxDuration = duration, 
-			_delay = 0.0f, 
-			_maxDelay = 0.0f, 
-			_animAction = () => Animatable(customAnimAction),
-			_owner = this
-		};
-		#if UNITY_EDITOR
-		if (!UnityEditor.EditorApplication.isPlaying) {
-			newAnim.Start();
-			newAnim.CompleteImmediate();
-			return newAnim;
-		}
-		if (SLayoutAnimator.quitting) {
-			return null;
-		}
-		#endif
-		SLayoutAnimator.instance.StartAnimation(newAnim);
-		return newAnim;
-	}
-
-	public SLayoutAnimation AnimateCustom(float duration, float delay, System.Action<float> customAnimAction)
-	{
-		var newAnim = new SLayoutAnimation() {
-			_duration = duration, 
-			_maxDuration = duration, 
-			_delay = delay, 
-			_maxDelay = delay, 
-			_animAction = () => Animatable(customAnimAction),
-			_owner = this
-		};
-		#if UNITY_EDITOR
-		if (!UnityEditor.EditorApplication.isPlaying) {
-			newAnim.Start();
-			newAnim.CompleteImmediate();
-			return newAnim;
-		}
-		if (SLayoutAnimator.quitting) {
-			return null;
-		}
-		#endif
-		SLayoutAnimator.instance.StartAnimation(newAnim);
-		return newAnim;
-	}
-
 	/// <summary>
 	/// While an animation is currently being defined, insert an extra delay, so that any animated values
 	/// that are set after this call begin a bit later than previously defined elements.
@@ -284,9 +242,7 @@ public partial class SLayout : UIBehaviour {
 	}
 
     public static void WithoutAnimating(Action action) {
-        SLayoutAnimation.StartPreventAnimation();
-        action();
-        SLayoutAnimation.EndPreventAnimation();
+	    SLayoutAnimation.WithoutAnimating(action);
     }
 
 	public Canvas rootCanvas {
@@ -351,6 +307,13 @@ public partial class SLayout : UIBehaviour {
 			return new Rect(GetRectTransformX(parentRT), GetRectTransformY(parentRT), localRect.width, localRect.height);
 		}
 	}
+	
+	public Rect targetParentRect {
+		get {
+			if (parent == null) return parentRect;
+			return parent.targetRect;
+		}
+	}
 
 	public RectTransform parentRectTransform => transform.parent as RectTransform;
 
@@ -378,78 +341,103 @@ public partial class SLayout : UIBehaviour {
 	}
 	bool _searchedForTimeScalar;
 	SLayoutCanvasTimeScalar _timeScalar;
-		
+	
+	
+	SLayoutFloatProperty _x;
+	SLayoutFloatProperty InitX() {
+		_x ??= new SLayoutFloatProperty {
+			layout = this,
+			getter = () => GetRectTransformX(rectTransform),
+			setter = SetRectTransformX,
+			isValid = GetIsValidForAnimation
+		};
+		return _x;
+	}
 	public float x {
-		get {
-			InitX();
-			return _x.value;
-		}
-		set {
-			InitX();
-			_x.value = value; 
-		}
+		get => InitX().GetProperty(SLayoutProperty.GetMode.Current);
+		set => InitX().SetProperty(value, SLayoutProperty.SetMode.Auto);
 	}
-
+	public float startX {
+		get => InitX().GetProperty(SLayoutProperty.GetMode.AnimStart);
+        set => InitX().SetProperty(value, SLayoutProperty.SetMode.AnimStart);
+	}
 	public float targetX {
-		get {
-			InitX();
-			return _x.animatedProperty != null ? _x.animatedProperty.end : _x.value;
-		}
+		get => InitX().GetProperty(SLayoutProperty.GetMode.AnimEnd);
+		set => InitX().SetProperty(value, SLayoutProperty.SetMode.AnimEnd);
 	}
-
+	
+	
+	SLayoutFloatProperty _y;
+	SLayoutFloatProperty InitY() {
+		_y ??= new SLayoutFloatProperty {
+			layout = this,
+			getter = () => GetRectTransformY(rectTransform),
+			setter = SetRectTransformY,
+			isValid = GetIsValidForAnimation
+		};
+		return _y;
+	}
 	public float y {
-		get {
-			InitY();
-			return _y.value;
-		}
-		set {
-			InitY();
-			_y.value = value;
-		}
+		get => InitY().GetProperty(SLayoutProperty.GetMode.Current);
+		set => InitY().SetProperty(value, SLayoutProperty.SetMode.Auto);
 	}
-
+	public float startY {
+		get => InitY().GetProperty(SLayoutProperty.GetMode.AnimStart);
+        set => InitY().SetProperty(value, SLayoutProperty.SetMode.AnimStart);
+	}
 	public float targetY {
-		get {
-			InitY();
-			return _y.animatedProperty != null ? _y.animatedProperty.end : _y.value;
-		}
+		get => InitY().GetProperty(SLayoutProperty.GetMode.AnimEnd);
+		set => InitY().SetProperty(value, SLayoutProperty.SetMode.AnimEnd);
 	}
-
+	
+	
+	SLayoutFloatProperty _width;
+	SLayoutFloatProperty InitWidth() {
+		_width ??= new SLayoutFloatProperty {
+			layout = this,
+			getter = () => rectTransform.rect.width,
+			setter = SetRectTransformWidth,
+			isValid = GetIsValidForAnimation
+		};
+		return _width;
+	}
 	public float width {
-		get {
-			InitWidth();
-			return _width.value;
-		}
-		set {
-			InitWidth();
-			_width.value = value;
-		}
+		get => InitWidth().GetProperty(SLayoutProperty.GetMode.Current);
+		set => InitWidth().SetProperty(value, SLayoutProperty.SetMode.Auto);
 	}
-
+	public float startWidth {
+		get => InitWidth().GetProperty(SLayoutProperty.GetMode.AnimStart);
+		set => InitWidth().SetProperty(value, SLayoutProperty.SetMode.AnimStart);
+	}
 	public float targetWidth {
-		get {
-			InitWidth();
-			return _width.animatedProperty != null ? _width.animatedProperty.end : _width.value;
-		}
+		get => InitWidth().GetProperty(SLayoutProperty.GetMode.AnimEnd);
+		set => InitWidth().SetProperty(value, SLayoutProperty.SetMode.AnimEnd);
 	}
-
+	
+	
+	SLayoutFloatProperty _height;
+	SLayoutFloatProperty InitHeight() {
+		_height ??= new SLayoutFloatProperty {
+			layout = this,
+			getter = () => rectTransform.rect.height,
+			setter = SetRectTransformHeight,
+			isValid = GetIsValidForAnimation
+		};
+		return _height;
+	}
 	public float height {
-		get {
-			InitHeight();
-			return _height.value;
-		}
-		set {
-			InitHeight();
-			_height.value = value;
-		}
+		get => InitHeight().GetProperty(SLayoutProperty.GetMode.Current);
+		set => InitHeight().SetProperty(value, SLayoutProperty.SetMode.Auto);
 	}
-
+	public float startHeight {
+		get => InitHeight().GetProperty(SLayoutProperty.GetMode.AnimStart);
+		set => InitHeight().SetProperty(value, SLayoutProperty.SetMode.AnimStart);
+	}
 	public float targetHeight {
-		get {
-			InitHeight();
-			return _height.animatedProperty != null ? _height.animatedProperty.end : _height.value;
-		}
+		get => InitHeight().GetProperty(SLayoutProperty.GetMode.AnimEnd);
+		set => InitHeight().SetProperty(value, SLayoutProperty.SetMode.AnimEnd);
 	}
+	
 
 	public Vector2 position {
 		get => new(x, y);
@@ -458,8 +446,20 @@ public partial class SLayout : UIBehaviour {
 			y = value.y;
 		}
 	}
-
-	public Vector2 targetPosition => new(targetX, targetY);
+	public Vector2 startPosition {
+		get => new(startX, startY);
+		set {
+			startX = value.x;
+			startY = value.y;
+		}
+	}
+	public Vector2 targetPosition {
+		get => new(targetX, targetY);
+		set {
+			targetX = value.x;
+			targetY = value.y;
+		}
+	}
 
 	public Vector2 size {
 		get => new(width, height);
@@ -468,86 +468,123 @@ public partial class SLayout : UIBehaviour {
 			height = value.y;
 		}
 	}
-
-	public Vector2 targetSize => new(targetWidth, targetHeight);
-
+	public Vector2 startSize {
+		get => new(startWidth, startHeight);
+		set {
+			startWidth = value.x;
+			startHeight = value.y;
+		}
+	}
+	public Vector2 targetSize {
+		get => new(targetWidth, targetHeight);
+		set {
+			targetWidth = value.x;
+			targetHeight = value.y;
+		}
+	}
+	
+	
+	SLayoutAngleProperty _rotation;
+	SLayoutAngleProperty InitRotation() {
+		_rotation ??= new SLayoutAngleProperty {
+			layout = this,
+			getter = () => transform.localRotation.eulerAngles.z,
+			setter = r => transform.localRotation = Quaternion.Euler(0.0f, 0.0f, r),
+			isValid = GetIsValidForAnimation
+		};
+		return _rotation;
+	}
 	public float rotation {
-		get {
-			InitRotation();
-			return _rotation.value;
-		}
-		set {
-			InitRotation();
-			_rotation.value = value;
-		}
+		get => InitRotation().GetProperty(SLayoutProperty.GetMode.Current);
+		set => InitRotation().SetProperty(value, SLayoutProperty.SetMode.Auto);
 	}
-
+	public float startRotation {
+		get => InitRotation().GetProperty(SLayoutProperty.GetMode.AnimStart);
+		set => InitRotation().SetProperty(value, SLayoutProperty.SetMode.AnimStart);
+	}
 	public float targetRotation {
-		get {
-			InitRotation();
-			return _rotation.animatedProperty != null ? _rotation.animatedProperty.end : _rotation.value;
-		}
+		get => InitRotation().GetProperty(SLayoutProperty.GetMode.AnimEnd);
+		set => InitRotation().SetProperty(value, SLayoutProperty.SetMode.AnimEnd);
 	}
-
+	
+	
+	SLayoutFloatProperty _scale;
+	SLayoutFloatProperty InitScale() {
+		_scale ??= new SLayoutFloatProperty {
+			layout = this,
+			getter = () => transform.localScale.x,
+			setter = s => transform.localScale = new Vector3(s, s, s),
+			isValid = GetIsValidForAnimation
+		};
+		return _scale;
+	}
 	public float scale {
-		get {
-			InitScale();
-			return _scale.value;
-		}
-		set {
-			InitScale();
-			_scale.value = value;
-		}
+		get => InitScale().GetProperty(SLayoutProperty.GetMode.Current);
+		set => InitScale().SetProperty(value, SLayoutProperty.SetMode.Auto);
 	}
-
+	public float startScale {
+		get => InitScale().GetProperty(SLayoutProperty.GetMode.AnimStart);
+		set => InitScale().SetProperty(value, SLayoutProperty.SetMode.AnimStart);
+	}
 	public float targetScale {
-		get {
-			InitScale();
-			return _scale.animatedProperty != null ? _scale.animatedProperty.end : _scale.value;
-		}
+		get => InitScale().GetProperty(SLayoutProperty.GetMode.AnimEnd);
+		set => InitScale().SetProperty(value, SLayoutProperty.SetMode.AnimEnd);
 	}
-
+	
+	
+	SLayoutFloatProperty _groupAlpha;
+	SLayoutFloatProperty InitGroupAlpha() {
+		_groupAlpha ??= new SLayoutFloatProperty {
+			layout = this,
+			getter = () => canvasGroup ? canvasGroup.alpha : 1.0f,
+			setter = a => {
+				if (canvasGroup) canvasGroup.alpha = a;
+			},
+			isValid = GetIsValidForAnimation
+		};
+		return _groupAlpha;
+	}
 	public float groupAlpha {
-		get {
-			InitGroupAlpha();
-			return _groupAlpha.value;
-		}
-		set {
-			InitGroupAlpha();
-			_groupAlpha.value = value;
-		}
+		get => InitGroupAlpha().GetProperty(SLayoutProperty.GetMode.Current);
+		set => InitGroupAlpha().SetProperty(value, SLayoutProperty.SetMode.Auto);
 	}
-
+	public float startGroupAlpha {
+		get => InitGroupAlpha().GetProperty(SLayoutProperty.GetMode.AnimStart);
+		set => InitGroupAlpha().SetProperty(value, SLayoutProperty.SetMode.AnimStart);
+	}
 	public float targetGroupAlpha {
-		get {
-			InitGroupAlpha();
-			return _groupAlpha.animatedProperty != null ? _groupAlpha.animatedProperty.end : _groupAlpha.value;
-		}
+		get => InitGroupAlpha().GetProperty(SLayoutProperty.GetMode.AnimEnd);
+		set => InitGroupAlpha().SetProperty(value, SLayoutProperty.SetMode.AnimEnd);
 	}
-
+	
+	
+	SLayoutColorProperty _color;
+	SLayoutColorProperty InitColor() {
+		_color ??= new SLayoutColorProperty {
+			layout = this,
+			getter = () => graphic ? graphic.color : Color.white,
+			setter = c => {
+				if (graphic) graphic.color = c;
+			},
+			isValid = GetIsValidForAnimation
+		};
+		return _color;
+	}
 	public Color color {
-		get {
-			InitColor();
-			return _color.value;
-		}
-		set {
-			InitColor();
-			_color.value = value;
-		}
+		get => InitColor().GetProperty(SLayoutProperty.GetMode.Current);
+		set => InitColor().SetProperty(value, SLayoutProperty.SetMode.Auto);
 	}
-
+	public Color startColor {
+		get => InitColor().GetProperty(SLayoutProperty.GetMode.AnimStart);
+		set => InitColor().SetProperty(value, SLayoutProperty.SetMode.AnimStart);
+	}
 	public Color targetColor {
-		get {
-			InitColor();
-			return _color.animatedProperty != null ? _color.animatedProperty.end : _color.value;
-		}
+		get => InitColor().GetProperty(SLayoutProperty.GetMode.AnimEnd);
+		set => InitColor().SetProperty(value, SLayoutProperty.SetMode.AnimEnd);
 	}
-
+	
 	public float alpha {
-		get {
-			InitColor();
-			return _color.value.a;
-		}
+		get => InitColor().value.a;
 		set {
 			InitColor();
 			var color = _color.value;
@@ -555,9 +592,9 @@ public partial class SLayout : UIBehaviour {
 			_color.value = color;
 		}
 	}
-
 	public float targetAlpha => targetColor.a;
 
+	
 	public Rect rect {
 		get => new(x, y, width, height);
 		set {
@@ -567,8 +604,24 @@ public partial class SLayout : UIBehaviour {
 			height = value.height;
 		}
 	}
-
-	public Rect targetRect => new(targetX, targetY, targetWidth, targetHeight);
+	public Rect startRect {
+		get => new(startX, startY, startWidth, startHeight);
+		set {
+			startX = value.x;
+			startY = value.y;
+			startWidth = value.width;
+			startHeight = value.height;
+		}
+	}
+	public Rect targetRect {
+		get => new(targetX, targetY, targetWidth, targetHeight);
+		set {
+			targetX = value.x;
+			targetY = value.y;
+			targetWidth = value.width;
+			targetHeight = value.height;
+		}
+	}
 
 	public Rect localRect {
 		get => new(0.0f, 0.0f, width, height);
@@ -661,8 +714,7 @@ public partial class SLayout : UIBehaviour {
 			pivotY = value.y;
 		}
 	}
-
-
+	
 	/// <summary>
 	/// X position of pivot in own pixel space (not normalised)
 	/// </summary>
@@ -707,52 +759,40 @@ public partial class SLayout : UIBehaviour {
 
 	public float bottomY {
 		get {
-			if( originTopLeft )
-				return y + height;
-			else
-				return y;
+			if(originTopLeft) return y + height;
+			else return y;
 		}
 		set {
-			if( originTopLeft )
-				y = value - height;
-			else
-				y = value;
+			if(originTopLeft) y = value - height;
+			else y = value;
 		}
 	}
 
 	public float targetBottomY {
 		get {
-			if( originTopLeft )
-				return targetY + targetHeight;
-			else
-				return targetY;
+			if(originTopLeft) return targetY + targetHeight;
+			else return targetY;
 		}
 	}
 
 	public float topY {
 		get {
-			if( originTopLeft )
-				return y;
-			else
-				return y + height;
+			if(originTopLeft) return y;
+			else return y + height;
 		}
 		set {
-			if( originTopLeft )
-				y = value;
-			else
-				y = value - height;
+			if(originTopLeft) y = value;
+			else y = value - height;
 		}
 	}
 
 	public float targetTopY {
 		get {
-			if( originTopLeft )
-				return targetY;
-			else
-				return targetY + targetHeight;
+			if(originTopLeft) return targetY;
+			else return targetY + targetHeight;
 		}
 	}
-		
+	
 	Vector2 GetPivotPos(RectTransform rt)
 	{
 		var rectSize = rt.rect.size;
@@ -795,7 +835,7 @@ public partial class SLayout : UIBehaviour {
 		float leftInset = parentToLeftEdge - toLeftEdge;
 		anchoredPos.x += leftInset;
 		
-		if( originTopLeft ) {
+		if(originTopLeft) {
 			// This calculation can almost certainly be simplied a LOT. This system confuses the heck out of me and I worked it out by just hacking things about.
 			float toTopEdge = (1.0f-rt.pivot.y) * height;
 			float parentToTopEdge = (1.0f-parentRectT.pivot.y) * parentRectT.rect.height;
@@ -836,7 +876,7 @@ public partial class SLayout : UIBehaviour {
 		float parentToLeftEdge = parentRectT.pivot.x * parentRectT.rect.width;
 		offset.x = parentToLeftEdge;
 
-		if( originTopLeft ) {
+		if(originTopLeft) {
 			canvasSpacePos.y = -canvasSpacePos.y;
 			float parentToTopEdge = (1.0f-parentRectT.pivot.y) * parentRectT.rect.height;
 			float topInset = parentToTopEdge;
@@ -850,7 +890,7 @@ public partial class SLayout : UIBehaviour {
     }
     
     public Vector2 ConvertPositionToWorldSpace(Vector2 localLayoutPos) {
-		if( originTopLeft ) localLayoutPos.y = height - localLayoutPos.y;
+		if(originTopLeft) localLayoutPos.y = height - localLayoutPos.y;
 		var localPos = localLayoutPos - GetPivotPos(rectTransform);
 		return rectTransform.TransformPoint(localPos);
 	}
@@ -973,7 +1013,7 @@ public partial class SLayout : UIBehaviour {
 		if( parentRectT == null )
 			return 0.0f;
 		
-		if( originTopLeft ) {
+		if(originTopLeft) {
 			float toTopEdge = (1.0f-rt.pivot.y) * rt.rect.height;
 			float parentToTopEdge = (1.0f-parentRectT.pivot.y) * parentRectT.rect.height;
 			float topInset = parentToTopEdge - transform.localPosition.y - toTopEdge * (usingScale ? transform.localScale.y : 1);
@@ -1020,7 +1060,7 @@ public partial class SLayout : UIBehaviour {
 		float localY;
 		
 		var rt = rectTransform;
-		if( originTopLeft ) {
+		if(originTopLeft) {
 			var parentPivotPosToTop = (1.0f-parentRT.pivot.y) * parentRT.rect.height;
 			var ownPivotPosToTop = (1.0f-rt.pivot.y) * rt.rect.height;
 			localY = parentPivotPosToTop - y - ownPivotPosToTop * (usingScale ? transform.localScale.y : 1);
@@ -1078,95 +1118,7 @@ public partial class SLayout : UIBehaviour {
 		}
 	}
 
-	void InitX() {
-		if( _x == null ) {
-			_x = new SLayoutFloatProperty {
-				layout = this,
-                getter = () => GetRectTransformX(rectTransform),
-				setter = SetRectTransformX,
-				isValid = GetIsValidForAnimation
-			};
-		}
-	}
-
-	void InitY() {
-		if( _y == null ) {
-			_y = new SLayoutFloatProperty {
-				layout = this,
-                getter = () => GetRectTransformY(rectTransform),
-				setter = SetRectTransformY,
-				isValid = GetIsValidForAnimation
-			};
-		}
-	}
-
-	void InitWidth() {
-		if( _width == null ) {
-			_width = new SLayoutFloatProperty {
-				layout = this,
-                getter = () => rectTransform.rect.width,
-				setter = SetRectTransformWidth,
-				isValid = GetIsValidForAnimation
-			};
-		}
-	}
-
-	void InitHeight() {
-		if( _height == null ) {
-			_height = new SLayoutFloatProperty {
-				layout = this,
-                getter = () => rectTransform.rect.height,
-				setter = SetRectTransformHeight,
-				isValid = GetIsValidForAnimation
-			};
-		}
-	}
-
-	void InitRotation() {
-		if( _rotation == null ){
-			_rotation = new SLayoutAngleProperty {
-				layout = this,
-                getter = () => transform.localRotation.eulerAngles.z,
-				setter = r => transform.localRotation = Quaternion.Euler(0.0f, 0.0f, r),
-				isValid = GetIsValidForAnimation
-			};
-		}
-	}
-
-	void InitScale() {
-		if( _scale == null ) {
-			_scale = new SLayoutFloatProperty {
-				layout = this,
-                getter = () => transform.localScale.x,
-				setter = s =>  transform.localScale = new Vector3(s, s, s),
-				isValid = GetIsValidForAnimation
-			};
-		}
-	}
-
-	void InitGroupAlpha() {
-		if( _groupAlpha == null ) {
-			_groupAlpha = new SLayoutFloatProperty {
-				layout = this,
-                getter = () => canvasGroup ? canvasGroup.alpha : 1.0f,
-				setter = a => { if( canvasGroup ) canvasGroup.alpha = a; },
-				isValid = GetIsValidForAnimation
-			};
-		}
-	}
-
-	void InitColor() {
-		if( _color == null ) {
-			_color = new SLayoutColorProperty {
-				layout = this,
-                getter = () => graphic ? graphic.color : Color.white,
-				setter = c => {  if( graphic ) graphic.color = c;  },
-				isValid = GetIsValidForAnimation
-			};
-		}
-	}
 	
-
 	protected override void OnTransformParentChanged () {
 		base.OnTransformParentChanged();
 		_rootCanvas = _canvas = null;
@@ -1182,15 +1134,4 @@ public partial class SLayout : UIBehaviour {
 			return Mathf.Abs(a - b) < maxDifference;
 		}
 	}
-	
-	
-	SLayoutFloatProperty _x;
-	SLayoutFloatProperty _y;
-	SLayoutFloatProperty _width;
-	SLayoutFloatProperty _height;
-	SLayoutAngleProperty _rotation;
-	SLayoutFloatProperty _scale;
-									 
-	SLayoutFloatProperty _groupAlpha;
-	SLayoutColorProperty _color;
 }

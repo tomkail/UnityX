@@ -21,6 +21,6 @@ MonoBehaviour:
     buildTarget: iOS
     isDevelopment: 1
     gitBranch: dev
-    gitCommitSHA: 012e37
-    buildDateTimeString: 2024-02-28 13:47:08Z
+    gitCommitSHA: dc3c1f
+    buildDateTimeString: 2024-03-12 08:05:04Z
     inkCompileDateTimeString: 19/05/2021 07:33:49

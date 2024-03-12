@@ -3,6 +3,7 @@
 using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
+using UnityX.Geometry;
 
 [System.Serializable]
 public class AdvancedUILine {
@@ -13,9 +14,8 @@ public class AdvancedUILine {
     [SerializeField]
     Vector2[] _vertices;
     public Vector2[] vertices {
-        get {
-            return _vertices;
-        } set {
+        get => _vertices;
+        set {
             Debug.Assert(value != null);
             _vertices = value;
         }
@@ -48,12 +48,8 @@ public class AdvancedUILine {
     /// This is useful if your polygons are not draw repeating by default.
     /// </summary>
     /// <value><c>true</c> if connected; otherwise, <c>false</c>.</value>
-    public bool connected {
-        get {
-            return (!_vertices.IsNullOrEmpty() && _vertices[0] == _vertices[_vertices.Length-1]);
-        }
-    }
-    
+    public bool connected => (!_vertices.IsNullOrEmpty() && _vertices[0] == _vertices[_vertices.Length-1]);
+
     /// <summary>
     /// Determines whether this instance is valid.
     /// </summary>
@@ -484,11 +480,8 @@ public class AdvancedUILine {
     /// Array operator. 
     /// </summary>
     public Vector2 this[int key] {
-        get {
-            return _vertices[key];
-        } set {
-            _vertices[key] = value;
-        }
+        get => _vertices[key];
+        set => _vertices[key] = value;
     }
     
     

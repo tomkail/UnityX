@@ -51,7 +51,7 @@ namespace UnityX.StateMachine {
 		/// </summary>
 		public State<T> previousState { get; private set; }
 		
-		private Dictionary<System.Type, State<T>> states = new Dictionary<System.Type, State<T>>();
+		private Dictionary<System.Type, State<T>> states = new();
 
 		// Create a state machine without a default state (not recommended).
 		public StateMachine(T context) {

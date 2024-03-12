@@ -4,9 +4,8 @@ public class LinearGradientRenderer : BaseGradientRenderer {
     [SerializeField]
 	float _degrees = 0;
     public float degrees {
-		get {
-			return _degrees;
-		} set {
+		get => _degrees;
+		set {
 			_degrees = value;
 			RefreshMaterialPropertyBlock();
 		}

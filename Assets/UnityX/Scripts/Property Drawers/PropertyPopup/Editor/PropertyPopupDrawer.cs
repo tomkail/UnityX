@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEditor;
 using System;
-using System.Reflection;
 
 [CustomPropertyDrawer(typeof(PropertyPopupAttribute))]
 public class PropertyPopupDrawer : BaseAttributePropertyDrawer<PropertyPopupAttribute> {

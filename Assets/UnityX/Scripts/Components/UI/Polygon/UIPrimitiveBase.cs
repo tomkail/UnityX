@@ -47,23 +47,29 @@ namespace UnityEngine.UI.Extensions
 
         [SerializeField]
         private Sprite m_Sprite;
-        public Sprite sprite { get { return m_Sprite; } set { if (SetPropertyUtility.SetClass(ref m_Sprite, value)) SetAllDirty(); } }
+        public Sprite sprite { get => m_Sprite;
+            set { if (SetPropertyUtility.SetClass(ref m_Sprite, value)) SetAllDirty(); } }
 
         [NonSerialized]
         private Sprite m_OverrideSprite;
-        public Sprite overrideSprite { get { return m_OverrideSprite == null ? sprite : m_OverrideSprite; } set { if (SetPropertyUtility.SetClass(ref m_OverrideSprite, value)) SetAllDirty(); } }
+        public Sprite overrideSprite { get => m_OverrideSprite == null ? sprite : m_OverrideSprite;
+            set { if (SetPropertyUtility.SetClass(ref m_OverrideSprite, value)) SetAllDirty(); } }
 
         // Not serialized until we support read-enabled sprites better.
         internal float m_EventAlphaThreshold = 1;
-        public float eventAlphaThreshold { get { return m_EventAlphaThreshold; } set { m_EventAlphaThreshold = value; } }
+        public float eventAlphaThreshold { get => m_EventAlphaThreshold;
+            set => m_EventAlphaThreshold = value;
+        }
 
         [SerializeField]
         private ResolutionMode m_improveResolution;
-        public ResolutionMode ImproveResolution { get { return m_improveResolution; } set { m_improveResolution = value; SetAllDirty(); } }
+        public ResolutionMode ImproveResolution { get => m_improveResolution;
+            set { m_improveResolution = value; SetAllDirty(); } }
 
         [SerializeField]
         private float m_Resolution;
-        public float Resoloution { get { return m_Resolution; } set { m_Resolution = value; SetAllDirty(); } }
+        public float Resoloution { get => m_Resolution;
+            set { m_Resolution = value; SetAllDirty(); } }
 
 
 
@@ -170,7 +176,7 @@ namespace UnityEngine.UI.Extensions
         public virtual void CalculateLayoutInputHorizontal() { }
         public virtual void CalculateLayoutInputVertical() { }
 
-        public virtual float minWidth { get { return 0; } }
+        public virtual float minWidth => 0;
 
         public virtual float preferredWidth
         {
@@ -182,9 +188,9 @@ namespace UnityEngine.UI.Extensions
             }
         }
 
-        public virtual float flexibleWidth { get { return -1; } }
+        public virtual float flexibleWidth => -1;
 
-        public virtual float minHeight { get { return 0; } }
+        public virtual float minHeight => 0;
 
         public virtual float preferredHeight
         {
@@ -196,9 +202,9 @@ namespace UnityEngine.UI.Extensions
             }
         }
 
-        public virtual float flexibleHeight { get { return -1; } }
+        public virtual float flexibleHeight => -1;
 
-        public virtual int layoutPriority { get { return 0; } }
+        public virtual int layoutPriority => 0;
 
         #endregion
 

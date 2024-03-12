@@ -3,19 +3,14 @@ using UnityEngine;
 [RequireComponent(typeof(MeshRenderer))]
 [ExecuteInEditMode]
 public abstract class BaseGradientRenderer : MonoBehaviour {
-    public MeshRenderer meshRenderer {
-		get {
-			return GetComponent<MeshRenderer>();
-		}
-	}
+    public MeshRenderer meshRenderer => GetComponent<MeshRenderer>();
 
-	[Space]
+    [Space]
     [SerializeField]
 	Color _startColor = Color.white;
     public Color startColor {
-		get {
-			return _startColor;
-		} set {
+		get => _startColor;
+		set {
 			_startColor = value;
 			RefreshMaterialPropertyBlock();
 		}
@@ -24,9 +19,8 @@ public abstract class BaseGradientRenderer : MonoBehaviour {
 	[SerializeField]
 	Color _endColor = Color.black;
     public Color endColor {
-		get {
-			return _endColor;
-		} set {
+		get => _endColor;
+		set {
 			_endColor = value;
 			RefreshMaterialPropertyBlock();
 		}
@@ -35,9 +29,8 @@ public abstract class BaseGradientRenderer : MonoBehaviour {
 	[SerializeField]
 	float _startDistance = 0f;
     public float startDistance {
-		get {
-			return _startDistance;
-		} set {
+		get => _startDistance;
+		set {
 			_startDistance = value;
 			RefreshMaterialPropertyBlock();
 		}
@@ -46,9 +39,8 @@ public abstract class BaseGradientRenderer : MonoBehaviour {
 	[SerializeField]
 	float _endDistance = 1f;
     public float endDistance {
-		get {
-			return _endDistance;
-		} set {
+		get => _endDistance;
+		set {
 			_endDistance = value;
 			RefreshMaterialPropertyBlock();
 		}
@@ -57,9 +49,8 @@ public abstract class BaseGradientRenderer : MonoBehaviour {
 	[SerializeField]
 	float _offsetX = 0f;
     public float offsetX {
-		get {
-			return _offsetX;
-		} set {
+		get => _offsetX;
+		set {
 			_offsetX = value;
 			RefreshMaterialPropertyBlock();
 		}
@@ -68,9 +59,8 @@ public abstract class BaseGradientRenderer : MonoBehaviour {
 	[SerializeField]
 	float _offsetY = 0f;
     public float offsetY {
-		get {
-			return _offsetY;
-		} set {
+		get => _offsetY;
+		set {
 			_offsetY = value;
 			RefreshMaterialPropertyBlock();
 		}
@@ -80,9 +70,8 @@ public abstract class BaseGradientRenderer : MonoBehaviour {
 	[SerializeField]
 	float _power = 1;
     public float power {
-		get {
-			return _power;
-		} set {
+		get => _power;
+		set {
 			_power = value;
 			RefreshMaterialPropertyBlock();
 		}

@@ -9,33 +9,19 @@ public class InputPoint {
 	public InputPointState state;
 
 	public float startTime;
-	public float activeTime {
-        get {
-            return Time.time - startTime;
-        }
-    }
+	public float activeTime => Time.time - startTime;
+
 	public int startFrame;
     // Note that this is 0 on the first frame this is active
-	public int activeFrames {
-        get {
-            return Time.frameCount - startFrame;
-        }
-    }
+	public int activeFrames => Time.frameCount - startFrame;
 
 	public Vector2 startPosition;
 	public Vector2 position;
 	public Vector2 lastPosition;
-	public Vector2 deltaPosition {
-        get {
-            return position-lastPosition;
-        }
-    }
-	public Vector2 deltaPositionSinceStart {
-        get {
-            return position - startPosition;
-        }
-    }
-	
+	public Vector2 deltaPosition => position-lastPosition;
+
+	public Vector2 deltaPositionSinceStart => position - startPosition;
+
 	public float lerpedMovement;
 	
 	public bool isOnScreen = true;

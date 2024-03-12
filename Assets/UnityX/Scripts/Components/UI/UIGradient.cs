@@ -7,6 +7,7 @@
 ///
 /// Remember that for radial and diamond gradients, colors are applied per-vertex so if you have multiple points on your gradient where the color changes and there aren't enough vertices, you won't see all of the colors.
 /// </summary>
+
 using System;
 using System.Collections.Generic;
 
@@ -29,19 +30,19 @@ namespace UnityEngine.UI.Extensions
 
         [SerializeField]
         [Range(-1, 1)]
-        float _offset = 0f;
+        float _offset;
 
         [SerializeField]
         [Range(0.1f, 10)]
         float _zoom = 1f;
 
         [SerializeField]
-        UnityEngine.Gradient _effectGradient = new UnityEngine.Gradient() { colorKeys = new GradientColorKey[] { new GradientColorKey(Color.black, 0), new GradientColorKey(Color.white, 1) } };
+        Gradient _effectGradient = new() { colorKeys = new[] { new GradientColorKey(Color.black, 0), new GradientColorKey(Color.white, 1) } };
 
         #region Properties
         public Blend BlendMode
         {
-            get { return _blendMode; }
+            get => _blendMode;
             set
             {
                 _blendMode = value;
@@ -49,9 +50,9 @@ namespace UnityEngine.UI.Extensions
             }
         }
 
-        public UnityEngine.Gradient EffectGradient
+        public Gradient EffectGradient
         {
-            get { return _effectGradient; }
+            get => _effectGradient;
             set
             {
                 _effectGradient = value;
@@ -61,7 +62,7 @@ namespace UnityEngine.UI.Extensions
 
         public Type GradientType
         {
-            get { return _gradientType; }
+            get => _gradientType;
             set
             {
                 _gradientType = value;
@@ -71,7 +72,7 @@ namespace UnityEngine.UI.Extensions
 
         public bool ModifyVertices
         {
-            get { return _modifyVertices; }
+            get => _modifyVertices;
             set
             {
                 _modifyVertices = value;
@@ -81,7 +82,7 @@ namespace UnityEngine.UI.Extensions
 
         public float Offset
         {
-            get { return _offset; }
+            get => _offset;
             set
             {
                 _offset = value;
@@ -91,7 +92,7 @@ namespace UnityEngine.UI.Extensions
 
         public float Zoom
         {
-            get { return _zoom; }
+            get => _zoom;
             set
             {
                 _zoom = value;
@@ -105,7 +106,7 @@ namespace UnityEngine.UI.Extensions
             graphic.SetVerticesDirty();
         }
 
-        List<UIVertex> _vertexList = new List<UIVertex>();
+        List<UIVertex> _vertexList = new();
         public override void ModifyMesh(VertexHelper helper)
         {
             if (!IsActive() || helper.currentVertCount == 0)
@@ -211,7 +212,7 @@ namespace UnityEngine.UI.Extensions
                             for (int i = 0; i < steps; i++)
                             {
                                 UIVertex curVertex = new UIVertex();
-                                float angle = (float)i * 360f / (float)steps;
+                                float angle = i * 360f / steps;
                                 float cosX = Mathf.Cos(Mathf.Deg2Rad * angle);
                                 float cosY = Mathf.Sin(Mathf.Deg2Rad * angle);
 
@@ -525,12 +526,12 @@ namespace UnityEngine.UI.Extensions
                     else return Color32.Lerp(colorA, colorB, strength);
                 }
                 case Blend.Add: {
-                    var target = (Color32)((Color)colorA + (Color)colorB);
+                    var target = (Color32)(colorA + (Color)colorB);
                     if(strength == 1) return target;
                     else return Color32.Lerp(colorA, target, strength);
                 }
                 case Blend.Multiply: {
-                    var target = (Color32)((Color)colorA * (Color)colorB);
+                    var target = (Color32)(colorA * (Color)colorB);
                     if(strength == 1) return target;
                     else return Color32.Lerp(colorA, target, strength);
                 }

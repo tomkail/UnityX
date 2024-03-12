@@ -1,6 +1,8 @@
-using UnityEngine;
+using System;
 using System.Collections.Generic;
- 
+using UnityEngine;
+using Random = UnityEngine.Random;
+
 public static class ListX {
 
 	public static List<T> ToList<T>(this IList<T> IList) {
@@ -42,7 +44,7 @@ public static class ListX {
 	/// <param name="list">List.</param>
 	/// <param name="type">Type.</param>
 	/// <typeparam name="T">The 1st type parameter.</typeparam>
-	public static bool Contains<T>(this IList<T> list, System.Type type) {
+	public static bool Contains<T>(this IList<T> list, Type type) {
 		for(int i = list.Count - 1; i >= 0; i--) {
 			if(list[i].GetType() == type) return true;
 		}
@@ -97,7 +99,7 @@ public static class ListX {
 	}
 	public static T TryGetValue<T>(this IList<T> list, int index) {
         if(list.ContainsIndex(index)) return list[index];
-        else return default(T);
+        else return default;
 	}
 
 	
@@ -138,7 +140,7 @@ public static class ListX {
     /// <typeparam name="T">The 1st type parameter.</typeparam>
     public static T Find<T>(this IList<T> list, T item) {
         int index = list.IndexOf(item);
-        if(index < 0) return default(T);
+        if(index < 0) return default;
         else return list[index];
     }
     
@@ -149,7 +151,7 @@ public static class ListX {
 	/// <param name="list">List.</param>
 	/// <typeparam name="T">The 1st type parameter.</typeparam>
 	/// <typeparam name="Q">The 2nd type parameter.</typeparam>
-	public static List<T> GetAllOfType<T>(this List<T> list, System.Type removeType) {
+	public static List<T> GetAllOfType<T>(this List<T> list, Type removeType) {
 		List<T> newList = new List<T>();
 		for (int i = list.Count-1; i >= 0; i--) {
 			if(list[i].GetType() == removeType) newList.Add(list[i]);
@@ -197,7 +199,7 @@ public static class ListX {
 		int n = list.Count;  
 		while (n > 1) {  
 			n--;  
-			int k = UnityEngine.Random.Range (0, n + 1);  
+			int k = Random.Range (0, n + 1);  
 			T value = list [k];  
 			list [k] = list [n];  
 			list [n] = value;  
@@ -205,16 +207,16 @@ public static class ListX {
 	}
 
 	public static void Shuffle<T>(this IList<T> list, int seed) {  
-		var oldState = UnityEngine.Random.state;
-		UnityEngine.Random.InitState(seed);
+		var oldState = Random.state;
+		Random.InitState(seed);
 		int n = list.Count;  
 		while (n > 1) {  
 			n--;  
-			int k = UnityEngine.Random.Range (0, n + 1);  
+			int k = Random.Range (0, n + 1);  
 			T value = list [k];  
 			list [k] = list [n];  
 			list [n] = value;  
 		}
-		UnityEngine.Random.state = oldState;
+		Random.state = oldState;
 	}
 }

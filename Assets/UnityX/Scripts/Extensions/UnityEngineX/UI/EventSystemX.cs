@@ -1,8 +1,7 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.EventSystems;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
+using UnityEngine.EventSystems;
 
 public static class EventSystemX {
 	static List<RaycastResult> staticResults;
@@ -25,15 +24,15 @@ public static class EventSystemX {
 		return raycastResult.isValid;
 	}
 
-	// Returns true if the graphic was hit
-	public static bool Raycast (Vector2 screenPos, Graphic graphic) {
-		return RaycastAll(screenPos).Any(x => x.gameObject == graphic.gameObject);
+	// Returns true if the target was hit
+	public static bool Raycast (Vector2 screenPos, GameObject target) {
+		return RaycastAll(screenPos).Any(x => x.gameObject == target);
 	}
 
-	// Returns true if the graphic was hit
-	public static bool Raycast (Vector2 screenPos, Graphic graphic, out RaycastResult raycastResult) {
+	// Returns true if the target was hit
+	public static bool Raycast (Vector2 screenPos, GameObject target, out RaycastResult raycastResult) {
 		var results = RaycastAll(screenPos);
-		int index = results.IndexOf(x => x.gameObject == graphic.gameObject);
+		int index = results.IndexOf(x => x.gameObject == target);
 		if(index == -1) {
 			raycastResult = new RaycastResult();
 			return false;
@@ -112,10 +111,10 @@ public static class EventSystemX {
 		var eventData = new PointerEventData(null);
         eventData.button = PointerEventData.InputButton.Left;
         if(focusedOption == null) {
-            eventData.hovered = new List<GameObject>() {};
+            eventData.hovered = new List<GameObject>();
             ExecuteEvents.ExecuteHierarchy(null, eventData, ExecuteEvents.pointerEnterHandler);
         } else {
-            eventData.hovered = new List<GameObject>() {focusedOption};
+            eventData.hovered = new List<GameObject> {focusedOption};
 			ExecuteEvents.ExecuteHierarchy(focusedOption, eventData, ExecuteEvents.pointerEnterHandler);
         }
 	}
@@ -124,10 +123,10 @@ public static class EventSystemX {
 		var eventData = new PointerEventData(null);
         eventData.button = PointerEventData.InputButton.Left;
         if(focusedOption == null) {
-            eventData.hovered = new List<GameObject>() {};
+            eventData.hovered = new List<GameObject>();
             ExecuteEvents.ExecuteHierarchy(null, eventData, ExecuteEvents.pointerExitHandler);
         } else {
-            eventData.hovered = new List<GameObject>() {focusedOption};
+            eventData.hovered = new List<GameObject> {focusedOption};
 			ExecuteEvents.ExecuteHierarchy(focusedOption, eventData, ExecuteEvents.pointerExitHandler);
         }
 	}
@@ -137,10 +136,10 @@ public static class EventSystemX {
         eventData.eligibleForClick = true;
         eventData.button = PointerEventData.InputButton.Left;
         if(focusedOption == null) {
-            eventData.hovered = new List<GameObject>() {};
+            eventData.hovered = new List<GameObject>();
             ExecuteEvents.ExecuteHierarchy(null, eventData, ExecuteEvents.pointerClickHandler);
         } else {
-            eventData.hovered = new List<GameObject>() {focusedOption};
+            eventData.hovered = new List<GameObject> {focusedOption};
             ExecuteEvents.ExecuteHierarchy(focusedOption, eventData, ExecuteEvents.pointerClickHandler);
         }
 	}

@@ -15,7 +15,7 @@ public class AudioSourceManager : MonoBehaviour {
 			else return false;
 		}
 	}
-	LogicBlender<bool> canPlayBlender = new LogicBlender<bool>(source => source == null || source.All(x => x));
+	LogicBlender<bool> canPlayBlender = new(source => source == null || source.All(x => x));
 	public bool startPlayingAtRandomTime;
 
 	private AudioSource _audioSource;
@@ -26,17 +26,11 @@ public class AudioSourceManager : MonoBehaviour {
 		        if(_audioSource == null) _audioSource = gameObject.AddComponent<AudioSource>();
             }
 			return _audioSource;
-		} private set {
-			_audioSource = value;
-		}
+		} private set => _audioSource = value;
 	}
 
 	// Checks if we're not playing and not at the start of the clip
-	public bool paused {
-		get {
-			return !audioSource.isPlaying && audioSource.timeSamples != 0;
-		}
-	}
+	public bool paused => !audioSource.isPlaying && audioSource.timeSamples != 0;
 
 
 	// Returns if the AudioSource is playing or supposed to be playing but currently out of focus
@@ -56,16 +50,9 @@ public class AudioSourceManager : MonoBehaviour {
 	}
 
 	bool wasPlaying;
-	bool playStateChangedThisFrame {
-		get {
-			return wasPlaying != audioSource.isPlaying;
-		}
-	}
-	bool changedFocusThisFrame {
-		get {
-			return wasFocused != Application.isFocused;
-		}
-	}
+	bool playStateChangedThisFrame => wasPlaying != audioSource.isPlaying;
+
+	bool changedFocusThisFrame => wasFocused != Application.isFocused;
 	bool wasFocused;
 	public bool audioSourceWasPlayingWhileFocused;
 
@@ -85,11 +72,8 @@ public class AudioSourceManager : MonoBehaviour {
 	public event AudioSourceEvent OnStopOrFinish;
 
 	public FloatTween volumeTween {
-		get {
-			return _volumeTween;
-		} private set {
-			_volumeTween = value;
-		}
+		get => _volumeTween;
+		private set => _volumeTween = value;
 	}
 	
 	void Reset () {
@@ -179,7 +163,7 @@ public class AudioSourceManager : MonoBehaviour {
 		
 	bool _wasPlaying;
 	[SerializeField]
-	FloatTween _volumeTween = new FloatTween();
+	FloatTween _volumeTween = new();
 
 	#if UNITY_EDITOR
 	public void LogPauseBlender () {

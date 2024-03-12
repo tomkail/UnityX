@@ -9,83 +9,66 @@ using System.Collections.Generic;
 			public int x, y, width, height;
 			
 			public int xMax {
-				get {
-					return width + x;
-				} set {
-					width = value - x;
-				}
+				get => width + x;
+				set => width = value - x;
 			}
 			
 			public int xMin {
-				get {
-					return x;
-				} set {
+				get => x;
+				set {
 					x = value;
 					width = xMax - x;
 				}
 			}
 			
 			public int yMax {
-				get {
-					return height + y;
-				}
-				set {
-					height = value - y;
-				}
+				get => height + y;
+				set => height = value - y;
 			}
 			
 			public int yMin {
-				get {
-					return y;
-				} set {
+				get => y;
+				set {
 					y = value;
 					height = yMax - y;
 				}
 			}
 			
 			public Point min {
-				get {
-					return new Point(xMin, yMin);
-				} set {
+				get => new(xMin, yMin);
+				set {
 					xMin = value.x;
 					yMin = value.y;
 				}
 			}
 
 			public Point max {
-				get {
-					return new Point(xMax, yMax);
-				} set {
+				get => new(xMax, yMax);
+				set {
 					xMax = value.x + width;
 					yMax = value.y + height;
 				}
 			}
 
 			public Point position {
-				get {
-					return new Point(x, y);
-				} set {
+				get => new(x, y);
+				set {
 					x = value.x;
 					y = value.y;
 				}
 			}
 		
 			public Point size {
-				get {
-					return new Point(width, height);
-				} set {
+				get => new(width, height);
+				set {
 					width = value.x;
 					height = value.y;
 				}
 			}
 			
-            public int area {
-				get {
-					return width * height;
-				}
-			}
+            public int area => width * height;
 
-			public PointRect(int _x, int _y, int _width, int _height) {
+            public PointRect(int _x, int _y, int _width, int _height) {
 				x = _x;
 				y = _y;
 				width = _width;

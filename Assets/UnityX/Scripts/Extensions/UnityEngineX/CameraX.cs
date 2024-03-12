@@ -1,5 +1,5 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 
 /// <summary>
 /// Extension methods for the UnityEngine.Camera class, and helper methods for working with cameras in general.
@@ -78,7 +78,7 @@ public static class CameraX {
 	public static Vector3[] GetVerticesFromBounds(Bounds bounds) {
 		var min = bounds.min;
 		var max = bounds.max;
-		return new Vector3[8]{min, max, new Vector3(min.x, min.y, max.z), new Vector3(min.x, max.y, min.z), new Vector3(max.x, min.y, min.z), new Vector3(min.x, max.y, max.z), new Vector3(max.x, min.y, max.z), new Vector3(max.x, max.y, min.z)};
+		return new Vector3[8]{min, max, new(min.x, min.y, max.z), new(min.x, max.y, min.z), new(max.x, min.y, min.z), new(min.x, max.y, max.z), new(max.x, min.y, max.z), new(max.x, max.y, min.z)};
 	}
 	
 	public static Rect WorldToScreenRect (this Camera camera, Rect worldRect, float distance) {

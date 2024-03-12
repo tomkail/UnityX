@@ -9,9 +9,8 @@ public class FloatMoveTowardsEaser {
 	[SerializeField, Tooltip("The target value")]
 	private float _target;
 	public float target {
-		get {
-			return _target;
-		} set {
+		get => _target;
+		set {
 			if(_target.Equals(value)) return;
 			_target = value;
 			if(OnChangeTarget != null) OnChangeTarget(target);
@@ -20,9 +19,8 @@ public class FloatMoveTowardsEaser {
 	[SerializeField, Tooltip("The current value")]
 	private float _current;
 	public float current {
-		get {
-			return _current;
-		} set {
+		get => _current;
+		set {
 			if(_current.Equals(value)) return;
 			_current = value;
 			if(OnChangeCurrent != null) OnChangeCurrent(current);
@@ -31,19 +29,12 @@ public class FloatMoveTowardsEaser {
 	
 	private float _delta;
 	public float delta {
-		get {
-			return _delta;
-		} set {
-			_delta = value;
-		}
+		get => _delta;
+		set => _delta = value;
 	}
 
-	public float remaining {
-		get {
-			return GetDelta(target, current);
-		}
-	}
-	
+	public float remaining => GetDelta(target, current);
+
 	public float maxDelta = defaultMaxDelta;
 
 	public System.Func<float, float> lerpFunction;

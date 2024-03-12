@@ -13,24 +13,18 @@ public struct SerializableCamera  {
 	public const float defaultAspectRatio = 1;
 	public const float defaultNearClipPlane = 0.01f;
 	public const float defaultFarClipPlane = 1000;
-	public static Rect defaultRect = new Rect(0,0,1,1);
+	public static Rect defaultRect = new(0,0,1,1);
 
 	public SerializableTransform transform;
 	
 	public Vector3 position {
-		get {
-			return transform.position;
-		} set {
-			transform.position = value;
-		}
+		get => transform.position;
+		set => transform.position = value;
 	}
 	
 	public Quaternion rotation {
-		get {
-			return transform.rotation;
-		} set {
-			transform.rotation = value;
-		}
+		get => transform.rotation;
+		set => transform.rotation = value;
 	}
 
     bool _projectionMatrixSet;
@@ -68,9 +62,8 @@ public struct SerializableCamera  {
 	[SerializeField]
     bool _orthographic;
     public bool orthographic {
-        get {
-            return _orthographic;
-        } set {
+        get => _orthographic;
+        set {
             _orthographic = value;
             _projectionMatrixSet = false;
             _inverseProjectionMatrixSet = false;
@@ -81,9 +74,8 @@ public struct SerializableCamera  {
 	[SerializeField]
     float _orthographicSize;
     public float orthographicSize {
-        get {
-            return _orthographicSize;
-        } set {
+        get => _orthographicSize;
+        set {
             _orthographicSize = value;
             _projectionMatrixSet = false;
             _inverseProjectionMatrixSet = false;
@@ -94,9 +86,8 @@ public struct SerializableCamera  {
 	[SerializeField]
     float _fieldOfView;
     public float fieldOfView {
-        get {
-            return _fieldOfView;
-        } set {
+        get => _fieldOfView;
+        set {
             _fieldOfView = value;
             _projectionMatrixSet = false;
             _inverseProjectionMatrixSet = false;
@@ -106,9 +97,8 @@ public struct SerializableCamera  {
 	[SerializeField]
     float _nearClipPlane;
     public float nearClipPlane {
-        get {
-            return _nearClipPlane;
-        } set {
+        get => _nearClipPlane;
+        set {
             _nearClipPlane = value;
             _projectionMatrixSet = false;
             _inverseProjectionMatrixSet = false;
@@ -118,9 +108,8 @@ public struct SerializableCamera  {
 	[SerializeField]
     float _farClipPlane;
     public float farClipPlane {
-        get {
-            return _farClipPlane;
-        } set {
+        get => _farClipPlane;
+        set {
             _farClipPlane = value;
             _projectionMatrixSet = false;
             _inverseProjectionMatrixSet = false;
@@ -143,8 +132,8 @@ public struct SerializableCamera  {
 	    public float width;
 	    public float height;
 
-	    public static ScreenParams @default => new ScreenParams(1920, 1080);
-	    public static ScreenParams gameScreenParams => new ScreenParams(gameScreenWidth, gameScreenHeight);
+	    public static ScreenParams @default => new(1920, 1080);
+	    public static ScreenParams gameScreenParams => new(gameScreenWidth, gameScreenHeight);
 	    
 	    // ARGH I hate this. It's necessary because screen/display don't return the values for game view in some editor contexts (using inspector windows, for example)
 	    public static int gameScreenWidth {
@@ -180,55 +169,31 @@ public struct SerializableCamera  {
     
     Rect _rect;
     public Rect rect {
-        get {
-            return _rect;
-        } set {
+        get => _rect;
+        set {
             _rect = value;
             _projectionMatrixSet = false;
             _inverseProjectionMatrixSet = false;
         }
     }
 
-    Rect clampedRect {
-        get {
-            return Rect.MinMaxRect(Mathf.Clamp01(rect.xMin),Mathf.Clamp01(rect.yMin),Mathf.Clamp01(rect.xMax),Mathf.Clamp01(rect.yMax));
-        }
-    }
-	public float aspect {
-        get {
-            return (screenWidth * clampedRect.width)/(screenHeight * clampedRect.height);
-        }
-    }
+    Rect clampedRect => Rect.MinMaxRect(Mathf.Clamp01(rect.xMin),Mathf.Clamp01(rect.yMin),Mathf.Clamp01(rect.xMax),Mathf.Clamp01(rect.yMax));
+
+    public float aspect => (screenWidth * clampedRect.width)/(screenHeight * clampedRect.height);
 
 
-    public int pixelWidth {
-        get {
-            return Mathf.RoundToInt(screenWidth * clampedRect.width);
-        }
-    }
-    public int pixelHeight {
-        get {
-            return Mathf.RoundToInt(screenHeight * clampedRect.height);
-        }
-    }
+    public int pixelWidth => Mathf.RoundToInt(screenWidth * clampedRect.width);
 
-	
+    public int pixelHeight => Mathf.RoundToInt(screenHeight * clampedRect.height);
 
 
-	// https://docs.unity3d.com/ScriptReference/Camera-worldToCameraMatrix
+    // https://docs.unity3d.com/ScriptReference/Camera-worldToCameraMatrix
 	// "Note that camera space matches OpenGL convention: camera's forward is the negative Z axis. This is different from Unity's convention, where forward is the positive Z axis."
-	public Matrix4x4 cameraToWorldMatrix {
-		get {
-			return Matrix4x4.TRS(position, rotation, new Vector3(1, 1, -1));
-		}
-	}
-	public Matrix4x4 worldToCameraMatrix {
-		get {
-			return cameraToWorldMatrix.inverse;
-		}
-	}
-	
-    // Not currently used since what screen conversion code is very tested, and this is less so - kept since handy for passing to shaders. 
+	public Matrix4x4 cameraToWorldMatrix => Matrix4x4.TRS(position, rotation, new Vector3(1, 1, -1));
+
+	public Matrix4x4 worldToCameraMatrix => cameraToWorldMatrix.inverse;
+
+	// Not currently used since what screen conversion code is very tested, and this is less so - kept since handy for passing to shaders. 
     public Matrix4x4 worldToCameraViewportMatrix {
         get {
             // Transform from (-0.5,-0.5)/(0.5,0.5) space to camera rect space

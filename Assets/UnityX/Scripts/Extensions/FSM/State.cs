@@ -7,7 +7,7 @@ namespace UnityX.StateMachine {
 	public abstract class State<T> : IState<T> {
 	
 		public StateMachine<T> machine { get; private set; }
-		public T context { get {return machine.context;}}
+		public T context => machine.context;
 		public bool active { get; set; }
 		
 		/// <summary>

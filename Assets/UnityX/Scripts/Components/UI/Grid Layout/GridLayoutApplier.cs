@@ -1,4 +1,3 @@
-using UnityEngine;
 using System.Collections.Generic;
 
 namespace UnityEngine.UI {
@@ -35,7 +34,7 @@ namespace UnityEngine.UI {
 			Refresh();
 		}
 
-		List<RectTransform> validChildren = new List<RectTransform>();
+		List<RectTransform> validChildren = new();
 
 		public void Refresh() {
 			drivenRectTransformTracker.Clear();

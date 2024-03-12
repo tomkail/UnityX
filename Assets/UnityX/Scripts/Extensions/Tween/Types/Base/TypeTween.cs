@@ -4,9 +4,8 @@ public abstract class TypeTween<T> {
 	[SerializeField]
 	private T _currentValue;
 	public T currentValue {
-		get {
-			return _currentValue;
-		} set {
+		get => _currentValue;
+		set {
 			_currentValue = value;
 			ChangedCurrentValue();
 		}
@@ -21,11 +20,8 @@ public abstract class TypeTween<T> {
 	[SerializeField]
 	private AnimationCurve _easingCurve;
 	public AnimationCurve easingCurve {
-		get {
-			return _easingCurve;
-		} protected set {
-			_easingCurve = value;
-		}
+		get => _easingCurve;
+		protected set => _easingCurve = value;
 	}
 	
 	public delegate void OnChangeEvent(T currentValue);
@@ -86,7 +82,7 @@ public abstract class TypeTween<T> {
 	/// Stops the tween and resets the current value to the default for this type.
 	/// </summary>
 	public void Reset () {
-		Reset(default(T));
+		Reset(default);
 	}
 
 	/// <summary>
@@ -211,7 +207,7 @@ public abstract class TypeTween<T> {
 			tweenTimer.OnComplete += TweenComplete;
 			tweenTimer.Start();
 			
-			deltaValue = default(T);
+			deltaValue = default;
 			currentValue = myStartValue;
 			startValue = myStartValue;
 			targetValue = myTargetValue;
@@ -258,7 +254,7 @@ public abstract class TypeTween<T> {
 	/// </summary>
 	protected virtual void TweenComplete () {
 		SetValue(GetValueAtNormalizedTime(1));
-		deltaValue = default(T);
+		deltaValue = default;
 		Stop();
 		if(OnComplete != null) OnComplete();
 	}

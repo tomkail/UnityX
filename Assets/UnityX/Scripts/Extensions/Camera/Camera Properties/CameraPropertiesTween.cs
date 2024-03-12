@@ -9,9 +9,8 @@ public class CameraPropertiesTween : TypeTween<CameraProperties> {
 
 	private AnimationCurve _targetPointEasingCurve;
 	public AnimationCurve targetPointEasingCurve {
-		get {
-			return _targetPointEasingCurve != null ? _targetPointEasingCurve : easingCurve;
-		} set {
+		get => _targetPointEasingCurve != null ? _targetPointEasingCurve : easingCurve;
+		set {
 			_targetPointEasingCurve = value;
 			SetDefaultLerpFunction();
 		}
@@ -19,9 +18,8 @@ public class CameraPropertiesTween : TypeTween<CameraProperties> {
 
 	private AnimationCurve _distanceEasingCurve;
 	public AnimationCurve distanceEasingCurve {
-		get {
-			return _distanceEasingCurve != null ? _distanceEasingCurve : easingCurve;
-		} set {
+		get => _distanceEasingCurve != null ? _distanceEasingCurve : easingCurve;
+		set {
 			_distanceEasingCurve = value;
 			SetDefaultLerpFunction();
 		}
@@ -29,9 +27,8 @@ public class CameraPropertiesTween : TypeTween<CameraProperties> {
 
 	private AnimationCurve _worldPitchEasingCurve;
 	public AnimationCurve worldPitchEasingCurve {
-		get {
-			return _worldPitchEasingCurve != null ? _worldPitchEasingCurve : easingCurve;
-		} set {
+		get => _worldPitchEasingCurve != null ? _worldPitchEasingCurve : easingCurve;
+		set {
 			_worldPitchEasingCurve = value;
 			SetDefaultLerpFunction();
 		}
@@ -39,9 +36,8 @@ public class CameraPropertiesTween : TypeTween<CameraProperties> {
 
 	private AnimationCurve _worldYawEasingCurve;
 	public AnimationCurve worldYawEasingCurve {
-		get {
-			return _worldYawEasingCurve != null ? _worldYawEasingCurve : easingCurve;
-		} set {
+		get => _worldYawEasingCurve != null ? _worldYawEasingCurve : easingCurve;
+		set {
 			_worldYawEasingCurve = value;
 			SetDefaultLerpFunction();
 		}
@@ -49,27 +45,24 @@ public class CameraPropertiesTween : TypeTween<CameraProperties> {
 
 	private AnimationCurve _localPitchEasingCurve;
 	public AnimationCurve localPitchEasingCurve {
-		get {
-			return _localPitchEasingCurve != null ? _localPitchEasingCurve : easingCurve;
-		} set {
+		get => _localPitchEasingCurve != null ? _localPitchEasingCurve : easingCurve;
+		set {
 			_localPitchEasingCurve = value;
 			SetDefaultLerpFunction();
 		}
 	}
 	private AnimationCurve _localYawEasingCurve;
 	public AnimationCurve localYawEasingCurve {
-		get {
-			return _localYawEasingCurve != null ? _localYawEasingCurve : easingCurve;
-		} set {
+		get => _localYawEasingCurve != null ? _localYawEasingCurve : easingCurve;
+		set {
 			_localYawEasingCurve = value;
 			SetDefaultLerpFunction();
 		}
 	}
 	private AnimationCurve _localRollEasingCurve;
 	public AnimationCurve localRollEasingCurve {
-		get {
-			return _localRollEasingCurve != null ? _localRollEasingCurve : easingCurve;
-		} set {
+		get => _localRollEasingCurve != null ? _localRollEasingCurve : easingCurve;
+		set {
 			_localRollEasingCurve = value;
 			SetDefaultLerpFunction();
 		}
@@ -77,9 +70,8 @@ public class CameraPropertiesTween : TypeTween<CameraProperties> {
 
 	private AnimationCurve _viewportOffsetXEasingCurve;
 	public AnimationCurve viewportOffsetXEasingCurve {
-		get {
-			return _viewportOffsetXEasingCurve != null ? _viewportOffsetXEasingCurve : easingCurve;
-		} set {
+		get => _viewportOffsetXEasingCurve != null ? _viewportOffsetXEasingCurve : easingCurve;
+		set {
 			_viewportOffsetXEasingCurve = value;
 			SetDefaultLerpFunction();
 		}
@@ -87,9 +79,8 @@ public class CameraPropertiesTween : TypeTween<CameraProperties> {
 
 	private AnimationCurve _viewportOffsetYEasingCurve;
 	public AnimationCurve viewportOffsetYEasingCurve {
-		get {
-			return _viewportOffsetYEasingCurve != null ? _viewportOffsetYEasingCurve : easingCurve;
-		} set {
+		get => _viewportOffsetYEasingCurve != null ? _viewportOffsetYEasingCurve : easingCurve;
+		set {
 			_viewportOffsetYEasingCurve = value;
 			SetDefaultLerpFunction();
 		}
@@ -97,9 +88,8 @@ public class CameraPropertiesTween : TypeTween<CameraProperties> {
 
 	private AnimationCurve _fieldOfViewEasingCurve;
 	public AnimationCurve fieldOfViewEasingCurve {
-		get {
-			return _fieldOfViewEasingCurve != null ? _fieldOfViewEasingCurve : easingCurve;
-		} set {
+		get => _fieldOfViewEasingCurve != null ? _fieldOfViewEasingCurve : easingCurve;
+		set {
 			_fieldOfViewEasingCurve = value;
 			SetDefaultLerpFunction();
 		}

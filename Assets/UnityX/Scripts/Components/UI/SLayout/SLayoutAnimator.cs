@@ -18,6 +18,7 @@ using UnityEditor;
 // It destroys itself whenever play mode state changes, and tries to find itself in the scene before creating a new instance.
 // This resolves issues caused by the instance being created and immediately lost in the strange time between edit and play mode.
 /// </summary>
+[AddComponentMenu("")]
 public sealed class SLayoutAnimator : MonoBehaviour
 {
 	public static bool quitting { get; private set; }
@@ -51,7 +52,7 @@ public sealed class SLayoutAnimator : MonoBehaviour
 		return false;
 	}
 
-	public void StartAnimation(SLayoutAnimation anim)
+	public void StartAnimation(AutoSLayoutAnimation anim)
 	{
 		anim.Start();
 		if( !anim.isComplete ) _animations.Add(anim);
@@ -59,7 +60,7 @@ public sealed class SLayoutAnimator : MonoBehaviour
 
 	public void AddDelay(float extraDelay)
 	{
-		var anim = SLayoutAnimation.AnimationUnderDefinition();
+		var anim = AutoSLayoutAnimation.AnimationUnderDefinition();
 		if( anim != null ) {
 			anim.AddDelay(extraDelay);
 		}
@@ -67,7 +68,7 @@ public sealed class SLayoutAnimator : MonoBehaviour
 
 	public void AddDuration(float extraDuration)
 	{
-		var anim = SLayoutAnimation.AnimationUnderDefinition();
+		var anim = AutoSLayoutAnimation.AnimationUnderDefinition();
 		if( anim != null ) {
 			anim.AddDuration(extraDuration);
 		}
@@ -75,7 +76,7 @@ public sealed class SLayoutAnimator : MonoBehaviour
 
 	public void Animatable(Action<float> customAnim)
 	{
-		var anim = SLayoutAnimation.AnimationUnderDefinition();
+		var anim = AutoSLayoutAnimation.AnimationUnderDefinition();
 		if( anim != null ) {
 			anim.AddCustomAnim(customAnim);
 		} else {
@@ -125,7 +126,7 @@ public sealed class SLayoutAnimator : MonoBehaviour
 						_instance = ownerGO.AddComponent<SLayoutAnimator>();
 					} else {
 						_instance = ownerGO.GetComponent<SLayoutAnimator>();
-						Debug.Assert(_instance != null, "Instance of SLayoutAnimator was found by name, but no SLayoutAnimator was found! This is not currently handled.");
+						Debug.Assert(_instance != null, $"Instance of {nameof(SLayoutAnimator)} was found by name, but no {nameof(SLayoutAnimator)} was found! This is not currently handled.");
 					}
 				} else {
 					ownerGO = new GameObject("SLayoutAnimator");
@@ -153,10 +154,6 @@ public sealed class SLayoutAnimator : MonoBehaviour
 			return;
 		}
 		_instance = this;
-		
-		// Tom disabled this because it was stopping the first animation if this component was created as a result of starting that animation. 
-		// _animations.Clear();
-		// _animationsToRemove.Clear();
 
 		Application.quitting += () => quitting = true;
 	}
@@ -174,11 +171,11 @@ public sealed class SLayoutAnimator : MonoBehaviour
 			// as part of the Update (due to a completion callback)
 			for(int i=0; i<_animations.Count; ++i) {
 				var anim = _animations[i];
-
-				// If owner object has been deleted, stop the animation
-				// (Definitely don't attempt to Update the anim since it'll likely
-				//  access properties of the object that has been deleted.)
-				if( !anim.canAnimate ) {
+				
+				// If owner is removed/deleted then the animation is cancelled.
+				// However, even if properties have all been removed we still allow
+				// the animation to remain active, since it may have a completion callback etc
+				if(anim.owner == null || anim.owner.Equals(null)) {
 					_animationsToRemove.Add(anim);
 					continue;
 				}
@@ -195,8 +192,8 @@ public sealed class SLayoutAnimator : MonoBehaviour
 		}
 	}
 
-	List<SLayoutAnimation> _animations = new List<SLayoutAnimation>();
-	List<SLayoutAnimation> _animationsToRemove = new List<SLayoutAnimation>();
+	[SerializeReference]List<AutoSLayoutAnimation> _animations = new();
+	List<AutoSLayoutAnimation> _animationsToRemove = new();
 
-	public static SLayoutAnimator _instance;
+	static SLayoutAnimator _instance;
 }

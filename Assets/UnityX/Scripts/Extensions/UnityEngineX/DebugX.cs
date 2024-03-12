@@ -1,7 +1,11 @@
-using UnityEngine;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using UnityEngine;
+using Debug = UnityEngine.Debug;
+using Object = System.Object;
 
 /// <summary>
 /// Debug extension class
@@ -10,7 +14,7 @@ public static class DebugX {
 	#region
 	public static bool debug = true;
 
-	public static bool SoftAssert (System.Object o) {
+	public static bool SoftAssert (Object o) {
 		return SoftAssert(o != null, "Warning: SoftAssert failed because object is null");
 	}
 	
@@ -24,22 +28,22 @@ public static class DebugX {
 		return condition;
 	}
 	
-	public static bool SoftAssert (System.Object msg, System.Object o) {
+	public static bool SoftAssert (Object msg, Object o) {
 		return SoftAssert(msg, o != null, "Warning: SoftAssert failed because object is null");
 	}
 	
-	public static bool SoftAssert(System.Object msg, bool condition) {
+	public static bool SoftAssert(Object msg, bool condition) {
 		return SoftAssert (msg, condition, "Warning: SoftAssert Failed!");
 	}
 	
-	public static bool SoftAssert(System.Object msg, bool condition, string message) {
+	public static bool SoftAssert(Object msg, bool condition, string message) {
 		if (!condition)
 			LogWarning (msg, message);
 		return condition;
 	}
 
 
-	public static bool Assert (System.Object o) {
+	public static bool Assert (Object o) {
 		return Assert(o != null, "Error: Assert failed because object is null");
 	}
 	
@@ -53,15 +57,15 @@ public static class DebugX {
 		return condition;
 	}
 	
-	public static bool Assert (System.Object msg, System.Object o) {
+	public static bool Assert (Object msg, Object o) {
 		return Assert(msg, o != null, "Error: Assert failed because object is null");
 	}
 	
-	public static bool Assert(System.Object msg, bool condition) {
+	public static bool Assert(Object msg, bool condition) {
 		return Assert (msg, condition, "Error: Assert Failed!");
 	}
 	
-	public static bool Assert(System.Object msg, bool condition, string message) {
+	public static bool Assert(Object msg, bool condition, string message) {
 		if (!condition)
 			LogError (msg, message);
 		return condition;
@@ -71,7 +75,7 @@ public static class DebugX {
 	/// <param name="o">The log source.</param>
 	/// <param name="item">The log item.</param>
 	/// <returns>The string.</returns>
-	public static string LogString (System.Object msg) {
+	public static string LogString (Object msg) {
 		StringBuilder sb = new StringBuilder(msg == null ? "NULL" : msg.ToString());
 		sb.AppendLine();
 		sb.Append("(").Append(Time.unscaledTime.ToString()).Append(")");
@@ -82,7 +86,7 @@ public static class DebugX {
 	/// <param name="o">The log source.</param>
 	/// <param name="item">The log item.</param>
 	/// <returns>The string.</returns>
-	public static string LogString (System.Object obj, System.Object msg) {
+	public static string LogString (Object obj, Object msg) {
 		StringBuilder sb = new StringBuilder(msg.ToString());
 		sb.AppendLine();
 		sb.Append("(").Append(Time.unscaledTime.ToString()).Append(")");
@@ -95,7 +99,7 @@ public static class DebugX {
 	/// <summary>Logs the target string.</summary>
 	/// <param name="o">The log source.</param>
 	/// <param name="item">The log item.</param>
-	public static void Log (System.Object a) {
+	public static void Log (Object a) {
 		if(!debug) return;
 		Debug.Log(LogString(a));
 	}
@@ -103,17 +107,17 @@ public static class DebugX {
 	/// <summary>Logs the target string, along with the current time and the log source.</summary>
 	/// <param name="o">The log source.</param>
 	/// <param name="item">The log item.</param>
-	public static void Log (System.Object obj, System.Object a) {
+	public static void Log (Object obj, Object a) {
 		if(!debug) return;
 		var logString = LogString(obj, a);
-		if(obj is Object) Debug.Log(logString, (Object)obj);
+		if(obj is UnityEngine.Object) Debug.Log(logString, (UnityEngine.Object)obj);
 		else Debug.Log(logString);
 	}
 
 	/// <summary>Logs a warning with the target string, along with the current time and the log source.</summary>
 	/// <param name="o">The log source.</param>
 	/// <param name="item">The log item.</param>
-	public static void LogWarning (System.Object a) {
+	public static void LogWarning (Object a) {
 		if(!debug) return;
 		Debug.LogWarning(LogString(a));
 	}
@@ -121,10 +125,10 @@ public static class DebugX {
 	/// <summary>Logs a warning with the target string, along with the current time and the log source.</summary>
 	/// <param name="o">The log source.</param>
 	/// <param name="item">The log item.</param>
-	public static void LogWarning (System.Object obj, System.Object a) {
+	public static void LogWarning (Object obj, Object a) {
 		if(!debug) return;
 		var logString = LogString(obj, a);
-		if(obj is Object) Debug.LogWarning(logString, (Object)obj);
+		if(obj is UnityEngine.Object) Debug.LogWarning(logString, (UnityEngine.Object)obj);
 		else Debug.LogWarning(logString);
 	}
 	
@@ -132,7 +136,7 @@ public static class DebugX {
 	/// <param name="o">The log source.</param>
 	/// <param name="item">The log item.</param>
 	/// <param name="color">The log color.</param>
-	public static void LogError (System.Object a) {
+	public static void LogError (Object a) {
 		if(!debug) return;
 		Debug.LogError(LogString(a));
 	}
@@ -141,16 +145,16 @@ public static class DebugX {
 	/// <param name="o">The log source.</param>
 	/// <param name="item">The log item.</param>
 	/// <param name="color">The log color.</param>
-	public static void LogError (System.Object obj, System.Object a) {
+	public static void LogError (Object obj, Object a) {
 		if(!debug) return;
 		var logString = LogString(obj, a);
-		if(obj is Object) Debug.LogError(logString, (Object)obj);
+		if(obj is UnityEngine.Object) Debug.LogError(logString, (UnityEngine.Object)obj);
 		else Debug.LogError(logString);
 	}
 	
-	public static void LogIfNull (System.Object o, System.Object a) {
+	public static void LogIfNull (Object o, Object a) {
 		if(a == null)
-			DebugX.LogError(o, "Object is null!");
+			LogError(o, "Object is null!");
 	}
 
 	public static void LogErrorOnce(string errorMessage, UnityEngine.Object context = null)
@@ -183,33 +187,33 @@ public static class DebugX {
 		Debug.Log(message, context);
 	}
 
-	static HashSet<string> _singleLoggedMessages = new HashSet<string>();
+	static HashSet<string> _singleLoggedMessages = new();
 
 	/// <summary>LogMany</summary>
 	/// <param name="list">The objects to log.</param>
 	public static void LogMany (params object[] list) {
 		if(!debug) return;
-		Debug.Log(DebugX.ListAsString(list));
+		Debug.Log(ListAsString(list));
 	}
 	
 	/// <summary>LogWarningMany</summary>
 	/// <param name="list">The objects to log warning.</param>
 	public static void LogWarningMany (params object[] list) {
 		if(!debug) return;
-		Debug.LogWarning(DebugX.ListAsString(list));
+		Debug.LogWarning(ListAsString(list));
 	}
 	
 	/// <summary>LogErrorMany</summary>
 	/// <param name="list">The objects to log error.</param>
 	public static void LogErrorMany (params object[] list) {
 		if(!debug) return;
-		Debug.LogError(DebugX.ListAsString(list));
+		Debug.LogError(ListAsString(list));
 	}
 	
 	/// <summary>Gets a log string from an object array.</summary>
 	/// <param name="list">The list of objects to log.</param>
 	/// <returns>string</returns>
-	public static string ListAsString<T> (IEnumerable<T> list, System.Func<T, string> toString = null, bool showTypeAndCount = true, bool lineSeparated = true) {
+	public static string ListAsString<T> (IEnumerable<T> list, Func<T, string> toString = null, bool showTypeAndCount = true, bool lineSeparated = true) {
 		if(list == null) return "NULL";
 		int count = 0;
 		foreach(var item in list) count++;
@@ -231,7 +235,7 @@ public static class DebugX {
 	/// <summary>Gets a log string from an object array.</summary>
 	/// <param name="list">The list of objects to log.</param>
 	/// <returns>string</returns>
-	public static string DictionaryAsString<TKey, TValue> (IDictionary<TKey, TValue> dictionary, System.Func<KeyValuePair<TKey, TValue>, string> toString = null, bool showTypeAndCount = true) {
+	public static string DictionaryAsString<TKey, TValue> (IDictionary<TKey, TValue> dictionary, Func<KeyValuePair<TKey, TValue>, string> toString = null, bool showTypeAndCount = true) {
 		if(dictionary == null) return "NULL";
 		int count = 0;
 		foreach(var item in dictionary) count++;
@@ -242,7 +246,7 @@ public static class DebugX {
 			if(toString != null) sb.AppendLine(toString(item));
 			else {
 				sb.Append("KEY: ");
-				sb.Append(item.Key.ToString());
+				sb.Append(item.Key);
 				sb.Append(", VALUE: ");
 				sb.AppendLine(item.Value.ToString());
 			}
@@ -254,7 +258,7 @@ public static class DebugX {
 	/// <summary>Clearly logs the contents of a list.</summary>
 	/// <typeparam name="T">The generic list type.</typeparam>
 	/// <param name="list">The list to log.</param>
-	public static void LogList<T> (IEnumerable<T> list, System.Func<T, string> toString = null, bool showTypeAndCount = true, bool lineSeparated = true) {
+	public static void LogList<T> (IEnumerable<T> list, Func<T, string> toString = null, bool showTypeAndCount = true, bool lineSeparated = true) {
 		if(list == null || !list.Any()) {
 			Debug.Log("List is null or empty");
 			return;
@@ -268,7 +272,7 @@ public static class DebugX {
 	/// <summary>Clearly logs the contents of a list.</summary>
 	/// <typeparam name="T">The generic list type.</typeparam>
 	/// <param name="list">The list to log.</param>
-	public static void LogList<T> (string log, IEnumerable<T> list, System.Func<T, string> toString = null, bool showTypeAndCount = true, bool lineSeparated = true) {
+	public static void LogList<T> (string log, IEnumerable<T> list, Func<T, string> toString = null, bool showTypeAndCount = true, bool lineSeparated = true) {
 		#if !UNITY_WINRT
 		StringBuilder sb = new StringBuilder();
 		sb.AppendLine(log);
@@ -282,7 +286,7 @@ public static class DebugX {
 	}
 
 
-	public static void LogDictionary<TKey,TValue> (IDictionary<TKey,TValue> dictionary, System.Func<KeyValuePair<TKey, TValue>, string> toString = null, bool showTypeAndCount = true) {
+	public static void LogDictionary<TKey,TValue> (IDictionary<TKey,TValue> dictionary, Func<KeyValuePair<TKey, TValue>, string> toString = null, bool showTypeAndCount = true) {
 		if(dictionary == null || dictionary.Count == 0) {
 			Debug.Log("Dictionary is null or empty");
 			return;
@@ -298,7 +302,7 @@ public static class DebugX {
 	/// <summary>Clearly logs the contents of a list.</summary>
 	/// <typeparam name="T">The generic list type.</typeparam>
 	/// <param name="dictionary">The dictionary to log.</param>
-	public static void LogDictionary<TKey, TValue> (string log, Dictionary<TKey, TValue> dictionary, System.Func<KeyValuePair<TKey, TValue>, string> toString = null, bool showTypeAndCount = true) {
+	public static void LogDictionary<TKey, TValue> (string log, Dictionary<TKey, TValue> dictionary, Func<KeyValuePair<TKey, TValue>, string> toString = null, bool showTypeAndCount = true) {
 		#if !UNITY_WINRT
 		StringBuilder sb = new StringBuilder();
 		sb.AppendLine(log);
@@ -323,7 +327,7 @@ public static class DebugX {
 	public static void DrawCube (Vector3 pos, Vector3 scale, Color col) {
 		Vector3 halfScale = scale * 0.5f; 
 		
-		Vector3[] points = new Vector3 [] {
+		Vector3[] points = {
 			pos + new Vector3(halfScale.x, 		halfScale.y, 	halfScale.z),
 			pos + new Vector3(-halfScale.x, 	halfScale.y, 	halfScale.z),
 			pos + new Vector3(-halfScale.x, 	-halfScale.y, 	halfScale.z),
@@ -346,7 +350,7 @@ public static class DebugX {
 	public static void DrawRect (Rect rect, Color col) {
 		Vector3 pos = new Vector3( rect.x + rect.width/2, rect.y + rect.height/2, 0.0f );
 		Vector3 scale = new Vector3 (rect.width, rect.height, 0.0f );
-		DebugX.DrawRect (pos, scale, col); 
+		DrawRect (pos, scale, col); 
 	}
 	
 	/// <summary>Draws a rect in the scene window.</summary>
@@ -355,7 +359,7 @@ public static class DebugX {
 	/// <param name="col">Color of the rect.</param>
 	public static void DrawRect (Vector3 pos, Vector3 scale, Color col) {		
 		Vector3 halfScale = scale * 0.5f; 
-		Vector3[] points = new Vector3 [] {
+		Vector3[] points = {
 			pos + new Vector3(halfScale.x, 		halfScale.y, 	halfScale.z),
 			pos + new Vector3(-halfScale.x, 	halfScale.y, 	halfScale.z),
 			pos + new Vector3(-halfScale.x, 	-halfScale.y, 	halfScale.z),
@@ -372,8 +376,7 @@ public static class DebugX {
 	/// <param name="scale">Scale of the rect.</param>
 	/// <param name="col">Color of the rect.</param>
 	public static void DrawPoint (Vector3 pos, float scale, Color col) {
-		Vector3[] points = new Vector3[] 
-		{
+		Vector3[] points = {
 			pos + (Vector3.up * scale), 
 			pos - (Vector3.up * scale), 
 			pos + (Vector3.right * scale), 
@@ -414,10 +417,10 @@ public static class DebugX {
 	/// Using a stopwatch, time how long it takes for the passed action to run, returning the number
 	/// of milliseconds. Use LogTime if you want a convenient to just log it.
 	/// </summary>
-	public static float TimeDuration(System.Action action) {
+	public static float TimeDuration(Action action) {
 		// Can't 'using' System.Diagnostics since it causes clashes with Debug class
 		// Can't 'using' System since it causes clashes with Unity's Object class
-		var stopwatch = new System.Diagnostics.Stopwatch();
+		var stopwatch = new Stopwatch();
 		stopwatch.Start();
 
 		action();
@@ -427,12 +430,12 @@ public static class DebugX {
 		return stopwatch.Millisecs();
 	}
 
-	public static float Millisecs(this System.Diagnostics.Stopwatch stopwatch)
+	public static float Millisecs(this Stopwatch stopwatch)
 	{
 		// Built in stopwatch.ElapsedMilliseconds only gives you a long rather than a fractional value,
 		// but we can calculate it properly using ticks.
 		var ticks = stopwatch.ElapsedTicks;
-		var ticksPerSecond = System.Diagnostics.Stopwatch.Frequency;
+		var ticksPerSecond = Stopwatch.Frequency;
 		double ticksPerMillisecond = ticksPerSecond / 1000.0;
 		float millisecs = (float)(ticks / ticksPerMillisecond);
 		return millisecs;
@@ -442,7 +445,7 @@ public static class DebugX {
 	/// Time how long it takes to run a particular action, and log that time in milliseconds.
 	/// Also returns the time in case you want to use it further.
 	/// </summary>
-	public static float LogTimeDuration(System.Action action)
+	public static float LogTimeDuration(Action action)
 	{
 		var time = TimeDuration(action);
 		Log(time+" ms");
@@ -454,7 +457,7 @@ public static class DebugX {
 	/// in the format: Your label: X ms
 	/// Also returns the time in case you want to use it further.
 	/// </summary>
-	public static float LogTimeDuration(string label, System.Action action)
+	public static float LogTimeDuration(string label, Action action)
 	{
 		var time = TimeDuration(action);
 		Log(label + ": " + time + " ms");
@@ -474,7 +477,7 @@ public static class DebugX {
 
 		const int framesToSkip = 1;
 
-		var trace = new System.Diagnostics.StackTrace(framesToSkip);
+		var trace = new StackTrace(framesToSkip);
 
 		// Skip actual ShortCallstack call
 		for(var i=0; i<trace.FrameCount; i++) {

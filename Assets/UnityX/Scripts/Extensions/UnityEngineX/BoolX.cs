@@ -1,4 +1,6 @@
-﻿public static class BoolX {
+﻿using System;
+
+public static class BoolX {
 
 	/// <summary>
 	/// Returns bool based on int value, as defined by C#.
@@ -6,7 +8,7 @@
 	/// <returns>The bool.</returns>
 	/// <param name="_bool">If set to <c>true</c> _bool.</param>
 	public static bool ToBool(this int _int) {
-		return System.Convert.ToBoolean(_int);
+		return Convert.ToBoolean(_int);
 	}
 		
 	/// <summary>
@@ -15,6 +17,6 @@
 	/// <returns>The int.</returns>
 	/// <param name="_bool">If set to <c>true</c> _bool.</param>
 	public static int ToInt(this bool _bool) {
-		return System.Convert.ToInt32(_bool);
+		return Convert.ToInt32(_bool);
 	}
 }

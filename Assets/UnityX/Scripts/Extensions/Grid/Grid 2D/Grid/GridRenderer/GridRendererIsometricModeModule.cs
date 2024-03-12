@@ -2,17 +2,10 @@ using UnityEngine;
 
 public class GridRendererIsometricModeModule : GridRendererModeModule {
     public float isometricHeight = 0.6f;
-    public Vector3 isometricScale {
-        get {
-            return new Vector3(1,isometricHeight,1);
-        }
-    }
+    public Vector3 isometricScale => new(1,isometricHeight,1);
     public float isometricAngle = -45f;
-    public Quaternion isometricRotation {
-        get {
-            return Quaternion.Euler(0,0,isometricAngle);
-        }
-    }
+    public Quaternion isometricRotation => Quaternion.Euler(0,0,isometricAngle);
+
     public override Matrix4x4 GetGridToLocalMatrix (Vector3 cellScale, Vector2 gridSize) {
         var _gridToLocalMatrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, isometricScale);
         _gridToLocalMatrix *= Matrix4x4.TRS(Vector3.zero, isometricRotation, cellScale);

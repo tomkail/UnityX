@@ -10,11 +10,8 @@ public class FPSManager : MonoSingleton<FPSManager> {
     public float minFPS = 0.0f;
 
     
-    public float averageFrameTime {
-        get {
-            return 1f/averageFPS;
-        }
-    }
+    public float averageFrameTime => 1f/averageFPS;
+
     public float targetFrameTime {
         get {
             var _averageFrameTime = averageFrameTime;
@@ -131,5 +128,5 @@ public class FPSManager : MonoSingleton<FPSManager> {
 		}
 	}
 	
-	private List<float> deltaTimes = new List<float>();
+	private List<float> deltaTimes = new();
 }

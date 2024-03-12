@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using System.Collections;
 
 //namespace UnityX.Editor {
 	public static class EditorWindowX {

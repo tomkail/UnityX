@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityX.Geometry;
 
 namespace UnityEngine.UI.Extensions {
     [AddComponentMenu("UI/Extensions/Primitives/UI Polygon")]
@@ -8,12 +9,10 @@ namespace UnityEngine.UI.Extensions {
         Texture _texture;
 
         [SerializeField]
-		Polygon _polygon = new Polygon(new Vector2(0,0), new Vector2(100,0), new Vector2(100,100), new Vector2(0,100));
+		Polygon _polygon = new(new Vector2(0,0), new Vector2(100,0), new Vector2(100,100), new Vector2(0,100));
 		public Polygon polygon {
-			get {
-				return _polygon;
-			}
-			set {
+			get => _polygon;
+            set {
 				_polygon = value;
 				base.SetVerticesDirty();
 			}
@@ -28,19 +27,11 @@ namespace UnityEngine.UI.Extensions {
         public float uvXAngle = 0;
         public float uvYAngle = 90;
 
-        public override Texture mainTexture
-        {
-            get
-            {
-                return _texture == null ? s_WhiteTexture : _texture;
-            }
-        }
+        public override Texture mainTexture => _texture == null ? s_WhiteTexture : _texture;
+
         public Texture texture
         {
-            get
-            {
-                return _texture;
-            }
+            get => _texture;
             set
             {
                 if (_texture == value) return;
@@ -61,7 +52,7 @@ namespace UnityEngine.UI.Extensions {
             SetAllDirty();
         }
 
-        static List<int> triangles = new List<int>();
+        static List<int> triangles = new();
         protected override void OnPopulateMesh(VertexHelper vh) {
             vh.Clear();
 			var points = polygon.vertices;
@@ -131,31 +122,19 @@ namespace UnityEngine.UI.Extensions {
         public virtual void CalculateLayoutInputHorizontal() { }
         public virtual void CalculateLayoutInputVertical() { }
 
-        public virtual float minWidth { get { return 0; } }
+        public virtual float minWidth => 0;
 
-        public virtual float preferredWidth
-        {
-            get
-            {
-                return polygon.GetRect().width;
-            }
-        }
+        public virtual float preferredWidth => polygon.GetRect().width;
 
-        public virtual float flexibleWidth { get { return -1; } }
+        public virtual float flexibleWidth => -1;
 
-        public virtual float minHeight { get { return 0; } }
-        
-        public virtual float preferredHeight
-        {
-            get
-            {
-                return polygon.GetRect().height;
-            }
-        }
+        public virtual float minHeight => 0;
 
-        public virtual float flexibleHeight { get { return -1; } }
+        public virtual float preferredHeight => polygon.GetRect().height;
 
-        public virtual int layoutPriority { get { return 0; } }
+        public virtual float flexibleHeight => -1;
+
+        public virtual int layoutPriority => 0;
 
         #endregion
     }

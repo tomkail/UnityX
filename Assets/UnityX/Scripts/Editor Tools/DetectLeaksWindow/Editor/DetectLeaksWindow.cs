@@ -6,9 +6,8 @@ public class DetectLeaksWindow : EditorWindow {
     public static int numObjects;
 	private static bool _showEditorResources = false;
 	public static bool showEditorResources {
-		get {
-			return _showEditorResources;
-			} set {
+		get => _showEditorResources;
+		set {
 				if(_showEditorResources == value) return;
 				_showEditorResources = value;
 				Refresh();
@@ -26,9 +25,8 @@ public class DetectLeaksWindow : EditorWindow {
 	public class LeakDetectionType<T> where T : Object {
 		public bool _show = false;
 		public bool show {
-			get {
-				return _show;
-			} set {
+			get => _show;
+			set {
 				if(_show == value) return;
 				_show = value;
 				if(show) Refresh();

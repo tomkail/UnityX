@@ -66,7 +66,7 @@ public class LogicBlender<T> {
 	}
 
 	public bool TryGetValueForSource (object source, out T value) {
-		value = default(T);
+		value = default;
 		foreach(var entry in sources) {
 			if(entry.source == source) {
 				value = entry.value;
@@ -118,7 +118,7 @@ public class LogicBlender<T> {
 		}
 	}
 	[SerializeField]
-	protected List<LogicGateSource> sources = new List<LogicGateSource> ();
+	protected List<LogicGateSource> sources = new();
 }
 /*
 // Blender using "and" logic. All gate sources must be true.

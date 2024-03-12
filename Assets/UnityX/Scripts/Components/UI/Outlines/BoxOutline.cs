@@ -12,10 +12,7 @@ public class BoxOutline : ModifiedShadow
 
     public int halfSampleCountX
     {
-        get
-        {
-            return m_halfSampleCountX;
-        }
+        get => m_halfSampleCountX;
 
         set
         {
@@ -27,10 +24,7 @@ public class BoxOutline : ModifiedShadow
 
     public int halfSampleCountY
     {
-        get
-        {
-            return m_halfSampleCountY;
-        }
+        get => m_halfSampleCountY;
 
         set
         {

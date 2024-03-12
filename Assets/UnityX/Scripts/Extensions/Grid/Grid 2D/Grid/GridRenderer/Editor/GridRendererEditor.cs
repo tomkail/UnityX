@@ -1,5 +1,4 @@
-﻿using UnityEngine;
-using UnityEditor;
+﻿using UnityEditor;
 
 [CustomEditor(typeof(GridRenderer))]
 public class GridRendererEditor : BaseEditor<GridRenderer> {

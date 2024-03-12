@@ -5,9 +5,8 @@ public class SpringDamper {
 	[SerializeField, Tooltip("The current value")]
 	private float _current;
 	public float current {
-		get {
-			return _current;
-		} set {
+		get => _current;
+		set {
 			_current = value;
 			if(OnChangeCurrent != null) OnChangeCurrent(current);
 		}
@@ -58,7 +57,7 @@ public class SpringDamper {
 
 	public virtual void Reset (float newDefaultValue) {
 		current = newDefaultValue;
-		currentVelocity = default(float);
+		currentVelocity = default;
 	}
 
 	public override string ToString () {

@@ -2,11 +2,11 @@ using System.Collections.Generic;
 
 // A fairly efficient way to update a list in such a way that produces a list of the items added and removed
 public class DoubleBufferChangeHashSet<T> {
-    public HashSet<T> last = new HashSet<T>();
-    public HashSet<T> current = new HashSet<T>();
+    public HashSet<T> last = new();
+    public HashSet<T> current = new();
 
-    public HashSet<T> removed = new HashSet<T>();
-    public HashSet<T> added = new HashSet<T>();
+    public HashSet<T> removed = new();
+    public HashSet<T> added = new();
 
     public delegate void OnChangeDelegate(HashSet<T> removed, HashSet<T> added);
     public event OnChangeDelegate OnChange;

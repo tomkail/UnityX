@@ -18,21 +18,13 @@ public static class TimeX {
 	/// The smallest of the deltaTime or the target frame rate deltatime. 
 	/// Prevents jumps when a frame takes a long time
 	/// </summary>
-	public static float targetClampedDeltaTime {
-		get {
-			return Mathf.Min(Time.deltaTime, targetFrameRateDeltaTime);
-		}
-	}
+	public static float targetClampedDeltaTime => Mathf.Min(Time.deltaTime, targetFrameRateDeltaTime);
 
 	/// <summary>
 	/// The smallest of the deltaTime or the target frame rate deltatime. 
 	/// Prevents jumps when a frame takes a long time
 	/// </summary>
-	public static float targetClampedUnscaledDeltaTime {
-		get {
-			return Mathf.Min(Time.unscaledDeltaTime, targetFrameRateDeltaTime);
-		}
-	}
+	public static float targetClampedUnscaledDeltaTime => Mathf.Min(Time.unscaledDeltaTime, targetFrameRateDeltaTime);
 
 	/// <summary>
 	/// Turn a damping value (e.g. 0.97) into a value that's framerate independent.

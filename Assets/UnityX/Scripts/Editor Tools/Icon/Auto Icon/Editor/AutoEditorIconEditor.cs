@@ -1,8 +1,4 @@
-﻿using UnityEngine;
-using UnityEditor;
-using UnityEditorInternal;
-using System.Collections;
-using UnityX.Editor.Icon;
+﻿using UnityEditor;
 
 [CustomEditor(typeof(AutoEditorIcon))]
 [CanEditMultipleObjects]

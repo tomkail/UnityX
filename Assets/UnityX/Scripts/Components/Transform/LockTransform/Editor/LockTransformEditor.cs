@@ -1,9 +1,4 @@
-﻿using UnityEngine;
-using UnityEditor;
-using System;
-using System.Reflection;
-using System.Collections;
-using System.Collections.Generic;
+﻿using UnityEditor;
 
 [CustomEditor(typeof(LockTransform))]
 public class LockTransformEditor : BaseEditor<LockTransform> {

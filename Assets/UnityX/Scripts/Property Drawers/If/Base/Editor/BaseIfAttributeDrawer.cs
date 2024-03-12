@@ -1,7 +1,5 @@
 using UnityEngine;
 using UnityEditor;
-using System;
-using System.Reflection;
 
 public abstract class BaseIfAttributeDrawer<T> : BaseAttributePropertyDrawer<T> where T : BaseIfAttribute {
 

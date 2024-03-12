@@ -10,8 +10,8 @@ public struct Margins {
 	public float left;
 	public float right;
 
-	public float horizontal { get { return left + right; } }
-	public float vertical { get { return top + bottom; } }
+	public float horizontal => left + right;
+	public float vertical => top + bottom;
 
 	public static Margins All(float val) {
 		return new Margins {

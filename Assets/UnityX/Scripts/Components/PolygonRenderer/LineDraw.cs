@@ -18,12 +18,7 @@ public struct StrokeGeometryAttributes {
         this.miterLimit = miterLimit;
         this.closed = closed;
     }
-    public StrokeGeometryAttributes @default {
-        get {
-            return new StrokeGeometryAttributes(1, 0, Cap.Butt, Join.Bevel, 10, true);
-        }
-    }
-
+    public StrokeGeometryAttributes @default => new(1, 0, Cap.Butt, Join.Bevel, 10, true);
 }
 public enum Cap {
     Butt,

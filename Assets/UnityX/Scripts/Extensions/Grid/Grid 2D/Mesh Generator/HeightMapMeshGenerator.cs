@@ -18,8 +18,8 @@ public class HeightMapMeshGenerator : MonoBehaviour {
 	public bool calculateNormals = true;
 	public bool useVertColor = false;
 	
-	public Vector3 offset = new Vector3(-0.5f, -0.5f, -0.5f);
-	public Vector3 scale = new Vector3(1, 1, 1);
+	public Vector3 offset = new(-0.5f, -0.5f, -0.5f);
+	public Vector3 scale = new(1, 1, 1);
 	
 	//for testing
 	public bool alwaysDirty = true;

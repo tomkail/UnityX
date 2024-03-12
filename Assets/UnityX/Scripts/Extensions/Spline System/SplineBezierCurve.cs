@@ -22,7 +22,7 @@ namespace SplineSystem {
 		public Vector3[] _points;
 		
 		// Fairly accurate tight world space bounds
-		public Bounds bounds = new Bounds();
+		public Bounds bounds = new();
 		public float length;
 
 		public float startArcLength;

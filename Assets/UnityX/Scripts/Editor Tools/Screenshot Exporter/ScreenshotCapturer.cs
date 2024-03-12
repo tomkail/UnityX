@@ -72,11 +72,8 @@ public class ScreenshotCapturer {
 
 	private static bool _capturingScreenshot;
 	public static bool capturingScreenshot { 
-		get { 
-			return _capturingScreenshot;
-		} private set {
-			_capturingScreenshot = value;
-		}
+		get => _capturingScreenshot;
+		private set => _capturingScreenshot = value;
 	}
 	
 	public delegate void OnCompleteScreenshotCaptureEvent (Texture2D screenshot);

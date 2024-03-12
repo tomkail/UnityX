@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using System.Collections;
 
 [CustomEditor(typeof(ScreenX))]
 public class ScreenXEditor : BaseEditor<ScreenX> {

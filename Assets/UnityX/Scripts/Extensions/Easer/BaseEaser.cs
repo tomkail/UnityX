@@ -5,9 +5,8 @@ public abstract class BaseEaser<T> {
 	[SerializeField, Tooltip("The target value")]
 	private T _target;
 	public T target {
-		get {
-			return _target;
-		} set {
+		get => _target;
+		set {
 			if(_target.Equals(value)) return;
 			_target = value;
 			if(OnChangeTarget != null) OnChangeTarget(target);
@@ -16,9 +15,8 @@ public abstract class BaseEaser<T> {
 	[SerializeField, Tooltip("The current value")]
 	private T _current;
 	public T current {
-		get {
-			return _current;
-		} set {
+		get => _current;
+		set {
 			if(_current.Equals(value)) return;
 			_current = value;
 			if(OnChangeCurrent != null) OnChangeCurrent(current);
@@ -27,18 +25,11 @@ public abstract class BaseEaser<T> {
 	
 	private T _delta;
 	public T delta {
-		get {
-			return _delta;
-		} protected set {
-			_delta = value;
-		}
+		get => _delta;
+		protected set => _delta = value;
 	}
 
-	public T remaining {
-		get {
-			return GetDelta(target, current);
-		}
-	}
+	public T remaining => GetDelta(target, current);
 	public System.Func<float, T> lerpFunction;
 
 	public event System.Action<T> OnChangeTarget;

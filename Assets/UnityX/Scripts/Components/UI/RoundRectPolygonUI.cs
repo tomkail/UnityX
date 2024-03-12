@@ -2,15 +2,13 @@
 using UnityEngine.UI;
 using UnityEngine.UI.Extensions;
 using UnityEngine.EventSystems;
+using UnityX.Geometry;
 
 [ExecuteAlways]
 [RequireComponent(typeof(RectTransform))]
 public class RoundRectPolygonUI : UIBehaviour, ILayoutElement {
-	RectTransform rectTransform {
-        get {
-            return (RectTransform)transform;
-        }
-    }
+	RectTransform rectTransform => (RectTransform)transform;
+
 	[SerializeField]
 	UIPolygon polygon = null;
 	[SerializeField]
@@ -70,27 +68,26 @@ public class RoundRectPolygonUI : UIBehaviour, ILayoutElement {
         m_PreferredHeight = polygon.preferredHeight;
     }
     
-    public virtual float minWidth { get { return m_MinWidth; } }
-    public virtual float minHeight { get { return m_MinHeight; } }
-    public virtual float preferredWidth { get { return m_PreferredWidth; } }
-    public virtual float preferredHeight { get { return m_PreferredHeight; } }
+    public virtual float minWidth => m_MinWidth;
+    public virtual float minHeight => m_MinHeight;
+    public virtual float preferredWidth => m_PreferredWidth;
+    public virtual float preferredHeight => m_PreferredHeight;
 
     /// <summary>
     /// The extra relative width this layout element should be allocated if there is additional available space.
     /// </summary>
-    public virtual float flexibleWidth { get { return m_FlexibleWidth; } }
+    public virtual float flexibleWidth => m_FlexibleWidth;
 
     /// <summary>
     /// The extra relative height this layout element should be allocated if there is additional available space.
     /// </summary>
-    public virtual float flexibleHeight { get { return m_FlexibleHeight; } }
+    public virtual float flexibleHeight => m_FlexibleHeight;
 
     /// <summary>
     /// The Priority of layout this element has.
     /// </summary>
-    public virtual int layoutPriority { get { return m_LayoutPriority; } }
+    public virtual int layoutPriority => m_LayoutPriority;
 
-    
 
     protected override void OnTransformParentChanged()
     {

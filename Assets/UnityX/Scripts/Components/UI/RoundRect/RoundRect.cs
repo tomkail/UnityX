@@ -102,8 +102,8 @@ public class RoundRect : MaskableGraphic
     [SerializeField] float _outlineWidth = 2.0f;
 
 
-    private List<UIVertex> vertexBuffer = new List<UIVertex>();
-    private List<int> indexBuffer = new List<int>();
+    private List<UIVertex> vertexBuffer = new();
+    private List<int> indexBuffer = new();
 
     // cornerRadius, but constrained by the size of the rect
     float RenderedRadius(float radius, Vector2 rectSize) {

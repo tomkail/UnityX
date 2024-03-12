@@ -6,17 +6,9 @@ namespace UnityX.Geometry {
 	public struct Sphere {
 		public Vector3 center;
 		public float radius;
-		public float sqrRadius {
-			get {
-				return radius * radius;
-			}
-		}
+		public float sqrRadius => radius * radius;
 
-		public float Volume {
-			get {
-				return (4f/3f)*Mathf.PI*(Mathf.Pow(radius, 3));
-			}
-		}
+		public float Volume => (4f/3f)*Mathf.PI*(Mathf.Pow(radius, 3));
 
 		public Sphere (Vector3 center, float radius) {
 			this.center = center;

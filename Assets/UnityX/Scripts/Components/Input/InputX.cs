@@ -8,9 +8,8 @@ public class InputX : MonoSingleton<InputX> {
 	[SerializeField]
 	private bool _acceptInput = true;
 	public bool acceptInput {
-		get {
-			return _acceptInput;
-		} set {
+		get => _acceptInput;
+		set {
 			if(_acceptInput == value) return;
 			_acceptInput = value;
 			if(acceptInput){
@@ -33,9 +32,9 @@ public class InputX : MonoSingleton<InputX> {
         }
     }
 	public MouseInput mouseInput;
-	public List<Finger> fingers = new List<Finger>();
+	public List<Finger> fingers = new();
 
-	public List<Gesture> gestures = new List<Gesture>();
+	public List<Gesture> gestures = new();
 	public IEnumerable<Pinch> pinches {
 		get {
 			return gestures.Where(x => x is Pinch).Select(x => x as Pinch);
@@ -341,7 +340,7 @@ public class InputX : MonoSingleton<InputX> {
                 return true;
             }
 		}
-        touch = default(Touch);
+        touch = default;
         return false;
 	}
 

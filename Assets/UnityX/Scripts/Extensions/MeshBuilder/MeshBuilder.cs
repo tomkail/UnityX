@@ -5,10 +5,10 @@ namespace UnityX.MeshBuilder
 {
     public class MeshBuilder {
         
-        public List<Vector3> verts = new List<Vector3>();
-		public List<int> tris = new List<int>();
-		public List<Vector2> uvs = new List<Vector2>();
-		public List<Color> colors = new List<Color>();
+        public List<Vector3> verts = new();
+		public List<int> tris = new();
+		public List<Vector2> uvs = new();
+		public List<Color> colors = new();
 
 		public void Clear () {
 			verts.Clear();

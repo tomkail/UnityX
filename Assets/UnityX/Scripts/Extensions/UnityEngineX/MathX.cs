@@ -1,6 +1,6 @@
-using UnityEngine;
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public static class MathX {
 
@@ -15,7 +15,7 @@ public static class MathX {
 	/// <summary>
 	/// Can be iterated using foreach(var sign in MathX.signs)
 	/// </summary>
-	public static int[] signs = new int[] {-1, +1};
+	public static int[] signs = {-1, +1};
 
 	// https://stackoverflow.com/questions/1082917/mod-of-negative-number-is-melting-my-brain
 	public static int Mod(this int a, int n) {
@@ -166,7 +166,7 @@ public static class MathX {
 		if (a == b)  { 
 			return true;
 		} else {
-			return MathX.Difference(a, b) < maxDifference;
+			return Difference(a, b) < maxDifference;
 	    }
 	}
 
@@ -274,7 +274,7 @@ public static class MathX {
 	/// <returns>The degrees.</returns>
 	/// <param name="degrees">Degrees.</param>
 	public static float WrapDegrees (float degrees) {
-		return MathX.RepeatInclusive(degrees, -180, 180);
+		return RepeatInclusive(degrees, -180, 180);
 	}
 	
 	/// <summary>
@@ -294,7 +294,7 @@ public static class MathX {
 	/// <param name="min">Minimum.</param>
 	/// <param name="max">Max.</param>
 	public static float ClampDegrees (float degrees, float min, float max) {
-		return Mathf.Clamp (MathX.WrapDegrees(degrees), min, max);
+		return Mathf.Clamp (WrapDegrees(degrees), min, max);
 	}
 
 	public static float LerpAngleUnclamped (float a, float b, float t) {
@@ -359,7 +359,7 @@ public static class MathX {
 	
 	// Clamps the scale of a value, keeping its original sign. The sign of unsignedMax is arbitrary. ClampMagnitude(-3, 1) = -1, ClampMagnitude(3, 1) = 1 ClampMagnitude(-3, -1) = -1
 	public static float ClampMagnitude (float value, float unsignedMax) {
-		return Mathf.Min(Mathf.Abs(value), Mathf.Abs(unsignedMax)) * MathX.Sign(value);
+		return Mathf.Min(Mathf.Abs(value), Mathf.Abs(unsignedMax)) * value.Sign();
 	}
 	public static float Clamp0Infinity(float value) {
 		return Mathf.Clamp(value, 0, Mathf.Infinity);
@@ -562,13 +562,13 @@ public static class MathX {
 
 		// E.g. how many times do we need to multiply by e to get to target (e.g. exactly once = 1.0)
 		const double baseZoom = 2.0;
-		var scaleStepsToTarget = (float)System.Math.Log(ratioToTarget, baseZoom);
+		var scaleStepsToTarget = (float)Math.Log(ratioToTarget, baseZoom);
 
 		// Smooth damp this "number of times" -> smooth damp the "distance" to target
 		var newScaleStepsToTarget = Mathf.SmoothDamp(scaleStepsToTarget, 0.0f, ref scaleSpeed, smoothTime, maxSpeed, Time.unscaledDeltaTime);
 
 		// Convert "number of multiplies" back to a ratio after the smooth damp.
-		var newRatioToTarget = System.Math.Pow(baseZoom, newScaleStepsToTarget);
+		var newRatioToTarget = Math.Pow(baseZoom, newScaleStepsToTarget);
 
 		// And get final scale
 		return target / newRatioToTarget;
@@ -595,7 +595,7 @@ public static class MathX {
 
 	//https://stackoverflow.com/questions/24887799/get-the-x-y-coordinate-on-a-square-based-on-the-square-center-angle
 	public static Vector2 CircleToSquare (float radians) {
-		var circleCoords = MathX.RadiansToVector2(radians);
+		var circleCoords = RadiansToVector2(radians);
 		var u = Mathf.Max(Mathf.Abs(circleCoords.x), Mathf.Abs(circleCoords.y));
 		
 		var xp = circleCoords.x / u;

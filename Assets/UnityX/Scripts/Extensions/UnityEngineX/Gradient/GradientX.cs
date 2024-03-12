@@ -11,39 +11,17 @@ public static class GradientX {
 		Reflected
 	}
 
-	public static Gradient blackToWhite {
-		get {
-			return GradientX.Create(Color.black, Color.white);
-		}
-	}
-	public static Gradient whiteToBlack {
-		get {
-			return GradientX.Create(Color.white, Color.black);
-		}
-	}
-	
-	public static Gradient blackToClear {
-		get {
-			return GradientX.Create(Color.black, Color.black.WithAlpha(0));
-		}
-	}
-	public static Gradient whiteToClear {
-		get {
-			return GradientX.Create(Color.white, Color.white.WithAlpha(0));
-		}
-	}
-	
-	public static Gradient clearToBlack {
-		get {
-			return GradientX.Create(Color.black.WithAlpha(0), Color.black);
-		}
-	}
+	public static Gradient blackToWhite => GradientX.Create(Color.black, Color.white);
 
-	public static Gradient clearToWhite {
-		get {
-			return GradientX.Create(Color.white.WithAlpha(0), Color.white);
-		}
-	}
+	public static Gradient whiteToBlack => GradientX.Create(Color.white, Color.black);
+
+	public static Gradient blackToClear => GradientX.Create(Color.black, Color.black.WithAlpha(0));
+
+	public static Gradient whiteToClear => GradientX.Create(Color.white, Color.white.WithAlpha(0));
+
+	public static Gradient clearToBlack => GradientX.Create(Color.black.WithAlpha(0), Color.black);
+
+	public static Gradient clearToWhite => GradientX.Create(Color.white.WithAlpha(0), Color.white);
 
 	public static Gradient Reverse( this Gradient g ){
 		GradientColorKey[] colorKeys = g.colorKeys;
@@ -65,7 +43,7 @@ public static class GradientX {
 	public static Gradient Create(GradientColorKey[] colorKeys, GradientAlphaKey[] alphaKeys = null) {
 		Gradient gradient = new Gradient();
 		if (alphaKeys.IsNullOrEmpty()) {
-			alphaKeys = new GradientAlphaKey[] { new GradientAlphaKey (1, 0) };
+			alphaKeys = new GradientAlphaKey[] { new(1, 0) };
 		}
 		gradient.SetKeys(colorKeys, alphaKeys);
 		return gradient;

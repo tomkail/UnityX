@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-using UnityEditor;
-using System.Collections;
+﻿using UnityEditor;
 using UnityEditor.UI;
 
 [CustomEditor(typeof(ExtendedButton), true)]

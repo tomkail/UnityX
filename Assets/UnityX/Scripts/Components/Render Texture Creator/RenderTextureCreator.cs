@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 public class RenderTextureCreator : MonoBehaviour {
@@ -18,7 +17,7 @@ public class RenderTextureCreator : MonoBehaviour {
 	    _8 = 8
     }
     public bool fullScreen = false;
-    public Vector2Int renderTextureSize = new Vector2Int(512, 512);
+    public Vector2Int renderTextureSize = new(512, 512);
     public FilterMode filterMode = FilterMode.Bilinear;
     public RenderTextureDepth renderTextureDepth = RenderTextureDepth._0;
     public RenderTextureFormat renderTextureFormat = RenderTextureFormat.ARGB32;
@@ -29,7 +28,7 @@ public class RenderTextureCreator : MonoBehaviour {
 
 
     // public static Vector2Int screenSize => new Vector2Int(Screen.width, Screen.height);
-    public static Vector2Int screenSize => new Vector2Int(screenWidth, screenHeight);
+    public static Vector2Int screenSize => new(screenWidth, screenHeight);
     // ARGH I hate this. It's necessary because screen/display don't return the values for game view in some editor contexts (using inspector windows, for example)
 	static int screenWidth {
 		get {

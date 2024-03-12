@@ -7,12 +7,8 @@ using UnityEditor;
 public class EditorTime {
 	#if UNITY_EDITOR
 
-	public static float time {
-		get {
-			return Time.realtimeSinceStartup;
-		}
-	}
-	
+	public static float time => Time.realtimeSinceStartup;
+
 	public static float deltaTime {get; private set;}
 	public static int frames {get; private set;}
 	

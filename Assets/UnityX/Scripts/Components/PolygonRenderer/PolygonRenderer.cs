@@ -8,9 +8,8 @@ public class PolygonRenderer : BasePolygonRenderer {
     [SerializeField]
     Texture2D _texture;
     public Texture2D texture {
-        get {
-            return _texture;
-        } set {
+        get => _texture;
+        set {
             if(_texture == value) return;
             _texture = value;
             RefreshMaterialPropertyBlock();

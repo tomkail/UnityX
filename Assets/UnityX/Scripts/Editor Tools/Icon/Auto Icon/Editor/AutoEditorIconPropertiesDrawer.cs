@@ -1,8 +1,5 @@
 using UnityEngine;
 using UnityEditor;
-using UnityEditorInternal;
-using System.Collections;
-using UnityX.Editor.Icon;
 
 [CustomPropertyDrawer(typeof(AutoEditorIcon.IconProperties))]
 public class AutoEditorIconPropertiesDrawer : PropertyDrawer {

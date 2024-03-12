@@ -70,8 +70,8 @@ public class GLDebug : MonoSingleton<GLDebug> {
     public bool displayGizmos = true;
 	#endif
    
-    private List<Line> linesZOn = new List<Line>();
-    private List<Line> linesZOff = new List<Line>();
+    private List<Line> linesZOn = new();
+    private List<Line> linesZOff = new();
 
 	public IEnumerator Start() {
 		if(Application.isPlaying) {

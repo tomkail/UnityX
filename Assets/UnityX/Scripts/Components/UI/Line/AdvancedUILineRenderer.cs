@@ -10,9 +10,8 @@ namespace UnityEngine.UI.Extensions
         public ColorX.BlendMode colorBlendMode;
         public float _uvY = 0;
         public float uvY {
-            get {
-                return _uvY;
-            } set {
+            get => _uvY;
+            set {
                 if(_uvY == value) return;
                 _uvY = value;
                 SetAllDirty();
@@ -44,7 +43,7 @@ namespace UnityEngine.UI.Extensions
         /// Points to be drawn in the line.
         /// </summary>
 		public AdvancedUILineRendererPoint[] pointsToDraw {
-			get {return m_points;}
+			get => m_points;
             set {
 				if (m_points == value) return;
 				m_points = value;
@@ -169,8 +168,8 @@ namespace UnityEngine.UI.Extensions
             // }
         }
 
-        private static List<UIVertex> vertexBuffer = new List<UIVertex>(4);
-        private static List<int> indexBuffer = new List<int>(6);
+        private static List<UIVertex> vertexBuffer = new(4);
+        private static List<int> indexBuffer = new(6);
         static void AddQuad(VertexHelper vh, UIVertex vertex1, UIVertex vertex2, UIVertex vertex3, UIVertex vertex4) {
             var i = vh.currentVertCount;
             // vertexBuffer.Clear();

@@ -1,51 +1,51 @@
-﻿using UnityEngine.UI;
+﻿using System;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
 namespace UnityEngine.UI {
 	public class ExtendedSlider : Slider {
 
-		[System.Serializable]
+		[Serializable]
 		public class SliderDownEvent : UnityEvent {
 		}
 
-		[System.Serializable]
+		[Serializable]
 		public class SliderUpEvent : UnityEvent {
 		}
 
-		[System.Serializable]
+		[Serializable]
 		public class SliderEnterEvent : UnityEvent {
 		}
 
-		[System.Serializable]
+		[Serializable]
 		public class SliderExitEvent : UnityEvent {
 		}
 
-		[System.Serializable]
+		[Serializable]
 		public class SliderSelectEvent : UnityEvent<BaseEventData> {
 		}
 
-		[System.Serializable]
+		[Serializable]
 		public class SliderDeselectEvent : UnityEvent<BaseEventData> {
 		}
 
-		[System.Serializable]
+		[Serializable]
 		public class SliderMoveEvent : UnityEvent {
 		}
 
-		[System.Serializable]
+		[Serializable]
 		public class SliderDragEvent : UnityEvent {
 		}
 
 
-		public SliderDownEvent onDown = new SliderDownEvent();
-		public SliderUpEvent onUp = new SliderUpEvent();
-		public SliderEnterEvent onEnter = new SliderEnterEvent();
-		public SliderExitEvent onExit = new SliderExitEvent();
-		public SliderSelectEvent onSelect = new SliderSelectEvent();
-		public SliderDeselectEvent onDeselect = new SliderDeselectEvent();
-		public SliderMoveEvent onMove = new SliderMoveEvent();
-		public SliderDragEvent onDrag = new SliderDragEvent();
+		public SliderDownEvent onDown = new();
+		public SliderUpEvent onUp = new();
+		public SliderEnterEvent onEnter = new();
+		public SliderExitEvent onExit = new();
+		public SliderSelectEvent onSelect = new();
+		public SliderDeselectEvent onDeselect = new();
+		public SliderMoveEvent onMove = new();
+		public SliderDragEvent onDrag = new();
 
 		public override void OnPointerDown(PointerEventData eventData) {
 			base.OnPointerDown(eventData);

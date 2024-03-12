@@ -1,19 +1,16 @@
-﻿
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
-
 
 [ExecuteInEditMode]
 [RequireComponent(typeof(Graphic))]
-public class UISaturationEffect : MonoBehaviour
-{
+public class UISaturationEffect : MonoBehaviour {
     [Range(0, 1)]
     public float saturation = 1;
 
     Graphic img;
     [SerializeField]
     Material matPrefab;
-    [SerializeField, Disable]
+    [SerializeField, HideInInspector]
     Material mat;
 
     void Reset() {

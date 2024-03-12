@@ -8,9 +8,8 @@ public class FloatSmoothStepDamper {
     [SerializeField, Tooltip("The target value")]
 	private float _target;
 	public float target {
-		get {
-			return _target;
-		} set {
+		get => _target;
+		set {
 			if(float.IsNaN(value)) return;
 			if(_target.Equals(value)) return;
 			_target = value;
@@ -22,9 +21,8 @@ public class FloatSmoothStepDamper {
     [SerializeField, Tooltip("The current value")]
 	private float _currentEasingPosition;
 	public float currentEasingPosition {
-		get {
-			return _currentEasingPosition;
-		} private set {
+		get => _currentEasingPosition;
+		private set {
 			if(_currentEasingPosition.Equals(value)) return;
 			_currentEasingPosition = value;
 		}
@@ -33,9 +31,8 @@ public class FloatSmoothStepDamper {
 	[SerializeField, Tooltip("The eased value"), Disable]
 	private float _current;
 	public float current {
-		get {
-			return _current;
-		} private set {
+		get => _current;
+		private set {
 			if(_current.Equals(value)) return;
 			_current = value;
 			if(OnChangeCurrent != null) OnChangeCurrent(_current);

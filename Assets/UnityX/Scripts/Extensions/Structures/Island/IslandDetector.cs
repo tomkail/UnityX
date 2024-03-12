@@ -5,9 +5,9 @@ using System.Linq;
 // Finds contiguous "islands" from a point cloud
 public class IslandDetector<Coord> where Coord : IEquatable<Coord> {
 
-	protected static List<Island<Coord>> islands = new List<Island<Coord>>();
-	protected static HashSet<Coord> testedPoints = new HashSet<Coord>();
-	protected static List<Coord> islandStartPointsToTest = new List<Coord>();
+	protected static List<Island<Coord>> islands = new();
+	protected static HashSet<Coord> testedPoints = new();
+	protected static List<Coord> islandStartPointsToTest = new();
 
 	public IEnumerable<Coord> startPoints;
 	public Func<Coord, IEnumerable<Coord>> GetAdjacentPoints;

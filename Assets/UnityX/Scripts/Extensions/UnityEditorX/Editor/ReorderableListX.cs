@@ -1,8 +1,6 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
-using System.Collections;
-using System.Collections.Generic;
 
 public static class ReorderableListX {
 	public static ReorderableList.HeaderCallbackDelegate DefaultDrawHeaderCallback(ReorderableList list) {

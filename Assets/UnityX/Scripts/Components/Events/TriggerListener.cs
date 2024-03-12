@@ -43,19 +43,19 @@ public class TriggerListener : MonoBehaviour {
    	public event TriggerExit2DEvent TriggerExit2D;
  	
  	
-	public CollisionEvent OnCollisionEnterEvent = new CollisionEvent();
-	public CollisionEvent OnCollisionStayEvent = new CollisionEvent();
-	public CollisionEvent OnCollisionExitEvent = new CollisionEvent();
-	public Collision2DEvent OnCollisionEnter2DEvent = new Collision2DEvent();
-	public Collision2DEvent OnCollisionStay2DEvent = new Collision2DEvent();
-	public Collision2DEvent OnCollisionExit2DEvent = new Collision2DEvent();
+	public CollisionEvent OnCollisionEnterEvent = new();
+	public CollisionEvent OnCollisionStayEvent = new();
+	public CollisionEvent OnCollisionExitEvent = new();
+	public Collision2DEvent OnCollisionEnter2DEvent = new();
+	public Collision2DEvent OnCollisionStay2DEvent = new();
+	public Collision2DEvent OnCollisionExit2DEvent = new();
 	
-	public TriggerEvent OnTriggerEnterEvent = new TriggerEvent();
-	public TriggerEvent OnTriggerStayEvent = new TriggerEvent();
-	public TriggerEvent OnTriggerExitEvent = new TriggerEvent();
-	public Trigger2DEvent OnTriggerEnter2DEvent = new Trigger2DEvent();
-	public Trigger2DEvent OnTriggerStay2DEvent = new Trigger2DEvent();
-	public Trigger2DEvent OnTriggerExit2DEvent = new Trigger2DEvent();
+	public TriggerEvent OnTriggerEnterEvent = new();
+	public TriggerEvent OnTriggerStayEvent = new();
+	public TriggerEvent OnTriggerExitEvent = new();
+	public Trigger2DEvent OnTriggerEnter2DEvent = new();
+	public Trigger2DEvent OnTriggerStay2DEvent = new();
+	public Trigger2DEvent OnTriggerExit2DEvent = new();
 	
 	[System.Serializable]
 	public class CollisionEvent : UnityEvent<Collision> {}

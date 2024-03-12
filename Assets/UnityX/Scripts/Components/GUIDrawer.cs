@@ -2,7 +2,7 @@
 using UnityEngine;
 
 public class GUIDrawer : MonoBehaviour {
-	static Dictionary<object, System.Action> drawActions = new Dictionary<object, System.Action>();
+	static Dictionary<object, System.Action> drawActions = new();
 	public static void StartDrawing (object obj, System.Action drawAction) {
 		if(drawActions.ContainsKey(obj)) drawActions[obj] = drawAction;
 		else drawActions.Add(obj, drawAction);

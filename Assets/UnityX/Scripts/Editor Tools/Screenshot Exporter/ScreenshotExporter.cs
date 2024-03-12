@@ -79,9 +79,8 @@ public class ScreenshotExportSettings {
 	// The file directory
 	private string _filePath;
 	public string directoryPath {
-		get {
-			return _filePath;
-		} set {
+		get => _filePath;
+		set {
 			_filePath = value;
 			while(_filePath.EndsWith(Path.DirectorySeparatorChar.ToString())){
 				_filePath = _filePath.Substring(0, _filePath.Length-1);
@@ -104,12 +103,8 @@ public class ScreenshotExportSettings {
 	}
 
 	// The file path, relative to (including) unity's Assets folder.
-	public string filePath {
-		get {
-			return directoryPath+"/"+fileName+"."+fileExtension;
-		}
-	}
-	
+	public string filePath => directoryPath+"/"+fileName+"."+fileExtension;
+
 	public byte[] textureByteData {
 		get {
 			switch (exportFormat) {

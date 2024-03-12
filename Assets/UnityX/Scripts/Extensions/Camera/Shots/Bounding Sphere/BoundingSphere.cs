@@ -20,12 +20,8 @@ public sealed class BoundingSphere {
 	/// Gets or sets the center of the bounding volume.
 	/// </summary>
 	public Vector3 center {
-		get {
-			return m_center;
-		}
-		set {
-			m_center = value;
-		}
+		get => m_center;
+		set => m_center = value;
 	}
 	
 	private float m_radius;
@@ -37,12 +33,8 @@ public sealed class BoundingSphere {
 	/// Gets or sets the radius of the sphere.
 	/// </summary>
 	public float radius {
-		get {
-			return m_radius;
-		}
-		set {
-			m_radius = value;
-		}
+		get => m_radius;
+		set => m_radius = value;
 	}
 	
 	/// <summary>

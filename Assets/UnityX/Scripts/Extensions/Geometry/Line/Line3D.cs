@@ -5,21 +5,13 @@ public struct Line3D {
 	public Vector3 start;
 	public Vector3 end;
 	
-	public Vector3 direction {
-		get { return Vector3.Normalize(end-start); }
-	}
+	public Vector3 direction => Vector3.Normalize(end-start);
 
-	public Vector3 vector {
-		get { return end - start; }
-	}
+	public Vector3 vector => end - start;
 
-	public float length {
-		get { return Vector3.Distance(start, end); }
-	}
+	public float length => Vector3.Distance(start, end);
 
-	public float sqrLength {
-		get { return SqrDistance(start, end); }
-	}
+	public float sqrLength => SqrDistance(start, end);
 
 
 	public Line3D (Vector3 _start, Vector3 _end) {

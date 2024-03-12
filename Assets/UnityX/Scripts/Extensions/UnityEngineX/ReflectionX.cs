@@ -1,17 +1,15 @@
-﻿using UnityEngine;
-using System;
-using System.Linq;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using UnityEngine;
+using Object = System.Object;
 
 public static class ReflectionX {
-    static BindingFlags bindingAttr {
-        get {
-            return BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.FlattenHierarchy|BindingFlags.Static|BindingFlags.Instance;
-        }
-    }
-	public static Type GetTypeFromObject(object obj, string propertyPath) {
+    static BindingFlags bindingAttr => BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.FlattenHierarchy|BindingFlags.Static|BindingFlags.Instance;
+
+    public static Type GetTypeFromObject(object obj, string propertyPath) {
 		Debug.Assert(obj != null);
 		string[] parts = propertyPath.Split('.');
         FieldInfo fieldInfo = null;
@@ -87,7 +85,7 @@ public static class ReflectionX {
 //					type = obj.GetType();
 				} else {
 					DebugX.LogWarning ("Index: "+collectionElementIndex+", List Count: "+list.Count+", Current Path Part: "+part+", Full Path: "+propertyPath);
-					return default(T);
+					return default;
 				}
 				continue;
 			} else {
@@ -99,7 +97,7 @@ public static class ReflectionX {
 //			obj = fieldInfo.GetValue(obj);
 		}
 			
-		if(!(obj is T)) return default(T);
+		if(!(obj is T)) return default;
 		return (T)obj;
 	}
 
@@ -150,7 +148,7 @@ public static object GetValueFromObject(object obj, string propertyPath, Type t)
 	}
 
 
-	public static System.Object GetValueFromObject(object obj, string propertyPath) {
+	public static Object GetValueFromObject(object obj, string propertyPath) {
 		Debug.Assert(obj != null);
 		MemberInfo fieldInfo = null;
 //		PropertyInfo propertyInfo = null;
@@ -231,7 +229,7 @@ public static object GetValueFromObject(object obj, string propertyPath, Type t)
 
 
 	// Nabbed from ReflectionUtils that comes with Unity ImageEffects. I'd like to unify this in with the code above sometime
-	static Dictionary<KeyValuePair<object, string>, FieldInfo> s_FieldInfoFromPaths = new Dictionary<KeyValuePair<object, string>, FieldInfo>();
+	static Dictionary<KeyValuePair<object, string>, FieldInfo> s_FieldInfoFromPaths = new();
 
 	public static FieldInfo GetFieldInfoFromPath(object source, string path)
 	{

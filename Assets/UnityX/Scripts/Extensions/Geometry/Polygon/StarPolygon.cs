@@ -14,22 +14,14 @@ namespace UnityX.Geometry {
 		
 		private int numVertices;
 		public int NumVertices {
-			get {
-				return numVertices;
-			}
-			set {
-				numVertices = Mathf.RoundToInt(Mathf.Clamp (value, 3, Mathf.Infinity));
-			}
+			get => numVertices;
+			set => numVertices = Mathf.RoundToInt(Mathf.Clamp (value, 3, Mathf.Infinity));
 		}
 		
 		private int skip;
 		public int Skip {
-			get {
-				return skip;
-			}
-			set {
-				skip = Mathf.RoundToInt(Mathf.Clamp (value, 1, Mathf.Infinity));
-			}
+			get => skip;
+			set => skip = Mathf.RoundToInt(Mathf.Clamp (value, 1, Mathf.Infinity));
 		}
 		
 		public float rotation = 0f;

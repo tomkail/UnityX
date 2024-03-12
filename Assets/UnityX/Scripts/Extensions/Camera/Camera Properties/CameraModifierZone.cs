@@ -2,14 +2,14 @@
 using UnityEngine;
 
 public class CameraModifierZone : MonoBehaviour {
-    public static List<CameraModifierZone> all = new List<CameraModifierZone>();
+    public static List<CameraModifierZone> all = new();
     public Transform target;
     [SerializeField]
     bool testStrength = false;
     public int sortIndex = 0;
     [Range(0,1)]
     public float strengthMultiplier = 1;
-    public CameraPropertiesModifier modifier = new CameraPropertiesModifier();
+    public CameraPropertiesModifier modifier = new();
     public float radius = 5f;
 
     [Space]

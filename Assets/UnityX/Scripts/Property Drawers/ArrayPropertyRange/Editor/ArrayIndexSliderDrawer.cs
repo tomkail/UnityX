@@ -1,7 +1,5 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using System;
-using System.Reflection;
 
 [CustomPropertyDrawer(typeof(ArrayIndexSliderAttribute))]
 public class ArrayIndexSliderDrawer : BaseAttributePropertyDrawer<ArrayIndexSliderAttribute> {

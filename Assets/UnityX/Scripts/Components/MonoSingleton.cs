@@ -4,26 +4,22 @@ using UnityEngine;
 // When the instance is destroyed we allow findobjectoftype to be used again.
 // After that, all instance management is handled via awake/destroy
 public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T> {
-	private static bool searched = false;
-	private static T _Instance;
+	static bool searched;
+	static T _Instance;
 	public static T Instance {
 		get {
 			#if UNITY_EDITOR
 			if(!Application.isPlaying) searched = false;
 			#endif
 			if(!searched && _Instance == null) {
-				_Instance = Object.FindObjectOfType<T>();
+				_Instance = FindObjectOfType<T>();
 				searched = true;
 			}
 			return _Instance;
 		}
 	}
 
-	public static bool IsInitialized {
-		get {
-			return _Instance != null;
-		}
-	}
+	public static bool IsInitialized => _Instance != null;
 
 	protected virtual void Awake () {
 		_Instance = (T)this;

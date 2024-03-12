@@ -1,14 +1,13 @@
-using UnityEngine;
 using UnityEditor;
 
 public class SmartEditorWindow : EditorWindow {
 	static bool _subscribed;
-	public static bool subscribed {get{return _subscribed;}}
+	public static bool subscribed => _subscribed;
 
 	static bool _visible;
-	public static bool visible {get{return _visible;}}
-	
-	
+	public static bool visible => _visible;
+
+
 	// Called on window create/recompile
 	protected SmartEditorWindow () {
 		TrySubscribe();

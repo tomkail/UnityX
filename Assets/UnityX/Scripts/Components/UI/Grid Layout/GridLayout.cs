@@ -1,16 +1,15 @@
-using UnityEngine;
-using UnityEngine.UI;
+using System;
 
 namespace UnityEngine.UI {
 	[RequireComponent(typeof(RectTransform))]
 	public class GridLayout : MonoBehaviour, ILayoutElement {
 		public RectTransform rectTransform => (RectTransform) transform;
 
-		[System.Serializable]
+		[Serializable]
 		public class GridLayoutAxisSettings {
-			[System.NonSerialized] public GridLayout gridLayout;
+			[NonSerialized] public GridLayout gridLayout;
 
-			[System.NonSerialized] public bool isXAxis;
+			[NonSerialized] public bool isXAxis;
 
 			// Skip the property to avoid expensive checks
 			GridLayoutAxisSettings otherAxis => isXAxis ? gridLayout._yAxis : gridLayout._xAxis;
@@ -124,9 +123,9 @@ namespace UnityEngine.UI {
 		}
 
 
-		public RectOffset padding = new RectOffset();
+		public RectOffset padding = new();
 
-		[SerializeField] GridLayoutAxisSettings _xAxis = new GridLayoutAxisSettings();
+		[SerializeField] GridLayoutAxisSettings _xAxis = new();
 
 		public GridLayoutAxisSettings xAxis {
 			get {
@@ -135,7 +134,7 @@ namespace UnityEngine.UI {
 			}
 		}
 
-		[SerializeField] GridLayoutAxisSettings _yAxis = new GridLayoutAxisSettings();
+		[SerializeField] GridLayoutAxisSettings _yAxis = new();
 
 		public GridLayoutAxisSettings yAxis {
 			get {
@@ -173,7 +172,7 @@ namespace UnityEngine.UI {
 		float m_Width;
 		float m_Height;
 
-		bool initialized => _xAxis.isXAxis == true && _yAxis.isXAxis == false && _xAxis.gridLayout == this && _yAxis.gridLayout == this;
+		bool initialized => _xAxis.isXAxis && _yAxis.isXAxis == false && _xAxis.gridLayout == this && _yAxis.gridLayout == this;
 
 		void InitializationCheck() {
 			if (!initialized) Init();
@@ -249,7 +248,7 @@ namespace UnityEngine.UI {
 		}
 		#endregion
 
-		public override string ToString() => $"[GridLayout: X={xAxis.ToString()}, Y={yAxis.ToString()}]";
+		public override string ToString() => $"[GridLayout: X={xAxis}, Y={yAxis}]";
 
 
 

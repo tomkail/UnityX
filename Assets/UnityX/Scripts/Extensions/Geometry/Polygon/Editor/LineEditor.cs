@@ -1,7 +1,4 @@
-using UnityEngine;
-using UnityEditor;
-using System;
-using UnityX.Geometry;
+
 /*
 public class LineEditor {
 	bool _editing;

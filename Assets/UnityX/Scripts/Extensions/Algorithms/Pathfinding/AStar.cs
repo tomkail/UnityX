@@ -80,11 +80,7 @@ namespace Utils.Algorithms {
 		/// want to interrupt it and start a new calculation, call StopCalculateAsync().
 		/// </summary>
 		/// <value></value>
-		public bool calculatingAsync {
-			get {
-				return _activeAsyncCoroutine != null;
-			}
-		}
+		public bool calculatingAsync => _activeAsyncCoroutine != null;
 
 		/// <summary>
 		/// Create an AStar searcher for the given graph.
@@ -487,7 +483,7 @@ namespace Utils.Algorithms {
 				}
 			}
 		}
-		static readonly CandidateComparer _candidateComparer = new CandidateComparer();
+		static readonly CandidateComparer _candidateComparer = new();
 
 		private void RemoveSortedCandidate (GraphEntry candidateEntry)
 		{
@@ -547,7 +543,7 @@ namespace Utils.Algorithms {
 			}
 
 			public void Clear() {
-				_graphElement = default(GraphElement);
+				_graphElement = default;
 				_connectedElements.Clear();
 
 				_bestCostToHere = 0.0f;
@@ -568,13 +564,13 @@ namespace Utils.Algorithms {
 				this._bestCostVia = viaEntry;
 			}
 
-			public float currentBestPossibleTotalCost { get { return bestCostToHere + bestPossibleCostToTarget; } }
+			public float currentBestPossibleTotalCost => bestCostToHere + bestPossibleCostToTarget;
 
-			public float bestCostToHere { get { return _bestCostToHere; } }
-			public GraphEntry bestCostVia { get { return _bestCostVia; } }
+			public float bestCostToHere => _bestCostToHere;
+			public GraphEntry bestCostVia => _bestCostVia;
 
-			public GraphElement graphElement { get { return _graphElement; } }
-			
+			public GraphElement graphElement => _graphElement;
+
 			bool _hasCachedBestPossibleCostToTarget;
 			float _cachedBestPossibleCostToTarget;
 			public float bestPossibleCostToTarget {
@@ -591,10 +587,10 @@ namespace Utils.Algorithms {
 					return _cachedBestPossibleCostToTarget;
 				}
 			}
-			public IEnumerable<GraphElement> connectedElements { get { return _connectedElements; } }
+			public IEnumerable<GraphElement> connectedElements => _connectedElements;
 
 			#region private
-			private LazyGraph graph { get { return _aStar.graph; } }
+			private LazyGraph graph => _aStar.graph;
 
 			// Can only be set on initialisation.
 			private GraphElement _graphElement;
@@ -608,14 +604,14 @@ namespace Utils.Algorithms {
 			#endregion
 		}
 
-		internal LazyGraph graph { get { return _graph; } }
-		internal GraphElement targetElement { get { return _targetEntry.graphElement; } }
-		internal GraphElement startElement { get { return _startEntry.graphElement; } }
+		internal LazyGraph graph => _graph;
+		internal GraphElement targetElement => _targetEntry.graphElement;
+		internal GraphElement startElement => _startEntry.graphElement;
 
 		private LazyGraph _graph;
 
 		// Contains the current candidates in sorted order (best first).  Once processed, a candidate should be removed from the candidate list.
-		private List<GraphEntry> _sortedCandidateGraphEntries = new List<GraphEntry>();
+		private List<GraphEntry> _sortedCandidateGraphEntries = new();
 
 		// Contains all the graph entries, indexed by GraphElement.
 		private Dictionary<GraphElement, GraphEntry> _graphEntries;

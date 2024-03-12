@@ -22,10 +22,7 @@ public class CircleOutline : ModifiedShadow
 
     public int circleCount
     {
-        get
-        {
-            return m_circleCount;
-        }
+        get => m_circleCount;
 
         set
         {
@@ -37,10 +34,7 @@ public class CircleOutline : ModifiedShadow
 
     public int firstSample
     {
-        get
-        {
-            return m_firstSample;
-        }
+        get => m_firstSample;
 
         set
         {
@@ -52,10 +46,7 @@ public class CircleOutline : ModifiedShadow
 
     public int sampleIncrement
     {
-        get
-        {
-            return m_sampleIncrement;
-        }
+        get => m_sampleIncrement;
 
         set
         {

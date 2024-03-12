@@ -5,13 +5,13 @@ using UnityEngine;
 
 namespace FlexLayout {
     public static class FlexLayout {
-        [System.Serializable]
+        [Serializable]
         public class Result {
             public float containerSize;
             public List<Vector2> ranges;
         }
         
-        public static Result GetLayoutRanges(Container layoutParams, List<Item> items) {
+        public static Result GetLayoutRanges(Container layoutParams, IList<Item> items) {
             Vector2 surplusOffsetPadding = Vector2.zero;
             float totalItemSpacing = layoutParams.spacing;
             Dictionary<Item, float> flexItemSizes = null;
@@ -101,7 +101,7 @@ namespace FlexLayout {
 
             var totalSizeConsumedIncludingPadding = (layoutParams.reversed ? ranges.First().y + layoutParams.paddingMin : ranges.Last().y + layoutParams.paddingMax) + surplusOffsetPadding.y;
 
-            return new Result() {
+            return new Result {
                 containerSize = totalSizeConsumedIncludingPadding,
                 ranges = ranges
             };
@@ -133,7 +133,7 @@ namespace FlexLayout {
         public float totalPadding => paddingMin + paddingMax;
 
         // The fixed spacing between the elements. Extra spacing may be added if justifyMode is Space.
-        public float spacing = 0f;
+        public float spacing;
 
         // Describes what happens to extra space when the items don't fill the container.
         public SurplusMode surplusMode = SurplusMode.Offset;
@@ -154,11 +154,11 @@ namespace FlexLayout {
         // When using SurplusMode.Space
         // This corresponds to flexbox's justify-content space options.
         // Set to 0 for space-between, 0.5 for space-around, and 1 for space-evenly.
-        public float surplusSpacePaddingRatio = 0f;
+        public float surplusSpacePaddingRatio;
 
         // When reversed, the layout starts at the max rather than the min, and starts with the last layout item rather than the first.
         // Note that surplusOffsetPivot is not reversed.
-        public bool reversed = false;
+        public bool reversed;
         
         public static Container Fixed(float size) {
             var layoutItem = new Container();
@@ -171,13 +171,13 @@ namespace FlexLayout {
         }
 
         public Container SetFixedSize(float fixedSize) {
-            this.flexible = false;
+            flexible = false;
             this.fixedSize = fixedSize;
             return this;
         }
         
         public Container SetFlexibleSize(float minSize, float maxSize) {
-            this.flexible = true;
+            flexible = true;
             this.minSize = minSize;
             this.maxSize = maxSize;
             return this;
@@ -222,7 +222,7 @@ namespace FlexLayout {
         }
 
         public Container SetReversed(bool value) {
-            this.reversed = value;
+            reversed = value;
             return this;
         }
     }
@@ -230,7 +230,7 @@ namespace FlexLayout {
 // LayoutItemParams determine the sizes of the layouts when using GetLayoutRanges, which is the base of other layout functions.
 // It allows fixed and flexible sizes.
 // Flexible is similar to CSS Flexbox and can have a min/max size and a weight.
-    [System.Serializable]
+    [Serializable]
     public class Item : LayoutElement {
         // This is present in flexbox, and it might be an upgrade to consider.
         // public int order;
@@ -249,13 +249,13 @@ namespace FlexLayout {
         }
         
         public Item SetFixedSize(float fixedSize) {
-            this.flexible = false;
+            flexible = false;
             this.fixedSize = fixedSize;
             return this;
         }
         
         public Item SetFlexibleSize(float minSize, float maxSize) {
-            this.flexible = true;
+            flexible = true;
             this.minSize = minSize;
             this.maxSize = maxSize;
             return this;

@@ -18,24 +18,13 @@ public class Prototype : MonoBehaviour {
     [SerializeField, Disable]
     bool _inUse;
     public bool inUse {
-        get {
-            return _inUse;
-        } private set {
-            _inUse = value;
-        }
+        get => _inUse;
+        private set => _inUse = value;
     }
 
-	public bool isOriginalPrototype {
-		get {
-			return _originalPrototype == null;
-		}
-	}
+	public bool isOriginalPrototype => _originalPrototype == null;
 
-	public Prototype originalPrototype {
-		get {
-			return _originalPrototype;
-		}
-	}
+	public Prototype originalPrototype => _originalPrototype;
 
 	void Awake () 
 	{

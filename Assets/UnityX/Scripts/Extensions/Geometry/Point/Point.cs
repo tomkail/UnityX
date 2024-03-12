@@ -7,42 +7,18 @@ using System.Collections.ObjectModel;
 public struct Point : IEquatable<Point> {
 	public int x, y;
 
-	public static Point zero {
-		get {
-			return new Point(0,0);
-		}
-	}
-	
-	public static Point one {
-		get {
-			return new Point(1,1);
-		}
-	}
+	public static Point zero => new(0,0);
 
-	public static Point up {
-		get {
-			return new Point(0,1);
-		}
-	}
+	public static Point one => new(1,1);
 
-	public static Point down {
-		get {
-			return new Point(0,-1);
-		}
-	}
+	public static Point up => new(0,1);
 
-	public static Point left {
-		get {
-			return new Point(-1,0);
-		}
-	}
+	public static Point down => new(0,-1);
 
-	public static Point right {
-		get {
-			return new Point(1,0);
-		}
-	}
-	
+	public static Point left => new(-1,0);
+
+	public static Point right => new(1,0);
+
 	public Point(int _x, int _y) {
 		x = _x;
 		y = _y;
@@ -112,17 +88,11 @@ public struct Point : IEquatable<Point> {
 		return string.Format("({0}, {1})",x,y);
 	}
 
-	public int area {
-		get { return x * y; }
-	}
+	public int area => x * y;
 
-	public float magnitude {
-		get { return Mathf.Sqrt(x * x + y * y); }
-	}
+	public float magnitude => Mathf.Sqrt(x * x + y * y);
 
-	public int sqrMagnitude {
-		get { return x * x + y * y; }
-	}
+	public int sqrMagnitude => x * x + y * y;
 
 	public static Point Add(Point left, Point right){
 		return new Point(left.x+right.x, left.y+right.y);
@@ -272,10 +242,10 @@ public struct Point : IEquatable<Point> {
 	}
 
 	public static ReadOnlyCollection<Point> cardinalDirections = Array.AsReadOnly(new Point[4] {
-		new Point(0, 1),
-		new Point(1, 0),
-		new Point(0, -1),
-		new Point(-1, 0)
+		new(0, 1),
+		new(1, 0),
+		new(0, -1),
+		new(-1, 0)
 	});
 	/// <summary>
 	/// The four main compass directions N E S W
@@ -472,12 +442,12 @@ public struct Point : IEquatable<Point> {
 	const int numCorners = 4;
 	static Vector2[] corners = {
 		// Top left
-		new Vector2(-0.5f, 0.5f),
+		new(-0.5f, 0.5f),
 		// Top right
-		new Vector2(0.5f, 0.5f),
+		new(0.5f, 0.5f),
 		// Bottom right
-		new Vector2(0.5f, -0.5f),
+		new(0.5f, -0.5f),
 		// Bottom left
-		new Vector2(-0.5f, -0.5f)
+		new(-0.5f, -0.5f)
 	};
 }

@@ -6,11 +6,8 @@
 /// </summary>
 [System.Serializable]
 public struct SerializableTransform {
-	public static SerializableTransform identity {
-		get {
-			return new SerializableTransform(Vector3.zero, Quaternion.identity, Vector3.one);
-		}
-	}
+	public static SerializableTransform identity => new(Vector3.zero, Quaternion.identity, Vector3.one);
+
 	public SerializableTransform (Vector3 _position) {
 		this._position = _position;
 		this._rotation = Quaternion.identity;
@@ -171,10 +168,7 @@ public struct SerializableTransform {
 	private Vector3 _position;
 	public Vector3 position
 	{
-		get
-		{
-			return _position;
-		}
+		get => _position;
 		set
 		{
 			_position = value;
@@ -190,10 +184,7 @@ public struct SerializableTransform {
 	private Quaternion _rotation;
 	public Quaternion rotation
 	{
-		get
-		{
-			return _rotation;
-		}
+		get => _rotation;
 		set
 		{
 			_rotation = value;
@@ -206,24 +197,15 @@ public struct SerializableTransform {
 
 	public Vector3 eulerAngles
 	{
-		get
-		{
-			return this.rotation.eulerAngles;
-		}
-		set
-		{
-			this.rotation = Quaternion.Euler (value);
-		}
+		get => this.rotation.eulerAngles;
+		set => this.rotation = Quaternion.Euler (value);
 	}
 
 	[SerializeField]
 	private Vector3 _localScale;
 	public Vector3 localScale
 	{
-		get
-		{
-			return _localScale;
-		}
+		get => _localScale;
 		set
 		{
 			_localScale = value;
@@ -234,38 +216,20 @@ public struct SerializableTransform {
 	
 	public Vector3 forward
 	{
-		get
-		{
-			return this.rotation * Vector3.forward;
-		}
-		set
-		{
-			this.rotation = Quaternion.LookRotation (value);
-		}
+		get => this.rotation * Vector3.forward;
+		set => this.rotation = Quaternion.LookRotation (value);
 	}
 
 	public Vector3 right
 	{
-		get
-		{
-			return this.rotation * Vector3.right;
-		}
-		set
-		{
-			this.rotation = Quaternion.FromToRotation (Vector3.right, value);
-		}
+		get => this.rotation * Vector3.right;
+		set => this.rotation = Quaternion.FromToRotation (Vector3.right, value);
 	}
 	
 	public Vector3 up
 	{
-		get
-		{
-			return this.rotation * Vector3.up;
-		}
-		set
-		{
-			this.rotation = Quaternion.FromToRotation (Vector3.up, value);
-		}
+		get => this.rotation * Vector3.up;
+		set => this.rotation = Quaternion.FromToRotation (Vector3.up, value);
 	}
 
     bool _worldToLocalMatrixSet;

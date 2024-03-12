@@ -32,8 +32,8 @@ public static class TempListX {
                 return _tempListA;
         }
 
-        static List<T> _tempListA = new List<T>();
-        static List<T> _tempListB = new List<T>();
+        static List<T> _tempListA = new();
+        static List<T> _tempListB = new();
     }
 }
 
