@@ -2,7 +2,7 @@
 using UnityEngine;
  
 public static class PrimitiveHelper {
-     private static Dictionary<PrimitiveType, Mesh> primitiveMeshes = new Dictionary<PrimitiveType, Mesh>();
+     private static Dictionary<PrimitiveType, Mesh> primitiveMeshes = new();
  
      public static GameObject CreatePrimitive(PrimitiveType type, bool withCollider)
      {

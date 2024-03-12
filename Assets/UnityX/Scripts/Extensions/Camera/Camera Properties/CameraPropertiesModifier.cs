@@ -16,7 +16,7 @@ public class CameraPropertiesModifier {
 	public CameraProperties.CameraPropertiesAxis modifiers = CameraProperties.CameraPropertiesAxis.WorldYaw;
 	public Mode mode = Mode.Override;
 
-	public CameraProperties properties = new CameraProperties();
+	public CameraProperties properties = new();
 
 	public CameraPropertiesModifier () {}
 	public CameraPropertiesModifier (CameraPropertiesModifier toClone) {

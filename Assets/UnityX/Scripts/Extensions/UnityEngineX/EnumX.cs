@@ -1,6 +1,6 @@
-﻿using UnityEngine;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 /// <summary>
 /// Provides additional functionality to Enums.
@@ -13,7 +13,7 @@ public static class EnumX {
 	/// <param name="src">Source.</param>
 	/// <typeparam name="T">The 1st type parameter.</typeparam>
 	public static int Length<T>(T src) where T : struct {
-		return EnumX.Length<T>();
+		return Length<T>();
 	}
 	
 	/// <summary>
@@ -49,7 +49,7 @@ public static class EnumX {
 		#if !UNITY_WINRT
 		if (!typeof(T).IsEnum) Debug.LogError("Argument {0} is not an Enum "+typeof(T).FullName);
 		#endif
-		return (T)Enum.ToObject(typeof(T), UnityEngine.Random.Range(0, EnumX.Length<T>()));
+		return (T)Enum.ToObject(typeof(T), UnityEngine.Random.Range(0, Length<T>()));
 	}
 	
 	/// <summary>
@@ -62,7 +62,7 @@ public static class EnumX {
 		if (!typeof(T).IsEnum) Debug.LogError("Argument {0} is not an Enum "+typeof(T).FullName);
 		#endif
 		T[] Arr = (T[])GetValues<T>();
-		int j = Array.IndexOf<T>(Arr, src) + 1;
+		int j = Array.IndexOf(Arr, src) + 1;
 		return (j == Arr.Length) ? Arr[0] : Arr[j];            
 	}
 	
@@ -76,7 +76,7 @@ public static class EnumX {
 		if (!typeof(T).IsEnum) Debug.LogError("Argument {0} is not an Enum "+typeof(T).FullName);
 		#endif
 		T[] Arr = (T[])GetValues<T>();
-		int j = Array.IndexOf<T>(Arr, src) - 1;
+		int j = Array.IndexOf(Arr, src) - 1;
 		return (j == -1) ? Arr[Arr.Length-1] : Arr[j];            
 	}
 
@@ -106,7 +106,7 @@ public static class EnumX {
 	/// </summary>
 	/// <returns>The array.</returns>
 	/// <typeparam name="T">The 1st type parameter.</typeparam>
-	static Dictionary<Type, string[]> stringValuesCache = new Dictionary<Type, string[]>();
+	static Dictionary<Type, string[]> stringValuesCache = new();
 	public static string[] ToStringArray<T>() where T : struct {
 		var type = typeof(T);
         string[] stringValues = null;
@@ -150,7 +150,7 @@ public static class EnumX {
 		return Enum.IsDefined(typeof(T), src);
 	}
 
-	static Dictionary<Type, Array> valuesCache = new Dictionary<Type, Array>();
+	static Dictionary<Type, Array> valuesCache = new();
 	public static Array GetValues<T>() {
         var type = typeof(T);
         Array values = null;

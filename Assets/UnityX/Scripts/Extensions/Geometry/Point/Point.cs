@@ -272,10 +272,10 @@ public struct Point : IEquatable<Point> {
 	}
 
 	public static ReadOnlyCollection<Point> cardinalDirections = Array.AsReadOnly(new Point[4] {
-		new Point(0, 1),
-		new Point(1, 0),
-		new Point(0, -1),
-		new Point(-1, 0)
+		new(0, 1),
+		new(1, 0),
+		new(0, -1),
+		new(-1, 0)
 	});
 	/// <summary>
 	/// The four main compass directions N E S W
@@ -472,12 +472,12 @@ public struct Point : IEquatable<Point> {
 	const int numCorners = 4;
 	static Vector2[] corners = {
 		// Top left
-		new Vector2(-0.5f, 0.5f),
+		new(-0.5f, 0.5f),
 		// Top right
-		new Vector2(0.5f, 0.5f),
+		new(0.5f, 0.5f),
 		// Bottom right
-		new Vector2(0.5f, -0.5f),
+		new(0.5f, -0.5f),
 		// Bottom left
-		new Vector2(-0.5f, -0.5f)
+		new(-0.5f, -0.5f)
 	};
 }

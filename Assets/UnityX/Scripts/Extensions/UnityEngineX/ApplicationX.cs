@@ -5,11 +5,7 @@ public class ApplicationX : MonoBehaviour {
     public static bool isApplicationQuitting;
 
 
-	public static string projectPath {
-		get {
-			return Path.Combine(Application.dataPath, "../../");
-		}
-	}
+	public static string projectPath => Path.Combine(Application.dataPath, "../../");
 
 	// Cached for access in threads
 	static string _streamingAssetsPath;

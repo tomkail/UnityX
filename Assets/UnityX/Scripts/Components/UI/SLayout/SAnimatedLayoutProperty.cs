@@ -16,7 +16,7 @@ public abstract class SAnimatedProperty
 
 public abstract class SAnimatedLayoutProperty : SAnimatedProperty {
 	public abstract SLayout GetLayout();
-	public abstract void GetStart();
+	public abstract void SetStartToCurrentValue();
 	public abstract void PerformAndSetEnd();
 	public abstract void ResetToStart();
 }
@@ -29,7 +29,7 @@ public class SAnimatedLayoutProperty<T> : SAnimatedLayoutProperty
 	public T start;
 	public T end;
 	
-	public override void GetStart() {
+	public override void SetStartToCurrentValue() {
 		start = property.getter();
 	}
 	public override void PerformAndSetEnd() {
@@ -47,8 +47,8 @@ public class SAnimatedLayoutProperty<T> : SAnimatedLayoutProperty
 		property.animatedProperty = null;
 		property = null;
 		animation = null;
-		start = default(T);
-		end = default(T);
+		start = default;
+		end = default;
 		_reusePool.Push(this);
 	}
 
@@ -81,14 +81,14 @@ public class SAnimatedLayoutProperty<T> : SAnimatedLayoutProperty
 		return animProperty;
 	}
 
-	static Stack<SAnimatedLayoutProperty<T>> _reusePool = new Stack<SAnimatedLayoutProperty<T>>();
+	static Stack<SAnimatedLayoutProperty<T>> _reusePool = new();
 }
 
 
 public class SAnimatedCustomProperty : SAnimatedProperty
 {
 	public SAnimatedCustomProperty(Action<float> customAnim, float duration, float delay) {
-		this._customAnim = customAnim;
+		_customAnim = customAnim;
 		this.duration = duration;
 		this.delay = delay;
 	}

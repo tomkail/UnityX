@@ -29,18 +29,18 @@ public class VirtualKeyboardManager : MonoSingleton<VirtualKeyboardManager> {
     // The classic case of this is the keyboard pinging up and down when selection is taken away from a text field and then immediately returned.
     public bool tryUpdateKeyboardAreaRect = true;
     // This is reported with 0,0 as top left rather than Unity's implementation of bottom left on iOS for some reason, so we flip it here.
-    Rect correctedDeviceKeyboardScreenRect => new Rect(TouchScreenKeyboard.area.x, 0, TouchScreenKeyboard.area.width, TouchScreenKeyboard.area.height);
+    Rect correctedDeviceKeyboardScreenRect => new(TouchScreenKeyboard.area.x, 0, TouchScreenKeyboard.area.width, TouchScreenKeyboard.area.height);
     Rect lastCachedDeviceScreenRect;
     Rect lastCachedScreenRect => TouchScreenKeyboard.isSupported ? lastCachedDeviceScreenRect : editorSimulationKeyboardScreenRect;
     
-    Rect editorSimulationKeyboardScreenRect => new Rect(0,0,Screen.width,editorSimulationKeyboardScreenHeight);
+    Rect editorSimulationKeyboardScreenRect => new(0,0,Screen.width,editorSimulationKeyboardScreenHeight);
 
     
-    public Rect nonAnimatedRemainingScreenRect => new Rect(0, nonAnimatedKeyboardScreenRect.height, Screen.width, Screen.height-nonAnimatedKeyboardScreenRect.height);
+    public Rect nonAnimatedRemainingScreenRect => new(0, nonAnimatedKeyboardScreenRect.height, Screen.width, Screen.height-nonAnimatedKeyboardScreenRect.height);
     public Rect nonAnimatedKeyboardScreenRect => TouchScreenKeyboard.isSupported ? correctedDeviceKeyboardScreenRect : (simulateInEditor ? editorSimulationKeyboardScreenRect : Rect.zero);
 
-    public Rect animatedKeyboardScreenRect => new Rect(lastCachedScreenRect.x, lastCachedScreenRect.y, lastCachedScreenRect.width == 0 ? Screen.width : lastCachedScreenRect.width, lastCachedScreenRect.height * showAmount);
-    public Rect animatedRemainingScreenRect => new Rect(0, animatedKeyboardScreenRect.height, Screen.width, Screen.height-animatedKeyboardScreenRect.height);
+    public Rect animatedKeyboardScreenRect => new(lastCachedScreenRect.x, lastCachedScreenRect.y, lastCachedScreenRect.width == 0 ? Screen.width : lastCachedScreenRect.width, lastCachedScreenRect.height * showAmount);
+    public Rect animatedRemainingScreenRect => new(0, animatedKeyboardScreenRect.height, Screen.width, Screen.height-animatedKeyboardScreenRect.height);
 
     public enum VisibilityState {
         FullyHidden,

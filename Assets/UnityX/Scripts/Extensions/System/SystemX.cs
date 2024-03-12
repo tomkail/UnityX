@@ -6,13 +6,16 @@ using System.IO;
 public static class SystemX {
 	// Can use EditorUtility.RevealInFinder in editor
 	public static bool OpenInFileBrowser(string path) {
-		if (SystemInfoX.IsWinOS) {
-			return OpenInWinFileBrowser(path);
-		} else if (SystemInfoX.IsMacOS) {
-			return OpenInMacFileBrowser(path);	
-		} else {
-			Debug.LogError ("Could not open in file browser because OS is unrecognized. OS is "+UnityEngine.SystemInfo.operatingSystem);
-			return false;
+		switch (Application.platform) {
+			case RuntimePlatform.WindowsEditor:
+			case RuntimePlatform.WindowsPlayer:
+				return OpenInWinFileBrowser(path);
+			case RuntimePlatform.OSXEditor:
+			case RuntimePlatform.OSXPlayer:
+				return OpenInMacFileBrowser(path);
+			default:
+				Debug.LogError ("Could not open in file browser because OS is unrecognized. OS is "+UnityEngine.SystemInfo.operatingSystem);
+				return false;
 		}
 	}
 	

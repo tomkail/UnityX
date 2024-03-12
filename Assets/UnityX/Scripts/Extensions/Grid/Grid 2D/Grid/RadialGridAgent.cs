@@ -14,7 +14,7 @@ public class RadialGridAgent : MonoBehaviour {
 	}
 
 	[System.NonSerialized]
-	public List<Point> chunkPoints = new List<Point>();
+	public List<Point> chunkPoints = new();
 	public System.Action<List<Point>> OnEnterPoints;
 	public System.Action<List<Point>> OnExitPoints;
 	public bool showGizmos;

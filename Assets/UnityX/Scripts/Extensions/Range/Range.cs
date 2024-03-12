@@ -19,21 +19,21 @@ public struct Range : IEquatable<Range>
 	public float length => max - min;
 
 	[JsonIgnore]
-	public Range negated => new Range(-max, -min);
+	public Range negated => new(-max, -min);
 
 
 	[JsonIgnore]
-	public static readonly Range infinity = new Range(float.NegativeInfinity, float.PositiveInfinity);
+	public static readonly Range infinity = new(float.NegativeInfinity, float.PositiveInfinity);
 
 	[JsonIgnore]
-	public static readonly Range zero = default(Range);
+	public static readonly Range zero = default;
 
 	public Range(float min, float max) {
 		this.min = min;
 		this.max = max;
 	}
 
-	public static Range Centered(float mid, float width) => new Range(mid-0.5f*width, mid+0.5f*width);
+	public static Range Centered(float mid, float width) => new(mid-0.5f*width, mid+0.5f*width);
 
 	public static Range Auto(float x0, float x1) {
 		if( x0 <= x1 ) return new Range(x0, x1);

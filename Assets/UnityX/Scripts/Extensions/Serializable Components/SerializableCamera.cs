@@ -13,7 +13,7 @@ public struct SerializableCamera  {
 	public const float defaultAspectRatio = 1;
 	public const float defaultNearClipPlane = 0.01f;
 	public const float defaultFarClipPlane = 1000;
-	public static Rect defaultRect = new Rect(0,0,1,1);
+	public static Rect defaultRect = new(0,0,1,1);
 
 	public SerializableTransform transform;
 	
@@ -143,8 +143,8 @@ public struct SerializableCamera  {
 	    public float width;
 	    public float height;
 
-	    public static ScreenParams @default => new ScreenParams(1920, 1080);
-	    public static ScreenParams gameScreenParams => new ScreenParams(gameScreenWidth, gameScreenHeight);
+	    public static ScreenParams @default => new(1920, 1080);
+	    public static ScreenParams gameScreenParams => new(gameScreenWidth, gameScreenHeight);
 	    
 	    // ARGH I hate this. It's necessary because screen/display don't return the values for game view in some editor contexts (using inspector windows, for example)
 	    public static int gameScreenWidth {

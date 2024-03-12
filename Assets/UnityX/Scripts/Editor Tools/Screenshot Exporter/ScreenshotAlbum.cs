@@ -7,7 +7,7 @@ using System.Collections.Generic;
 /// </summary>
 public class ScreenshotAlbum {
 	
-	public List<Texture2D> screenshots = new List<Texture2D>();
+	public List<Texture2D> screenshots = new();
 	
 	public delegate void OnAddScreenshotEvent (Texture2D screenshot);
 	public event OnAddScreenshotEvent OnAddScreenshot;

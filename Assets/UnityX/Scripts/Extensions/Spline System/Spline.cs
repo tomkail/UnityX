@@ -254,7 +254,7 @@ namespace SplineSystem {
 			return Mathf.Clamp(targetArcLength, 0, length);
 		}
 
-		static List<float> sqrDistances = new List<float>();
+		static List<float> sqrDistances = new();
 		static void RemoveCurves (Vector3 position, ref List<SplineBezierCurve> curvesToTry, int numSamples, ref float smallestSqrDistance) {
 			if(curvesToTry.Count <= 1) return;
 
@@ -338,7 +338,7 @@ namespace SplineSystem {
 		// This isn't *perfectly* accurate, although it's pretty damned close. 
 		// Works by finding the best curve, subdividing that curve, then finally lerping between the resultant line
 		// Accuracy will depend on numArcLengthsForArcLengthToTCalculation and maxSqrDistanceToSpline and maxRange variables in this function.
-		static List<SplineBezierCurve> curvesToTry = new List<SplineBezierCurve>();
+		static List<SplineBezierCurve> curvesToTry = new();
 		public float EstimateArcLengthAlongCurve (Vector3 position, bool clampAtStart = false, bool clampAtEnd = false) {
 			if(curves == null || curves.Length == 0) {
 				Debug.LogError("No curves in spline");
@@ -561,8 +561,8 @@ namespace SplineSystem {
 			}
 			if(bezierPoints == null || bezierPoints.Length < 2) {
                 bezierPoints = new SplineBezierPoint[] {
-                    new SplineBezierPoint(new Vector3(-1,1,0), Quaternion.LookRotation(Vector3.right, Vector3.forward), 1f, 1f),
-                    new SplineBezierPoint(new Vector3(1,-1,0), Quaternion.LookRotation(Vector3.right, Vector3.forward), 1f, 1f)
+                    new(new Vector3(-1,1,0), Quaternion.LookRotation(Vector3.right, Vector3.forward), 1f, 1f),
+                    new(new Vector3(1,-1,0), Quaternion.LookRotation(Vector3.right, Vector3.forward), 1f, 1f)
                 };
                 didChange = true;
             } else {

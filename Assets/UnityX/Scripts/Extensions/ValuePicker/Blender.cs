@@ -16,7 +16,7 @@ public class Blender<T>
 
 	public Blender ()
 	{
-		_defaultValue = default (T);
+		_defaultValue = default;
 	}
 
 	public Blender (T defaultValue)
@@ -122,7 +122,7 @@ public class Blender<T>
 		return _priorities.ContainsKey(obj);
 	}
 
-	Dictionary<object, int> _priorities = new Dictionary<object, int> ();
+	Dictionary<object, int> _priorities = new();
 
 	struct Entry
 	{
@@ -130,7 +130,7 @@ public class Blender<T>
 		public Func<T, T> blendFunc;
 	}
 	// Note that higher priority sources are at the end of the list, not the start
-	List<Entry> _entries = new List<Entry> ();
+	List<Entry> _entries = new();
 
 	T _defaultValue;
 }

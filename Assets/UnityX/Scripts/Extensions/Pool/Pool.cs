@@ -65,7 +65,7 @@ public class Pool<T> where T : class, IPoolable, new() {
         _pool.Push (obj);
     }
 
-    Stack<T> _pool = new Stack<T>();
+    Stack<T> _pool = new();
 
     static Pool() {
         _instance = new Pool<T> ();

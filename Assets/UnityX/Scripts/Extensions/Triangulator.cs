@@ -1,5 +1,5 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 
 public static class Triangulator {
 	public static void GenerateIndices(IList<Vector2> points, List<int> outputIndices) {
@@ -189,5 +189,5 @@ public static class Triangulator {
 		return ((aCROSSbp >= 0.0f) && (bCROSScp >= 0.0f) && (cCROSSap >= 0.0f));
 	}
 
-	static List<int> _indicesScratch = new List<int>(256);
+	static List<int> _indicesScratch = new(256);
 }

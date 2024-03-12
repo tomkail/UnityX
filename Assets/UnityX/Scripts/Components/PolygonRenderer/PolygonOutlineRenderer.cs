@@ -22,7 +22,7 @@ public class PolygonOutlineRenderer : BasePolygonRenderer {
     [Space]
 	public bool front = true;
 	public bool back;
-	public MeshBakeParams bakeParams = new MeshBakeParams(true, true);
+	public MeshBakeParams bakeParams = new(true, true);
     
     [Space]
 	public float innerDistance = 0f;
@@ -39,7 +39,7 @@ public class PolygonOutlineRenderer : BasePolygonRenderer {
 
     public StrokeGeometryAttributes attributes;
     public float extrusion;
-    static MeshBuilder mb = new MeshBuilder();
+    static MeshBuilder mb = new();
 	public override void RebuildMesh () {
 		GetMesh();
 		mesh.Clear();

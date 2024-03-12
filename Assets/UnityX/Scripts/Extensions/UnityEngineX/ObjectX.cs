@@ -2,7 +2,7 @@
 
 public static class ObjectX {
 	
-	public static bool IsNull (this UnityEngine.Object obj) {
+	public static bool IsNull (this Object obj) {
 		return obj == null || obj.Equals(null);
 	}
 	
@@ -15,9 +15,9 @@ public static class ObjectX {
 	public static void DestroyAutomatic(Object o) {
 		#if UNITY_EDITOR
 		if(Application.isPlaying)
-			UnityEngine.Object.Destroy (o);
+			Object.Destroy (o);
 		else
-			UnityEngine.Object.DestroyImmediate (o);
+			Object.DestroyImmediate (o);
 		#else
 		UnityEngine.Object.Destroy (o);
 		#endif
@@ -30,7 +30,7 @@ public static class ObjectX {
 	/// </summary>
 	/// <returns>The transform from object.</returns>
 	/// <param name="source">Source.</param>
-	private static Transform GetTransformFromObject(Object source) {
+	static Transform GetTransformFromObject(Object source) {
 		if (source is GameObject) {
 			return (source as GameObject).transform;
 		} else if (source is Component) {

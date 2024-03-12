@@ -1,5 +1,5 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public static class PlaneX {
 	public static bool TryGetHitPoint (this Plane plane, Ray ray, ref Vector3 hitPoint) {
@@ -30,14 +30,14 @@ public static class PlaneX {
 
 
 	// https://stackoverflow.com/questions/5666222/3d-line-plane-intersection
-	public static bool LineIntersectionPoint (this Plane plane, Line3D line, out float intersectionLineDistance) {
-		var u = Vector3.Normalize(line.end - line.start);
+	public static bool LineIntersectionPoint (this Plane plane, Vector3 start, Vector3 end, out float intersectionLineDistance) {
+		var u = Vector3.Normalize(end - start);
 		var dot = Vector3.Dot(plane.normal, u);
 		if(Mathf.Abs(dot) > Mathf.Epsilon) {
 			var planePoint = -plane.normal * plane.distance;
-			var w = line.start - planePoint;
+			var w = start - planePoint;
 			intersectionLineDistance = -Vector3.Dot(plane.normal, w) / dot;
-			if(intersectionLineDistance < 0 || intersectionLineDistance > line.length) return false;
+			if(intersectionLineDistance < 0 || intersectionLineDistance > Vector3.Distance(start, end)) return false;
 			else return true;
 		} else {
 			// The segment is parallel to plane

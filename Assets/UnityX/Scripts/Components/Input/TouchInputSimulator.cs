@@ -206,7 +206,7 @@ public class TouchInputSimulator : MonoSingleton<TouchInputSimulator> {
         if(InputX.Instance.pinches.Any()) {
             int i = 0;
             foreach(var pinch in InputX.Instance.pinches) {
-                GUILayout.Window(i, new Rect(0,0,100,100), (int id) => {
+                GUILayout.Window(i, new Rect(0,0,100,100), (int _) => {
                     GUILayout.Box("Point 1: "+pinch.inputPoint1.position.ToString());
                     GUILayout.Box("Point 2: "+pinch.inputPoint2.position.ToString());
                     GUILayout.Box("Center: "+pinch.currentPinchCenter.ToString());

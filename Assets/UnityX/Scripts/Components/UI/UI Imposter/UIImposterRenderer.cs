@@ -1,6 +1,8 @@
+using System;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
-[System.Serializable]
+[Serializable]
 public struct UIImposterOutputParams {
     public SizeMode sizeMode;
     public enum SizeMode {

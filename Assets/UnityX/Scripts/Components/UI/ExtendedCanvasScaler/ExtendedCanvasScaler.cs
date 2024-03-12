@@ -1,16 +1,30 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
+﻿using UnityEditor;
 
 namespace UnityEngine.UI {
     public class ExtendedCanvasScaler : CanvasScaler {
         public bool m_useCameraSizeInsteadOfScreenSize = true;
         public float scaleMultipler = 1;
 
-        private const float kLogBase = 2;
-
-        public new void Handle() {
-            base.Handle();
+        const float kLogBase = 2;
+        #if UNITY_EDITOR
+        // This is a hack to fix an issue where DeviceSim returns the wrong DPI on the first frame in editor (ARGHHH)
+        float ScreenDPI {
+            get => EditorPrefs.GetFloat("UnityX/ExtendedCanvasScaler/prevDPI", Screen.dpi);
+            set => EditorPrefs.SetFloat("UnityX/ExtendedCanvasScaler/prevDPI", Screen.dpi);
         }
+#else
+        float ScreenDPI => Screen.dpi;
+#endif
+
+        public void HandlePublic() {
+            Handle();
+        }
+
+#if UNITY_EDITOR
+        void Update() {
+            ScreenDPI = Screen.dpi;
+        }
+#endif
 
         // This function is a copy-paste of this file 
         // https://bitbucket.org/Unity-Technologies/ui/src/0155c39e05ca5d7dcc97d9974256ef83bc122586/UnityEngine.UI/UI/Core/Layout/CanvasScaler.cs
@@ -55,7 +69,7 @@ namespace UnityEngine.UI {
         ///Handles canvas scaling for a constant physical size.
         ///</summary>
         protected override void HandleConstantPhysicalSize() {
-            float currentDpi = Screen.dpi;
+            float currentDpi = ScreenDPI;
             float dpi = (currentDpi == 0 ? m_FallbackScreenDPI : currentDpi);
             float targetDPI = 1;
             switch (m_PhysicalUnit) {

@@ -131,5 +131,5 @@ public class FPSManager : MonoSingleton<FPSManager> {
 		}
 	}
 	
-	private List<float> deltaTimes = new List<float>();
+	private List<float> deltaTimes = new();
 }

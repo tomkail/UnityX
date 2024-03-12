@@ -43,7 +43,7 @@ public abstract class BasePolygonRenderer : MonoBehaviour {
     protected Mesh mesh;
 
     [SerializeField]
-    Polygon _polygon = new Polygon(new RegularPolygon(4, 45).ToPolygonVerts());
+    Polygon _polygon = new(new RegularPolygon(4, 45).ToPolygonVerts());
     public Polygon polygon {
         get {
             return _polygon;

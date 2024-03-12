@@ -487,7 +487,7 @@ namespace Utils.Algorithms {
 				}
 			}
 		}
-		static readonly CandidateComparer _candidateComparer = new CandidateComparer();
+		static readonly CandidateComparer _candidateComparer = new();
 
 		private void RemoveSortedCandidate (GraphEntry candidateEntry)
 		{
@@ -547,7 +547,7 @@ namespace Utils.Algorithms {
 			}
 
 			public void Clear() {
-				_graphElement = default(GraphElement);
+				_graphElement = default;
 				_connectedElements.Clear();
 
 				_bestCostToHere = 0.0f;
@@ -615,7 +615,7 @@ namespace Utils.Algorithms {
 		private LazyGraph _graph;
 
 		// Contains the current candidates in sorted order (best first).  Once processed, a candidate should be removed from the candidate list.
-		private List<GraphEntry> _sortedCandidateGraphEntries = new List<GraphEntry>();
+		private List<GraphEntry> _sortedCandidateGraphEntries = new();
 
 		// Contains all the graph entries, indexed by GraphElement.
 		private Dictionary<GraphElement, GraphEntry> _graphEntries;

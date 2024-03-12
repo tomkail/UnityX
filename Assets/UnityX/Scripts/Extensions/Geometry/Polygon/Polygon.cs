@@ -1430,7 +1430,7 @@ public class Polygon {
 	/// Gets a random point inside a polygon.
 	/// </summary>
 	/// <returns>The random point in polygon.</returns>
-	static List<int> tris = new List<int>();
+	static List<int> tris = new();
 	public Vector2 GetRandomPointInPolygon () {
 		if(vertices.Length < 3 || GetArea() == 0) return Vector2.zero;
 
@@ -1527,7 +1527,7 @@ public class Polygon {
 
 
 
-	Vector2 _poleOfInaccessibility = new Vector2(0, 0); 
+	Vector2 _poleOfInaccessibility = new(0, 0); 
 
 	/// <summary>
 	/// The point within the poly which is the hardest to reach from all of its boundaries.

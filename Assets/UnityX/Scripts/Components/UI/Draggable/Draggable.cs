@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 /// <summary>
 /// On start dragging event delegate.
@@ -13,11 +13,7 @@ public delegate void OnStartDraggingEvent();
 public delegate void OnStopDraggingEvent();
 
 public class Draggable : Selectable, IBeginDragHandler, IEndDragHandler, IDragHandler {
-	public RectTransform rectTransform {
-		get {
-			return (RectTransform)transform;
-		}
-	}
+	public RectTransform rectTransform => (RectTransform)transform;
 	public PointerEventData lastPointerEventData;
 
 	/// <summary>
@@ -33,11 +29,7 @@ public class Draggable : Selectable, IBeginDragHandler, IEndDragHandler, IDragHa
 	public Action<Draggable, PointerEventData> OnClicked;
 	
 	// Container this object resides inside
-	public RectTransform viewRect {
-		get {
-			return (RectTransform)transform.parent;
-		}
-	}
+	public RectTransform viewRect => (RectTransform)transform.parent;
 
 	/// If the target position is controlled here or elsewhere
 	// public bool setTargetPositionAutomatically = true;
@@ -83,7 +75,7 @@ public class Draggable : Selectable, IBeginDragHandler, IEndDragHandler, IDragHa
 	/// <summary>
 	/// The drag offset.
 	/// </summary>
-	private Vector2 dragOffset;
+	Vector2 dragOffset;
 	
 	/// <summary>
 	/// The drag start position.
@@ -99,12 +91,11 @@ public class Draggable : Selectable, IBeginDragHandler, IEndDragHandler, IDragHa
 	/// <summary>
 	/// The drag velocity.
 	/// </summary>
-	[SerializeField]
-	private Vector2 _dragVelocity;
-	private Vector2 dragVelocity {
-		get {
-			return _dragVelocity;
-		} set {
+	[SerializeField] Vector2 _dragVelocity;
+
+	Vector2 dragVelocity {
+		get => _dragVelocity;
+		set {
 			if(_dragVelocity == value) return;
 			_dragVelocity = value;
 		}
@@ -127,8 +118,7 @@ public class Draggable : Selectable, IBeginDragHandler, IEndDragHandler, IDragHa
 	// 	CalculateDragVelocity();
 	// 	ApplyTransformChangesFromDragVelocity();
 	// }
-	
-	private void ApplyTransformChangesFromDragVelocity () {
+	void ApplyTransformChangesFromDragVelocity () {
 		TranslateWithDragVelocity (dragVelocity);
 		RotateWithDragVelocity (dragVelocity, dragVelocityRotationMagnitude, maxDragVelocityRotation);
 	}
@@ -190,7 +180,7 @@ public class Draggable : Selectable, IBeginDragHandler, IEndDragHandler, IDragHa
 	}
 	
 	protected virtual void RotateWithDragVelocity (Vector3 _dragVelocity, float _dragVelocityRotationMagnitude, float _maxRotateStep) {
-		_dragVelocity = -Vector3.Scale (_dragVelocity, (Vector3)dragRotateAxis);
+		_dragVelocity = -Vector3.Scale (_dragVelocity, dragRotateAxis);
 		float step = _dragVelocity.magnitude * _dragVelocityRotationMagnitude;
 		step = Mathf.Clamp (step, 0, _maxRotateStep);
 		step *= Time.unscaledDeltaTime;

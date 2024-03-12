@@ -29,7 +29,7 @@ public static class IEnumerableX {
 	        i++;
 	    }
 	}
-	public static int IndexOf<T>(this IEnumerable<T> source, System.Func<T, bool> predicate){
+	public static int IndexOf<T>(this IEnumerable<T> source, Func<T, bool> predicate){
 		int i = 0;
 		foreach(var element in source) {
 			if(predicate(element)) return i;
@@ -75,12 +75,12 @@ public static class IEnumerableX {
 
 	// Used as so:
 	// return transforms.Best(x => x.distance, (other, currentBest) => other < currentBest, Mathf.Infinity, null);
-	public static T Best<T>(this IEnumerable<T> source, GetScore<T> selector, ChooseBest comparer, float defaultBestScore = 0, T defaultValue = default(T)){
+	public static T Best<T>(this IEnumerable<T> source, GetScore<T> selector, ChooseBest comparer, float defaultBestScore = 0, T defaultValue = default){
 		int index = source.BestIndex (selector, comparer, defaultBestScore);
 		if(index == -1) return defaultValue;
 		else return source.ElementAt(index);
 	}
-	public static T Best<T>(this IEnumerable<T> source, GetScore<T> selector, ChooseBest comparer, ref float defaultBestScore, T defaultValue = default(T)){
+	public static T Best<T>(this IEnumerable<T> source, GetScore<T> selector, ChooseBest comparer, ref float defaultBestScore, T defaultValue = default){
 		int index = source.BestIndex (selector, comparer, defaultBestScore);
 		if(index == -1) return defaultValue;
 		else return source.ElementAt(index);
@@ -88,7 +88,7 @@ public static class IEnumerableX {
 	
 	public static float Multiply<T>(this IEnumerable<T> source, Func<T, float> selector)
 	{
-		if (source == null) throw new System.Exception("Source is null!");
+		if (source == null) throw new Exception("Source is null!");
 		float mult = 1.0f;
 		foreach (T v in source)
 		{
@@ -166,7 +166,7 @@ public static class IEnumerableX {
     }
 
     public static T Random<T>(this IEnumerable<T> source) {
-		if(!source.Any()) return default(T);
+		if(!source.Any()) return default;
 		return source.ElementAt(source.RandomIndex());
     }
     

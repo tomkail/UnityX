@@ -7,10 +7,10 @@ using Random = UnityEngine.Random;
 
 [Serializable]
 public class ShuffleBag<T> {
-	[SerializeField, JsonProperty] List<T> _sourceItems = new List<T>();
+	[SerializeField, JsonProperty] List<T> _sourceItems = new();
 	[JsonIgnore] public ReadOnlyCollection<T> sourceItems => _sourceItems.AsReadOnly();
 
-	[SerializeField, JsonProperty] List<T> _items = new List<T>();
+	[SerializeField, JsonProperty] List<T> _items = new();
 	[JsonIgnore] public ReadOnlyCollection<T> items => _items.AsReadOnly();
 
 	public bool shuffle = true;

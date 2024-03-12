@@ -25,7 +25,7 @@ public class PoissonDiscSampler
     private readonly float radius2;  // radius squared
     private readonly float cellSize;
     private Vector2[,] grid;
-    private List<Vector2> activeSamples = new List<Vector2>();
+    private List<Vector2> activeSamples = new();
 
     /// Create a sampler with the following parameters:
     ///

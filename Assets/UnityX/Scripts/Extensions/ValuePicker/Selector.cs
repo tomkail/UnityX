@@ -75,7 +75,7 @@ public class Selector<T, TPrioritySource>
 	}
 	bool _nullRemovesValue;
 
-	public Selector (T defaultValue = default(T), Action<T> onChange = null)
+	public Selector (T defaultValue = default, Action<T> onChange = null)
 	{
 		// If the priority source is an enum, automatically 
 		// glean the priority values from  it.
@@ -130,7 +130,7 @@ public class Selector<T, TPrioritySource>
 	public bool TryGetValue(TPrioritySource source, out T value) {
 		var entryIndex = _entries.FindIndex(e => e.source.Equals(source));
 		if( entryIndex == -1 ) {
-			value = default(T);
+			value = default;
 			return false;
 		}
 
@@ -239,14 +239,14 @@ public class Selector<T, TPrioritySource>
 		return priority2.CompareTo (priority1);
 	}
 
-	Dictionary<TPrioritySource, int> _priorities = new Dictionary<TPrioritySource, int> ();
+	Dictionary<TPrioritySource, int> _priorities = new();
 
 	struct Entry
 	{
 		public TPrioritySource source;
 		public T desiredValue;
 	}
-	List<Entry> _entries = new List<Entry> ();
+	List<Entry> _entries = new();
 
 	T _defaultValue;
 }
@@ -256,5 +256,5 @@ public class Selector<T, TPrioritySource>
 /// </summary>
 public class Selector<T> : Selector<T, object>
 {
-	public Selector (T defaultValue = default(T), Action<T> onChange = null) : base(defaultValue, onChange) {}
+	public Selector (T defaultValue = default, Action<T> onChange = null) : base(defaultValue, onChange) {}
 }

@@ -8,7 +8,7 @@ namespace UnityEngine.UI.Extensions {
         Texture _texture;
 
         [SerializeField]
-		Polygon _polygon = new Polygon(new Vector2(0,0), new Vector2(100,0), new Vector2(100,100), new Vector2(0,100));
+		Polygon _polygon = new(new Vector2(0,0), new Vector2(100,0), new Vector2(100,100), new Vector2(0,100));
 		public Polygon polygon {
 			get {
 				return _polygon;
@@ -61,7 +61,7 @@ namespace UnityEngine.UI.Extensions {
             SetAllDirty();
         }
 
-        static List<int> triangles = new List<int>();
+        static List<int> triangles = new();
         protected override void OnPopulateMesh(VertexHelper vh) {
             vh.Clear();
 			var points = polygon.vertices;

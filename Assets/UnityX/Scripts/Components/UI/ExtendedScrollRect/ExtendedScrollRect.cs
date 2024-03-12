@@ -4,8 +4,8 @@ using UnityEngine.EventSystems;
 
 namespace UnityEngine.UI {
 	public class ExtendedScrollRect : ScrollRect {
-		public bool routeScrollEventsToParent = false;
-   		protected bool routeToParent = false;
+		public bool routeScrollEventsToParent;
+   		protected bool routeToParent;
         
         public bool dragging { get; private set; }
 
@@ -24,7 +24,7 @@ namespace UnityEngine.UI {
 			get {
 				// This only runs in update when enabled. Since we want to be able to call this even when disabled, we force the bounds to be calculated here.
 				if(!enabled) ForceUpdateBounds();
-				return base.m_ContentBounds;
+				return m_ContentBounds;
 			}
 		}
         
@@ -34,7 +34,7 @@ namespace UnityEngine.UI {
 		public Vector2 freeMovementSize => scaledContentRect.size-viewRect.rect.size;
 
 		// This is the offset from the pivot point to the side of the content rect that matches the pivot
-        public Vector2 contentOffset => viewRect.rect.position - (Vector2)scaledContentRect.position;
+        public Vector2 contentOffset => viewRect.rect.position - scaledContentRect.position;
 
         // 0,0 when the bottom-left of the content matches that of the container; 1, when the top-right of the content matches that of the container.
         // When container is larger than content the axis tends to return 0.5, but is a bit unpredictable since _freeMovementSize is 0 or near it.
@@ -151,9 +151,9 @@ namespace UnityEngine.UI {
 	        targetPos += content.GetLocalToAnchoredPositionOffset();
 	        return targetPos;
         }
-        
 
-        private readonly Vector3[] m_Corners = new Vector3[4];
+
+        readonly Vector3[] m_Corners = new Vector3[4];
 		public Bounds GetContentBounds() {
             if (content == null) return new Bounds();
             content.GetWorldCorners(m_Corners);
@@ -178,26 +178,26 @@ namespace UnityEngine.UI {
         }
 
 
-		[System.Serializable]
+		[Serializable]
 		public class ScrollRectScrollEvent : UnityEvent<PointerEventData> {}
 		
-		[System.Serializable]
+		[Serializable]
 		public class ScrollRectBeginDragEvent : UnityEvent<PointerEventData> {}
 		
-		[System.Serializable]
+		[Serializable]
 		public class ScrollRectEndDragEvent : UnityEvent<PointerEventData> {}
 		
-		[System.Serializable]
+		[Serializable]
 		public class ScrollRectDragEvent : UnityEvent<PointerEventData> {}
 		
 		
-		public ScrollRectScrollEvent onScroll = new ScrollRectScrollEvent();
-		public ScrollRectBeginDragEvent onBeginDrag = new ScrollRectBeginDragEvent();
-		public ScrollRectEndDragEvent onEndDrag = new ScrollRectEndDragEvent();
-		public ScrollRectDragEvent onDrag = new ScrollRectDragEvent();
+		public ScrollRectScrollEvent onScroll = new();
+		public ScrollRectBeginDragEvent onBeginDrag = new();
+		public ScrollRectEndDragEvent onEndDrag = new();
+		public ScrollRectDragEvent onDrag = new();
 
 		public void ForceUpdateBounds() {
-			base.UpdateBounds();
+			UpdateBounds();
 		}
 
 		/// <summary>

@@ -119,7 +119,7 @@ public abstract class PropertyCurve<T> {
 	
 		if(keys.Count == 0){
 			Debug.Log("No keys in this type exist!");
-			return default (T);
+			return default;
 		} else if(keys.Count == 1){
 			//Ensures there are two values to lerp if smoothing further on
 			return keys[0].value;

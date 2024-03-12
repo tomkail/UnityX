@@ -17,7 +17,7 @@ public abstract class MonoInstancer<T> : MonoBehaviour where T : MonoInstancer<T
         }
     }
     #endif
-    static List<T> _all = new List<T>();
+    static List<T> _all = new();
     #if UNITY_EDITOR
     static bool _upToDate = false;
     #endif

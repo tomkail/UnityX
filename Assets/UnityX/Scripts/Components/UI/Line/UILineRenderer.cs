@@ -392,18 +392,18 @@ namespace UnityEngine.UI.Extensions
         private const float MIN_BEVEL_NICE_JOIN = 30 * Mathf.Deg2Rad;
 
         private static readonly Vector2 UV_TOP_LEFT = Vector2.zero;
-        private static readonly Vector2 UV_BOTTOM_LEFT = new Vector2(0, 1);
-        private static readonly Vector2 UV_TOP_CENTER = new Vector2(0.5f, 0);
-        private static readonly Vector2 UV_BOTTOM_CENTER = new Vector2(0.5f, 1);
-        private static readonly Vector2 UV_TOP_RIGHT = new Vector2(1, 0);
-        private static readonly Vector2 UV_BOTTOM_RIGHT = new Vector2(1, 1);
+        private static readonly Vector2 UV_BOTTOM_LEFT = new(0, 1);
+        private static readonly Vector2 UV_TOP_CENTER = new(0.5f, 0);
+        private static readonly Vector2 UV_BOTTOM_CENTER = new(0.5f, 1);
+        private static readonly Vector2 UV_TOP_RIGHT = new(1, 0);
+        private static readonly Vector2 UV_BOTTOM_RIGHT = new(1, 1);
 
         private static readonly Vector2[] startUvs = new[] { UV_TOP_LEFT, UV_BOTTOM_LEFT, UV_BOTTOM_CENTER, UV_TOP_CENTER };
         private static readonly Vector2[] middleUvs = new[] { UV_TOP_CENTER, UV_BOTTOM_CENTER, UV_BOTTOM_CENTER, UV_TOP_CENTER };
         private static readonly Vector2[] endUvs = new[] { UV_TOP_CENTER, UV_BOTTOM_CENTER, UV_BOTTOM_RIGHT, UV_TOP_RIGHT };
 
         [SerializeField]
-        private Rect m_UVRect = new Rect(0f, 0f, 1f, 1f);
+        private Rect m_UVRect = new(0f, 0f, 1f, 1f);
         [SerializeField]
         private Vector2[] m_points;
 

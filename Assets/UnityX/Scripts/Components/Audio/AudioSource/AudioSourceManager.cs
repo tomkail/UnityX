@@ -15,7 +15,7 @@ public class AudioSourceManager : MonoBehaviour {
 			else return false;
 		}
 	}
-	LogicBlender<bool> canPlayBlender = new LogicBlender<bool>(source => source == null || source.All(x => x));
+	LogicBlender<bool> canPlayBlender = new(source => source == null || source.All(x => x));
 	public bool startPlayingAtRandomTime;
 
 	private AudioSource _audioSource;
@@ -179,7 +179,7 @@ public class AudioSourceManager : MonoBehaviour {
 		
 	bool _wasPlaying;
 	[SerializeField]
-	FloatTween _volumeTween = new FloatTween();
+	FloatTween _volumeTween = new();
 
 	#if UNITY_EDITOR
 	public void LogPauseBlender () {

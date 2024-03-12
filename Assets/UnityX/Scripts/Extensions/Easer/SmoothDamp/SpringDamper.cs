@@ -58,7 +58,7 @@ public class SpringDamper {
 
 	public virtual void Reset (float newDefaultValue) {
 		current = newDefaultValue;
-		currentVelocity = default(float);
+		currentVelocity = default;
 	}
 
 	public override string ToString () {

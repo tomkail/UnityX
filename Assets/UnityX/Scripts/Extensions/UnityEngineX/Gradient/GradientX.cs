@@ -65,7 +65,7 @@ public static class GradientX {
 	public static Gradient Create(GradientColorKey[] colorKeys, GradientAlphaKey[] alphaKeys = null) {
 		Gradient gradient = new Gradient();
 		if (alphaKeys.IsNullOrEmpty()) {
-			alphaKeys = new GradientAlphaKey[] { new GradientAlphaKey (1, 0) };
+			alphaKeys = new GradientAlphaKey[] { new(1, 0) };
 		}
 		gradient.SetKeys(colorKeys, alphaKeys);
 		return gradient;

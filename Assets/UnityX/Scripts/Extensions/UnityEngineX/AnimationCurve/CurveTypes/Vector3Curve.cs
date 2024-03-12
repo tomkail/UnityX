@@ -1,39 +1,21 @@
-using UnityEngine;
+using System;
 using System.Collections.Generic;
+using UnityEngine;
 
-[System.Serializable]
+[Serializable]
 public class Vector3Curve : BaseCurve<Vector3> {
-	[SerializeField]
-    private AnimationCurve xCurve;
-	[SerializeField]
-    private AnimationCurve yCurve;
-	[SerializeField]
-    private AnimationCurve zCurve;
+	[SerializeField] AnimationCurve xCurve;
+	[SerializeField] AnimationCurve yCurve;
+	[SerializeField] AnimationCurve zCurve;
 	
-	public Keyframe[] keys {
-		get {
-			return xCurve.keys;
-		}
-	}
+	public Keyframe[] keys => xCurve.keys;
 
-	public float length {
-		get {
-			return GetLength();
-		}
-	}
-	
-	public float width {
-		get {
-			return GetWidth();
-		}
-	}
+	public float length => GetLength();
 
-	public float height {
-		get {
-			return GetHeight();
-		}
-	}
-	
+	public float width => GetWidth();
+
+	public float height => GetHeight();
+
 	public Vector3Curve() {
 		xCurve = new AnimationCurve();
 		yCurve = new AnimationCurve();
@@ -47,9 +29,9 @@ public class Vector3Curve : BaseCurve<Vector3> {
 	}
 
 	public void Set(AnimationCurve _xCurve, AnimationCurve _yCurve, AnimationCurve _zCurve) {
-		this.xCurve = _xCurve;
-		this.yCurve = _yCurve;
-		this.zCurve = _zCurve;
+		xCurve = _xCurve;
+		yCurve = _yCurve;
+		zCurve = _zCurve;
 	}
 	
 	public void AddKey(float time, float x, float y, float z){
@@ -105,33 +87,33 @@ public class Vector3Curve : BaseCurve<Vector3> {
 	}
 	
 	public override void RemoveKeysBefore (float time) {
-		this.xCurve.RemoveKeysBefore(time);
-		this.yCurve.RemoveKeysBefore(time);
-		this.zCurve.RemoveKeysBefore(time);
+		xCurve.RemoveKeysBefore(time);
+		yCurve.RemoveKeysBefore(time);
+		zCurve.RemoveKeysBefore(time);
 	}
 	
 	public override void RemoveKeysBeforeAndIncluding (float time) {
-		this.xCurve.RemoveKeysBeforeAndIncluding(time);
-		this.yCurve.RemoveKeysBeforeAndIncluding(time);
-		this.zCurve.RemoveKeysBeforeAndIncluding(time);
+		xCurve.RemoveKeysBeforeAndIncluding(time);
+		yCurve.RemoveKeysBeforeAndIncluding(time);
+		zCurve.RemoveKeysBeforeAndIncluding(time);
 	}
 	
 	public override void RemoveKeysAfter (float time) {
-		this.xCurve.RemoveKeysAfter(time);
-		this.yCurve.RemoveKeysAfter(time);
-		this.zCurve.RemoveKeysAfter(time);
+		xCurve.RemoveKeysAfter(time);
+		yCurve.RemoveKeysAfter(time);
+		zCurve.RemoveKeysAfter(time);
 	}
 	
 	public override void RemoveKeysAfterAndIncluding (float time) {
-		this.xCurve.RemoveKeysAfterAndIncluding(time);
-		this.yCurve.RemoveKeysAfterAndIncluding(time);
-		this.zCurve.RemoveKeysAfterAndIncluding(time);
+		xCurve.RemoveKeysAfterAndIncluding(time);
+		yCurve.RemoveKeysAfterAndIncluding(time);
+		zCurve.RemoveKeysAfterAndIncluding(time);
 	}
 	
 	public override void RemoveKeysBetween (float startTime, float endTime) {
-		this.xCurve.RemoveKeysBetween(startTime, endTime);
-		this.yCurve.RemoveKeysBetween(startTime, endTime);
-		this.zCurve.RemoveKeysBetween(startTime, endTime);
+		xCurve.RemoveKeysBetween(startTime, endTime);
+		yCurve.RemoveKeysBetween(startTime, endTime);
+		zCurve.RemoveKeysBetween(startTime, endTime);
 	}
 
 	public override float GetLength () {

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public class Region : MonoBehaviour {
 	#if UNITY_EDITOR
 	[SerializeField]
-	Color _selectedFillColor = new Color(1,0,0,0.5f);
+	Color _selectedFillColor = new(1,0,0,0.5f);
 	public Color selectedFillColor {
 		get {
 			return _selectedFillColor;
@@ -13,7 +13,7 @@ public class Region : MonoBehaviour {
 		}
 	}
 	#endif
-	public static List<Region> activeRegions = new List<Region>();
+	public static List<Region> activeRegions = new();
 	public static Region GetRegionAtPosition (Vector3 position) {
 		foreach(Region region in activeRegions) {
 			if(region.ContainsPoint(position))
@@ -228,10 +228,10 @@ public class Region : MonoBehaviour {
 
 	private void Reset () {
 		polygon = new Polygon(new Vector2[] {
-			new Vector2(-0.5f, 0.5f),
-			new Vector2(0.5f, 0.5f),
-			new Vector2(0.5f, -0.5f),
-			new Vector2(-0.5f, -0.5f),
+			new(-0.5f, 0.5f),
+			new(0.5f, 0.5f),
+			new(0.5f, -0.5f),
+			new(-0.5f, -0.5f),
 		});
 		height = 1;
 	}

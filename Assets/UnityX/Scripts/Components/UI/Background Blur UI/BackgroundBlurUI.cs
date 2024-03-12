@@ -32,7 +32,7 @@ public class BackgroundBlurUI : MonoBehaviour {
         LITTLE_KERNEL = 7,
         MEDIUM_KERNEL = 35,
         BIG_KERNEL = 127
-    };
+    }
     [SerializeField, Range(0f,1f)]
     float _strength = 1f;
     public float strength {
@@ -44,7 +44,7 @@ public class BackgroundBlurUI : MonoBehaviour {
     }
     
     [SerializeField]
-    bool _canvasGroupAlphaAffectsStrength = false;
+    bool _canvasGroupAlphaAffectsStrength;
     public bool canvasGroupAlphaAffectsStrength {
         get => _canvasGroupAlphaAffectsStrength;
         set {
@@ -124,7 +124,7 @@ public class BackgroundBlurUI : MonoBehaviour {
         _isDirty = false;
     }
     
-    static readonly List<CanvasGroup> m_CanvasGroupCache = new List<CanvasGroup>();
+    static readonly List<CanvasGroup> m_CanvasGroupCache = new();
     static float CanvasGroupsAlpha (GameObject gameObject) {
         var groupAlpha = 1f;
         Transform t = gameObject.transform;

@@ -9,11 +9,9 @@ public class SerializedScriptableSingleton<T> : ScriptableObject where T : Scrip
 	public static string settingsPrefsKey {
 		get {
 			if(_settingsPrefsKey == null)
-				_settingsPrefsKey = string.Format("{0} Settings ({1})", typeof(T).Name, Application.productName);
+				_settingsPrefsKey = $"{typeof(T).Name} Settings ({Application.productName})";
 			return _settingsPrefsKey;
-		} set {
-			_settingsPrefsKey = value;
-		}
+		} set => _settingsPrefsKey = value;
 	}
 	public static event Action OnCreateOrLoad;
 

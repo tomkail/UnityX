@@ -50,7 +50,7 @@ public abstract class SmoothDamper<T> : BaseEaser<T> {
 
 	public override void Reset (T newDefaultValue) {
 		base.Reset(newDefaultValue);
-		currentVelocity = default(T);
+		currentVelocity = default;
 	}
 	
 	protected abstract T SmoothDamp (float deltaTime);

@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
- 
+
 // IMAGE MUST HAVE IN SETTINGS:
 // TEXTURE TYPE - SPRITE (2D AND UI), Full rect, readWriteEnabled
 [ExecuteAlways]

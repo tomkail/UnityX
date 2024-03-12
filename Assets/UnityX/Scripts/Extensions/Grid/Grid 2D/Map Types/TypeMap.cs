@@ -194,16 +194,16 @@ public class TypeMap<T> : Grid, IEnumerable<TypeMapCellInfo<T>> {
 		float bottomStrength = 1-topStrength;
 
 		if(IsOnGrid(right, top)) {
-			SetValueAtGridPoint(right, top, Lerp(default(T), value, rightStrength * topStrength));
+			SetValueAtGridPoint(right, top, Lerp(default, value, rightStrength * topStrength));
 		}
 		if(IsOnGrid(left, top)) {
-			SetValueAtGridPoint(left, top, Lerp(default(T), value, leftStrength * topStrength));
+			SetValueAtGridPoint(left, top, Lerp(default, value, leftStrength * topStrength));
 		}
 		if(IsOnGrid(left, bottom)) {
-			SetValueAtGridPoint(left, bottom, Lerp(default(T), value, leftStrength * bottomStrength));
+			SetValueAtGridPoint(left, bottom, Lerp(default, value, leftStrength * bottomStrength));
 		}
 		if(IsOnGrid(right, bottom)) {
-			SetValueAtGridPoint(right, bottom, Lerp(default(T), value, rightStrength * bottomStrength));
+			SetValueAtGridPoint(right, bottom, Lerp(default, value, rightStrength * bottomStrength));
 		}
 	}
 
@@ -281,7 +281,7 @@ public class TypeMap<T> : Grid, IEnumerable<TypeMapCellInfo<T>> {
 	}
 	
 	protected virtual T Lerp (T a, T b, float l) {
-		return default(T);
+		return default;
 	}
 
 	/// <summary>
@@ -289,7 +289,7 @@ public class TypeMap<T> : Grid, IEnumerable<TypeMapCellInfo<T>> {
 	/// </summary>
 	/// <returns>The enumerator.</returns>
 	IEnumerator<TypeMapCellInfo<T>> IEnumerable<TypeMapCellInfo<T>>.GetEnumerator() {
-		TypeMapCellInfo<T> cellInfo = new TypeMapCellInfo<T>(0, Point.zero, default(T));
+		TypeMapCellInfo<T> cellInfo = new TypeMapCellInfo<T>(0, Point.zero, default);
 		for (int y = 0; y < size.y; y++) {
 			for (int x = 0; x < size.x; x++) {
 				int index = GridPointToArrayIndex(x, y);

@@ -128,19 +128,19 @@ public static class ScaleToContainerUtils {
 
     // Returns the scale required to make the content fit the container according to the scaling mode.
     public static Vector3 Rescale (Vector2 containerSize, Vector2 contentSize, ScalingMode scalingMode) {
-        var resized = ScaleToContainerUtils.Resize(containerSize, contentSize, scalingMode);
+        var resized = Resize(containerSize, contentSize, scalingMode);
         return new Vector3(resized.x/contentSize.x, resized.y/contentSize.y, 1);
     }
     
     
     // Returns UV scale required to make the content fit the container according to the scaling mode.
     public static Vector2 RescaleUVs (Vector2 containerSize, Vector2 contentSize, ScalingMode scalingMode) {
-        var resized = ScaleToContainerUtils.Resize(containerSize, contentSize, scalingMode);
+        var resized = Resize(containerSize, contentSize, scalingMode);
         return new Vector2(containerSize.x/resized.x, containerSize.y/resized.y);
     }
     // Returns UV rect where the content fit the container according to the scaling mode, using a pivot point.
     public static Rect RescaleUVs (Vector2 containerSize, Vector2 contentSize, ScalingMode scalingMode, Vector2 pivot) {
-        var size = ScaleToContainerUtils.RescaleUVs(containerSize, contentSize, scalingMode);
+        var size = RescaleUVs(containerSize, contentSize, scalingMode);
 		return new Rect(-(size.x-1) * pivot.x, - (size.y-1) * pivot.y, size.x, size.y);
     }
 }

@@ -1,16 +1,12 @@
-﻿using TMPro;
+﻿using System;
+using TMPro;
 
 /// <summary>
 /// Shortcut to get a TextMeshPro from an SLayout. Don't want to include it
 /// directly in SLayout directly since we don't want a dependency on TMPro.
 /// </summary>
-public partial class SLayout
-{
-	public TextMeshProUGUI textMeshPro {
-		get {
-			return graphic as TextMeshProUGUI;
-		}
-	}
+public partial class SLayout {
+	public TextMeshProUGUI textMeshPro => graphic as TextMeshProUGUI;
 
 	public enum SizeMode {
 		None,
@@ -18,7 +14,7 @@ public partial class SLayout
 		HugContents,
 		FillContainer,
 	}
-	[System.Serializable]
+	[Serializable]
 	public struct TextAutoSizeParams {
 		public readonly SizeMode mode;
 		public readonly float fixedModeSize;
@@ -68,7 +64,18 @@ public partial class SLayout
 	}
 
 	public void SetSizeAndPositionText(string text, TextAutoSizeParams widthParams = default, TextAutoSizeParams heightParams = default) {
-		SetAndSizeText(text, widthParams, heightParams);
+		textMeshPro.text = text;
+		SetSizeAndPositionFromText(widthParams, heightParams);
+	}
+
+	public void SetAndSizeText(string text, TextAutoSizeParams widthParams = default, TextAutoSizeParams heightParams = default) {
+		textMeshPro.text = text;
+		SetSizeFromText(widthParams, heightParams);
+	}
+	
+	public void SetSizeAndPositionFromText(TextAutoSizeParams widthParams = default, TextAutoSizeParams heightParams = default) {
+		textMeshPro.ForceMeshUpdate();
+		SetSizeFromText(widthParams, heightParams);
 		
 		x = widthParams.mode switch {
 			SizeMode.Fixed => widthParams.minMargin,
@@ -84,26 +91,21 @@ public partial class SLayout
 			_ => y
 		};
 	}
-
+	
 	public void SetSizeFromText(TextAutoSizeParams widthParams = default, TextAutoSizeParams heightParams = default) {
 		textMeshPro.ForceMeshUpdate();
 		width = widthParams.mode switch {
 			SizeMode.Fixed => widthParams.fixedModeSize + widthParams.totalMargin,
-			SizeMode.FillContainer => parentRect.width - widthParams.totalMargin,
+			SizeMode.FillContainer => targetParentRect.width - widthParams.totalMargin,
 			SizeMode.HugContents => textMeshPro.GetTightPreferredValues().x,
 			_ => width
 		};
 
 		height = heightParams.mode switch {
 			SizeMode.Fixed => heightParams.fixedModeSize + heightParams.totalMargin,
-			SizeMode.FillContainer => parentRect.height - heightParams.totalMargin,
+			SizeMode.FillContainer => targetParentRect.height - heightParams.totalMargin,
 			SizeMode.HugContents => textMeshPro.GetTightPreferredValues(width).y,
 			_ => height
 		};
-	}
-
-	public void SetAndSizeText(string text, TextAutoSizeParams widthParams = default, TextAutoSizeParams heightParams = default) {
-		textMeshPro.text = text;
-		SetSizeFromText(widthParams, heightParams);
 	}
 }

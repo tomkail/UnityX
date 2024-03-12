@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
-[System.Serializable]
+[Serializable]
 public class HSBColor {
 	public float h;
 	public float s;
@@ -18,7 +19,7 @@ public class HSBColor {
         this.h = h;
         this.s = s;
         this.b = b;
-        this.a = 1f;
+        a = 1f;
     }
  
     public HSBColor(Color col) {

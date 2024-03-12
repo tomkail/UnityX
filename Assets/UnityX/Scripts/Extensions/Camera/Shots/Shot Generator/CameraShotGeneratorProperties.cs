@@ -3,8 +3,8 @@ using System.Collections.Generic;
 
 [System.Serializable]
 public class CameraShotGeneratorProperties {
-	public Rect viewportRect = new Rect(0,0,1,1);
-	public List<Vector3> pointCloud = new List<Vector3>();
+	public Rect viewportRect = new(0,0,1,1);
+	public List<Vector3> pointCloud = new();
 	public Quaternion rotation = Quaternion.identity;
 
 	public bool orthographic = false;

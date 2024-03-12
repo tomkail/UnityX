@@ -4,8 +4,8 @@ using UnityEngine;
 // This class is used to create a carousel effect for a list of CanvasGroups.
 [ExecuteAlways]
 public class CarouselUIView : MonoBehaviour {
-    public List<CanvasGroup> canvasGroups = new List<CanvasGroup>();
-    public float currentTime = 0;
+    public List<CanvasGroup> canvasGroups = new();
+    public float currentTime;
     public float imageDuration = 3.0f;
     public float crossfadeDuration = 1.0f;
     

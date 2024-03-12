@@ -1,7 +1,7 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
 using System.Collections.Generic;
-#if UNITY_EDITOR
 using UnityEditor;
+using UnityEngine;
 
 
 public static class HandlesX {
@@ -16,7 +16,7 @@ public static class HandlesX {
 		meshes.Clear();
 	}
 
-	static List<Mesh> meshes = new List<Mesh>();
+	static List<Mesh> meshes = new();
 	#endif
 
 	// static Mesh mesh;
@@ -33,7 +33,7 @@ public static class HandlesX {
 		#endif
 	}
 
-	static Stack<Color> colors = new Stack<Color>();
+	static Stack<Color> colors = new();
 	public static void BeginColor (Color color) {
 		colors.Push(Handles.color);
 		Handles.color = color;
@@ -43,7 +43,7 @@ public static class HandlesX {
 		Handles.color = colors.Pop();	
 	}
 
-	static Stack<Matrix4x4> matricies = new Stack<Matrix4x4>();
+	static Stack<Matrix4x4> matricies = new();
 	public static void BeginMatrix (Matrix4x4 matrix) {
 		matricies.Push(GUI.matrix);
 		Handles.matrix = matrix;
@@ -55,9 +55,9 @@ public static class HandlesX {
 
 	public static Vector3 ScaledPostionHandle (Vector3 position, Quaternion rotation, float scale) {
 		var matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one * scale);
-		HandlesX.BeginMatrix(matrix);
+		BeginMatrix(matrix);
 		var newPosition = Handles.PositionHandle(position, rotation);
-		HandlesX.EndMatrix();
+		EndMatrix();
 		return matrix.inverse.MultiplyPoint3x4(newPosition);
 	}
 
@@ -179,15 +179,15 @@ public static class HandlesX {
 	}
 
 	public static void DrawWirePolygon (Vector3 position, Quaternion rotation, Vector3 scale, IList<Vector2> points) {
-		HandlesX.BeginMatrix(Matrix4x4.TRS(position, rotation, scale));
+		BeginMatrix(Matrix4x4.TRS(position, rotation, scale));
 		for(int i = 0; i < points.Count; i++) {
 			Handles.DrawLine(points.GetRepeating(i), points.GetRepeating(i+1));
 		}
-		HandlesX.EndMatrix();
+		EndMatrix();
 	}
 
 	public static void DrawWireRect (Vector3 topLeft, Vector3 topRight, Vector3 bottomLeft, Vector3 bottomRight) {
-		DrawWirePolygon(new Vector3[]{topLeft, topRight, bottomRight, bottomLeft, topLeft});
+		DrawWirePolygon(new[]{topLeft, topRight, bottomRight, bottomLeft, topLeft});
 	}
 
 	public static void DrawWireRect (Rect _rect) {

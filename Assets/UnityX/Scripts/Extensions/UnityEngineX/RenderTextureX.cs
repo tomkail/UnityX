@@ -1,4 +1,5 @@
 using UnityEngine;
+
 public static class RenderTextureX {
 	
     /// <summary>

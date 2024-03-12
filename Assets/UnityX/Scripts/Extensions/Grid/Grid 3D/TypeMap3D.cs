@@ -248,7 +248,7 @@ public class TypeMap3D<T> : Grid3D, IEnumerable<TypeMap3DCellInfo<T>> {
 //	}
 	
 	protected virtual T Lerp (T a, T b, float l) {
-		return default(T);
+		return default;
 	}
 
 	/// <summary>
@@ -256,7 +256,7 @@ public class TypeMap3D<T> : Grid3D, IEnumerable<TypeMap3DCellInfo<T>> {
 	/// </summary>
 	/// <returns>The enumerator.</returns>
 	IEnumerator<TypeMap3DCellInfo<T>> IEnumerable<TypeMap3DCellInfo<T>>.GetEnumerator() {
-		TypeMap3DCellInfo<T> cellInfo = new TypeMap3DCellInfo<T>(0, Point3.zero, default(T));
+		TypeMap3DCellInfo<T> cellInfo = new TypeMap3DCellInfo<T>(0, Point3.zero, default);
 		for (int z = 0; z < size.z; z++) {
 			for (int y = 0; y < size.y; y++) {
 				for (int x = 0; x < size.x; x++) {

@@ -1,6 +1,9 @@
 //This class provides functionality for converting between pixel and percentage values, designed for GUI
-using UnityEngine;
+
+using System;
 using System.Collections;
+using UnityEditor;
+using UnityEngine;
 
 /// <summary>
 /// Manages screen properties. Must be attached to a GameObject to function.
@@ -15,126 +18,75 @@ public class ScreenX : MonoSingleton<ScreenX> {
 	/// The length from the bottom-left to the top-right corners. 
 	/// Note: measured in pixels, rather than the standard screen diagonal unit of inches.
 	/// </summary>
-	public static float diagonal {
-		get {
-			return screen.diagonal;
-		}
-	}
+	public static float diagonal => screen.diagonal;
 
 	/// <summary>
 	/// The total area of the screen
 	/// </summary>
-	public static float area {
-		get {
-			return screen.area;
-		}
-	}
+	public static float area => screen.area;
 
 	/// <summary>
 	/// The aspect ratio
 	/// </summary>
-	public static float aspectRatio {
-		get {
-			return screen.aspectRatio;
-		}
-	}
+	public static float aspectRatio => screen.aspectRatio;
 
 	/// <summary>
 	/// The reciprocal of the screen width
 	/// </summary>
-	public static float widthReciprocal {
-		get {
-			return screen.widthReciprocal;
-		}
-	}
+	public static float widthReciprocal => screen.widthReciprocal;
 
 	/// <summary>
 	/// The reciprocal of the screen height
 	/// </summary>
-	public static float heightReciprocal {
-		get {
-			return screen.heightReciprocal;
-		}
-	}
+	public static float heightReciprocal => screen.heightReciprocal;
 
 	/// <summary>
 	/// The reciprocal of the screen size
 	/// Note: measured in pixels, rather than the standard screen diagonal unit of inches.
 	/// </summary>
-	public static float diagonalReciprocal {
-		get {
-			return screen.diagonalReciprocal;
-		}
-	}
+	public static float diagonalReciprocal => screen.diagonalReciprocal;
 
 	/// <summary>
 	/// The inverted aspect ratio
 	/// </summary>
-	public static float aspectRatioReciprocal {
-		get {
-			return screen.aspectRatioReciprocal;
-		}
-	}
-	
+	public static float aspectRatioReciprocal => screen.aspectRatioReciprocal;
+
 	/// <summary>
 	/// The width of the screen in pixels.
 	/// </summary>
 	/// <value>The width.</value>
-	public static float width {
-		get {
-			return screen.width;
-		}
-	}
+	public static float width => screen.width;
+
 	/// <summary>
 	/// The height of the screen in pixels.
 	/// </summary>
 	/// <value>The height.</value>
-	public static float height {
-		get {
-			return screen.height;
-		}
-	}
-	
+	public static float height => screen.height;
+
 	/// <summary>
 	/// The size of the screen as a Vector.
 	/// </summary>
 	/// <value>The size.</value>
-	public static Vector2 size {
-		get {
-			return screen.size;
-		}
-	}
-	
+	public static Vector2 size => screen.size;
+
 	/// <summary>
 	/// The center of the screen
 	/// </summary>
 	/// <value>The center.</value>
-	public static Vector2 center {
-		get {
-			return screen.center;
-		}
-	}
-	
+	public static Vector2 center => screen.center;
+
 	/// <summary>
 	/// Gets the screen rect.
 	/// </summary>
 	/// <value>The screen rect.</value>
-	public static Rect screenRect {
-		get {
-			return screen.rect;
-		}
-	}
-	
-	
+	public static Rect screenRect => screen.rect;
+
+
 	/// <summary>
 	/// Is device DPI unavailiable? (as it is on many devices)
 	/// </summary>
-	public static bool usingDefaultDPI {
-		get {
-			return Screen.dpi == 0;
-		}
-	}
-	
+	public static bool usingDefaultDPI => Screen.dpi == 0;
+
 	/// <summary>
 	/// The default DPI to use in the case of default DPI
 	/// </summary>
@@ -180,7 +132,7 @@ public class ScreenX : MonoSingleton<ScreenX> {
 	/// <summary>
 	/// The orientation of the screen last time the size was changed. Used for measuring screen size change.
 	/// </summary>
-	private ScreenOrientation lastScreenOrientation;
+	ScreenOrientation lastScreenOrientation;
 	
 	/// <summary>
 	/// Event called when the screen size is changed
@@ -194,20 +146,20 @@ public class ScreenX : MonoSingleton<ScreenX> {
 	public delegate void OnOrientationChangeEvent();
 	public static event OnOrientationChangeEvent OnOrientationChange;
 
-	public static ScreenProperties screen = new ScreenProperties();
-	public static ScreenProperties viewport = new ScreenProperties();
-	public static ScreenProperties inches = new ScreenProperties();
-	public static ScreenProperties centimeters = new ScreenProperties();
+	public static ScreenProperties screen = new();
+	public static ScreenProperties viewport = new();
+	public static ScreenProperties inches = new();
+	public static ScreenProperties centimeters = new();
 	
 	/// <summary>
 	/// The width of the screen last time the size was changed. Used for measuring screen size change.
 	/// </summary>
-	private static int lastWidth;
+	static int lastWidth;
 	
 	/// <summary>
 	/// The height of the screen last time the size was changed. Used for measuring screen size change.
 	/// </summary>
-	private static int lastHeight;
+	static int lastHeight;
 	
 	protected override void Awake () {
 		base.Awake();
@@ -216,7 +168,7 @@ public class ScreenX : MonoSingleton<ScreenX> {
 		lastScreenOrientation = Screen.orientation;
 	}
 
-	private void Update () {
+	void Update () {
 		// #if UNITY_EDITOR
 		// gameViewDpiMultiplierDirty = true;
 		// #endif
@@ -284,7 +236,7 @@ public class ScreenX : MonoSingleton<ScreenX> {
 	}
 
 
-	private void CheckSizeChange() {
+	void CheckSizeChange() {
 		if(screenWidth != lastWidth || screenHeight != lastHeight){
 			StoreWidthAndHeight();
 			CalculateScreenSizeProperties();
@@ -293,8 +245,8 @@ public class ScreenX : MonoSingleton<ScreenX> {
 			}
 		}
 	}
-	
-	private void CheckOrientationChange(){
+
+	void CheckOrientationChange(){
 		if(Screen.orientation != lastScreenOrientation){
 			lastScreenOrientation = Screen.orientation;
 			if(OnOrientationChange != null){
@@ -306,7 +258,7 @@ public class ScreenX : MonoSingleton<ScreenX> {
 	}
 	
 	//Orentation is stagged on android devices I've tested on. Wait a tiny amount of time before getting screen size.
-	private IEnumerator WaitForOrientationChangeAndCalculateScreen(){
+	IEnumerator WaitForOrientationChangeAndCalculateScreen(){
 		yield return new WaitForSecondsRealtime (0.05f);
 		OrientationChangeAndCalculateScreen();
 	}
@@ -325,8 +277,8 @@ public class ScreenX : MonoSingleton<ScreenX> {
 		inches.CalculateScreenSizeProperties(ViewportToInchesPoint(Vector2.one));
 		centimeters.CalculateScreenSizeProperties(ViewportToCentimetersPoint(Vector2.one));
 	}
-	
-	private static void StoreWidthAndHeight () {
+
+	static void StoreWidthAndHeight () {
 		lastWidth = screenWidth;
 		lastHeight = screenHeight;
 	}
@@ -335,7 +287,7 @@ public class ScreenX : MonoSingleton<ScreenX> {
 	static int screenWidth {
 		get {
 #if UNITY_EDITOR
-			var res = UnityEditor.UnityStats.screenRes.Split('x');
+			var res = UnityStats.screenRes.Split('x');
 			var width = int.Parse(res[0]);
 			if (width != 0) return width;
 #endif
@@ -347,7 +299,7 @@ public class ScreenX : MonoSingleton<ScreenX> {
 	static int screenHeight {
 		get {
 #if UNITY_EDITOR
-			var res = UnityEditor.UnityStats.screenRes.Split('x');
+			var res = UnityStats.screenRes.Split('x');
 			var height = int.Parse(res[1]);
 			if (height != 0) return height;
 #endif
@@ -363,7 +315,7 @@ public class ScreenX : MonoSingleton<ScreenX> {
 /// Unitless screen properties. 
 /// Can be used to store screen properties in various unit types (Screen, Viewport, Inches)
 /// </summary>
-[System.Serializable]
+[Serializable]
 public class ScreenProperties {
 	
 	/// <summary>
@@ -435,32 +387,20 @@ public class ScreenProperties {
 	/// The size of the screen as a Vector.
 	/// </summary>
 	/// <value>The size.</value>
-	public Vector2 size {
-		get {
-			return new Vector2(width, height);
-		}
-	}
-	
+	public Vector2 size => new(width, height);
+
 	/// <summary>
 	/// The center of the screen
 	/// </summary>
 	/// <value>The center.</value>
-	public Vector2 center {
-		get {
-			return new Vector2(width * 0.5f, height * 0.5f);
-		}
-	}
-	
+	public Vector2 center => new(width * 0.5f, height * 0.5f);
+
 	/// <summary>
 	/// Gets the screen rect.
 	/// </summary>
 	/// <value>The screen rect.</value>
-	public Rect rect {
-		get {
-			return new Rect(0, 0, width, height);
-		}
-	}
-	
+	public Rect rect => new(0, 0, width, height);
+
 	public void CalculateScreenSizeProperties (Vector2 size){
 		CalculateScreenSizeProperties(size.x, size.y);
 	}
@@ -474,20 +414,20 @@ public class ScreenProperties {
 		CalculateAspectRatio();
 		CalculateReciprocals();
 	}
-	
-	private void CalculateDiagonal () {
+
+	void CalculateDiagonal () {
 		diagonal = size.magnitude;
 	}
-	
-	private void CalculateArea () {
+
+	void CalculateArea () {
 		area = width * height;
 	}
-	
-	private void CalculateAspectRatio () {
-		aspectRatio = (float)width/height;
+
+	void CalculateAspectRatio () {
+		aspectRatio = width/height;
 	}
-	
-	private void CalculateReciprocals () {
+
+	void CalculateReciprocals () {
 		widthReciprocal = width == 0 ? 0 : 1f/width;
 		heightReciprocal = height == 0 ? 0 : 1f/height;
 		diagonalReciprocal = diagonal == 0 ? 0 : 1f/diagonal;

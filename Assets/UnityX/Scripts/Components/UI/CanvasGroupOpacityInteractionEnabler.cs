@@ -13,7 +13,7 @@ public class CanvasGroupOpacityInteractionEnabler : UIBehaviour {
     
 	[Range(0f,1f)]
 	public float alphaThreshold = 1;
-	public bool ignoreParentGroups = false;
+	public bool ignoreParentGroups;
 	public bool interactable = true;
 	public bool blocksRaycasts = true;
 
@@ -38,7 +38,7 @@ public class CanvasGroupOpacityInteractionEnabler : UIBehaviour {
 		if(canvasGroup.interactable != newInteractable) canvasGroup.interactable = newInteractable;
     }
     
-    static readonly List<CanvasGroup> m_CanvasGroupCache = new List<CanvasGroup>();
+    static readonly List<CanvasGroup> m_CanvasGroupCache = new();
     static float CanvasGroupsAlpha (GameObject gameObject) {
         var groupAlpha = 1f;
         Transform t = gameObject.transform;

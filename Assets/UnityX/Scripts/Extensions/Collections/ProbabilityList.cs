@@ -3,8 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class ProbabilityList<T> : IEnumerable<KeyValuePair<T, float>> {
-	private List<T> values = new List<T>();
-	private List<float> probabilities = new List<float>();
+	private List<T> values = new();
+	private List<float> probabilities = new();
 
 	public ProbabilityList () {}
 	public ProbabilityList (IList<T> values, IList<float> probabilities) {

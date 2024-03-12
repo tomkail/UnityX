@@ -1,8 +1,8 @@
 ﻿using System;
-using UnityEngine;
 using ThisOtherThing.UI;
 using ThisOtherThing.UI.Shapes;
 using ThisOtherThing.UI.ShapeUtils;
+using UnityEngine;
 
 /// <summary>
 /// Shortcut to get a TextMeshPro from an SLayout. Don't want to include it
@@ -10,41 +10,19 @@ using ThisOtherThing.UI.ShapeUtils;
 /// </summary>
 public partial class SLayout
 {
-	public IShape shape {
-		get {
-			return graphic as IShape;
-		}
-	}
-	public Rectangle rectangle {
-		get {
-			return graphic as Rectangle;
-		}
-	}
-	public Arc arc {
-		get {
-			return graphic as Arc;
-		}
-	}
-	public EdgeGradient edgeGradient {
-		get {
-			return graphic as EdgeGradient;
-		}
-	}
-	public Ellipse ellipse {
-		get {
-			return graphic as Ellipse;
-		}
-	}
-	public ThisOtherThing.UI.Shapes.Polygon polygon {
-		get {
-			return graphic as ThisOtherThing.UI.Shapes.Polygon;
-		}
-	}
-	public ThisOtherThing.UI.Shapes.Line line {
-		get {
-			return graphic as ThisOtherThing.UI.Shapes.Line;
-		}
-	}
+	public IShape shape => graphic as IShape;
+
+	public Rectangle rectangle => graphic as Rectangle;
+
+	public Arc arc => graphic as Arc;
+
+	public EdgeGradient edgeGradient => graphic as EdgeGradient;
+
+	public Ellipse ellipse => graphic as Ellipse;
+
+	public Polygon polygon => graphic as Polygon;
+
+	public Line line => graphic as Line;
 
 
 	GeoUtils.ShapeProperties GetShapeProperties() {
@@ -85,34 +63,27 @@ public partial class SLayout
 
 
 
-
+	SLayoutColorProperty _fillColor;
+	SLayoutColorProperty InitFillColor() {
+		_fillColor ??= new SLayoutColorProperty {
+			layout = this,
+			getter = GetFillColor,
+			setter = SetFillColor,
+			isValid = GetIsValidForAnimation
+		};
+		return _fillColor;
+	}
 	public Color fillColor {
-		get {
-			InitFillColor();
-			return _fillColor.value;
-		}
-		set {
-			InitFillColor();
-			_fillColor.value = value;
-		}
+		get => InitFillColor().GetProperty(SLayoutProperty.GetMode.Current);
+		set => InitFillColor().SetProperty(value, SLayoutProperty.SetMode.Auto);
 	}
-
+	public Color startFillColor {
+		get => InitFillColor().GetProperty(SLayoutProperty.GetMode.AnimStart);
+		set => InitFillColor().SetProperty(value, SLayoutProperty.SetMode.AnimStart);
+	}
 	public Color targetFillColor {
-		get {
-			InitFillColor();
-			return _fillColor.animatedProperty != null ? _fillColor.animatedProperty.end : _fillColor.value;
-		}
-	}
-
-	void InitFillColor() {
-		if( _fillColor == null ) {
-			_fillColor = new SLayoutColorProperty {
-                layout = this,
-				getter = GetFillColor,
-				setter = SetFillColor,
-				isValid = GetIsValidForAnimation
-			};
-		}
+		get => InitFillColor().GetProperty(SLayoutProperty.GetMode.AnimEnd);
+		set => InitFillColor().SetProperty(value, SLayoutProperty.SetMode.AnimEnd);
 	}
 
 	Color GetFillColor() {
@@ -131,37 +102,29 @@ public partial class SLayout
 	}
 	
 
-
-
+	SLayoutFloatProperty _borderRadius;
+	SLayoutFloatProperty InitBorderRadius() {
+		_borderRadius ??= new SLayoutFloatProperty {
+			layout = this,
+			getter = GetBorderRadius,
+			setter = SetBorderRadius,
+			isValid = GetIsValidForAnimation
+		};
+		return _borderRadius;
+	}
 	public float borderRadius {
-		get {
-			InitBorderRadiusWeight();
-			return _borderRadius.value;
-		}
-		set {
-			InitBorderRadiusWeight();
-			_borderRadius.value = value;
-		}
+		get => InitBorderRadius().GetProperty(SLayoutProperty.GetMode.Current);
+		set => InitBorderRadius().SetProperty(value, SLayoutProperty.SetMode.Auto);
 	}
-
+	public float startBorderRadius {
+		get => InitBorderRadius().GetProperty(SLayoutProperty.GetMode.AnimStart);
+		set => InitBorderRadius().SetProperty(value, SLayoutProperty.SetMode.AnimStart);
+	}
 	public float targetBorderRadius {
-		get {
-			InitBorderRadiusWeight();
-			return _borderRadius.animatedProperty != null ? _borderRadius.animatedProperty.end : _borderRadius.value;
-		}
+		get => InitBorderRadius().GetProperty(SLayoutProperty.GetMode.AnimEnd);
+		set => InitBorderRadius().SetProperty(value, SLayoutProperty.SetMode.AnimEnd);
 	}
-
-	void InitBorderRadiusWeight() {
-		if( _borderRadius == null ) {
-			_borderRadius = new SLayoutFloatProperty {
-                layout = this,
-				getter = GetBorderRadius,
-				setter = SetBorderRadius,
-				isValid = GetIsValidForAnimation
-			};
-		}
-	}
-
+	
 	float GetBorderRadius() {
 		var properties = GetRoundedProperties();
 		if(properties != null) return properties.ClampedUniformRadius;
@@ -191,35 +154,27 @@ public partial class SLayout
 
 
 
-
-	
+	SLayoutFloatProperty _outlineWeight;
+	SLayoutFloatProperty InitOutlineWeight() {
+		_outlineWeight ??= new SLayoutFloatProperty {
+			layout = this,
+			getter = GetOutlineWeight,
+			setter = SetOutlineWeight,
+			isValid = GetIsValidForAnimation
+		};
+		return _outlineWeight;
+	}
 	public float outlineWeight {
-		get {
-			InitOutlineWeight();
-			return _outlineWeight.value;
-		}
-		set {
-			InitOutlineWeight();
-			_outlineWeight.value = value;
-		}
+		get => InitOutlineWeight().GetProperty(SLayoutProperty.GetMode.Current);
+		set => InitOutlineWeight().SetProperty(value, SLayoutProperty.SetMode.Auto);
 	}
-
+	public float startOutlineWeight {
+		get => InitOutlineWeight().GetProperty(SLayoutProperty.GetMode.AnimStart);
+		set => InitOutlineWeight().SetProperty(value, SLayoutProperty.SetMode.AnimStart);
+	}
 	public float targetOutlineWeight {
-		get {
-			InitOutlineWeight();
-			return _outlineWeight.animatedProperty != null ? _outlineWeight.animatedProperty.end : _outlineWeight.value;
-		}
-	}
-
-	void InitOutlineWeight() {
-		if( _outlineWeight == null ) {
-			_outlineWeight = new SLayoutFloatProperty {
-                layout = this,
-				getter = GetOutlineWeight,
-				setter = SetOutlineWeight,
-				isValid = GetIsValidForAnimation
-			};
-		}
+		get => InitOutlineWeight().GetProperty(SLayoutProperty.GetMode.AnimEnd);
+		set => InitOutlineWeight().SetProperty(value, SLayoutProperty.SetMode.AnimEnd);
 	}
 
 	float GetOutlineWeight() {
@@ -248,36 +203,29 @@ public partial class SLayout
 	
 	
 
-
+	SLayoutColorProperty _outlineColor;
+	SLayoutColorProperty InitOutlineColor() {
+		_outlineColor ??= new SLayoutColorProperty {
+			layout = this,
+			getter = GetOutlineColor,
+			setter = SetOutlineColor,
+			isValid = GetIsValidForAnimation
+		};
+		return _outlineColor;
+	}
 	public Color outlineColor {
-		get {
-			InitOutlineColor();
-			return _outlineColor.value;
-		}
-		set {
-			InitOutlineColor();
-			_outlineColor.value = value;
-		}
+		get => InitOutlineColor().GetProperty(SLayoutProperty.GetMode.Current);
+		set => InitOutlineColor().SetProperty(value, SLayoutProperty.SetMode.Auto);
 	}
-
+	public Color startOutlineColor {
+		get => InitOutlineColor().GetProperty(SLayoutProperty.GetMode.AnimStart);
+		set => InitOutlineColor().SetProperty(value, SLayoutProperty.SetMode.AnimStart);
+	}
 	public Color targetOutlineColor {
-		get {
-			InitOutlineColor();
-			return _outlineColor.animatedProperty != null ? _outlineColor.animatedProperty.end : _outlineColor.value;
-		}
+		get => InitOutlineColor().GetProperty(SLayoutProperty.GetMode.AnimEnd);
+		set => InitOutlineColor().SetProperty(value, SLayoutProperty.SetMode.AnimEnd);
 	}
-
-	void InitOutlineColor() {
-		if( _outlineColor == null ) {
-			_outlineColor = new SLayoutColorProperty {
-                layout = this,
-				getter = GetOutlineColor,
-				setter = SetOutlineColor,
-				isValid = GetIsValidForAnimation
-			};
-		}
-	}
-
+	
 	Color GetOutlineColor() {
 		var properties = GetOutlineShapeProperties();
 		if(properties != null) return properties.OutlineColor;
@@ -295,36 +243,29 @@ public partial class SLayout
 	
 	
 	
-
+	SLayoutColorProperty _shadowColor;
+	SLayoutColorProperty InitShadowColor() {
+		_shadowColor ??= new SLayoutColorProperty {
+			layout = this,
+			getter = GetShadowColor,
+			setter = SetShadowColor,
+			isValid = GetIsValidForAnimation
+		};
+		return _shadowColor;
+	}
 	public Color shadowColor {
-		get {
-			InitShadowColor();
-			return _shadowColor.value;
-		}
-		set {
-			InitShadowColor();
-			_shadowColor.value = value;
-		}
+		get => InitShadowColor().GetProperty(SLayoutProperty.GetMode.Current);
+		set => InitShadowColor().SetProperty(value, SLayoutProperty.SetMode.Auto);
 	}
-
+	public Color startShadowColor {
+		get => InitShadowColor().GetProperty(SLayoutProperty.GetMode.AnimStart);
+		set => InitShadowColor().SetProperty(value, SLayoutProperty.SetMode.AnimStart);
+	}
 	public Color targetShadowColor {
-		get {
-			InitShadowColor();
-			return _shadowColor.animatedProperty != null ? _shadowColor.animatedProperty.end : _shadowColor.value;
-		}
+		get => InitShadowColor().GetProperty(SLayoutProperty.GetMode.AnimEnd);
+		set => InitShadowColor().SetProperty(value, SLayoutProperty.SetMode.AnimEnd);
 	}
-
-	void InitShadowColor() {
-		if( _shadowColor == null ) {
-			_shadowColor = new SLayoutColorProperty {
-                layout = this,
-				getter = GetShadowColor,
-				setter = SetShadowColor,
-				isValid = GetIsValidForAnimation
-			};
-		}
-	}
-
+	
 	Color GetShadowColor() {
 		var properties = GetShadowsProperties();
 		if(properties != null) {
@@ -359,43 +300,42 @@ public partial class SLayout
 		}
 	}
 
-	public void SetShadowPropertiesOverwrite (GeoUtils.ShadowProperties shadow) {
+	public void SetShadowPropertiesOverwrite(GeoUtils.ShadowProperties shadow) {
 		var properties = GetShadowsProperties();
-		if(properties != null) {
+		if (properties != null) {
 			var dirty = false;
-			if(properties.Shadows == null) {
+			if (properties.Shadows == null) {
 				properties.Shadows = new GeoUtils.ShadowProperties[1];
 				dirty = true;
 			}
-			if(properties.Shadows.Length == 0) {
+
+			if (properties.Shadows.Length == 0) {
 				Array.Resize(ref properties.Shadows, 1);
 				dirty = true;
 			}
-			if(properties.Shadows[0] == null) properties.Shadows[0] = new GeoUtils.ShadowProperties();
-			if(properties.Shadows[0].Color.r != shadow.Color.r || properties.Shadows[0].Color.g != shadow.Color.g || properties.Shadows[0].Color.b != shadow.Color.b || properties.Shadows[0].Color.a != shadow.Color.a) {
+
+			if (properties.Shadows[0] == null) properties.Shadows[0] = new GeoUtils.ShadowProperties();
+			if (properties.Shadows[0].Color.r != shadow.Color.r || properties.Shadows[0].Color.g != shadow.Color.g || properties.Shadows[0].Color.b != shadow.Color.b || properties.Shadows[0].Color.a != shadow.Color.a) {
 				properties.Shadows[0].Color = shadow.Color;
 				dirty = true;
 			}
-			if(properties.Shadows[0].Offset != shadow.Offset) {
+
+			if (properties.Shadows[0].Offset != shadow.Offset) {
 				properties.Shadows[0].Offset = shadow.Offset;
 				dirty = true;
 			}
-			if(properties.Shadows[0].Size != shadow.Size) {
+
+			if (properties.Shadows[0].Size != shadow.Size) {
 				properties.Shadows[0].Size = shadow.Size;
 				dirty = true;
 			}
-			if(properties.Shadows[0].Softness != shadow.Softness) {
+
+			if (properties.Shadows[0].Softness != shadow.Softness) {
 				properties.Shadows[0].Softness = shadow.Softness;
 				dirty = true;
 			}
-			if(dirty) shape.ForceMeshUpdate();
+
+			if (dirty) shape.ForceMeshUpdate();
 		}
 	}
-
-
-	SLayoutColorProperty _fillColor;
-	SLayoutFloatProperty _borderRadius;
-	SLayoutFloatProperty _outlineWeight;
-	SLayoutColorProperty _outlineColor;
-	SLayoutColorProperty _shadowColor;
 }

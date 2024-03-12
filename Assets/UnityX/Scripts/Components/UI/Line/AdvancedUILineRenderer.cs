@@ -169,8 +169,8 @@ namespace UnityEngine.UI.Extensions
             // }
         }
 
-        private static List<UIVertex> vertexBuffer = new List<UIVertex>(4);
-        private static List<int> indexBuffer = new List<int>(6);
+        private static List<UIVertex> vertexBuffer = new(4);
+        private static List<int> indexBuffer = new(6);
         static void AddQuad(VertexHelper vh, UIVertex vertex1, UIVertex vertex2, UIVertex vertex3, UIVertex vertex4) {
             var i = vh.currentVertCount;
             // vertexBuffer.Clear();

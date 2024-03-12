@@ -3,7 +3,7 @@
 [System.Serializable]
 public class Gesture {
 	public string name;
-	public List<InputPoint> inputPoints = new List<InputPoint>();
+	public List<InputPoint> inputPoints = new();
 
 	public delegate void GestureEvent (Gesture gesture);
 	public event GestureEvent OnCompleteGesture;

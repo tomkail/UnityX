@@ -1,13 +1,12 @@
-﻿using UnityEngine;
+﻿using UnityEditor.SceneManagement;
+using UnityEngine;
 using UnityEngine.EventSystems;
 
 [ExecuteAlways]
 public class WorldSpaceUIElement : UIBehaviour {
-	[SerializeField]
-	private bool _updateInEditMode = true;
+	[SerializeField] bool _updateInEditMode = true;
 
-	[SerializeField]
-	private Camera _worldCamera;
+	[SerializeField] Camera _worldCamera;
 	public Camera worldCamera {
 		get {
 			if(_worldCamera == null) {
@@ -23,12 +22,10 @@ public class WorldSpaceUIElement : UIBehaviour {
 		}
 	}
 
-	[SerializeField]
-	private Transform _target;
+	[SerializeField] Transform _target;
 	public Transform target {
-		get {
-			return _target;
-		} set {
+		get => _target;
+		set {
 			if(_target == value)
 				return;
 			_target = value;
@@ -39,18 +36,10 @@ public class WorldSpaceUIElement : UIBehaviour {
 	public Vector3 worldPosition = Vector3.zero;
 	public Quaternion worldRotation = Quaternion.identity;
 
-	private Vector3 targetPositionInternal {
-		get {
-			return target == null ? worldPosition : target.position;
-		}
-	}
+	Vector3 targetPositionInternal => target == null ? worldPosition : target.position;
 
-	private Quaternion targetRotationInternal {
-		get {
-			return target == null ? worldRotation : target.rotation;
-		}
-	}
-	
+	Quaternion targetRotationInternal => target == null ? worldRotation : target.rotation;
+
 	public bool updatePosition = true;
 	public enum RotationMode {
 		None,
@@ -58,8 +47,8 @@ public class WorldSpaceUIElement : UIBehaviour {
 		RotationZ
 	}
 	public RotationMode updateRotation;
-	public Vector3 worldPointingVectorForZRotation = new Vector3(0, 0, 1);
-	public bool updateScale = false;
+	public Vector3 worldPointingVectorForZRotation = new(0, 0, 1);
+	public bool updateScale;
 	public float scaleMultiplier = 1;
 	public float minScale = 0.2f;
 	public float maxScale = 1f;
@@ -67,7 +56,7 @@ public class WorldSpaceUIElement : UIBehaviour {
 	public bool clampToScreen;
 	public bool onScreen;
 
-	public bool updateOcclusion = false;
+	public bool updateOcclusion;
 	public bool occluded;
 	public int occlusionMask = Physics.DefaultRaycastLayers;
 	
@@ -154,7 +143,7 @@ public class WorldSpaceUIElement : UIBehaviour {
 	
 	protected override void Awake () {
 		#if UNITY_EDITOR
-		if(UnityEditor.SceneManagement.PrefabStageUtility.GetPrefabStage(gameObject) != null) return;
+		if(PrefabStageUtility.GetPrefabStage(gameObject) != null) return;
         if(!Application.isPlaying && !_updateInEditMode) return;
 		#endif
 		
@@ -168,7 +157,7 @@ public class WorldSpaceUIElement : UIBehaviour {
 
 	protected override void OnEnable () {
 		#if UNITY_EDITOR
-		if(UnityEditor.SceneManagement.PrefabStageUtility.GetPrefabStage(gameObject) != null) return;
+		if(PrefabStageUtility.GetPrefabStage(gameObject) != null) return;
         if(!Application.isPlaying && !_updateInEditMode) return;
 		#endif
 		Refresh();
@@ -176,7 +165,7 @@ public class WorldSpaceUIElement : UIBehaviour {
 	
 	protected override void OnTransformParentChanged () {
 		#if UNITY_EDITOR
-		if(UnityEditor.SceneManagement.PrefabStageUtility.GetPrefabStage(gameObject) != null) return;
+		if(PrefabStageUtility.GetPrefabStage(gameObject) != null) return;
         if(!Application.isPlaying && !_updateInEditMode) return;
 		#endif
 		SetRootCanvas();
@@ -184,9 +173,9 @@ public class WorldSpaceUIElement : UIBehaviour {
 	}
 
 	// LateUpdate because we want it to come even after camera updates
-	private void LateUpdate () {
+	void LateUpdate () {
 		#if UNITY_EDITOR
-		if(UnityEditor.SceneManagement.PrefabStageUtility.GetPrefabStage(gameObject) != null) return;
+		if(PrefabStageUtility.GetPrefabStage(gameObject) != null) return;
         if(!Application.isPlaying && !_updateInEditMode) return;
 		#endif
 		Refresh();
@@ -299,7 +288,7 @@ public class WorldSpaceUIElement : UIBehaviour {
 	}
 
 	// Test clamp with this
-	private void _OnDrawGizmos () {
+	void _OnDrawGizmos () {
 //		if(!Application.isPlaying) return;
 		Vector3? targetPosition = WorldPointToLocalPointInRectangle(rootCanvas, worldCamera, targetPositionInternal);
 		if(targetPosition == null) return;

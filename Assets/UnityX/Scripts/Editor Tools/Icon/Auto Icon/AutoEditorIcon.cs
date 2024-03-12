@@ -25,7 +25,7 @@ public class AutoEditorIcon : MonoBehaviour {
 	}
 
 	[SerializeField]
-	IconProperties _defaultIconProperties = new IconProperties(EditorDefaultIcon.DiamondGray);
+	IconProperties _defaultIconProperties = new(EditorDefaultIcon.DiamondGray);
 	public IconProperties defaultIconProperties {
 		get {
 			return _defaultIconProperties;
@@ -37,7 +37,7 @@ public class AutoEditorIcon : MonoBehaviour {
 	}
 
 	[SerializeField]
-	IconProperties _selectedIconProperties = new IconProperties(EditorDefaultLabelIcon.Blue);
+	IconProperties _selectedIconProperties = new(EditorDefaultLabelIcon.Blue);
 	public IconProperties selectedIconProperties {
 		get {
 			return _selectedIconProperties;
@@ -58,21 +58,21 @@ public class AutoEditorIcon : MonoBehaviour {
 		public IconProperties (EditorDefaultIcon icon) {
 			this.iconType = IconType.Dot;
 			this.icon = icon;
-			this.labelIcon = default(EditorDefaultLabelIcon);
+			this.labelIcon = default;
 			this.texture = null;
 		}
 
 		public IconProperties (EditorDefaultLabelIcon labelIcon) {
 			this.iconType = IconType.Label;
-			this.icon = default(EditorDefaultIcon);
+			this.icon = default;
 			this.labelIcon = labelIcon;
 			this.texture = null;
 		}
 
 		public IconProperties (Texture2D texture) {
 			this.iconType = IconType.Custom;
-			this.icon = default(EditorDefaultIcon);
-			this.labelIcon = default(EditorDefaultLabelIcon);
+			this.icon = default;
+			this.labelIcon = default;
 			this.texture = texture;
 		}
 

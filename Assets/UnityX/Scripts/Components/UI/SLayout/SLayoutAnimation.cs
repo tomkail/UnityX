@@ -1,32 +1,37 @@
-﻿using UnityEngine;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
+using UnityEngine;
 
 /// <summary>
-/// Instance of an active animation that's created by SLayout's Animate method. The animations currently being defined are stored
+/// Instance of an active animation. The animations currently being defined are stored
 /// in a static list so that as you run the animAction code, it can detects properties that have been changed and react accordingly.
 /// </summary>
 public class SLayoutAnimation {
 
-	public float duration { get { return _duration; } }
-	public float delay { get { return _delay; } }
+	public float duration => _duration;
+	public float delay => _delay;
 
-	public SLayoutAnimation () {
-		time = 0.0f;
-	}
-	public SLayoutAnimation(float duration, float delay, EasingFunction.Function easingFunction, Action animAction, Action nonAnimatedAction, SLayout owner)
-	{
+
+	public SLayoutAnimation() { }
+	
+	public SLayoutAnimation(float duration, Action animAction) : this() {
 		_duration = _maxDuration = duration;
-		_delay = _maxDelay = delay;
 		_animAction = animAction;
-		_nonAnimatedAction = nonAnimatedAction;
-		_easingFunction = easingFunction;
-		_owner = owner;
-		time = 0.0f;
 	}
-
+	
+	public SLayoutAnimation(float duration, float delay, Action animAction) : this(duration, animAction) {
+		_delay = _maxDelay = delay;
+	}
+	
+	public SLayoutAnimation(float duration, EasingFunction.Function easingFunction, Action animAction) : this(duration, animAction) {
+		_easingFunction = v => easingFunction(0, 1, v);
+	}
+	
+	public SLayoutAnimation(float duration, float delay, EasingFunction.Function easingFunction, Action animAction) : this(duration, easingFunction, animAction) {
+		_delay = _maxDelay = delay;
+	}
+	
 	public void Start()
 	{
 		time = 0.0f;
@@ -38,146 +43,54 @@ public class SLayoutAnimation {
 
 		bool instant = _delay + _duration <= 0.0f;
 
-		if( _animAction != null ) {
-			_properties = new List<SAnimatedProperty>();
+		try {
+			if (_animAction != null) {
+				_properties = new List<SAnimatedProperty>();
 
-			// This gathers all the properties that are being animated
-			_animAction();
+				// This gathers all the properties that are being animated
+				_animAction();
 
-			// Order the properties.
-			// Layout properties are sorted by transform depth so that the shallowest transforms are animated first.
-			// All other properties are run afterwards.
-			OrderByTransformDepth(_properties);
-			static void OrderByTransformDepth(List<SAnimatedProperty> properties) {
-				properties.Sort((property1, property2) => GetSortIndex(property1).CompareTo(GetSortIndex(property2)));
-				static int GetSortIndex(SAnimatedProperty animatedProperty) {
-					if(animatedProperty is SAnimatedLayoutProperty animatedLayoutProperty) return GetTransformDepth(animatedLayoutProperty.GetLayout().transform);
-					return int.MaxValue;
+				// Order the properties.
+				// Layout properties are sorted by transform depth so that the shallowest transforms are animated first.
+				// All other properties are run afterwards.
+				OrderByTransformDepth(_properties);
+
+				static void OrderByTransformDepth(List<SAnimatedProperty> properties) {
+					properties.Sort((property1, property2) => GetSortIndex(property1).CompareTo(GetSortIndex(property2)));
+
+					static int GetSortIndex(SAnimatedProperty animatedProperty) {
+						if (animatedProperty is SAnimatedLayoutProperty animatedLayoutProperty) return GetTransformDepth(animatedLayoutProperty.GetLayout().transform);
+						return int.MaxValue;
+					}
+
+					static int GetTransformDepth(Transform transform) {
+						if (transform.parent == null) return 0;
+						else return 1 + GetTransformDepth(transform.parent);
+					}
 				}
-				static int GetTransformDepth(Transform transform) {
-					if (transform.parent == null) return 0;
-					else return 1 + GetTransformDepth(transform.parent);
+
+				if (!instant) {
+					// Layout properties are sorted against each other, so are processed as a block.
+					// The order of operations ensures that the start and end values are set correctly, since performing an animation on a parent element can affect the properties of the children 
+					foreach (var layoutProperty in _properties.OfType<SAnimatedLayoutProperty>()) layoutProperty.SetStartToCurrentValue();
+					foreach (var layoutProperty in _properties.OfType<SAnimatedLayoutProperty>()) layoutProperty.PerformAndSetEnd();
+					foreach (var layoutProperty in _properties.OfType<SAnimatedLayoutProperty>()) layoutProperty.ResetToStart();
+					AnimateProperties(time);
 				}
 			}
-
-			if( !instant ) {
-				// Layout properties are sorted against each other, so are processed as a block.
-				// The order of operations ensures that the start and end values are set correctly, since performing an animation on a parent element can affect the properties of the children 
-				foreach(var layoutProperty in _properties.OfType<SAnimatedLayoutProperty>()) layoutProperty.GetStart();
-				foreach(var layoutProperty in _properties.OfType<SAnimatedLayoutProperty>()) layoutProperty.PerformAndSetEnd();
-				foreach(var layoutProperty in _properties.OfType<SAnimatedLayoutProperty>()) layoutProperty.ResetToStart();
-				AnimateProperties();
-			}
+		} catch (Exception e) {
+			Debug.LogError(e);
+			RemoveAnimFromAllProperties();
+			_nonAnimatedAction = null;
+			throw;
+		} finally {
+			_animationsBeingDefined.RemoveAt(_animationsBeingDefined.Count-1);	
 		}
-
-		_animationsBeingDefined.RemoveAt(_animationsBeingDefined.Count-1);	
-
-		// If it's an instant animation, set properties to the end and complete it immediately so that we don't need to process it in update.
-		if (instant) {
-			if(_properties != null)
-				foreach(var property in _properties)
-					property.Animate(1);
-			Done();
-		}
-	}
-
-	public SLayoutAnimation Then(Action action)
-	{
-		return ThenAfter(0.0f, action);
-	}
-
-	public SLayoutAnimation ThenAfter(float delay, Action action)
-	{
-		// completion action only
-		return ThenAnimateInternal(0, delay, null, null, action);
-	}
-
-	public SLayoutAnimation ThenAnimate(float duration, Action animAction)
-	{
-		return ThenAnimate(duration, 0.0f, animAction);
-	}
-
-	public SLayoutAnimation ThenAnimate(float duration, float delay, Action animAction)
-	{
-		return ThenAnimateInternal(duration, delay, null, animAction, null);
+		
+		// If it's an instant animation complete it immediately so that we don't need to process it in update.
+		if (instant) CompleteImmediate();
 	}
 	
-	public SLayoutAnimation ThenAnimate(float duration, AnimationCurve curve, Action animAction)
-	{
-		return ThenAnimateInternal(duration, 0.0f, curve, animAction, null);
-	}
-
-	public SLayoutAnimation ThenAnimate(float duration, float delay, AnimationCurve curve, Action animAction)
-	{
-		return ThenAnimateInternal(duration, delay, curve, animAction, null);
-	}
-
-	public SLayoutAnimation ThenAnimate(float duration, EasingFunction.Ease easing, Action animAction)
-	{
-		return ThenAnimateInternal(duration, 0.0f, easing, animAction, null);
-	}
-	public SLayoutAnimation ThenAnimate(float duration, float delay, EasingFunction.Ease easing, Action animAction)
-	{
-		return ThenAnimateInternal(duration, delay, easing, animAction, null);
-	}
-
-	public SLayoutAnimation ThenAnimateCustom(float duration, Action<float> customAnimAction)
-	{
-        return ThenAnimateInternal(duration, 0, null, () => SLayout.Animatable(customAnimAction), null);
-	}
-
-	public SLayoutAnimation ThenAnimateCustom(float duration, float delay, Action<float> customAnimAction)
-	{
-        return ThenAnimateInternal(duration, delay, null, () => SLayout.Animatable(customAnimAction), null);
-	}
-
-    SLayoutAnimation ThenAnimateInternal(float duration, float delay, AnimationCurve customCurve, Action animAction, Action nonAnimatedAction) {
-        Debug.Assert(_chainedAnim == null, "This animation already has a chained animation (called via Then...()");
-        // var nextAnim = new SLayoutAnimation(duration, delay, customCurve, animAction, nonAnimatedAction, _owner);
-		var nextAnim = new SLayoutAnimation() {
-			_duration = duration,
-			_maxDuration = duration,
-			_delay = delay,
-			_maxDelay = delay,
-			_animAction = animAction,
-			_nonAnimatedAction = nonAnimatedAction,
-			_customCurve = customCurve,
-			_owner = owner,
-		};
-        if (this.isComplete) SLayoutAnimator.instance.StartAnimation(nextAnim);
-        else _chainedAnim = nextAnim;
-        return nextAnim;
-	}
-	
-    SLayoutAnimation ThenAnimateInternal(float duration, float delay, EasingFunction.Ease easing, Action animAction, Action nonAnimatedAction)
-    {
-        Debug.Assert(_chainedAnim == null, "This animation already has a chained animation (called via Then...()");
-        // var nextAnim = new SLayoutAnimation(duration, delay, customCurve, animAction, nonAnimatedAction, _owner);
-		var nextAnim = new SLayoutAnimation() {
-			_duration = duration,
-			_maxDuration = duration,
-			_delay = delay,
-			_maxDelay = delay,
-			_animAction = animAction,
-			_nonAnimatedAction = nonAnimatedAction,
-			_easingFunction = EasingFunction.GetEasingFunction(easing),
-			_owner = owner,
-		};
-        if (this.isComplete) SLayoutAnimator.instance.StartAnimation(nextAnim);
-        else _chainedAnim = nextAnim;
-        return nextAnim;
-    }
-
-	public bool canAnimate {
-		get {
-			// If owner is removed/deleted then the animation is cancelled.
-			// However, even if properties have all been removed we still allow
-			// the animation to remain active, since it may have a completion callback etc
-			if( owner == null || owner.Equals(null) )  return false;
-			return true;
-		}
-	}
-
 	public static SLayoutAnimation AnimationUnderDefinition()
 	{
         if( _preventingAnim )
@@ -227,15 +140,25 @@ public class SLayoutAnimation {
             // ...then animate from -100 to +100, from 20 to 100. (which would jump)
             animatedProperty.start = layoutProperty.getter();
 		}
+
+		// If animation parameter overrides exist apply them here.
+		if (animParamsStack.Count > 0) {
+			var animParams = animParamsStack.Peek();
+			animatedProperty.duration = animParams.duration;
+			animatedProperty.delay = animParams.delay;
+
+			if (animatedProperty.duration + animatedProperty.delay-0.00001f > animatedProperty.animation._maxDuration + animatedProperty.animation._maxDelay) {
+				Debug.LogWarning($"This animated property's duration {animatedProperty.duration + animatedProperty.delay} is longer than its owner animation {animatedProperty.animation._maxDuration + animatedProperty.animation._maxDelay}. This is not currently supported and the animation will not appear to complete.");
+			}
+		}
 		
 		animatedProperty.end = targetValue;
 	}
 
-	public void Cancel()
+	public virtual void Cancel()
 	{
 		RemoveAnimFromAllProperties();
 		_nonAnimatedAction = null;
-		_chainedAnim = null;
 	}
 
 	void RemoveAnimFromAllProperties()
@@ -248,7 +171,7 @@ public class SLayoutAnimation {
 		_properties.Clear();
 	}
 
-	void RemovePropertyAnim(SAnimatedProperty animProperty)
+	public void RemovePropertyAnim(SAnimatedProperty animProperty)
 	{
 		animProperty.Remove();
 
@@ -260,8 +183,6 @@ public class SLayoutAnimation {
 	}
 
 	public bool isComplete => _completed;
-
-	public SLayout owner => _owner;
 
 	public void AddDelay(float extraDelay) {
 		_delay += extraDelay;
@@ -278,43 +199,13 @@ public class SLayoutAnimation {
 		_properties.Add(new SAnimatedCustomProperty(customAnim, _duration, _delay));
 	}
 
-	bool timeIsUp => time >= _maxDelay + _maxDuration;
-
-	public void Update() 
-	{
-		// The first frame's delta time can be huge so just skip it
-		if(Time.frameCount <= 1) return;
-		time += owner.timeScale * Time.unscaledDeltaTime;
-
-		if( isComplete )
-			return;
-
-		AnimateProperties();
-
-		if( timeIsUp )
-			Done();
-	}
-
-	void AnimateProperties() {
+	public void AnimateProperties(float time) {
 		if (_properties == null) return;
-		// Properties may be removed during this loop
 		for(int i=0; i<_properties.Count; i++) {
 			var property = _properties[i];
-			float lerpValue = 0.0f;
-			if( time > property.delay ) {
-				lerpValue =  Mathf.Clamp01((time-property.delay) / property.duration);
-
-				// TODO: Allow different curves?
-				if( _easingFunction != null ) {
-					lerpValue = _easingFunction(0.0f, 1.0f, lerpValue);
-				} else if( _customCurve != null ) {
-					lerpValue = _customCurve.Evaluate(lerpValue);
-				} else {
-					lerpValue = Mathf.SmoothStep(0.0f, 1.0f, lerpValue);
-				}
-
-				property.Animate(lerpValue);
-			}
+			float lerpValue = (time-property.delay) / property.duration;
+			lerpValue = _easingFunction?.Invoke(lerpValue) ?? lerpValue;
+			property.Animate(lerpValue);
 		}
 	}
 
@@ -327,17 +218,8 @@ public class SLayoutAnimation {
 		Done();
 	}
 
-    public static void StartPreventAnimation()
-    {
-        _preventingAnim = true;
-    }
-
-    public static void EndPreventAnimation()
-    {
-        _preventingAnim = false;
-    }
-
-	void Done() 
+	// Mark the animation as complete and call the completion action
+	public void Done() 
 	{
 		_completed = true;
 
@@ -345,13 +227,39 @@ public class SLayoutAnimation {
 
 		if( _nonAnimatedAction != null )
 			_nonAnimatedAction();
+	}
 
-		// Allow next anim to begin
-		if( _chainedAnim != null ) {
-			var nextAnim = _chainedAnim;
-			_chainedAnim = null;
-			SLayoutAnimator.instance.StartAnimation(nextAnim);
-		}
+	// This allows setting a property within an animation definition without animating it.
+	public static void StartPreventAnimation() {
+		_preventingAnim = true;
+	}
+
+	public static void EndPreventAnimation() {
+		_preventingAnim = false;
+	}
+	
+	public static void WithoutAnimating(Action action) {
+		
+		StartPreventAnimation();
+		action();
+		EndPreventAnimation();
+	}
+	
+	// This allows overriding the default animation params for a property/block of properties.
+	static Stack<(float duration, float delay, Func<float, float> easingFunc)> animParamsStack = new();
+	public static void StartAnimationParams(float duration, float delay) {
+		// , (v) => EasingFunction.GetEasingFunction(ease)(0, 1, v)
+		animParamsStack.Push((duration, delay, null));
+	}
+
+	public static void EndAnimationParams() {
+		animParamsStack.Pop();
+	}
+
+	public static void WithAnimationParams(float duration, float delay, Action action) {
+		StartAnimationParams(duration, delay);
+		action();
+		EndAnimationParams();
 	}
 		
 	List<SAnimatedProperty> _properties;
@@ -364,14 +272,13 @@ public class SLayoutAnimation {
 	public float _maxDuration;
 	public float _maxDelay;
 
-	public EasingFunction.Function _easingFunction;
-	public AnimationCurve _customCurve;
+	public delegate float EasingFunc(float t);
+	public EasingFunc _easingFunction;
 
 	public Action _animAction;
 	public Action _nonAnimatedAction;
-	public SLayoutAnimation _chainedAnim;
+	
 	bool _completed;
-	public SLayout _owner;
 
     static bool _preventingAnim;
 	static List<SLayoutAnimation> _animationsBeingDefined;

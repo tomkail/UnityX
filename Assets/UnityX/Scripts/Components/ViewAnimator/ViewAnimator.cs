@@ -62,10 +62,10 @@ public class ViewAnimator : MonoBehaviour {
     }
 
     [SerializeField]
-    List<ViewAnimationEvent> animationEvents = new List<ViewAnimationEvent>();
+    List<ViewAnimationEvent> animationEvents = new();
     // This is just for debugging
     [SerializeField]
-    List<ViewAnimationEvent> animationEventHistory = new List<ViewAnimationEvent>();
+    List<ViewAnimationEvent> animationEventHistory = new();
 
     public void Clear () {
         animationEvents.Clear();

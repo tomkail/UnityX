@@ -27,7 +27,7 @@ public static class SLayoutUtils {
         }
         
         var parentAnchorPos = Vector2.zero;
-        parentAnchorPos[(int)axis] = parentLayout.size[(int)axis] * parentAnchor;
+        parentAnchorPos[(int)axis] = parentLayout.targetSize[(int)axis] * parentAnchor;
         var orderedLayouts = OrderByTransformDepth(layouts);
         foreach (var layout in orderedLayouts) {
             var anchorPos = parentLayout.ConvertPositionToTarget(parentAnchorPos, layout.parent);
@@ -86,11 +86,25 @@ public static class SLayoutUtils {
         ApplyLocalLayoutPositionsInTransformDepthOrder(parentLayout, layouts, localLayoutPositions, axis);
         return axisPos + maxPadding - offset;
     }
-    
-    
-    
+
+
+
+    // public static float AutoLayoutWithSpacing(FlexSLayout parentLayout, IList<SLayout> layouts, Axis axis, bool expandItemsToFill = false, float pivot = 0.5f) {
+    //     return AutoLayout(
+    //         parentLayout,
+    //         layouts.Select(layout => new FlexSLayoutItem(Item.Fixed(layout.targetSize[(int) axis]), layout)).ToArray(),
+    //         axis
+    //     );
+    // }
+
     // Automatically lays out items within the parent using a pre-determined spacing, independent of the transform hierarchy of the items.
     public static float AutoLayoutWithSpacing(SLayout parentLayout, IList<SLayout> layouts, Axis axis, float spacing, bool expandItemsToFill = false, float minPadding = 0, float maxPadding = 0, float pivot = 0.5f) {
+        // return AutoLayout(
+        //     new FlexSLayout(Container.Fixed(parentLayout.targetSize[(int)axis]).SetSpacing(spacing).SetPaddingMin(minPadding).SetPaddingMax(maxPadding), parentLayout),
+        //     layouts.Select(layout => new FlexSLayoutItem(Item.Fixed(layout.targetSize[(int)axis]), layout)).ToArray(),
+        //     axis
+        // );
+        
         if (layouts.Any(x => x == null)) {
             Debug.LogError("Null layout found in AutoLayoutWithSpacing");
             return 0;
@@ -104,7 +118,7 @@ public static class SLayoutUtils {
                 var layout = layouts[index];
                 var size = layout.targetSize;
                 size[(int)axis] = elementSize;
-                layout.size = size;
+                layout.targetSize = size;
             }
         } else {
             float totalContentSize = layouts.Sum(x => x.targetSize[(int)axis]) + spacing * (layouts.Count() - 1) + minPadding + maxPadding;
@@ -158,18 +172,18 @@ public static class SLayoutUtils {
 
     
 
-    public static float AutoLayout(FlexSLayout flexLayout, List<FlexSLayoutItem> layoutItems, Axis axis) {
+    public static float AutoLayout(SLContainer flexLayout, IList<SLItem> layoutItems, Axis axis) {
         if (flexLayout == null) {
             Debug.LogError("AutoLayoutWithDynamicSizing can't run because parentLayout is null");
             return 0;
         }
-        if (layoutItems == null || layoutItems.Count == 0) return flexLayout.layoutParams.totalPadding;
+        if (layoutItems == null || layoutItems.Count == 0) return flexLayout.totalPadding;
         
-        var layoutResult = FlexLayout.FlexLayout.GetLayoutRanges(flexLayout.layoutParams, layoutItems.Select(x => x.item).ToList());
+        var layoutResult = FlexLayout.FlexLayout.GetLayoutRanges(flexLayout, layoutItems.Cast<Item>().ToList());
 
         if(flexLayout.expandSize && flexLayout.layout != null)
             SetSizeOnAxis(flexLayout.layout, layoutResult.containerSize, axis);
-        
+
         List<SLayout> layouts = new List<SLayout>();
         List<Vector2> positions = new List<Vector2>();
         for (var index = 0; index < layoutResult.ranges.Count; index++) {
@@ -181,13 +195,13 @@ public static class SLayoutUtils {
                 
                 Vector2 position = layout.position;
                 
-                if (layoutItem.expandSize) {
+                if (layoutItem.fillSpace) {
                     SetSizeOnAxis(layout, layoutResult.ranges[index].y - layoutResult.ranges[index].x, axis);
                     position[(int) axis] = layoutResult.ranges[index].x;
                 }
                 // If not setting size, then set position according to the pivot of the item 
                 else {
-                    position[(int) axis] = (Mathf.Lerp(layoutResult.ranges[index].x, layoutResult.ranges[index].y, layoutItem.pivot) - layout.targetSize[(int) axis] * layoutItem.pivot);
+                    position[(int) axis] = (Mathf.Lerp(layoutResult.ranges[index].x, layoutResult.ranges[index].y, layoutItem.fillSpacePivot) - layout.targetSize[(int) axis] * layoutItem.fillSpacePivot);
                 }
                 positions.Add(position);
                 
@@ -196,12 +210,16 @@ public static class SLayoutUtils {
             }
         }
 
-        ApplyLocalLayoutPositionsInTransformDepthOrder(flexLayout.layout, layouts, positions, (Axis)axis);
+        ApplyLocalLayoutPositionsInTransformDepthOrder(flexLayout.layout, layouts, positions, axis);
         return layoutResult.containerSize;
     }
     
-    public static void FillContainer(SLayout parentLayout, IEnumerable<SLayout> layouts, Axis axis, float minPadding, float maxPadding) {
-        AutoLayout(new FlexSLayout(Container.Flexible().SetPaddingMin(minPadding).SetPaddingMax(maxPadding), parentLayout), new List<FlexSLayoutItem> {new (Item.Flexible(), layouts.ToArray())}, axis);
+    public static void FillContainer(SLayout parentLayout, IEnumerable<SLayout> layouts, Axis axis, float minPadding = 0, float maxPadding = 0) {
+        AutoLayout(
+            SLContainer.Fixed(parentLayout.targetSize[(int)axis]).SetPaddingMin(minPadding).SetPaddingMax(maxPadding).SetLayout(parentLayout).SetExpandSize(false), 
+            new List<SLItem> {SLItem.Flexible().SetLayouts(layouts.ToArray())}, 
+            axis
+        );
     }
     #endregion
     
@@ -219,6 +237,10 @@ public static class SLayoutUtils {
             var layout = orderedLayouts[index];
             var localLayoutPos = orderedLocalLayoutPositions[index];
             var convertedPosition = parentLayout.ConvertPositionToTarget(localLayoutPos, layout.parent);
+            if(float.IsNaN(convertedPosition.x) || float.IsNaN(convertedPosition.y)) {
+                Debug.LogError($"AutoLayoutWithDynamicSizing can't run because convertedPosition is NaN. localLayoutPos is {localLayoutPos}, layout.parent is {layout.parent}");
+                return;
+            }
             if (axis == Axis.Both) layout.position = convertedPosition;
             else SetPositionOnAxis(layout, convertedPosition[(int)axis], axis);
         }
@@ -237,7 +259,7 @@ public static class SLayoutUtils {
     
     // Ordering layouts by depth ensures that animations are applied in the correct order
     static int[] GetOrderTransformationByTransformDepth(IList<SLayout> layouts) {
-        return GetOrder(layouts, (item) => GetTransformDepth(item.transform));
+        return GetOrder(layouts, item => GetTransformDepth(item.transform));
         static int GetTransformDepth(Transform transform) {
             if (transform.parent == null) return 0;
             else return 1 + GetTransformDepth(transform.parent);
@@ -272,57 +294,114 @@ public static class SLayoutUtils {
 
 // Wraps layout item params and the layouts to apply the output to, if any.
 // Also contains arguments defining how the layout params should be applied to the layouts
-[System.Serializable]
-public class FlexSLayout {
-    public Container layoutParams;
+[Serializable]
+public class SLContainer : Container {
     public SLayout layout;
     
     // If true, sets the size of the layouts to the space allocated for them.
     public bool expandSize = true;
     
-    public FlexSLayout(Container layoutParams, SLayout layout) {
-        this.layoutParams = layoutParams;
-        this.layout = layout;
-    }
-    
-    public static FlexSLayout Fixed(SLayout layout, SLayoutUtils.Axis axis) {
-        return new FlexSLayout(Container.Fixed(layout.size[(int)axis]), layout);
+    public new static SLContainer Fixed(float size) {
+        var layoutItem = new SLContainer();
+        return layoutItem.SetFixedSize(size);
     }
 
-    public FlexSLayout SetExpandSize(bool value) {
+    public new static SLContainer Flexible(float minSize = 0, float maxSize = float.MaxValue) {
+        var layoutItem = new SLContainer();
+        return layoutItem.SetFlexibleSize(minSize, maxSize);
+    }
+    
+    
+    public static SLContainer Fixed(SLayout layout, SLayoutUtils.Axis axis) {
+        var layoutItem = new SLContainer().SetExpandSize(false).SetLayout(layout);
+        layoutItem.SetFixedSize(layout.targetSize[(int) axis]);
+        return layoutItem;
+    }
+    
+    // public new static SLContainer Flexible(SLayout layout, float minSize = 0, float maxSize = float.MaxValue) {
+    //     var layoutItem = new SLContainer();
+    //     return layoutItem.SetFlexibleSize(minSize, maxSize);
+    // }
+    // public static SLContainer Flexible(SLayout layout, SLayoutUtils.Axis axis) {
+    //     var layoutItem = new SLContainer();
+    //     layoutItem.SetFixedSize(layout.targetSize[(int) axis]);
+    //     return layoutItem.SetExpandSize(true).SetLayout(layout);
+    // }
+
+    public SLContainer SetLayout(SLayout layout) {
+        this.layout = layout;
+        return this;
+    }
+    
+    public SLContainer SetExpandSize(bool value) {
         expandSize = value;
         return this;
     }
+
+    public new SLContainer SetFixedSize(float fixedSize) => (SLContainer)base.SetFixedSize(fixedSize);
+        
+    public new SLContainer SetFlexibleSize(float minSize, float maxSize) => (SLContainer)base.SetFlexibleSize(minSize, maxSize);
+
+    public new SLContainer SetPadding(float value) => (SLContainer)base.SetPadding(value);
+        
+    public new SLContainer SetPadding(float minPadding, float maxPadding) => (SLContainer)base.SetPadding(minPadding, maxPadding);
+
+    public new SLContainer SetPaddingMin(float value) => (SLContainer)base.SetPaddingMin(value);
+
+    public new SLContainer SetPaddingMax(float value) => (SLContainer)base.SetPaddingMax(value);
+
+    public new SLContainer SetSpacing(float value) => (SLContainer)base.SetSpacing(value);
+
+    public new SLContainer SetSurplusOffsetPivot(float value) => (SLContainer)base.SetSurplusOffsetPivot(value);
+
+    public new SLContainer SetSurplusSpacePaddingRatio(float value) => (SLContainer)base.SetSurplusSpacePaddingRatio(value);
+
+    public new SLContainer SetReversed(bool value) => (SLContainer)base.SetReversed(value);
 }
 
-[System.Serializable]
-public class FlexSLayoutItem {
-    public Item item;
+[Serializable]
+public class SLItem : Item {
     // This may be null.
     public List<SLayout> layouts;
 
     // If true, sets the size of the layouts to the space allocated for them.
-    public bool expandSize = true;
-    // If expandSize is false, determines where the layouts are positioned within the space allocated for them.
-    public float pivot = 0.5f;
-        
-    public FlexSLayoutItem(Item item, params SLayout[] layouts) {
-        this.item = item;
-        if(layouts is {Length: > 0}) this.layouts = new List<SLayout>(layouts);
+    public bool fillSpace = true;
+    // If fillSpace is false, determines where the layouts are positioned within the space allocated for them.
+    public float fillSpacePivot = 0.5f;
+    
+    public static SLItem Fixed(SLayout layout, SLayoutUtils.Axis axis, bool expandSize = true, float pivot = 0.5f) {
+        var layoutItem = new SLItem().SetFillSpace(expandSize, pivot).SetLayouts(layout);
+        layoutItem.SetFixedSize(layout.targetSize[(int) axis]);
+        return layoutItem;
     }
     
-    public FlexSLayoutItem(Item item, bool expandSize, float pivot, params SLayout[] layouts) {
-        this.item = item;
-        if(layouts is {Length: > 0}) this.layouts = new List<SLayout>(layouts);
-    }
-
-    // Not sure if this is a good idea or not!
-    public static FlexSLayoutItem Fixed(SLayout layout, SLayoutUtils.Axis axis, bool expandSize = true, float pivot = 0.5f) {
-        return new FlexSLayoutItem(Item.Fixed(layout.size[(int)axis]), expandSize, pivot, layout);
-    }
-
     // public static FlexSLayoutItem Max(SLayoutUtils.Axis axis, params SLayout[] layouts) {
-    //     var size = layouts.Max(layout => layout.size[(int) axis]);
+    //     var size = layouts.Max(layout => layout.targetSize[(int) axis]);
     //     layoutItemParams = Item.Fixed();
     // }
+    
+    public new static SLItem Fixed(float size) {
+        var layoutItem = new SLItem();
+        return layoutItem.SetFixedSize(size);
+    }
+
+    public new static SLItem Flexible(float minSize = 0, float maxSize = float.MaxValue, float weight = 1) {
+        var layoutItem = new SLItem();
+        return layoutItem.SetFlexibleSize(minSize, maxSize).SetWeight(weight);
+    }
+    
+    public SLItem SetLayouts (params SLayout[] layouts) {
+        if(layouts is {Length: > 0}) this.layouts = new List<SLayout>(layouts);
+        return this;
+    }
+    
+    public SLItem SetFillSpace(bool fillSpace, float fillSpacePivot) {
+        this.fillSpace = fillSpace;
+        this.fillSpacePivot = fillSpacePivot;
+        return this;
+    }
+    
+    public new SLItem SetFixedSize(float fixedSize) => (SLItem)base.SetFixedSize(fixedSize);
+    public new SLItem SetFlexibleSize(float minSize, float maxSize) => (SLItem)base.SetFlexibleSize(minSize, maxSize);
+    public new SLItem SetWeight(float weight) => (SLItem)base.SetWeight(weight);
 }

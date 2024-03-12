@@ -1,8 +1,9 @@
-using System.Linq;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 // Handles moving, scaling and rotating UI objects using multitouch.
 // Should be just about 1-1, as you'd expect on a touch screen, although because it applies deltas there's a bit of "slippage" if you manipulate the same object for a while/rapidly.
@@ -12,11 +13,8 @@ public class MultitouchDraggable : Selectable, IBeginDragHandler, IEndDragHandle
 	[SerializeField]
 	RectTransform _target;
 	public RectTransform target {
-		get {
-			return _target == null ? rectTransform : _target;
-		} set {
-			_target = value;
-		}
+		get => _target == null ? rectTransform : _target;
+		set => _target = value;
 	}
 
 	[Space]
@@ -31,8 +29,8 @@ public class MultitouchDraggable : Selectable, IBeginDragHandler, IEndDragHandle
 	// This is set true before a drag begins so that isHolding is true as soon as the hold starts. When any drag ends, or a mouse up event occurs it's unset.
 	public bool isPointerDown;
 	public bool isHolding => dragInputs.Any() || isPointerDown;
-	List<DragInput> dragInputs = new List<DragInput>();
-	[System.Serializable]
+	List<DragInput> dragInputs = new();
+	[Serializable]
 	public class DragInput {
 		public int pointerId;
 		public Vector2 screenPos;
@@ -253,7 +251,7 @@ public class MultitouchDraggable : Selectable, IBeginDragHandler, IEndDragHandle
 	
 	
 	
-	public bool testingMode = false;
+	public bool testingMode;
 	Vector2 testingModeInitialScreenPos;
 	void OnGUI() {
 		if (testingMode) {
