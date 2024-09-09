@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class FilePathAttribute : PropertyAttribute {
 
@@ -25,6 +24,6 @@ public class FilePathAttribute : PropertyAttribute {
 	}
 	public FilePathAttribute (RelativeTo relativeTo, bool allowScrolling){
 		this.relativeTo = relativeTo;
-		this.showPrevNextFileControls = allowScrolling;
+		showPrevNextFileControls = allowScrolling;
 	}
 }

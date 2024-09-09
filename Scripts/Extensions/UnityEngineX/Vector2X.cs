@@ -1,7 +1,6 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using UnityEngine;
 
 public static class Vector2X {
 
@@ -25,11 +24,8 @@ public static class Vector2X {
 	/// Returns the half.
 	/// </summary>
 	/// <value>The half.</value>
-	public static Vector2 half {
-		get {
-			return new Vector2(0.5f, 0.5f);
-		}
-	}
+	public static Vector2 half => new(0.5f, 0.5f);
+
 	#endregion
 
 
@@ -41,7 +37,7 @@ public static class Vector2X {
 	/// <param name="v">The vector.</param>
 	/// <param name="numDecimalPlaces">Number decimal places.</param>
 	public static string ToString(this Vector2 v, int numDecimalPlaces = 3){
-		return ("("+v.x.RoundTo(numDecimalPlaces).ToString()+", "+v.y.RoundTo(numDecimalPlaces).ToString()+")");
+		return ("("+v.x.RoundTo(numDecimalPlaces)+", "+v.y.RoundTo(numDecimalPlaces)+")");
 	}
 	#endregion
 
@@ -91,7 +87,7 @@ public static class Vector2X {
 		return FromTo(a, b).normalized;
 	}
 
-	static string[] headings = new string[]{ "E", "NE", "N", "NW", "W", "SW", "S", "SE" };
+	static string[] headings = { "E", "NE", "N", "NW", "W", "SW", "S", "SE" };
 	public static string DirectionName(this Vector2 dir) {
 		if(dir == Vector2.zero) return string.Empty;
 		float angle = Mathf.Atan2( dir.y, dir.x );
@@ -145,14 +141,14 @@ public static class Vector2X {
 	/// <param name="direction">Direction.</param>
 	public static float DistanceInDirection (Vector2 fromVector, Vector2 toVector, Vector2 direction) {
 		Vector2 normalizedDirection = direction.sqrMagnitude == 1 ? direction : direction.normalized;
-		Vector2 projectedA = Vector2X.Project(fromVector, normalizedDirection);
-		Vector2 projectedB = Vector2X.Project(toVector, normalizedDirection);
+		Vector2 projectedA = Project(fromVector, normalizedDirection);
+		Vector2 projectedB = Project(toVector, normalizedDirection);
 		return Vector2.Distance(projectedA, projectedB);
 	}
 
 	public static float SignedDistanceInDirection (Vector2 fromVector, Vector2 toVector, Vector2 direction) {
 		Vector2 normalizedDirection = direction.sqrMagnitude == 1 ? direction : direction.normalized;
-		return Vector2.Dot(Vector2X.FromTo(fromVector, toVector), normalizedDirection);
+		return Vector2.Dot(FromTo(fromVector, toVector), normalizedDirection);
 	}
 
 	/// <summary>
@@ -235,7 +231,7 @@ public static class Vector2X {
 	/// </summary>
 	/// <param name="v">Vector to get direction from.</param>
 	public static float CardinalDirectionDegrees(this Vector2 v){
-		float angle = Vector2X.Degrees(v);
+		float angle = Degrees(v);
 		return angle.RoundToNearestInt(90);
 	}
 
@@ -261,7 +257,7 @@ public static class Vector2X {
 	/// </summary>
 	/// <param name="v">Vector to get direction from.</param>
 	public static float OrdinalDirectionDegrees(this Vector2 v){
-		float angle = Vector2X.Degrees(v) - 45;
+		float angle = Degrees(v) - 45;
 		return angle.RoundToNearestInt(90) + 45;
 	}
 
@@ -277,8 +273,8 @@ public static class Vector2X {
 
 
     public static Vector2 Slerp (Vector2 dirA, Vector2 dirB, float l) {
-        var angleA = Vector2X.Degrees(dirA);
-        var angleB = Vector2X.Degrees(dirB);
+        var angleA = Degrees(dirA);
+        var angleB = Degrees(dirB);
         return MathX.DegreesToVector2(Mathf.LerpAngle(angleA, angleB, l));
     }
 
@@ -288,9 +284,9 @@ public static class Vector2X {
 	/// <param name="values">Values.</param>
 	public static int ClosestIndex(Vector2 v, IList<Vector2> values){
 		int index = 0;
-		float closest = Vector2X.SqrDistance(v, values[index]);
+		float closest = SqrDistance(v, values[index]);
 		for(int i = 1; i < values.Count; i++){
-			float distance = Vector2X.SqrDistance(v, values[i]);
+			float distance = SqrDistance(v, values[i]);
 			if (distance < closest) {
 				closest = distance;
 				index = i;
@@ -395,7 +391,7 @@ public static class Vector2X {
 
 	#region Interception
 
-	[System.Serializable]
+	[Serializable]
 	public struct InterceptionResult {
 		public bool interceptionPossible;
 		public Vector2 interceptionPosition;
@@ -411,7 +407,7 @@ public static class Vector2X {
 	}
 
 	// Given a moving target a, calculates required velocity for a projectile of speed b to intercept
-	public static bool Intercept(Vector2 fromPos, Vector2 targetPosition, Vector2 targetVelocity, float interceptSpeed, out Vector2X.InterceptionResult result) {
+	public static bool Intercept(Vector2 fromPos, Vector2 targetPosition, Vector2 targetVelocity, float interceptSpeed, out InterceptionResult result) {
 		if (targetPosition == fromPos) {	
 			result = new InterceptionResult(true, fromPos, 0, Vector2.zero);
 	        return true;

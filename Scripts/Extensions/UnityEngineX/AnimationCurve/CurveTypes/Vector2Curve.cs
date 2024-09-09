@@ -1,23 +1,16 @@
+using System;
 using UnityEngine;
 
-[System.Serializable]
+[Serializable]
 public class Vector2Curve : BaseCurve<Vector2> {
 	[SerializeField]
     public AnimationCurve xCurve;
 	[SerializeField]
     public AnimationCurve yCurve;
 
-	public Keyframe[] keys {
-		get {
-			return xCurve.keys;
-		}
-	}
+	public Keyframe[] keys => xCurve.keys;
 
-	public float length {
-		get {
-			return GetLength();
-		}
-	}
+	public float length => GetLength();
 
 	public Vector2Curve() {
 		xCurve = new AnimationCurve();
@@ -30,8 +23,8 @@ public class Vector2Curve : BaseCurve<Vector2> {
 	}
 	
 	public void Set(AnimationCurve _xCurve, AnimationCurve _yCurve) {
-		this.xCurve = _xCurve;
-		this.yCurve = _yCurve;
+		xCurve = _xCurve;
+		yCurve = _yCurve;
 	}
 	
 	public void AddKey(float time, float x, float y){
@@ -77,28 +70,28 @@ public class Vector2Curve : BaseCurve<Vector2> {
 	}
 	
 	public override void RemoveKeysBefore (float time) {
-		this.xCurve.RemoveKeysBefore(time);
-		this.yCurve.RemoveKeysBefore(time);
+		xCurve.RemoveKeysBefore(time);
+		yCurve.RemoveKeysBefore(time);
 	}
 	
 	public override void RemoveKeysBeforeAndIncluding (float time) {
-		this.xCurve.RemoveKeysBeforeAndIncluding(time);
-		this.yCurve.RemoveKeysBeforeAndIncluding(time);
+		xCurve.RemoveKeysBeforeAndIncluding(time);
+		yCurve.RemoveKeysBeforeAndIncluding(time);
 	}
 	
 	public override void RemoveKeysAfter (float time) {
-		this.xCurve.RemoveKeysAfter(time);
-		this.yCurve.RemoveKeysAfter(time);
+		xCurve.RemoveKeysAfter(time);
+		yCurve.RemoveKeysAfter(time);
 	}
 	
 	public override void RemoveKeysAfterAndIncluding (float time) {
-		this.xCurve.RemoveKeysAfterAndIncluding(time);
-		this.yCurve.RemoveKeysAfterAndIncluding(time);
+		xCurve.RemoveKeysAfterAndIncluding(time);
+		yCurve.RemoveKeysAfterAndIncluding(time);
 	}
 	
 	public override void RemoveKeysBetween (float startTime, float endTime) {
-		this.xCurve.RemoveKeysBetween(startTime, endTime);
-		this.yCurve.RemoveKeysBetween(startTime, endTime);
+		xCurve.RemoveKeysBetween(startTime, endTime);
+		yCurve.RemoveKeysBetween(startTime, endTime);
 	}
 
 	public override float GetLength () {

@@ -1,9 +1,9 @@
-using UnityEngine;
 using System;
-using System.Reflection;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public static class ComponentX {
 
@@ -27,7 +27,7 @@ public static class ComponentX {
 			foreach(var component in go.GetComponents<Component>()) {
 				try {
 					MethodInfo tMethod = component.GetType().GetMethod(message, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-					if(tMethod != null) tMethod.Invoke(component, obj == null ? null : new object[] {obj, sendMessageOptions});
+					if(tMethod != null) tMethod.Invoke(component, obj == null ? null : new[] {obj, sendMessageOptions});
 				} catch {
 					if(sendMessageOptions == SendMessageOptions.RequireReceiver) Debug.LogError("No reciever found for message "+message+" for type "+component.GetType()+" on gameobject "+go.transform.HierarchyPath());
 				}
@@ -69,11 +69,11 @@ public static class ComponentX {
 		}
 	}
 
-	public static void BroadcastMessageScene (UnityEngine.SceneManagement.Scene scene, string methodName) {
+	public static void BroadcastMessageScene (Scene scene, string methodName) {
 		BroadcastMessageScene(scene, methodName, SendMessageOptions.DontRequireReceiver);
     }
 
-	public static void BroadcastMessageScene (UnityEngine.SceneManagement.Scene scene, string methodName, SendMessageOptions sendMessageOptions) {
+	public static void BroadcastMessageScene (Scene scene, string methodName, SendMessageOptions sendMessageOptions) {
 		if(!scene.isLoaded) {
 			Debug.LogWarning("Tried to BroadcastMessage '"+methodName+"' to scene '"+scene.name+"', but scene is not loaded.");
 			return;
@@ -83,11 +83,11 @@ public static class ComponentX {
 		}
     }
 
-	public static void BroadcastMessageScene (UnityEngine.SceneManagement.Scene scene, string methodName, object parameter) {
+	public static void BroadcastMessageScene (Scene scene, string methodName, object parameter) {
 		BroadcastMessageScene(scene, methodName, parameter, SendMessageOptions.DontRequireReceiver);
     }
 
-	public static void BroadcastMessageScene (UnityEngine.SceneManagement.Scene scene, string methodName, object parameter, SendMessageOptions sendMessageOptions) {
+	public static void BroadcastMessageScene (Scene scene, string methodName, object parameter, SendMessageOptions sendMessageOptions) {
 		if(!scene.isLoaded) {
 			Debug.LogWarning("Tried to BroadcastMessage '"+methodName+"' to scene '"+scene.name+"', but scene is not loaded.");
 			return;
@@ -115,26 +115,27 @@ public static class ComponentX {
 
 	
 	// Search params for GetComponentsX.
-	[System.Serializable]
+	[Serializable]
 	public struct ComponentSearchParams<T> {
 		// Depths are inclusive. 0 is the queried object. -1 searches parent, 1 searches children.
 		public int startDepth {get;}
 		public int endDepth {get;}
 		public bool includeInactive {get;}
 		// This is a reference type - should we make this a class for safety?
-		public System.Predicate<T> predicate {get;}
+		// This can be used to further filter the results of the search; for example to only return objects with a given gameobject name.
+		public Predicate<T> predicate {get;}
 		public bool sortedTopFirst {get;}
 
-		public ComponentSearchParams (int startDepthInclusive, int endDepthInclusive, bool includeInactive = false, System.Predicate<T> predicate = null) {
+		public ComponentSearchParams (int startDepthInclusive, int endDepthInclusive, bool includeInactive = false, Predicate<T> predicate = null) {
 			// We do allow searching from bottom-to-top, but startDepth must be before endDepth for the algorithm to work.
 			// To solve this we flip them and set sortedTopFirst to false so to reverse the list at the end of the algorithm.
 			if(startDepthInclusive > endDepthInclusive) {
-				this.startDepth = endDepthInclusive;
-				this.endDepth = startDepthInclusive;
+				startDepth = endDepthInclusive;
+				endDepth = startDepthInclusive;
 				sortedTopFirst = false;
 			} else {
-				this.startDepth = startDepthInclusive;
-				this.endDepth = endDepthInclusive;
+				startDepth = startDepthInclusive;
+				endDepth = endDepthInclusive;
 				sortedTopFirst = true;
 			}
 			this.includeInactive = includeInactive;
@@ -142,16 +143,22 @@ public static class ComponentX {
 		}
 
 		// Utility functions for common actions.
-		public static ComponentSearchParams<T> AllDescendentsExcludingSelf (bool includeInactive = false, System.Predicate<T> predicate = null) {
+		public static ComponentSearchParams<T> ImmediateDescendentsExcludingSelf (bool includeInactive = false, Predicate<T> predicate = null) {
+			return new ComponentSearchParams<T>(1, 1, includeInactive, predicate);
+		}
+		public static ComponentSearchParams<T> ImmediateAncestorsExcludingSelf (bool includeInactive = false, Predicate<T> predicate = null) {
+			return new ComponentSearchParams<T>(1, 1, includeInactive, predicate);
+		}
+		public static ComponentSearchParams<T> AllDescendentsExcludingSelf (bool includeInactive = false, Predicate<T> predicate = null) {
 			return new ComponentSearchParams<T>(1, int.MaxValue-1, includeInactive, predicate);
 		}
-		public static ComponentSearchParams<T> AllDescendentsIncludingSelf (bool includeInactive = false, System.Predicate<T> predicate = null) {
+		public static ComponentSearchParams<T> AllDescendentsIncludingSelf (bool includeInactive = false, Predicate<T> predicate = null) {
 			return new ComponentSearchParams<T>(0, int.MaxValue-1, includeInactive, predicate);
 		}
-		public static ComponentSearchParams<T> AllAncestorsExcludingSelf (bool includeInactive = false, System.Predicate<T> predicate = null) {
+		public static ComponentSearchParams<T> AllAncestorsExcludingSelf (bool includeInactive = false, Predicate<T> predicate = null) {
 			return new ComponentSearchParams<T>(-1, int.MinValue+1, includeInactive, predicate);
 		}
-		public static ComponentSearchParams<T> AllAncestorsIncludingSelf (bool includeInactive = false, System.Predicate<T> predicate = null) {
+		public static ComponentSearchParams<T> AllAncestorsIncludingSelf (bool includeInactive = false, Predicate<T> predicate = null) {
 			return new ComponentSearchParams<T>(0, int.MinValue+1, includeInactive, predicate);
 		}
 	}
@@ -311,7 +318,7 @@ public static class ComponentX {
 	public static T GetInterface<T>(this Component inObj) where T : class {
 		#if !UNITY_WINRT
 		if (!typeof(T).IsInterface) {
-			Debug.LogError(typeof(T).ToString() + ": is not an actual interface!");
+			Debug.LogError(typeof(T) + ": is not an actual interface!");
 			return null;
 		}
 		#endif
@@ -328,7 +335,7 @@ public static class ComponentX {
 	public static IEnumerable<T> GetInterfaces<T>(this Component inObj) where T : class {
 		#if !UNITY_WINRT
 		if (!typeof(T).IsInterface) {
-			Debug.LogError(typeof(T).ToString() + ": is not an actual interface!");
+			Debug.LogError(typeof(T) + ": is not an actual interface!");
 			return Enumerable.Empty<T>();
 		}
 		#endif
@@ -344,7 +351,7 @@ public static class ComponentX {
 	public static T GetInterfaceInChildren<T>(this Component inObj) where T : class {
 		#if !UNITY_WINRT
 		if (!typeof(T).IsInterface) {
-			Debug.LogError(typeof(T).ToString() + ": is not an actual interface!");
+			Debug.LogError(typeof(T) + ": is not an actual interface!");
 			return null;
 		}
 		#endif
@@ -360,7 +367,7 @@ public static class ComponentX {
 	public static IEnumerable<T> GetInterfacesInChildren<T>(this Component inObj) where T : class {
 		#if !UNITY_WINRT
 		if (!typeof(T).IsInterface) {
-			Debug.LogError(typeof(T).ToString() + ": is not an actual interface!");
+			Debug.LogError(typeof(T) + ": is not an actual interface!");
 			return null;
 		}
 		#endif

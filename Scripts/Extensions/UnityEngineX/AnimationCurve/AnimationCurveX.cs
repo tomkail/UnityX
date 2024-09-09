@@ -1,8 +1,4 @@
 using UnityEngine;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 
 /// <summary>
 /// Extension methods for UnityEngine.AnimationCurve.
@@ -15,14 +11,11 @@ public static class AnimationCurveX {
 	/// A slow start, with a fast finish.
 	/// </summary>
 	/// <value>The ease in.</value>
-	public static AnimationCurve easeIn {
-		get {
-			return AnimationCurveX.EaseIn();
-		}
-	} 
+	public static AnimationCurve easeIn => EaseIn();
+
 	static AnimationCurve _easeIn;
 	public static float EvaluateEaseIn (float t) {
-		if(_easeIn == null) _easeIn = AnimationCurveX.EaseIn();
+		if(_easeIn == null) _easeIn = EaseIn();
 		return _easeIn.Evaluate(t);
 	}
 
@@ -30,51 +23,30 @@ public static class AnimationCurveX {
 	/// A fast start, with a slow finish.
 	/// </summary>
 	/// <value>The ease in.</value>
-	public static AnimationCurve easeOut {
-		get {
-			return AnimationCurveX.EaseOut();
-		}
-	}
+	public static AnimationCurve easeOut => EaseOut();
+
 	static AnimationCurve _easeOut;
 	public static float EvaluateEaseOut (float t) {
-		if(_easeOut == null) _easeOut = AnimationCurveX.EaseOut();
+		if(_easeOut == null) _easeOut = EaseOut();
 		return _easeOut.Evaluate(t);
 	}
 
 
-	public static AnimationCurve easeInOut {
-		get {
-			return AnimationCurveX.EaseInOut();
-		}
-	}
+	public static AnimationCurve easeInOut => EaseInOut();
 	static AnimationCurve _easeInOut;
 	public static float EvaluateEaseInOut (float t) {
-		if(_easeInOut == null) _easeInOut = AnimationCurveX.EaseInOut();
+		if(_easeInOut == null) _easeInOut = EaseInOut();
 		return _easeInOut.Evaluate(t);
 	}
 
-	public static AnimationCurve easeInInvert {
-		get {
-			return AnimationCurveX.EaseInInvert();
-		}
-	}
-	public static AnimationCurve easeOutInvert {
-		get {
-			return AnimationCurveX.EaseOutInvert();
-		}
-	}
-	 
-	public static AnimationCurve bellCurve {
-		get {
-			return AnimationCurveX.BellCurve();
-		}
-	}
-	public static AnimationCurve sine {
-		get {
-			return AnimationCurveX.Sine();
-		}
-	}
-	
+	public static AnimationCurve easeInInvert => EaseInInvert();
+
+	public static AnimationCurve easeOutInvert => EaseOutInvert();
+
+	public static AnimationCurve bellCurve => BellCurve();
+
+	public static AnimationCurve sine => Sine();
+
 	/// <summary>
 	/// Gets the width of the curve by finding the difference between the times of the first and last keyframes.
 	/// This function ignores the curve's wrap mode.
@@ -281,11 +253,11 @@ public static class AnimationCurveX {
 	/// Creates a new Animation Curve with a single point
 	/// </summary>
 	public static AnimationCurve Point(float value = 1f){
-		return new AnimationCurve(new Keyframe[]{new Keyframe(0, value)});
+		return new AnimationCurve(new Keyframe(0, value));
 	}
 
 	public static AnimationCurve Point(float time, float value){
-		return new AnimationCurve(new Keyframe[]{new Keyframe(time, value)});
+		return new AnimationCurve(new Keyframe(time, value));
 	}
 
 	/// <summary>
@@ -343,14 +315,14 @@ public static class AnimationCurveX {
 	/// Creates a new Animation Curve that eases out of given width and height
 	/// </summary>
 	public static AnimationCurve EaseOut(float outTangent = DefaultTangent){
-		return AnimationCurveX.EaseOut(0,1,0,1, outTangent);
+		return EaseOut(0,1,0,1, outTangent);
 	}
 	
 	/// <summary>
 	/// Creates a new Animation Curve that eases out of given width and height
 	/// </summary>
 	public static AnimationCurve EaseOut(float width, float height, float outTangent = DefaultTangent){
-		return AnimationCurveX.EaseOut(0,width,0,height, outTangent);
+		return EaseOut(0,width,0,height, outTangent);
 	}
 
 	/// <summary>
@@ -370,14 +342,14 @@ public static class AnimationCurveX {
 	/// Creates a new Animation Curve that eases in between 0 and 1.
 	/// </summary>
 	public static AnimationCurve EaseIn(float inTangent = DefaultTangent){
-		return AnimationCurveX.EaseIn(0,1,0,1,inTangent);
+		return EaseIn(0,1,0,1,inTangent);
 	}
 	
 	/// <summary>
 	/// Creates a new Animation Curve that eases in of given width and height.
 	/// </summary>
 	public static AnimationCurve EaseIn(float width, float height, float inTangent = DefaultTangent){
-		return AnimationCurveX.EaseIn(0,width,0,height);
+		return EaseIn(0,width,0,height);
 	}
 
 	/// <summary>
@@ -398,14 +370,14 @@ public static class AnimationCurveX {
 	/// Creates a new Animation Curve that eases in and out of given width and height
 	/// </summary>
 	public static AnimationCurve EaseInOut(){
-		return AnimationCurveX.EaseInOut(0,1,0,1);
+		return EaseInOut(0,1,0,1);
 	}
 	
 	/// <summary>
 	/// Creates a new Animation Curve that eases in and out of given width and height
 	/// </summary>
 	public static AnimationCurve EaseInOut(float width, float height){
-		return AnimationCurveX.EaseInOut(0,width,0,height);
+		return EaseInOut(0,width,0,height);
 	}
 
 	/// <summary>
@@ -427,7 +399,7 @@ public static class AnimationCurveX {
 	/// Creates a new Animation Curve that eases in of given width and height
 	/// </summary>
 	public static AnimationCurve EaseOutInvert(float inTangent = DefaultTangent){
-		return AnimationCurveX.EaseOutInvert(0,1,1,0, inTangent);
+		return EaseOutInvert(0,1,1,0, inTangent);
 	}
 	
 	
@@ -435,7 +407,7 @@ public static class AnimationCurveX {
 	/// Creates a new Animation Curve that eases in of given width and height
 	/// </summary>
 	public static AnimationCurve EaseOutInvert(float width, float height, float inTangent = DefaultTangent){
-		return AnimationCurveX.EaseInInvert(0,width,height,0, inTangent);
+		return EaseInInvert(0,width,height,0, inTangent);
 	}
 
 	/// <summary>
@@ -456,14 +428,14 @@ public static class AnimationCurveX {
 	/// Creates a new Animation Curve that eases in of given width and height
 	/// </summary>
 	public static AnimationCurve EaseInInvert(float outTangent = DefaultTangent){
-		return AnimationCurveX.EaseInInvert(0,1,1,0,outTangent);
+		return EaseInInvert(0,1,1,0,outTangent);
 	}
 	
 	/// <summary>
 	/// Creates a new Animation Curve that eases in of given width and height
 	/// </summary>
 	public static AnimationCurve EaseInInvert(float width, float height, float outTangent = DefaultTangent){
-		return AnimationCurveX.EaseInInvert(0,width,height,0, outTangent);
+		return EaseInInvert(0,width,height,0, outTangent);
 	}
 
 	/// <summary>
@@ -483,7 +455,7 @@ public static class AnimationCurveX {
 	/// Creates a new Animation Curve that eases in of given width and height
 	/// </summary>
 	public static AnimationCurve EaseInOutInvert(float width = 1f, float height = 1f){
-		return AnimationCurveX.EaseInInvert(0,width,height,0);
+		return EaseInInvert(0,width,height,0);
 	}
 
 	/// <summary>

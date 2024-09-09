@@ -1,43 +1,7 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public static class ScaleToContainerUtils {
-
-    // public static Rect GetAxisAlignedBoundingBox (Rect rect, float degrees) {
-    //     // rectTransform.GetLocalCorners();
-    //     var transformedRect = rect;
-        
-    //     // var gamma = Mathf.PI / 4;
-    //     // var alpha = degrees;
-    //     // var beta = gamma - degrees;
-    //     // var EA = rect.height * Mathf.Sin(alpha);
-    //     // var ED = rect.height * Mathf.Sin(beta);
-    //     // var FB = rect.width * Mathf.Sin(alpha);
-    //     // var AF = rect.width * Mathf.Sin(beta);
-
-    //     var theta = Mathf.Deg2Rad * degrees;
-    //     var x2 = x0+(x-x0)*cos(theta)+(y-y0)*sin(theta);
-    //     var y2 = y0-(x-x0)*sin(theta)+(y-y0)*cos(theta);
-
-    //     // transformedRect.width = EA + AF;
-    //     // transformedRect.height = ED + FB;
-    //     return transformedRect;
-    // }
-
-    public static Rect TransformRect(Rect rect, Matrix4x4 m) {
-        if (m == null) return rect;
-
-        var topLeft = m.MultiplyPoint3x4(rect.TopLeft());
-        var topRight = m.MultiplyPoint3x4(rect.TopRight());
-        var bottomRight = m.MultiplyPoint3x4(rect.BottomRight());
-        var bottomLeft = m.MultiplyPoint3x4(rect.BottomLeft());
-
-        var left = Mathf.Min(topLeft.x, topRight.x, bottomRight.x, bottomLeft.x);
-        var top = Mathf.Min(topLeft.y, topRight.y, bottomRight.y, bottomLeft.y);
-        var right = Mathf.Max(topLeft.x, topRight.x, bottomRight.x, bottomLeft.x);
-        var bottom = Mathf.Max(topLeft.y, topRight.y, bottomRight.y, bottomLeft.y);
-        return new Rect(left, top, right - left, bottom - top);
-    }
-
     public enum ScalingMode {
         // Scale the target until the x dimension fits on the screen exactly, maintaining the content's aspect ratio.
         AspectFitWidthOnly,
@@ -51,30 +15,39 @@ public static class ScaleToContainerUtils {
         Fill
     }
     
+    
+    // Calculates the new size of the content so that it fits or fills the container as per the scaling mode
     public static Vector2 Resize(Vector2 containerSize, Vector2 contentSize, ScalingMode scalingMode) {
         return Resize(containerSize, contentSize.x/contentSize.y, scalingMode);
     }
+    
     public static Vector2 Resize(Vector2 containerSize, float contentAspect, ScalingMode scalingMode) {
-        if(float.IsNaN(contentAspect)) return containerSize;
         if(scalingMode == ScalingMode.Fill) return containerSize;
+        if(float.IsNaN(contentAspect)) return containerSize;
 
         float containerAspect = containerSize.x / containerSize.y;
         if(float.IsNaN(containerAspect)) return containerSize;
         
-        bool fillToAtLeastContainerWidth = false;
-        bool fillToAtLeastContainerHeight = false;
+        bool fillToAtLeastContainerWidth = false, fillToAtLeastContainerHeight = false;
 
-        if(scalingMode == ScalingMode.AspectFitWidthOnly) fillToAtLeastContainerWidth = true;
-        else if(scalingMode == ScalingMode.AspectFitHeightOnly) fillToAtLeastContainerHeight = true;
-        else if(scalingMode == ScalingMode.AspectFill) fillToAtLeastContainerWidth = fillToAtLeastContainerHeight = true;
+        switch (scalingMode) {
+            case ScalingMode.AspectFitWidthOnly:
+                fillToAtLeastContainerWidth = true;
+                break;
+            case ScalingMode.AspectFitHeightOnly:
+                fillToAtLeastContainerHeight = true;
+                break;
+            case ScalingMode.AspectFill:
+                fillToAtLeastContainerWidth = fillToAtLeastContainerHeight = true;
+                break;
+        }
         
-        Vector2 destRect = containerSize;
-		if(containerSize.x == Mathf.Infinity) {
+        var destRect = containerSize;
+		if(float.IsPositiveInfinity(containerSize.x)) {
             destRect.x = containerSize.y * contentAspect;
-		} else if(containerSize.y == Mathf.Infinity) {
+		} else if(float.IsPositiveInfinity(containerSize.y)) {
             destRect.y = containerSize.x / contentAspect;
 		}
-
 
         if (contentAspect > containerAspect) {
             // wider than high keep the width and scale the height
@@ -100,22 +73,69 @@ public static class ScaleToContainerUtils {
 
         return destRect;
     }
+    
+    public static Vector2Int ResizeInt(Vector2 containerSize, Vector2 contentSize, ScalingMode scalingMode) {
+        var resized = Resize(containerSize, contentSize, scalingMode);
+        return new Vector2Int(Mathf.RoundToInt(resized.x), Mathf.RoundToInt(resized.y));
+    }
+    
+    public static Vector2Int ResizeInt(Vector2 containerSize, float contentAspect, ScalingMode scalingMode) {
+        var resized = Resize(containerSize, contentAspect, scalingMode);
+        return new Vector2Int(Mathf.RoundToInt(resized.x), Mathf.RoundToInt(resized.y));
+    }
 
-    // Returns the scale required to make the content fit the container according to the scaling mode.
+    
+    // Returns a scale that can be applied to the content to make it fit the container according to the scaling mode.
     public static Vector3 Rescale (Vector2 containerSize, Vector2 contentSize, ScalingMode scalingMode) {
-        var resized = ScaleToContainerUtils.Resize(containerSize, contentSize, scalingMode);
+        var resized = Resize(containerSize, contentSize, scalingMode);
         return new Vector3(resized.x/contentSize.x, resized.y/contentSize.y, 1);
     }
     
     
-    // Returns UV scale required to make the content fit the container according to the scaling mode.
+    // Returns a UV scale that can be applied to the content to make it fit the container according to the scaling mode.
+    // UV scaling is the reciprocal of a typical scaling factor.
     public static Vector2 RescaleUVs (Vector2 containerSize, Vector2 contentSize, ScalingMode scalingMode) {
-        var resized = ScaleToContainerUtils.Resize(containerSize, contentSize, scalingMode);
+        var resized = Resize(containerSize, contentSize, scalingMode);
         return new Vector2(containerSize.x/resized.x, containerSize.y/resized.y);
     }
-    // Returns UV rect where the content fit the container according to the scaling mode, using a pivot point.
+    
+    // Returns a UV rect that can be applied to the content to make it fit the container according to the scaling mode.
+    // Uses a pivot point to determine positioning.
     public static Rect RescaleUVs (Vector2 containerSize, Vector2 contentSize, ScalingMode scalingMode, Vector2 pivot) {
-        var size = ScaleToContainerUtils.RescaleUVs(containerSize, contentSize, scalingMode);
+        var size = RescaleUVs(containerSize, contentSize, scalingMode);
 		return new Rect(-(size.x-1) * pivot.x, - (size.y-1) * pivot.y, size.x, size.y);
+    }
+
+    // Converts the AspectMode used by AspectRatioFitter to the closest matching ScalingMode used by UnityEngine.
+    public static ScaleMode ScalingModeToUnityScaleMode(ScalingMode scalingMode) {
+        switch (scalingMode) {
+            case ScalingMode.AspectFitWidthOnly:
+            case ScalingMode.AspectFitHeightOnly:
+            case ScalingMode.AspectFill:
+                return ScaleMode.ScaleAndCrop;
+            case ScalingMode.Fill:
+                return ScaleMode.StretchToFill;
+            case ScalingMode.AspectFit:
+            default:
+                return ScaleMode.ScaleToFit;
+        }
+    }
+
+    // Converts the AspectMode used by AspectRatioFitter to the ScalingMode used by ScaleToContainer.
+    public static AspectRatioFitter.AspectMode ScalingModeToAspectRatioFitterMode(ScalingMode scalingMode) {
+        switch (scalingMode) {
+            case ScalingMode.AspectFitWidthOnly:
+                return AspectRatioFitter.AspectMode.WidthControlsHeight;
+            case ScalingMode.AspectFitHeightOnly:
+                return AspectRatioFitter.AspectMode.HeightControlsWidth;
+            case ScalingMode.AspectFit:
+                return AspectRatioFitter.AspectMode.FitInParent;
+            case ScalingMode.AspectFill:
+                return AspectRatioFitter.AspectMode.EnvelopeParent;
+            case ScalingMode.Fill:
+                return AspectRatioFitter.AspectMode.None;
+            default:
+                return AspectRatioFitter.AspectMode.None;
+        }
     }
 }

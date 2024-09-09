@@ -1,6 +1,5 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 // TODO - change new Rect() to rect.Set()!
 public static class RectX {
@@ -14,10 +13,10 @@ public static class RectX {
 			return true;
 		} else {
 			return 
-				MathX.Difference(a.x, b.x) < maxDifference && 
-				MathX.Difference(a.y, b.y) < maxDifference && 
-				MathX.Difference(a.xMax, b.xMax) < maxDifference &&
-				MathX.Difference(a.yMax, b.yMax) < maxDifference;
+				Mathf.Abs(a.x - b.x) < maxDifference && 
+				Mathf.Abs(a.y - b.y) < maxDifference && 
+				Mathf.Abs(a.xMax - b.xMax) < maxDifference &&
+				Mathf.Abs(a.yMax - b.yMax) < maxDifference;
 	    }
 	}
 
@@ -49,7 +48,7 @@ public static class RectX {
 	/// </summary>
 	/// <param name="vectors">Vectors.</param>
 	public static Rect CreateEncapsulating (IEnumerable<Vector2> vectors) {
-		var enumerator = vectors.GetEnumerator();
+		using var enumerator = vectors.GetEnumerator();
 		enumerator.MoveNext();
 		float xMin = enumerator.Current.x;
 		float xMax = enumerator.Current.x;
@@ -73,7 +72,7 @@ public static class RectX {
 	}
     
 	public static Rect CreateEncapsulating (IEnumerable<Rect> rects) {
-		var enumerator = rects.GetEnumerator();
+		using var enumerator = rects.GetEnumerator();
 		enumerator.MoveNext();
 		Rect rect = enumerator.Current;
 		while(enumerator.MoveNext())
@@ -88,8 +87,9 @@ public static class RectX {
 		return new Rect(centerX - sizeX * 0.5f, centerY - sizeY * 0.5f, sizeX, sizeY);
 	}
 
-	public static Rect Create (Vector2 position, Vector2 size, Vector2 pivot) {
-		return new Rect(position.x - size.x * pivot.x, position.y - size.y * pivot.y, size.x, size.y);
+	// Creates a new rect from an anchor position, size and pivot.
+	public static Rect Create (Vector2 anchorPosition, Vector2 size, Vector2 pivot) {
+		return new Rect(anchorPosition.x - size.x * pivot.x, anchorPosition.y - size.y * pivot.y, size.x, size.y);
 	}
 
 	public static Rect Lerp (Rect rect1, Rect rect2, float lerp) {
@@ -105,87 +105,90 @@ public static class RectX {
 		return new Rect(left.x-right.x, left.y-right.y, left.width-right.width, left.height-right.height);
 	}
 
-	public static Rect CopyWithX(this Rect r, float x){
+	
+	
+
+	
+	
+
+	public static Rect WithX(this Rect r, float x){
 		return new Rect(x, r.y, r.width, r.height);
 	}
 
-	public static Rect CopyWithY(this Rect r, float y){
+	public static Rect WithY(this Rect r, float y){
 		return new Rect(r.x, y, r.width, r.height);
 	}
 
-	public static Rect CopyWithWidth(this Rect r, float width){
-		return new Rect(r.x, r.y, width, r.height);
-	}
-
-	public static Rect CopyWithHeight(this Rect r, float height){
-		return new Rect(r.x, r.y, r.width, height);
-	}
-
-	public static Rect CopyWithPosition(this Rect r, Vector2 position){
+	public static Rect WithPosition(this Rect r, Vector2 position){
 		return new Rect(position.x, position.y, r.width, r.height);
 	}
-
-	public static Rect CopyWithSize(this Rect r, Vector2 size){
-		return new Rect(r.x, r.y, size.x, size.y);
-	}
-	public static Rect Inset(this Rect rect, float pixels) {
-		return new Rect(
-			rect.x + pixels, 
-			rect.y + pixels, 
-			rect.width - 2*pixels, 
-			rect.height - 2*pixels
-		);
-	}
-
-
+	
 	/// <summary>
 	/// Returns a version of the rect with position clamped between minPosition and maxPosition
 	/// </summary>
 	/// <returns>The position.</returns>
 	/// <param name="r">The red component.</param>
-	/// <param name="minSize">Minimum position.</param>
-	/// <param name="maxSize">Max position.</param>
-	public static Rect ClampPosition(this Rect r, Vector2 minPosition, Vector2 maxPosition) {
+	/// <param name="minPosition">Minimum position.</param>
+	/// <param name="maxPosition">Max position.</param>
+	public static Rect WithClampedPosition(this Rect r, Vector2 minPosition, Vector2 maxPosition) {
 		r.x = Mathf.Clamp(r.x, minPosition.x, maxPosition.x);
 		r.y = Mathf.Clamp(r.y, minPosition.y, maxPosition.y);
 		return r;
 	}
-
-	/// <summary>
-	/// Returns a version of the rect with position clamped between minSize and maxSize
-	/// </summary>
-	/// <returns>The position.</returns>
-	/// <param name="r">The red component.</param>
-	/// <param name="minSize">Minimum size.</param>
-	/// <param name="maxSize">Max size.</param>
-	public static Rect ClampSize(this Rect r, Vector2 minSize, Vector2 maxSize) {
-		r.width = Mathf.Clamp(r.width, minSize.x, maxSize.x);
-		r.height = Mathf.Clamp(r.height, minSize.y, maxSize.y);
-		return r;
-	}
-
-	
 	
     /// <summary>
 	/// Expands (or contracts) the rect by a specified amount.
 	/// So, half of x expansion will be on left, half of x expansion will be on right, etc.
 	/// </summary>
-	/// <param name="r">The red component.</param>
-	/// <param name="expansion">Expansion.</param>
-	public static Rect WithSize(this Rect r, Vector2 size){
+	/// <param name="r">The rect.</param>
+	/// <param name="size">Size.</param>
+	public static Rect WithSize(this Rect r, Vector2 size) {
 		return WithSize (r, size, new Vector2(0.5f, 0.5f));
 	}
 	
 	/// <summary>
-	/// Expands (or contracts) the rect by a specified amount, using a pivot to control the expansion center point.
+	/// Returns a new rect with a specified size from a pivot point on the original rect.
 	/// </summary>
-	/// <param name="r">The red component.</param>
-	/// <param name="expansion">Expansion.</param>
-	/// <param name="pivot">Pivot.</param>
-	public static Rect WithSize(this Rect r, Vector2 size, Vector2 pivot) {
-		return Create(r.center, size, pivot);
+	/// <param name="r">The rect.</param>
+	/// <param name="size">New size.</param>
+	/// <param name="pivot">Pivot point. 0 is bottom/left, 0.5 is center, 1 is top/right.</param>
+	/// <returns>New rect with specified size and pivot.</returns>
+	public static Rect WithSize(this Rect r, Vector2 size, Vector2 pivot)
+	{
+		// Calculate the difference in size
+		Vector2 sizeDiff = size - r.size;
+
+		// Calculate the new position based on the pivot
+		Vector2 newPosition = new Vector2(
+			r.position.x - sizeDiff.x * pivot.x,
+			r.position.y - sizeDiff.y * pivot.y
+		);
+
+		// Return the new rect with the calculated position and the new size
+		return new Rect(newPosition, size);
 	}
 
+	public static Rect WithWidth(this Rect r, float width, float pivot = 0) {
+		return WithSize(r, new Vector2(width, r.height), new Vector2(pivot, 0.5f));
+	}
+
+	public static Rect WithHeight(this Rect r, float height, float pivot = 0){
+		return WithSize(r, new Vector2(r.width, height), new Vector2(0.5f, pivot));
+	}
+
+	/// <summary>
+	/// Returns a version of the rect with size clamped between minSize and maxSize
+	/// </summary>
+	/// <returns>The position.</returns>
+	/// <param name="r">The red component.</param>
+	/// <param name="minSize">Minimum size.</param>
+	/// <param name="maxSize">Max size.</param>
+	public static Rect WithClampedSize(this Rect r, Vector2 minSize, Vector2 maxSize) {
+		r.width = Mathf.Clamp(r.width, minSize.x, maxSize.x);
+		r.height = Mathf.Clamp(r.height, minSize.y, maxSize.y);
+		return r;
+	}
+	
     /// <summary>
 	/// Expands (or contracts) the rect by a specified amount.
 	/// So, half of x expansion will be on left, half of x expansion will be on right, etc.
@@ -211,6 +214,7 @@ public static class RectX {
             r.height + expansion.y
         );
 	}
+	
 
     // Expands the rect to fit a target aspect ratio
     public static Rect ExpandedToFitAspectRatio (this Rect rect, float targetAspect) {
@@ -331,20 +335,6 @@ public static class RectX {
 		}
 
 		return (scale * vector) + rect.center;
-	}
-
-	/// <summary>
-	/// Returns the point as a normalized position inside the rect, where 0,0 is the bottom left and 1,1 is the top right
-	/// </summary>
-	/// <returns>The normalized position inside rect.</returns>
-	/// <param name="r">The red component.</param>
-	/// <param name="point">Point.</param>
-	public static Vector2 GetNormalizedPositionInsideRect (this Rect r, Vector2 point) {
-		return new Vector2((point.x - r.x) / r.width, (point.y - r.y) / r.height);
-	}
-
-	public static Vector2 GetPointFromNormalizedPoint(this Rect r, Vector2 normalizedPoint) {
-		return new Vector2(normalizedPoint.x * r.width + r.x, normalizedPoint.y * r.height + r.y);
 	}
 	
 	public static Rect ClampInsideWithFlexibleSize(Rect r, Rect container) {
@@ -502,6 +492,22 @@ public static class RectX {
 		delta.y = Mathf.Max(0, delta.y);
         return delta.magnitude;
     }
+	
+	/// <summary>
+	/// Returns the closest distance between a point and a rect.
+	/// </summary>
+	public static float GetDistanceToPoint (Rect rect, Vector2 position) {
+		var closestPoint = rect.ClosestPointOnPerimeter(position);
+		return (closestPoint - position).magnitude;
+	}
+	
+	/// <summary>
+	/// Returns the signed distance between a point and a rect. The result will be negative if the point is inside the rect.
+	/// </summary>
+	public static float GetDistanceToPointSigned (Rect rect, Vector2 position) {
+		var distanceToPoint = GetDistanceToPoint(rect, position);
+		return rect.Contains(position) ? -distanceToPoint : distanceToPoint;
+	}
 
 
 	/// <summary>

@@ -1,7 +1,7 @@
-using System.Collections;
+using System;
 using UnityEngine;
 
-[System.Serializable]
+[Serializable]
 public class NoiseSampler {
 	public Vector3 position;
 	public NoiseSamplerProperties properties = NoiseSamplerProperties.standard;

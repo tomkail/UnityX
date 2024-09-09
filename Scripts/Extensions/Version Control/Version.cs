@@ -1,6 +1,8 @@
+using System;
+
 namespace UnityX.Versioning
 {
-    [System.Serializable]
+    [Serializable]
     public struct Version {
 		public int major;
 		public int minor;

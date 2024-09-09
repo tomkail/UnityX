@@ -1,8 +1,6 @@
 ﻿using UnityEditor;
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
 
 // Usage Example:
 
@@ -36,7 +34,8 @@ public class BaseEditor<T> : Editor where T : UnityEngine.Object {
 	}
 
     public virtual void OnSceneGUI() {
-        if (target == datas [0]) {
+	    if(datas == null || datas.Count == 0) return;
+	    if (target == datas [0]) {
             OnMultiEditSceneGUI ();
         }
     }

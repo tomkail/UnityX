@@ -1,8 +1,9 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using UnityEditor;
+using UnityEngine;
+using Object = UnityEngine.Object;
 
 /// <summary>
 /// Provides callbacks for more specific selection events.
@@ -14,16 +15,9 @@ public static class SelectionX {
     #if UNITY_EDITOR
 	const string editorPrefsPath = "SelectionXLastSelection";
 
-	public static Object[] orderedObjects {
-		get {
-			return LoadLastSelection().objects;
-		}
-	}
-	public static GameObject[] orderedGameObjects {
-		get {
-			return LoadLastSelection().gameObjects;
-		}
-	}
+	public static Object[] orderedObjects => LoadLastSelection().objects;
+
+	public static GameObject[] orderedGameObjects => LoadLastSelection().gameObjects;
 
 	public delegate void SelectionDelegate ();
 	public static SelectionDelegate OnSelectionChanged;
@@ -113,49 +107,34 @@ public static class SelectionX {
 		public int[] instanceIDs;
 
 		public Object activeContext {
-			get {
-				return EditorUtility.InstanceIDToObject(activeContextInstanceID);
-			} set {
+			get => EditorUtility.InstanceIDToObject(activeContextInstanceID);
+			set {
 				if(value == null) activeContextInstanceID = 0;
 				else activeContextInstanceID = value.GetInstanceID();
 			}
 		}
 
 		public Object activeObject {
-			get {
-				return EditorUtility.InstanceIDToObject(activeInstanceID);
-			} set {
+			get => EditorUtility.InstanceIDToObject(activeInstanceID);
+			set {
 				if(value == null) activeInstanceID = 0;
 				activeInstanceID = value.GetInstanceID();
 			}
 		}
 
-		public GameObject activeGameObject {
-			get {
-				return activeObject == null ? null : activeObject as GameObject;
-			}
-		}
+		public GameObject activeGameObject => activeObject == null ? null : activeObject as GameObject;
 
-		public Transform activeTransform {
-			get {
-				return activeGameObject == null ? null : activeGameObject.transform;
-			}
-		}
+		public Transform activeTransform => activeGameObject == null ? null : activeGameObject.transform;
 
 		public Object[] objects {
-			get {
-				return instanceIDs.Select(instanceID => EditorUtility.InstanceIDToObject(instanceID)).ToArray();
-			} set {
-				if(value == null) objects = new Object[0];
+			get => instanceIDs.Select(EditorUtility.InstanceIDToObject).ToArray();
+			set {
+				if(value == null) objects = Array.Empty<Object>();
 				else instanceIDs = value.Where(obj => obj != null).Select(obj => obj.GetInstanceID()).ToArray();
 			}
 		}
 
-		public GameObject[] gameObjects {
-			get {
-				return objects.Where(obj => obj is GameObject).Select(obj => obj as GameObject).ToArray();
-			}
-		}
+		public GameObject[] gameObjects => objects.OfType<GameObject>().ToArray();
 	}
     #endif
 }

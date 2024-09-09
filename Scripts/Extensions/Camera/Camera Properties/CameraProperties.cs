@@ -6,15 +6,11 @@ using System.Collections.Generic;
 /// <summary>
 /// Data for generating a camera shot.
 /// </summary>
-[System.Serializable]
+[Serializable]
 public struct CameraProperties {
 	public const float defaultDistance = 10;
 
-	public static CameraProperties @default {
-		get {
-			return new CameraProperties(Vector3.zero);
-		}
-	}
+	public static CameraProperties @default => new(Vector3.zero);
 
 	/// <summary>
 	/// The various "axis" of control allowed by camera properties.
@@ -171,16 +167,16 @@ public struct CameraProperties {
 	}
 
 	public CameraProperties (Vector3 targetPoint) {
-		this.axis = Quaternion.identity;
+		axis = Quaternion.identity;
 
 		this.targetPoint = targetPoint;
-		this.distance = defaultDistance;
-		this.worldEulerAngles = Vector2.zero;
-		this.localEulerAngles = Vector3.zero;
-		this.viewportOffset = Vector2.zero;
-		this.fieldOfView = SerializableCamera.defaultFieldOfView;
-		this.orthographic = SerializableCamera.defaultOrthographic;
-		this.orthographicSize = SerializableCamera.defaultOrthographicSize;
+		distance = defaultDistance;
+		worldEulerAngles = Vector2.zero;
+		localEulerAngles = Vector3.zero;
+		viewportOffset = Vector2.zero;
+		fieldOfView = SerializableCamera.defaultFieldOfView;
+		orthographic = SerializableCamera.defaultOrthographic;
+		orthographicSize = SerializableCamera.defaultOrthographicSize;
 	}
 
 	// Moves the target point, but translation in the the direction of the camera is handled using distance.
@@ -219,7 +215,7 @@ public struct CameraProperties {
 	}
 
 	public static CameraProperties OrbitingPoint (Vector3 targetPoint, Quaternion axis, Vector2 worldEulerAngles, float distance) {
-		var cameraProperties = new CameraProperties();
+		var cameraProperties = @default;
 		cameraProperties.axis = axis;
 		cameraProperties.targetPoint = targetPoint;
 		cameraProperties.worldEulerAngles = worldEulerAngles;
@@ -228,7 +224,7 @@ public struct CameraProperties {
 	}
 
 	public static CameraProperties FromTo (Vector3 originPoint, Vector3 targetPoint) {
-		var cameraProperties = new CameraProperties();
+		var cameraProperties = @default;
 		cameraProperties.axis = Quaternion.identity;
 		cameraProperties.targetPoint = targetPoint;
 		cameraProperties.basePosition = originPoint;
@@ -236,7 +232,7 @@ public struct CameraProperties {
 	}
 
 	public static CameraProperties FromTo (Vector3 originPoint, Vector3 targetPoint, Quaternion axis) {
-		var cameraProperties = new CameraProperties();
+		var cameraProperties = @default;
 		cameraProperties.axis = axis;
 		cameraProperties.targetPoint = targetPoint;
 		cameraProperties.basePosition = originPoint;
@@ -261,12 +257,14 @@ public struct CameraProperties {
 
 		properties.axis = Quaternion.SlerpUnclamped(start.axis, end.axis, lerp);
 
-		properties.targetPoint = Vector3.LerpUnclamped(start.targetPoint, end.targetPoint, lerp);
-		properties.basePosition = Vector3.LerpUnclamped(start.basePosition, end.basePosition, lerp);
-		// properties.distance = Mathf.LerpUnclamped(start.distance, end.distance, lerp);
+		// properties.targetPoint = Vector3.LerpUnclamped(start.targetPoint, end.targetPoint, lerp);
+		properties.distance = Mathf.LerpUnclamped(start.distance, end.distance, lerp);
+		
+		properties.worldEulerAngles.x = LerpAngleUnclamped(start.worldEulerAngles.x, end.worldEulerAngles.x, lerp);
+		properties.worldEulerAngles.y = LerpAngleUnclamped(start.worldEulerAngles.y, end.worldEulerAngles.y, lerp);
 
-		// properties.worldEulerAngles.x = LerpAngleUnclamped(start.worldEulerAngles.x, end.worldEulerAngles.x, lerp);
-		// properties.worldEulerAngles.y = LerpAngleUnclamped(start.worldEulerAngles.y, end.worldEulerAngles.y, lerp);
+		var basePosition = Vector3.LerpUnclamped(start.basePosition, end.basePosition, lerp);
+		properties.targetPoint = basePosition + properties.rotation * Vector3.forward * properties.distance;
 
 		properties.localEulerAngles.x = LerpAngleUnclamped(start.localEulerAngles.x, end.localEulerAngles.x, lerp);
 		properties.localEulerAngles.y = LerpAngleUnclamped(start.localEulerAngles.y, end.localEulerAngles.y, lerp);
@@ -283,7 +281,7 @@ public struct CameraProperties {
 	}
 	
 	// Used for smoothdamp
-	[System.Serializable]
+	[Serializable]
 	public struct CameraPropertiesMaxSpeed {
 		public float axis;
 		public float targetPoint;
@@ -421,17 +419,17 @@ public struct CameraProperties {
 		serCam.ApplyTo(camera);
 	}
 
-	public bool HasNaN () {
-		if(Vector3X.HasNaN(targetPoint)) return true;
-		if(QuaternionX.IsNaN(axis)) return true;
-		if(float.IsNaN(distance)) return true;
-		if(Vector3X.HasNaN(worldEulerAngles)) return true;
-		if(Vector3X.HasNaN(localEulerAngles)) return true;
-		if(Vector3X.HasNaN(viewportOffset)) return true;
-		if(float.IsNaN(orthographicSize)) return true;
-		if(float.IsNaN(fieldOfView)) return true;
-		return false;
-	}
+	// public bool HasNaN () {
+	// 	if(Vector3X.HasNaN(targetPoint)) return true;
+	// 	if(QuaternionX.IsNaN(axis)) return true;
+	// 	if(float.IsNaN(distance)) return true;
+	// 	if(Vector3X.HasNaN(worldEulerAngles)) return true;
+	// 	if(Vector3X.HasNaN(localEulerAngles)) return true;
+	// 	if(Vector3X.HasNaN(viewportOffset)) return true;
+	// 	if(float.IsNaN(orthographicSize)) return true;
+	// 	if(float.IsNaN(fieldOfView)) return true;
+	// 	return false;
+	// }
 
 	public bool IsValid () {
 		if(Vector3X.HasNaN(targetPoint)) return false;

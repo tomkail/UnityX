@@ -1,6 +1,5 @@
-using UnityEngine;
-using System.Linq;
 using System.Collections.Generic;
+using UnityEngine;
 
 /// <summary>
 /// Extension methods for the UnityEngine.Camera class, and helper methods for working with cameras in general.
@@ -79,7 +78,7 @@ public static class CameraX {
 	public static Vector3[] GetVerticesFromBounds(Bounds bounds) {
 		var min = bounds.min;
 		var max = bounds.max;
-		return new Vector3[8]{min, max, new Vector3(min.x, min.y, max.z), new Vector3(min.x, max.y, min.z), new Vector3(max.x, min.y, min.z), new Vector3(min.x, max.y, max.z), new Vector3(max.x, min.y, max.z), new Vector3(max.x, max.y, min.z)};
+		return new Vector3[8]{min, max, new(min.x, min.y, max.z), new(min.x, max.y, min.z), new(max.x, min.y, min.z), new(min.x, max.y, max.z), new(max.x, min.y, max.z), new(max.x, max.y, min.z)};
 	}
 	
 	public static Rect WorldToScreenRect (this Camera camera, Rect worldRect, float distance) {
@@ -97,14 +96,33 @@ public static class CameraX {
 	}
     
     
-	public static float CalculateOrthographicSize(float cameraAspect, Rect boundingBox, bool fitHorizontally = true, bool hitVertically = true) {
-		if(!fitHorizontally && !hitVertically) return Mathf.Infinity;
-		float targetAspect = boundingBox.width/boundingBox.height;
-		float scaleHeight = cameraAspect / targetAspect;
-		if (!hitVertically || scaleHeight < 1)
-			return Mathf.Abs(boundingBox.width) / cameraAspect / 2f;
-		else
-			return Mathf.Abs(boundingBox.height) / 2f;
+	public enum ScalingMode {
+		// The target rect fits the camera rect exactly on the x axis.
+		AspectFitWidthOnly,
+		// The target rect fits the camera rect exactly on the y axis.
+		AspectFitHeightOnly,
+		// The target rect fits the camera rect exactly on the smallest axis. May leave empty space in the camera rect.
+		AspectFit,
+		// The target rect fills the entire camera rect. May crop the target.
+		AspectFill
+	}
+	public static float CalculateOrthographicSize(float cameraRectAspect, Vector2 boundingBoxSize, ScalingMode scalingMode) {
+		float targetRectAspect = boundingBoxSize.x / boundingBoxSize.y;
+		switch (scalingMode) {
+			case ScalingMode.AspectFitWidthOnly:
+				return boundingBoxSize.x / (2 * cameraRectAspect);
+			case ScalingMode.AspectFitHeightOnly:
+				return boundingBoxSize.y / 2;
+			case ScalingMode.AspectFit:
+				if (cameraRectAspect >= targetRectAspect) return boundingBoxSize.y / 2;
+				else return boundingBoxSize.x / (2 * cameraRectAspect);
+			case ScalingMode.AspectFill:
+				if (cameraRectAspect >= targetRectAspect) return boundingBoxSize.x / (2 * cameraRectAspect);
+				else return boundingBoxSize.y / 2;
+			default:
+				Debug.LogWarning($"Unhandled scaling mode {scalingMode}");
+				return 1;
+		}
 	}
 
 	/// <summary>

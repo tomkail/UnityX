@@ -1,6 +1,4 @@
 using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
 
 [System.Serializable]
 public class FloatTween : TypeTween<float> {
@@ -8,6 +6,7 @@ public class FloatTween : TypeTween<float> {
 	public FloatTween () : base () {}
 	public FloatTween (float myCurrentValue) : base (myCurrentValue) {}
 	public FloatTween (float myStartValue, float myTargetValue, float myLength) : base (myStartValue, myTargetValue, myLength) {}
+	public FloatTween (float myStartValue, float myTargetValue, float myLength, LerpFunction myLerpCurve) : base (myStartValue, myTargetValue, myLength, myLerpCurve) {}
 	public FloatTween (float myStartValue, float myTargetValue, float myLength, AnimationCurve myLerpCurve) : base (myStartValue, myTargetValue, myLength, myLerpCurve) {}
 
 	protected override void SetDefaultLerpFunction () {

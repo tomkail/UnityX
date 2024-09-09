@@ -12,7 +12,7 @@ public class EnforceDecendentGameObjectProperties : MonoBehaviour {
 	public bool enforceIsStatic = false;
 
 	public static void EnforcePropertiesAll () {
-		EnforceDecendentGameObjectProperties[] all = Object.FindObjectsOfType<EnforceDecendentGameObjectProperties>();
+		EnforceDecendentGameObjectProperties[] all = FindObjectsByType<EnforceDecendentGameObjectProperties>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
 		foreach(var enforce in all) enforce.EnforceProperties();
 	}
 

@@ -1,11 +1,10 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
 
 public static class RichTextX {
 
 	public static string AsRichText (this string str, RichTextOptions options) {
 		string text = str;
-		if(options.color != null) text = ColoredRichText(text, (Color32)options.color);
+		if(options.color != null) text = WithColor(text, (Color32)options.color);
 		if(options.size != null) text = SizedRichText(text, (int)options.size);
 		if(options.bold) text = BoldRichText(text);
 		if(options.italic) text = ItalicRichText(text);
@@ -14,7 +13,7 @@ public static class RichTextX {
 
 	public static string AsRichText (this string str, Color32 _color) {
 		string text = str;
-		text = ColoredRichText(text, _color);
+		text = WithColor(text, _color);
 		return text;
 	}
 
@@ -24,7 +23,7 @@ public static class RichTextX {
 		return text;
 	}
 
-	public static string ColoredRichText (string str, Color32 color) {
+	public static string WithColor (string str, Color32 color) {
 		return "<color="+color.ToHexCode()+">"+str+"</color>";
 	}
 
@@ -39,13 +38,17 @@ public static class RichTextX {
 	public static string ItalicRichText (string text) {
 		return "<i>"+text+"</i>";
 	}
+
+	public static string AlphaedRichText(string text, float alpha) {
+		return $"<alpha=#{ColorX.ComponentToHex(alpha)}>{text}<alpha=#{ColorX.ComponentToHex(1)}>";
+	}
 }
 
 public class RichTextOptions {
-	public Color32? color {get;set;}
-	public int? size {get;set;}
-	public bool bold {get;set;}
-	public bool italic {get;set;}
+	public Color32? color {get;}
+	public int? size {get;}
+	public bool bold {get;}
+	public bool italic {get;}
 
 	public RichTextOptions () : this (null, null, false, false) {}
 	public RichTextOptions (Color32? _color) : this (_color, null, false, false) {}

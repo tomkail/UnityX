@@ -1,11 +1,9 @@
 ﻿using UnityEngine;
-using System.Collections;
-using UnityX.Geometry;
 
 public class SimplexNoiseGenerator {
 	
-	public static float[] Generate (Point size, Vector3 position, float scale, float offset, float contrast, float height, bool clamp = false) {
-		int mapArrayLength = size.area;
+	public static float[] Generate (Vector2Int size, Vector3 position, float scale, float offset, float contrast, float height, bool clamp = false) {
+		int mapArrayLength = size.x*size.y;
 		float[] map = new float[mapArrayLength];
 		float xCoord, yCoord, sample;
 		float _contrast = (contrast-0.5f) * 2;
@@ -18,7 +16,7 @@ public class SimplexNoiseGenerator {
 		
 		for(int i = 0; i < mapArrayLength; i++){
 			xCoord = (-position.x + i%size.x) * scaledSizeReciprocal.x;
-			yCoord = (-position.y + Mathf.Floor((float)i*sizeXReciprocal)) * scaledSizeReciprocal.y;
+			yCoord = (-position.y + Mathf.Floor(i*sizeXReciprocal)) * scaledSizeReciprocal.y;
 			sample = (SimplexNoise.Noise(xCoord, yCoord, position.z) * 0.5f) + 0.5f;
 
 			sample += offset;// * -contrast;
@@ -38,8 +36,8 @@ public class SimplexNoiseGenerator {
 		return map;
 	}
 	
-	public static float[] GenerateRepeating (Point size, Vector3 position, float scale, float offset, float contrast, float height, bool clamp = false) {
-		int mapArrayLength = size.area;
+	public static float[] GenerateRepeating (Vector2Int size, Vector3 position, float scale, float offset, float contrast, float height, bool clamp = false) {
+		int mapArrayLength = size.x*size.y;
 		float[] map = new float[mapArrayLength];
 		float xCoord, yCoord, sample;
 		float _contrast = (contrast-0.5f) * 2;
@@ -53,7 +51,7 @@ public class SimplexNoiseGenerator {
 		float radius = Mathf.Min(size.x, size.y);
 		for(int i = 0; i < mapArrayLength; i++){
 			xCoord = (-position.x + i%size.x) * scaledSizeReciprocal.x;
-			yCoord = (-position.y + Mathf.Floor((float)i*sizeXReciprocal)) * scaledSizeReciprocal.y;
+			yCoord = (-position.y + Mathf.Floor(i*sizeXReciprocal)) * scaledSizeReciprocal.y;
 			
 //			xCoord = (i%size.x) * scaledSizeReciprocal.x;
 //			yCoord = Mathf.Floor((float)i*sizeXReciprocal);

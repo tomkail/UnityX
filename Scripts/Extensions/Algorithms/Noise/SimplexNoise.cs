@@ -1,24 +1,23 @@
 ﻿using UnityEngine;
-using System.Collections;
- 
+
 // copied and modified from http://webstaff.itn.liu.se/~stegu/simplexnoise/simplexnoise.pdf
  
-public class SimplexNoise {  // Simplex noise in 2D, 3D and 4D
-	private static int[][] grad3 = new int[][] {
-		 new int[] {1,1,0}, new int[] {-1,1,0}, new int[] {1,-1,0}, new int[] {-1,-1,0},
-		 new int[] {1,0,1}, new int[] {-1,0,1}, new int[] {1,0,-1}, new int[] {-1,0,-1},
-		 new int[] {0,1,1}, new int[] {0,-1,1}, new int[] {0,1,-1}, new int[] {0,-1,-1}
+public static class SimplexNoise {  // Simplex noise in 2D, 3D and 4D
+	private static int[][] grad3 = {
+		 new[] {1,1,0}, new[] {-1,1,0}, new[] {1,-1,0}, new[] {-1,-1,0},
+		 new[] {1,0,1}, new[] {-1,0,1}, new[] {1,0,-1}, new[] {-1,0,-1},
+		 new[] {0,1,1}, new[] {0,-1,1}, new[] {0,1,-1}, new[] {0,-1,-1}
 	};
 
-	private static int[][] grad4 = new int[][] {
-		 new int[] {0,1,1,1},  new int[] {0,1,1,-1},  new int[] {0,1,-1,1},  new int[] {0,1,-1,-1},
-		 new int[] {0,-1,1,1}, new int[] {0,-1,1,-1}, new int[] {0,-1,-1,1}, new int[] {0,-1,-1,-1},
-		 new int[] {1,0,1,1},  new int[] {1,0,1,-1},  new int[] {1,0,-1,1},  new int[] {1,0,-1,-1},
-		 new int[] {-1,0,1,1}, new int[] {-1,0,1,-1}, new int[] {-1,0,-1,1}, new int[] {-1,0,-1,-1},
-		 new int[] {1,1,0,1},  new int[] {1,1,0,-1},  new int[] {1,-1,0,1},  new int[] {1,-1,0,-1},
-		 new int[] {-1,1,0,1}, new int[] {-1,1,0,-1}, new int[] {-1,-1,0,1}, new int[] {-1,-1,0,-1},
-		 new int[] {1,1,1,0},  new int[] {1,1,-1,0},  new int[] {1,-1,1,0},  new int[] {1,-1,-1,0},
-		 new int[] {-1,1,1,0}, new int[] {-1,1,-1,0}, new int[] {-1,-1,1,0}, new int[] {-1,-1,-1,0}
+	private static int[][] grad4 = {
+		 new[] {0,1,1,1},  new[] {0,1,1,-1},  new[] {0,1,-1,1},  new[] {0,1,-1,-1},
+		 new[] {0,-1,1,1}, new[] {0,-1,1,-1}, new[] {0,-1,-1,1}, new[] {0,-1,-1,-1},
+		 new[] {1,0,1,1},  new[] {1,0,1,-1},  new[] {1,0,-1,1},  new[] {1,0,-1,-1},
+		 new[] {-1,0,1,1}, new[] {-1,0,1,-1}, new[] {-1,0,-1,1}, new[] {-1,0,-1,-1},
+		 new[] {1,1,0,1},  new[] {1,1,0,-1},  new[] {1,-1,0,1},  new[] {1,-1,0,-1},
+		 new[] {-1,1,0,1}, new[] {-1,1,0,-1}, new[] {-1,-1,0,1}, new[] {-1,-1,0,-1},
+		 new[] {1,1,1,0},  new[] {1,1,-1,0},  new[] {1,-1,1,0},  new[] {1,-1,-1,0},
+		 new[] {-1,1,1,0}, new[] {-1,1,-1,0}, new[] {-1,-1,1,0}, new[] {-1,-1,-1,0}
 	};
 
 	private static int[] p = {151,160,137,91,90,15,
@@ -40,15 +39,15 @@ public class SimplexNoise {  // Simplex noise in 2D, 3D and 4D
 	static SimplexNoise() { for(int i=0; i<512; i++) perm[i]=p[i & 255]; } // moved to constructor
 	// A lookup table to traverse the simplex around a given point in 4D.
 	// Details can be found where this table is used, in the 4D noise method.
-	private static int[][] simplex = new int[][] {
-	new int[] {0,1,2,3}, new int[] {0,1,3,2}, new int[] {0,0,0,0}, new int[] {0,2,3,1}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {1,2,3,0},
-	new int[] {0,2,1,3}, new int[] {0,0,0,0}, new int[] {0,3,1,2}, new int[] {0,3,2,1}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {1,3,2,0},
-	new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0},
-	new int[] {1,2,0,3}, new int[] {0,0,0,0}, new int[] {1,3,0,2}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {2,3,0,1}, new int[] {2,3,1,0},
-	new int[] {1,0,2,3}, new int[] {1,0,3,2}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {2,0,3,1}, new int[] {0,0,0,0}, new int[] {2,1,3,0},
-	new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0},
-	new int[] {2,0,1,3}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {3,0,1,2}, new int[] {3,0,2,1}, new int[] {0,0,0,0}, new int[] {3,1,2,0},
-	new int[] {2,1,0,3}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {0,0,0,0}, new int[] {3,1,0,2}, new int[] {0,0,0,0}, new int[] {3,2,0,1}, new int[] {3,2,1,0}};
+	private static int[][] simplex = {
+	new[] {0,1,2,3}, new[] {0,1,3,2}, new[] {0,0,0,0}, new[] {0,2,3,1}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {1,2,3,0},
+	new[] {0,2,1,3}, new[] {0,0,0,0}, new[] {0,3,1,2}, new[] {0,3,2,1}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {1,3,2,0},
+	new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {0,0,0,0},
+	new[] {1,2,0,3}, new[] {0,0,0,0}, new[] {1,3,0,2}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {2,3,0,1}, new[] {2,3,1,0},
+	new[] {1,0,2,3}, new[] {1,0,3,2}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {2,0,3,1}, new[] {0,0,0,0}, new[] {2,1,3,0},
+	new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {0,0,0,0},
+	new[] {2,0,1,3}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {3,0,1,2}, new[] {3,0,2,1}, new[] {0,0,0,0}, new[] {3,1,2,0},
+	new[] {2,1,0,3}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {3,1,0,2}, new[] {0,0,0,0}, new[] {3,2,0,1}, new[] {3,2,1,0}};
 	// This method is a *lot* faster than using (int)Mathf.floor(x)
 	private static int fastfloor(double x) {
 		return x>0 ? (int)x : (int)x-1;
@@ -65,7 +64,7 @@ public class SimplexNoise {  // Simplex noise in 2D, 3D and 4D
 
 	// 2D simplex noise
 	public static float Noise(float xin, float yin) {
-		return (float)Noise((double)xin, (double)yin);
+		return (float)Noise(xin, (double)yin);
 	}
 
 	public static double Noise(double xin, double yin) {
@@ -124,7 +123,7 @@ public class SimplexNoise {  // Simplex noise in 2D, 3D and 4D
 
 	// 3D simplex noise
 	public static float Noise(float xin, float yin, float zin) {
-		return (float)Noise((double)xin, (double)yin, (double)zin);
+		return (float)Noise(xin, yin, (double)zin);
 	}
 
 	public static double Noise(double xin, double yin, double zin) {
@@ -148,11 +147,10 @@ public class SimplexNoise {  // Simplex noise in 2D, 3D and 4D
 		int i1, j1, k1; // Offsets for second corner of simplex in (i,j,k) coords
 		int i2, j2, k2; // Offsets for third corner of simplex in (i,j,k) coords
 		if(x0>=y0) {
-			if(y0>=z0)
-			{ i1=1; j1=0; k1=0; i2=1; j2=1; k2=0; } // X Y Z order
+			if(y0>=z0) { i1=1; j1=0; k1=0; i2=1; j2=1; k2=0; } // X Y Z order
 			else if(x0>=z0) { i1=1; j1=0; k1=0; i2=1; j2=0; k2=1; } // X Z Y order
 			else { i1=0; j1=0; k1=1; i2=1; j2=0; k2=1; } // Z X Y order
-			}
+		}
 		else { // x0<y0
 			if(y0<z0) { i1=0; j1=0; k1=1; i2=0; j2=1; k2=1; } // Z Y X order
 			else if(x0<z0) { i1=0; j1=1; k1=0; i2=0; j2=1; k2=1; } // Y Z X order
@@ -211,7 +209,7 @@ public class SimplexNoise {  // Simplex noise in 2D, 3D and 4D
 
 	// 4D simplex noise
 	public static float Noise(float xin, float yin, float zin, float win) {
-		return (float)Noise((double)xin, (double)yin, (double)zin, (double)win);
+		return (float)Noise(xin, yin, zin, (double)win);
 	}
 	public static double Noise(double x, double y, double z, double w) {
 		
@@ -304,13 +302,13 @@ public class SimplexNoise {  // Simplex noise in 2D, 3D and 4D
 			t0 *= t0;
 			n0 = t0 * t0 * dot(grad4[gi0], x0, y0, z0, w0);
 		}
-		 double t1 = 0.6 - x1*x1 - y1*y1 - z1*z1 - w1*w1;
+		double t1 = 0.6 - x1*x1 - y1*y1 - z1*z1 - w1*w1;
 		if(t1<0) n1 = 0.0;
 		else {
 			t1 *= t1;
 			n1 = t1 * t1 * dot(grad4[gi1], x1, y1, z1, w1);
 		}
-		 double t2 = 0.6 - x2*x2 - y2*y2 - z2*z2 - w2*w2;
+		double t2 = 0.6 - x2*x2 - y2*y2 - z2*z2 - w2*w2;
 		if(t2<0) n2 = 0.0;
 		else {
 			t2 *= t2;
@@ -321,7 +319,7 @@ public class SimplexNoise {  // Simplex noise in 2D, 3D and 4D
 			t3 *= t3;
 			n3 = t3 * t3 * dot(grad4[gi3], x3, y3, z3, w3);
 		}
-		 double t4 = 0.6 - x4*x4 - y4*y4 - z4*z4 - w4*w4;
+		double t4 = 0.6 - x4*x4 - y4*y4 - z4*z4 - w4*w4;
 		if(t4<0) n4 = 0.0;
 		else {
 			t4 *= t4;

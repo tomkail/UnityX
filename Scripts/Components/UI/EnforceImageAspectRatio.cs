@@ -1,37 +1,38 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
 /// Uses an AspectRatioFitter to enforce the image aspect ratio
 /// </summary>
 [ExecuteAlways]
-[RequireComponent(typeof(Image), typeof(AspectRatioFitter))]
+[RequireComponent(typeof(AspectRatioFitter))]
 public class EnforceImageAspectRatio : MonoBehaviour {
-
-	private AspectRatioFitter _aspectRatioFitter;
+	AspectRatioFitter _aspectRatioFitter;
 	public AspectRatioFitter aspectRatioFitter {
 		get {
 			if(_aspectRatioFitter == null) _aspectRatioFitter = GetComponent<AspectRatioFitter>();
 			return _aspectRatioFitter;
 		}
 	}
-
-	private Image __image;
-	private Image _image {
+	[SerializeField]
+	Graphic _graphic;
+	Graphic graphic {
 		get {
-			if(__image == null) __image = GetComponent<Image>();
-			return __image;
+			if(_graphic == null) _graphic = GetComponent<Graphic>();
+			return _graphic;
 		}
 	}
 
-	private Vector2 _lastSize;
-
 	void Update () {
-		if(_image.sprite == null) return;
-		if(_lastSize == _image.sprite.rect.size) return;
-		aspectRatioFitter.aspectRatio = (float)_image.sprite.rect.width/_image.sprite.rect.height;
-		_lastSize = _image.sprite.rect.size;
+		var newAspectRatio = aspectRatioFitter.aspectRatio;
+		if (graphic is Image image) {
+			if(image.sprite == null) return;
+			newAspectRatio = image.sprite.rect.width / image.sprite.rect.height;
+		} else {
+			if(graphic.mainTexture == null) return;
+			newAspectRatio = (float) graphic.mainTexture.width / graphic.mainTexture.height;
+		}
+		if(aspectRatioFitter.aspectRatio == newAspectRatio) return;
+		aspectRatioFitter.aspectRatio = newAspectRatio;
 	}
 }

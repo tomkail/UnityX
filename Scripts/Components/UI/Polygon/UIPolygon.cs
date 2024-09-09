@@ -95,7 +95,7 @@ namespace UnityEngine.UI.Extensions {
                     Vector2 uv = Vector2.zero;
                     
                     if(uvMode == UVMode.Rect) {
-                        uv = rect.GetNormalizedPositionInsideRect(pos);
+                        uv = Rect.PointToNormalized(rect, pos);
                     } else if(uvMode == UVMode.Shape) {
                         
                         var distanceY = Vector2.Dot(pos, uvYDirection);

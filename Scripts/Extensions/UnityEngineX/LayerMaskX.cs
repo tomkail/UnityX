@@ -1,6 +1,6 @@
-using UnityEngine;
 using System.Collections.Generic;
- 
+using UnityEngine;
+
 public static class LayerMaskX {
 	//Obtained from http://wiki.unity3d.com/index.php/LayerMaskExtensions
 
@@ -8,7 +8,7 @@ public static class LayerMaskX {
 		get {
 			List<int> layers = new List<int>();
 			for(int i = 0; i <= 31; i++) layers.Add(i);
-			return LayerMaskX.Create (layers.ToArray());
+			return Create (layers.ToArray());
 		}
 	}
 	
@@ -16,7 +16,7 @@ public static class LayerMaskX {
 		get {
 			List<int> layers = new List<int>();
 			for(int i = 0; i < 8; i++) layers.Add(i);
-			return LayerMaskX.Create (layers.ToArray());
+			return Create (layers.ToArray());
 		}
 	}
 	
@@ -24,7 +24,7 @@ public static class LayerMaskX {
 		get {
 			List<int> layers = new List<int>();
 			for(int i = 8; i <= 31; i++) layers.Add(i);
-			return LayerMaskX.Create (layers.ToArray());
+			return Create (layers.ToArray());
 		}
 	}
 	
@@ -44,7 +44,7 @@ public static class LayerMaskX {
  
 	public static LayerMask NamesToMask(params string[] layerNames)
 	{
-		LayerMask ret = (LayerMask)0;
+		LayerMask ret = 0;
 		foreach(var name in layerNames)
 		{
 			ret |= (1 << LayerMask.NameToLayer(name));
@@ -54,7 +54,7 @@ public static class LayerMaskX {
  
 	public static LayerMask LayerNumbersToMask(params int[] layerNumbers)
 	{
-		LayerMask ret = (LayerMask)0;
+		LayerMask ret = 0;
 		foreach(var layer in layerNumbers)
 		{
 			ret |= (1 << layer);

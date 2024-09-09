@@ -7,6 +7,7 @@
 ///
 /// Remember that for radial and diamond gradients, colors are applied per-vertex so if you have multiple points on your gradient where the color changes and there aren't enough vertices, you won't see all of the colors.
 /// </summary>
+
 using System;
 using System.Collections.Generic;
 
@@ -23,77 +24,79 @@ namespace UnityEngine.UI.Extensions
         [SerializeField]
         Blend _blendMode = Blend.Multiply;
 
+        [SerializeField] BoundingMode _boundingMode = BoundingMode.VertBounds;
+        public enum BoundingMode {
+            VertBounds,
+            RectTransform,
+        }
+        
         [SerializeField]
         [Tooltip("Add vertices to display complex gradients. Turn off if your shape is already very complex, like text.")]
         bool _modifyVertices = true;
 
         [SerializeField]
         [Range(-1, 1)]
-        float _offset = 0f;
+        float _offset;
 
         [SerializeField]
         [Range(0.1f, 10)]
         float _zoom = 1f;
 
         [SerializeField]
-        UnityEngine.Gradient _effectGradient = new UnityEngine.Gradient() { colorKeys = new GradientColorKey[] { new GradientColorKey(Color.black, 0), new GradientColorKey(Color.white, 1) } };
+        Gradient _effectGradient = new() { colorKeys = new[] { new GradientColorKey(Color.black, 0), new GradientColorKey(Color.white, 1) } };
 
         #region Properties
-        public Blend BlendMode
-        {
-            get { return _blendMode; }
-            set
-            {
+        public Blend BlendMode {
+            get => _blendMode;
+            set {
                 _blendMode = value;
                 graphic.SetVerticesDirty();
             }
         }
 
-        public UnityEngine.Gradient EffectGradient
-        {
-            get { return _effectGradient; }
-            set
-            {
+        public Gradient EffectGradient {
+            get => _effectGradient;
+            set {
                 _effectGradient = value;
                 graphic.SetVerticesDirty();
             }
         }
 
-        public Type GradientType
-        {
-            get { return _gradientType; }
-            set
-            {
+        public Type GradientType {
+            get => _gradientType;
+            set {
                 _gradientType = value;
                 graphic.SetVerticesDirty();
             }
         }
 
-        public bool ModifyVertices
-        {
-            get { return _modifyVertices; }
-            set
-            {
+        public BoundingMode boundingMode {
+            get => _boundingMode;
+            set {
+                _boundingMode = value;
+                graphic.SetVerticesDirty();
+            }
+        }
+
+        public bool ModifyVertices {
+            get => _modifyVertices;
+            set {
                 _modifyVertices = value;
                 graphic.SetVerticesDirty();
             }
         }
 
-        public float Offset
-        {
-            get { return _offset; }
-            set
-            {
+        public float Offset {
+            get => _offset;
+            set {
                 _offset = value;
                 graphic.SetVerticesDirty();
             }
         }
 
-        public float Zoom
-        {
-            get { return _zoom; }
-            set
-            {
+        public float Zoom {
+            get => _zoom;
+            set {
                 _zoom = value;
                 graphic.SetVerticesDirty();
             }
@@ -105,27 +108,23 @@ namespace UnityEngine.UI.Extensions
             graphic.SetVerticesDirty();
         }
 
-        List<UIVertex> _vertexList = new List<UIVertex>();
-        public override void ModifyMesh(VertexHelper helper)
-        {
+        List<UIVertex> _vertexList = new();
+        public override void ModifyMesh(VertexHelper helper) {
             if (!IsActive() || helper.currentVertCount == 0)
                 return;
 
             helper.GetUIVertexStream(_vertexList);
 
             int nCount = _vertexList.Count;
-            switch (GradientType)
-            {
+            switch (GradientType) {
                 case Type.Horizontal:
-                case Type.Vertical:
-                    {
+                case Type.Vertical: {
                         Rect bounds = GetBounds(_vertexList);
                         float min = bounds.xMin;
                         float w = bounds.width;
                         Func<UIVertex, float> GetPosition = v => v.position.x;
 
-                        if (GradientType == Type.Vertical)
-                        {
+                        if (GradientType == Type.Vertical) {
                             min = bounds.yMin;
                             w = bounds.height;
                             GetPosition = v => v.position.y;
@@ -135,14 +134,12 @@ namespace UnityEngine.UI.Extensions
                         float zoomOffset = (1 - (1 / Zoom)) * 0.5f;
                         float offset = (Offset * (1 - zoomOffset)) - zoomOffset;
 
-                        if (ModifyVertices)
-                        {
+                        if (ModifyVertices) {
                             SplitTrianglesAtGradientStops(_vertexList, bounds, zoomOffset, helper);
                         }
 
                         UIVertex vertex = new UIVertex();
-                        for (int i = 0; i < helper.currentVertCount; i++)
-                        {
+                        for (int i = 0; i < helper.currentVertCount; i++) {
                             helper.PopulateUIVertex(ref vertex, i);
                             vertex.color = BlendColor(vertex.color, EffectGradient.Evaluate((GetPosition(vertex) - min) * width - offset));
                             helper.SetUIVertex(vertex, i);
@@ -150,16 +147,14 @@ namespace UnityEngine.UI.Extensions
                     }
                     break;
 
-                case Type.Diamond:
-                    {
+                case Type.Diamond: {
                         Rect bounds = GetBounds(_vertexList);
 
                         float height = 1f / bounds.height / Zoom;
                         float radius = bounds.center.y / 2f;
                         Vector3 center = (Vector3.right + Vector3.up) * radius + Vector3.forward * _vertexList[0].position.z;
 
-                        if (ModifyVertices)
-                        {
+                        if (ModifyVertices) {
                             helper.Clear();
                             for (int i = 0; i < nCount; i++) helper.AddVert(_vertexList[i]);
 
@@ -176,8 +171,7 @@ namespace UnityEngine.UI.Extensions
 
                         UIVertex vertex = new UIVertex();
 
-                        for (int i = 0; i < helper.currentVertCount; i++)
-                        {
+                        for (int i = 0; i < helper.currentVertCount; i++) {
                             helper.PopulateUIVertex(ref vertex, i);
 
                             vertex.color = BlendColor(vertex.color, EffectGradient.Evaluate(
@@ -188,15 +182,13 @@ namespace UnityEngine.UI.Extensions
                     }
                     break;
 
-                case Type.Radial:
-                    {
+                case Type.Radial: {
                         Rect bounds = GetBounds(_vertexList);
 
                         float width = 1f / bounds.width / Zoom;
                         float height = 1f / bounds.height / Zoom;
 
-                        if (ModifyVertices)
-                        {
+                        if (ModifyVertices) {
                             helper.Clear();
 
                             float radiusX = bounds.width / 2f;
@@ -208,10 +200,9 @@ namespace UnityEngine.UI.Extensions
                             centralVertex.color = _vertexList[0].color;
 
                             int steps = 64;
-                            for (int i = 0; i < steps; i++)
-                            {
+                            for (int i = 0; i < steps; i++) {
                                 UIVertex curVertex = new UIVertex();
-                                float angle = (float)i * 360f / (float)steps;
+                                float angle = i * 360f / steps;
                                 float cosX = Mathf.Cos(Mathf.Deg2Rad * angle);
                                 float cosY = Mathf.Sin(Mathf.Deg2Rad * angle);
 
@@ -230,8 +221,7 @@ namespace UnityEngine.UI.Extensions
 
                         UIVertex vertex = new UIVertex();
 
-                        for (int i = 0; i < helper.currentVertCount; i++)
-                        {
+                        for (int i = 0; i < helper.currentVertCount; i++) {
                             helper.PopulateUIVertex(ref vertex, i);
 
                             vertex.color = BlendColor(vertex.color, EffectGradient.Evaluate(
@@ -246,15 +236,18 @@ namespace UnityEngine.UI.Extensions
             }
         }
 
-        Rect GetBounds(List<UIVertex> vertices)
-        {
+        Rect GetBounds(List<UIVertex> vertices) {
+            if(_boundingMode == BoundingMode.VertBounds) return GetBoundsFromVerts(vertices);
+            else return graphic.rectTransform.rect;
+        }
+
+        static Rect GetBoundsFromVerts(List<UIVertex> vertices) {
             float left = vertices[0].position.x;
             float right = left;
             float bottom = vertices[0].position.y;
             float top = bottom;
 
-            for (int i = vertices.Count - 1; i >= 1; --i)
-            {
+            for (int i = vertices.Count - 1; i >= 1; --i) {
                 var pos = vertices[i].position;
                 float x = pos.x;
                 float y = pos.y;
@@ -269,43 +262,35 @@ namespace UnityEngine.UI.Extensions
             return new Rect(left, bottom, right - left, top - bottom);
         }
 
-        void SplitTrianglesAtGradientStops(List<UIVertex> _vertexList, Rect bounds, float zoomOffset, VertexHelper helper)
-        {
+        void SplitTrianglesAtGradientStops(List<UIVertex> _vertexList, Rect bounds, float zoomOffset, VertexHelper helper) {
             List<float> stops = FindStops(zoomOffset, bounds);
-            if (stops.Count > 0)
-            {
+            if (stops.Count > 0) {
                 helper.Clear();
 
                 int nCount = _vertexList.Count;
-                for (int i = 0; i < nCount; i += 3)
-                {
+                for (int i = 0; i < nCount; i += 3) {
                     float[] positions = GetPositions(_vertexList, i);
                     List<int> originIndices = new List<int>(3);
                     List<UIVertex> starts = new List<UIVertex>(3);
                     List<UIVertex> ends = new List<UIVertex>(2);
 
-                    for (int s = 0; s < stops.Count; s++)
-                    {
+                    for (int s = 0; s < stops.Count; s++) {
                         int initialCount = helper.currentVertCount;
                         bool hadEnds = ends.Count > 0;
                         bool earlyStart = false;
 
                         // find any start vertices for this stop
-                        for (int p = 0; p < 3; p++)
-                        {
-                            if (!originIndices.Contains(p) && positions[p] < stops[s])
-                            {
+                        for (int p = 0; p < 3; p++) {
+                            if (!originIndices.Contains(p) && positions[p] < stops[s]) {
                                 // make sure the first index crosses the stop
                                 int p1 = (p + 1) % 3;
                                 var start = _vertexList[p + i];
-                                if (positions[p1] > stops[s])
-                                {
+                                if (positions[p1] > stops[s]) {
                                     originIndices.Insert(0, p);
                                     starts.Insert(0, start);
                                     earlyStart = true;
                                 }
-                                else
-                                {
+                                else {
                                     originIndices.Add(p);
                                     starts.Add(start);
                                 }
@@ -324,15 +309,13 @@ namespace UnityEngine.UI.Extensions
 
                         // make two ends, splitting at the stop
                         ends.Clear();
-                        foreach (int index in originIndices)
-                        {
+                        foreach (int index in originIndices) {
                             int oppositeIndex = (index + 1) % 3;
                             if (positions[oppositeIndex] < stops[s])
                                 oppositeIndex = (oppositeIndex + 1) % 3;
                             ends.Add(CreateSplitVertex(_vertexList[index + i], _vertexList[oppositeIndex + i], stops[s]));
                         }
-                        if (ends.Count == 1)
-                        {
+                        if (ends.Count == 1) {
                             int oppositeIndex = (originIndices[0] + 2) % 3;
                             ends.Add(CreateSplitVertex(_vertexList[originIndices[0] + i], _vertexList[oppositeIndex + i], stops[s]));
                         }
@@ -342,20 +325,17 @@ namespace UnityEngine.UI.Extensions
                             helper.AddVert(end);
 
                         // make triangles
-                        if (hadEnds)
-                        {
+                        if (hadEnds) {
                             helper.AddTriangle(initialCount - 2, initialCount, initialCount + 1);
                             helper.AddTriangle(initialCount - 2, initialCount + 1, initialCount - 1);
-                            if (starts.Count > 0)
-                            {
+                            if (starts.Count > 0) {
                                 if (earlyStart)
                                     helper.AddTriangle(initialCount - 2, initialCount + 3, initialCount);
                                 else
                                     helper.AddTriangle(initialCount + 1, initialCount + 3, initialCount - 1);
                             }
                         }
-                        else
-                        {
+                        else {
                             int vertexCount = helper.currentVertCount;
                             helper.AddTriangle(initialCount, vertexCount - 2, vertexCount - 1);
                             if (starts.Count > 1)
@@ -366,15 +346,11 @@ namespace UnityEngine.UI.Extensions
                     }
 
                     // clean up after looping through gradient stops
-                    if (ends.Count > 0)
-                    {
+                    if (ends.Count > 0) {
                         // find any final vertices after the gradient stops
-                        if (starts.Count == 0)
-                        {
-                            for (int p = 0; p < 3; p++)
-                            {
-                                if (!originIndices.Contains(p) && positions[p] > stops[stops.Count - 1])
-                                {
+                        if (starts.Count == 0) {
+                            for (int p = 0; p < 3; p++) {
+                                if (!originIndices.Contains(p) && positions[p] > stops[stops.Count - 1]) {
                                     int p1 = (p + 1) % 3;
                                     UIVertex end = _vertexList[p + i];
                                     if (positions[p1] > stops[stops.Count - 1])
@@ -391,18 +367,15 @@ namespace UnityEngine.UI.Extensions
 
                         // make final triangle(s)
                         int vertexCount = helper.currentVertCount;
-                        if (starts.Count > 1)
-                        {
+                        if (starts.Count > 1) {
                             helper.AddTriangle(vertexCount - 4, vertexCount - 2, vertexCount - 1);
                             helper.AddTriangle(vertexCount - 4, vertexCount - 1, vertexCount - 3);
                         }
-                        else if (starts.Count > 0)
-                        {
+                        else if (starts.Count > 0) {
                             helper.AddTriangle(vertexCount - 3, vertexCount - 1, vertexCount - 2);
                         }
                     }
-                    else
-                    {
+                    else {
                         // if the triangle wasn't split, add it as-is
                         helper.AddVert(_vertexList[i]);
                         helper.AddVert(_vertexList[i + 1]);
@@ -414,17 +387,14 @@ namespace UnityEngine.UI.Extensions
             }
         }
 
-        float[] GetPositions(List<UIVertex> _vertexList, int index)
-        {
+        float[] GetPositions(List<UIVertex> _vertexList, int index) {
             float[] positions = new float[3];
-            if (GradientType == Type.Horizontal)
-            {
+            if (GradientType == Type.Horizontal) {
                 positions[0] = _vertexList[index].position.x;
                 positions[1] = _vertexList[index + 1].position.x;
                 positions[2] = _vertexList[index + 2].position.x;
             }
-            else
-            {
+            else {
                 positions[0] = _vertexList[index].position.y;
                 positions[1] = _vertexList[index + 1].position.y;
                 positions[2] = _vertexList[index + 2].position.y;
@@ -432,22 +402,19 @@ namespace UnityEngine.UI.Extensions
             return positions;
         }
 
-        List<float> FindStops(float zoomOffset, Rect bounds)
-        {
+        List<float> FindStops(float zoomOffset, Rect bounds) {
             List<float> stops = new List<float>();
             var offset = Offset * (1 - zoomOffset);
             var startBoundary = zoomOffset - offset;
             var endBoundary = (1 - zoomOffset) - offset;
 
-            foreach (var color in EffectGradient.colorKeys)
-            {
+            foreach (var color in EffectGradient.colorKeys) {
                 if (color.time >= endBoundary)
                     break;
                 if (color.time > startBoundary)
                     stops.Add((color.time - startBoundary) * Zoom);
             }
-            foreach (var alpha in EffectGradient.alphaKeys)
-            {
+            foreach (var alpha in EffectGradient.alphaKeys) {
                 if (alpha.time >= endBoundary)
                     break;
                 if (alpha.time > startBoundary)
@@ -456,19 +423,16 @@ namespace UnityEngine.UI.Extensions
 
             float min = bounds.xMin;
             float size = bounds.width;
-            if (GradientType == Type.Vertical)
-            {
+            if (GradientType == Type.Vertical) {
                 min = bounds.yMin;
                 size = bounds.height;
             }
 
             stops.Sort();
-            for (int i = 0; i < stops.Count; i++)
-            {
+            for (int i = 0; i < stops.Count; i++) {
                 stops[i] = (stops[i] * size) + min;
 
-                if (i > 0 && Math.Abs(stops[i] - stops[i - 1]) < 2)
-                {
+                if (i > 0 && Math.Abs(stops[i] - stops[i - 1]) < 2) {
                     stops.RemoveAt(i);
                     --i;
                 }
@@ -477,10 +441,8 @@ namespace UnityEngine.UI.Extensions
             return stops;
         }
 
-        UIVertex CreateSplitVertex(UIVertex vertex1, UIVertex vertex2, float stop)
-        {
-            if (GradientType == Type.Horizontal)
-            {
+        UIVertex CreateSplitVertex(UIVertex vertex1, UIVertex vertex2, float stop) {
+            if (GradientType == Type.Horizontal) {
                 float sx = vertex1.position.x - stop;
                 float dx = vertex1.position.x - vertex2.position.x;
                 float dy = vertex1.position.y - vertex2.position.y;
@@ -496,8 +458,7 @@ namespace UnityEngine.UI.Extensions
                 splitVertex.color = vertex1.color;
                 return splitVertex;
             }
-            else
-            {
+            else {
                 float sy = vertex1.position.y - stop;
                 float dy = vertex1.position.y - vertex2.position.y;
                 float dx = vertex1.position.x - vertex2.position.x;
@@ -515,38 +476,34 @@ namespace UnityEngine.UI.Extensions
             }
         }
 
-        Color32 BlendColor(Color32 colorA, Color32 colorB)
-        {
+        Color32 BlendColor(Color32 colorA, Color32 colorB) {
             if(strength == 0) return colorA;
-            switch (BlendMode)
-            {
+            switch (BlendMode) {
                 default: {
                     if(strength == 1) return colorB;
                     else return Color32.Lerp(colorA, colorB, strength);
                 }
                 case Blend.Add: {
-                    var target = (Color32)((Color)colorA + (Color)colorB);
+                    var target = (Color32)(colorA + (Color)colorB);
                     if(strength == 1) return target;
                     else return Color32.Lerp(colorA, target, strength);
                 }
                 case Blend.Multiply: {
-                    var target = (Color32)((Color)colorA * (Color)colorB);
+                    var target = (Color32)(colorA * (Color)colorB);
                     if(strength == 1) return target;
                     else return Color32.Lerp(colorA, target, strength);
                 }
             }
         }
 
-        public enum Type
-        {
+        public enum Type {
             Horizontal,
             Vertical,
             Radial,
             Diamond
         }
 
-        public enum Blend
-        {
+        public enum Blend {
             Override,
             Add,
             Multiply

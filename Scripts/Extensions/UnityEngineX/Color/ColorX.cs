@@ -1,19 +1,12 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Globalization;
+using UnityEngine;
 
 public static class ColorX {
-	public static Color orange {
-		get {
-			return new Color(1f, 0.3f, 0f, 1f);
-		}
-	}
+	public static Color orange => new(1f, 0.3f, 0f, 1f);
 
-	public static Color pink {
-		get {
-			return new Color(1f, 0f, 0.6f, 1f);
-		}
-	}
-	
+	public static Color pink => new(1f, 0f, 0.6f, 1f);
+
 	public enum BlendMode {
 		Normal,
 		Additive,
@@ -47,6 +40,12 @@ public static class ColorX {
 		);
 	}
 
+	public static string ComponentToHex(float channel, bool toUpper = false) {
+		channel = Mathf.Clamp(channel, 0f, 1f);
+		int intValue = (int)(channel * 255);
+		return intValue.ToString("X2");
+	}
+
 	public static string ToHex(this Color32 color, bool alpha = true, bool toUpper = false) {
 		if(toUpper) {
 			return color.r.ToString("X2") + color.g.ToString("X2") + color.b.ToString("X2") + (alpha?color.a.ToString("X2"):"");
@@ -61,11 +60,11 @@ public static class ColorX {
 	 
 	public static Color HexToColor(string hex) {
 		DebugX.Assert(hex.Length == 6 || hex.Length == 8, "Hex string is not valid");
-		byte r = byte.Parse(hex.Substring(0,2), System.Globalization.NumberStyles.HexNumber);
-		byte g = byte.Parse(hex.Substring(2,2), System.Globalization.NumberStyles.HexNumber);
-		byte b = byte.Parse(hex.Substring(4,2), System.Globalization.NumberStyles.HexNumber);
+		byte r = byte.Parse(hex.Substring(0,2), NumberStyles.HexNumber);
+		byte g = byte.Parse(hex.Substring(2,2), NumberStyles.HexNumber);
+		byte b = byte.Parse(hex.Substring(4,2), NumberStyles.HexNumber);
 		if(hex.Length == 8) {
-			byte a = byte.Parse(hex.Substring(6,2), System.Globalization.NumberStyles.HexNumber);
+			byte a = byte.Parse(hex.Substring(6,2), NumberStyles.HexNumber);
 			return new Color32(r, g, b, a);
 		} else {
 			return new Color32(r, g, b, 255);
@@ -122,44 +121,44 @@ public static class ColorX {
 	public static Color[] GrayscaleFloatArrayToColorArray(float[] _floats){
 		Color[] colorArray = new Color[_floats.Length];
 		for(int i = 0; i < _floats.Length; i++)
-			colorArray[i] = ColorX.ToGrayscaleColor(_floats[i]);
+			colorArray[i] = ToGrayscaleColor(_floats[i]);
 		return colorArray;
 	}
 
 	public static Color[] ToGrayscale(Color[] _colors){
 		Color[] colorArray = new Color[_colors.Length];
 		for(int i = 0; i < _colors.Length; i++){
-			colorArray[i] = ColorX.Grayscale(_colors[i]);
+			colorArray[i] = Grayscale(_colors[i]);
 		}
 		return colorArray;
 	}
 	
 	public static Color HueShift (this Color color, float amount) {
-		HSLColor hslColor = (HSLColor)color;
+		HSLColor hslColor = color;
 		hslColor.h += amount;
 		return hslColor;
 	}
 	
 	public static Color Saturate (this Color color, float amount) {
-		HSLColor hslColor = (HSLColor)color;
+		HSLColor hslColor = color;
 		hslColor.s += amount;
 		return hslColor;
 	}
 	
 	public static Color Lighten (this Color color, float amount) {
-		HSLColor hslColor = (HSLColor)color;
+		HSLColor hslColor = color;
 		hslColor.l += amount;
 		return hslColor;
 	}
 	
 	public static Color Darken (this Color color, float amount) {
-		HSLColor hslColor = (HSLColor)color;
+		HSLColor hslColor = color;
 		hslColor.l -= amount;
 		return hslColor;
 	}
 	
 	public static Color WithLightness (this Color color, float amount) {
-		HSLColor hslColor = (HSLColor)color;
+		HSLColor hslColor = color;
 		hslColor.l = amount;
 		return hslColor;
 	}
@@ -171,27 +170,27 @@ public static class ColorX {
 			case BlendMode.Normal:
 				return Color.Lerp(color1, color2, lerp);
 			case BlendMode.Additive:
-				return ColorX.BlendAdditive(color1, color2, lerp);
+				return BlendAdditive(color1, color2, lerp);
 			case BlendMode.Multiply:
-				return ColorX.BlendMultiply(color1, color2, lerp);
+				return BlendMultiply(color1, color2, lerp);
 			case BlendMode.Screen:
-				return ColorX.BlendScreen(color1, color2);
+				return BlendScreen(color1, color2);
 			case BlendMode.Overlay:
-				return ColorX.BlendOverlay(color1, color2);
+				return BlendOverlay(color1, color2);
 			case BlendMode.Darken:
-				return ColorX.BlendDarken(color1, color2);
+				return BlendDarken(color1, color2);
 			case BlendMode.Lighten:
-				return ColorX.BlendLighten(color1, color2);
+				return BlendLighten(color1, color2);
 			case BlendMode.Difference:
-				return ColorX.BlendDifference(color1, color2);
+				return BlendDifference(color1, color2);
 			case BlendMode.Hue:
-				return ColorX.BlendHue(color1, color2);
+				return BlendHue(color1, color2);
 			case BlendMode.Saturation:
-				return ColorX.BlendSaturation(color1, color2);
+				return BlendSaturation(color1, color2);
 			case BlendMode.Color:
-				return ColorX.BlendColor(color1, color2);
+				return BlendColor(color1, color2);
 			case BlendMode.Luminosity:
-				return ColorX.BlendLuminosity(color1, color2);
+				return BlendLuminosity(color1, color2);
 			default:
 				Debug.LogError("ColorX.BlendMode "+blendMode+" not recognized");
 				return Color.Lerp(color1, color2, lerp);		
@@ -245,33 +244,33 @@ public static class ColorX {
 
 	//Changes the hue of the lower layer to the hue of the upper layer
 	public static Color BlendHue(Color color1, Color color2){
-		HSLColor hslColor1 = (HSLColor)color1;
-		HSLColor hslColor2 = (HSLColor)color2;
+		HSLColor hslColor1 = color1;
+		HSLColor hslColor2 = color2;
 		HSLColor hslColor = new HSLColor(hslColor2.h, hslColor1.s, hslColor1.l);
-		return (Color)hslColor;
+		return hslColor;
 	}
 
 	//Changes the saturation of the lower layer to the saturation of the upper layer
 	public static Color BlendSaturation(Color color1, Color color2){
-		HSLColor hslColor1 = (HSLColor)color1;
-		HSLColor hslColor2 = (HSLColor)color2;
+		HSLColor hslColor1 = color1;
+		HSLColor hslColor2 = color2;
 		HSLColor hslColor = new HSLColor(hslColor1.h, hslColor2.s, hslColor1.l);
-		return (Color)hslColor;
+		return hslColor;
 	}
 
 	public static Color BlendColor(Color color1, Color color2){
-		HSLColor hslColor1 = (HSLColor)color1;
-		HSLColor hslColor2 = (HSLColor)color2;
+		HSLColor hslColor1 = color1;
+		HSLColor hslColor2 = color2;
 		HSLColor hslColor = new HSLColor(hslColor2.h, hslColor2.s, hslColor1.l);
-		return (Color)hslColor;
+		return hslColor;
 		//Color changes the hue and saturation of the lower layer to the hue and saturation of the upper layer
 	}
 
 	public static Color BlendLuminosity(Color color1, Color color2){
-		HSLColor hslColor1 = (HSLColor)color1;
-		HSLColor hslColor2 = (HSLColor)color2;
+		HSLColor hslColor1 = color1;
+		HSLColor hslColor2 = color2;
 		HSLColor hslColor = new HSLColor(hslColor1.h, hslColor1.s, hslColor2.l);
-		return (Color)hslColor;
+		return hslColor;
 		//Changes the luminosity of the lower layer to the luminosity of the upper layer
 	}
 }

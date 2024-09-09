@@ -114,19 +114,24 @@ public static class CameraShotGeneratorTools {
 	
 	
 	#region Camera Framing
+
 	/// <summary>
 	/// Frame this shot in the specified cinematicCamera.
 	/// </summary>
-	public static bool CreateCameraShot (CameraShotGeneratorProperties shotGeneratorProperties, ref SerializableCamera camera) {
+	public static SerializableCamera CreateCameraShot(CameraShotGeneratorProperties shotGeneratorProperties) {
+		var camera = SerializableCamera.identity;
+		CreateCameraShot(shotGeneratorProperties, ref camera);
+		return camera;
+	}
+
+	static bool CreateCameraShot (CameraShotGeneratorProperties shotGeneratorProperties, ref SerializableCamera camera) {
 		return CreateCameraShot(shotGeneratorProperties, ref camera, out float distance);
 	}
 	
-	/// <param name="cinematicCamera">Cinematic camera.</param>
-	public static bool CreateCameraShot (CameraShotGeneratorProperties shotGeneratorProperties, ref SerializableCamera camera, out float distanceFromTarget) {
+	static bool CreateCameraShot (CameraShotGeneratorProperties shotGeneratorProperties, ref SerializableCamera camera, out float distanceFromTarget) {
 		distanceFromTarget = 0;
 		
 		if(!shotGeneratorProperties.isValid) {
-			shotGeneratorProperties.fitHorizontally = true;
 			shotGeneratorProperties.rotation = Quaternion.identity;
 			if(!shotGeneratorProperties.isValid) {
 				return false;
@@ -136,10 +141,17 @@ public static class CameraShotGeneratorTools {
 		
 		camera.transform.position = Vector3.zero;
 		camera.rect = shotGeneratorProperties.viewportRect;
-		if(camera.rect.width == 0 || camera.rect.height == 0) {
-			Debug.LogError("Camera rect "+camera.rect+" is invalid");
-			return false;
-		}
+		// camera.useCustomScreen = true;
+		// 1f/Main.Instance.viewableCameraViewportArea.GetScreenRect().GetAspect()
+		// var customScreenSize = ScaleToContainerUtils.Resize(new Vector2(SerializableCamera.ScreenParams.gameScreenWidth, SerializableCamera.ScreenParams.gameScreenHeight), Main.Instance.viewableCameraViewportArea.GetScreenRect().GetAspect(), ScaleToContainerUtils.ScalingMode.AspectFitWidthOnly);
+		// var heightScale = SerializableCamera.ScreenParams.gameScreenHeight / Main.Instance.viewableCameraViewportArea.GetScreenRect().height;
+		// Debug.Log(heightScale);
+		// camera.customScreenParams = new SerializableCamera.ScreenParams(SerializableCamera.ScreenParams.gameScreenWidth, SerializableCamera.ScreenParams.gameScreenHeight * heightScale);
+		// Debug.Log(camera.customScreenParams.width + " " + camera.customScreenParams.height);
+		// if(camera.rect.width == 0 || camera.rect.height == 0) {
+		// 	Debug.LogError("Camera rect "+camera.rect+" is invalid");
+		// 	return false;
+		// }
 		if(camera.farClipPlane <= camera.nearClipPlane) {
 			Debug.LogWarning("Camera far clip plane "+camera.farClipPlane+" is invalid");
 			return false;
@@ -148,14 +160,15 @@ public static class CameraShotGeneratorTools {
 		camera.transform.rotation = shotGeneratorProperties.rotation;
 		camera.orthographic = shotGeneratorProperties.orthographic;
 		
-		Vector3 closestTargetInDirection = ClosestTargetInDirection(shotGeneratorProperties.rotation * Vector3.forward, shotGeneratorProperties.pointCloud);
 		
 		// Frame the point cloud as if through an orthograph camera. 
 		// This works nicely, but isn't as close as we'd like, so is actually used to set us up for the next step, where the stability of starting properties of the camera are important.
-		FrameOrthographic(ref camera, closestTargetInDirection, shotGeneratorProperties);
+		FrameOrthographic(ref camera, shotGeneratorProperties);
 		
 
 		if(!shotGeneratorProperties.orthographic) {
+			Vector3 closestTargetInDirection = ClosestTargetInDirection(shotGeneratorProperties.rotation * Vector3.forward, shotGeneratorProperties.pointCloud);
+			FramePerspectiveOrthographicPass(ref camera, closestTargetInDirection, shotGeneratorProperties);
 			// Iterate over the perspective version. The more iterations, the closer the item will hug the frame. I find that 10 is near enough to perfect.
 			// The more irregular the dimentions of your object, and the more the shot shows this off (a very long object at an angle, for example), the more iterations you want.
 			// Iterations hone in less and less with each pass, somewhat exponentially.
@@ -170,66 +183,33 @@ public static class CameraShotGeneratorTools {
 		return true;
 	}
 
-	// public static bool CreateCameraShotProperties (CameraShotGeneratorProperties shotGeneratorProperties, ref CameraProperties cameraProperties) {
-	// 	if(!shotGeneratorProperties.isValid) {
-	// 		shotGeneratorProperties.fitHorizontally = true;
-	// 		shotGeneratorProperties.rotation = Quaternion.identity;
-	// 		if(!shotGeneratorProperties.isValid) {
-	// 			return false;
-	// 		}
-	// 		Debug.LogError("Shot generator properties are invalid. Using default values.");
-	// 	}
-		
-	// 	SerializableCamera camera = SerializableCamera.identity;
-	// 	camera.fieldOfView = shotGeneratorProperties.fieldOfView;
-	// 	camera.transform.rotation = shotGeneratorProperties.rotation;
-	// 	camera.orthographic = shotGeneratorProperties.orthographic;
-		
-	// 	Vector3 closestTargetInDirection = ClosestTargetInDirection(shotGeneratorProperties.rotation * Vector3.forward, shotGeneratorProperties.pointCloud);
-		
-	// 	// Frame the point cloud as if through an orthograph camera. 
-	// 	// This works nicely, but isn't as close as we'd like, so is actually used to set us up for the next step, where the stability of starting properties of the camera are important.
-	// 	FrameOrthographic(ref camera, closestTargetInDirection, shotGeneratorProperties);
-		
-	// 	float distanceFromTarget = 0;
 
-	// 	if(!shotGeneratorProperties.orthographic) {
-	// 		for(int i = 0; i < numOrthographicIterations; i++) {
-	// 			FramePerspective(ref camera, closestTargetInDirection, shotGeneratorProperties, out distanceFromTarget);
-	// 		}
-	// 	}
-	// 	// Offset the shot in viewport space.
-	// 	OffsetShot(ref camera, distanceFromTarget, shotGeneratorProperties.viewportOffset);
-		
-
-	// 	CameraProperties cameraProperties = new CameraProperties();
-    //     cameraProperties.fieldOfView = serializableCamera.fieldOfView;
-    //     cameraProperties.axis = MapCameraController.Instance.floorPlaneTransform.rotation;
-    //     cameraProperties.worldEulerAngles = (Vector2)worldEulerAngles;
-    //     cameraProperties.basePosition = serializableCamera.position;
-    //     cameraProperties.distance = serializableCamera.position;
-
-
-	// 	return true;
-	// }
+	public static void FrameOrthographic (ref SerializableCamera camera, CameraShotGeneratorProperties shotGeneratorProperties) {
+		Rect r = GetPointCloudRectRelativeToDirection(shotGeneratorProperties.pointCloud, shotGeneratorProperties.rotation * Vector3.forward);
+		camera.transform.position = r.center;
+		float closestPointCameraDistance = shotGeneratorProperties.pointCloud.Min(x => DistanceInDirection(x, shotGeneratorProperties.rotation * Vector3.forward));
+		camera.transform.Translate (Vector3.forward * closestPointCameraDistance - Vector3.forward * shotGeneratorProperties.orthographicDistanceFromNearestTarget, Space.Self);
+		r.size /= shotGeneratorProperties.framingRect.size;
+		camera.orthographicSize = CameraX.CalculateOrthographicSize(camera.aspect, r.size, shotGeneratorProperties.scalingMode) * (1f/shotGeneratorProperties.zoom);
+		camera.transform.Translate (new Vector2(camera.aspect, 1) * (Vector2.one * 0.5f-shotGeneratorProperties.framingRect.center) * (camera.orthographicSize * 2), Space.Self);
+	}
 	
-	public static void FrameOrthographic (ref SerializableCamera camera, Vector3 closestTargetInDirection, CameraShotGeneratorProperties shotGeneratorProperties) {
+	// Before framing perspective, we do a half-decent best fit using this function 
+	public static void FramePerspectiveOrthographicPass(ref SerializableCamera camera, Vector3 closestTargetInDirection, CameraShotGeneratorProperties shotGeneratorProperties) {
 		BoundingSphere boundingSphere = new BoundingSphere();
-		boundingSphere.CreateFromPoints(shotGeneratorProperties.pointCloud.ToArray());
-		
+		boundingSphere.CreateFromPoints(shotGeneratorProperties.pointCloud);
+		// This is to avoid NaN issues!
+		if(boundingSphere.radius < 0.0001f) boundingSphere.radius = 1;
+
 		// The distance between the closest point in the target direction and the center of the bounding sphere.
 		float distanceOffset = DistanceInDirection(boundingSphere.center - closestTargetInDirection, shotGeneratorProperties.rotation * Vector3.forward);
 		
-		Rect r = GetPointCloudRectRelativeToDirection(shotGeneratorProperties.pointCloud.ToArray(), shotGeneratorProperties.rotation * Vector3.forward);
-		float distanceFromTarget = GetDistanceFromTarget(camera, shotGeneratorProperties, r.width, r.height);
+		Rect r = GetPointCloudRectRelativeToDirection(shotGeneratorProperties.pointCloud, shotGeneratorProperties.rotation * Vector3.forward);
+		float distanceFromTarget = GetDistanceFromTarget(camera, shotGeneratorProperties, r.size);
 		camera.transform.position = boundingSphere.center;
 		camera.transform.Translate (-Vector3.forward * distanceFromTarget, Space.Self);
 		camera.transform.Translate (-Vector3.forward * distanceOffset, Space.Self);
-
-		if(shotGeneratorProperties.orthographic)
-			camera.orthographicSize = CameraX.CalculateOrthographicSize(camera.aspect, r, shotGeneratorProperties.fitHorizontally, shotGeneratorProperties.fitVertically) * (1f/shotGeneratorProperties.zoom);
 	}
-	
 	private static void FramePerspective (ref SerializableCamera camera, Vector3 closestTargetInDirection, CameraShotGeneratorProperties shotGeneratorProperties, out float distanceFromTarget) {
 		float closestPointCameraDistance = DistanceInDirection(closestTargetInDirection - camera.transform.position, camera.transform.forward);
 		Vector2[] viewportRectVertices = GetRectVertices(GetViewportRectFromPointCloud(camera, shotGeneratorProperties.pointCloud));
@@ -251,26 +231,26 @@ public static class CameraShotGeneratorTools {
 	public static float GetDistanceFromTarget (SerializableCamera camera, CameraShotGeneratorProperties shotGeneratorProperties, float closestPointCameraDistance, Vector2[] viewportRectVertices) {
 		Vector2[] flatTargetRectVertices = GetFlattenedTargetRectVertices(camera, closestPointCameraDistance, viewportRectVertices);
 		Rect localSpaceTargetPointBounds = CreateEncapsulating(flatTargetRectVertices);
-		return GetDistanceFromTarget(camera, shotGeneratorProperties, localSpaceTargetPointBounds.size.x, localSpaceTargetPointBounds.size.y);
+		return GetDistanceFromTarget(camera, shotGeneratorProperties, localSpaceTargetPointBounds.size);
 	}
 
-	public static float GetDistanceFromTarget (SerializableCamera camera, CameraShotGeneratorProperties shotGeneratorProperties, float width, float height) {
+	public static float GetDistanceFromTarget (SerializableCamera camera, CameraShotGeneratorProperties shotGeneratorProperties, Vector2 targetRectSize) {
 		float distanceFromWidth = 0;
-		if(shotGeneratorProperties.fitHorizontally) {
-			if(camera.orthographic) distanceFromWidth = width;
-			else distanceFromWidth = camera.GetDistanceAtFrustrumWidth(width * (1f/shotGeneratorProperties.zoom));
+		if(shotGeneratorProperties.scalingMode is CameraX.ScalingMode.AspectFit or CameraX.ScalingMode.AspectFitWidthOnly) {
+			if(camera.orthographic) distanceFromWidth = targetRectSize.x;
+			else distanceFromWidth = camera.GetDistanceAtFrustrumWidth(targetRectSize.x * (1f/shotGeneratorProperties.zoom));
 		}
 		
 		float distanceFromHeight = 0;
-		if(shotGeneratorProperties.fitVertically) {
-			if(camera.orthographic) distanceFromHeight = height;
-			else distanceFromHeight = camera.GetDistanceAtFrustrumHeight(height * (1f/shotGeneratorProperties.zoom));
+		if(shotGeneratorProperties.scalingMode is CameraX.ScalingMode.AspectFit or CameraX.ScalingMode.AspectFitHeightOnly) {
+			if(camera.orthographic) distanceFromHeight = targetRectSize.y;
+			else distanceFromHeight = camera.GetDistanceAtFrustrumHeight(targetRectSize.y * (1f/shotGeneratorProperties.zoom));
 		}
-		
+		Debug.LogWarning("This function has not been upgraded to support fit modes fully.");
 		return Mathf.Max(distanceFromWidth, distanceFromHeight);
 	}
-	
-	private static Vector3 ClosestTargetInDirection (Vector3 forwardDirection, List<Vector3> points) {
+
+	public static Vector3 ClosestTargetInDirection (Vector3 forwardDirection, List<Vector3> points) {
 		//		return Vector3X.Average(points);
 		int index = 0;
 		float smallest = DistanceInDirection(points[index], forwardDirection);
@@ -283,15 +263,15 @@ public static class CameraShotGeneratorTools {
 		}
 		return points[index];
 	}
-	
-	private static float DistanceInDirection(Vector3 vectorToPoint, Vector3 direction) {
+
+	public static float DistanceInDirection(Vector3 vectorToPoint, Vector3 direction) {
 		return Vector3.Dot(direction.normalized, vectorToPoint);
 	}
-	
-	private static Rect GetPointCloudRectRelativeToDirection (Vector3[] pointCloud, Vector3 forward) {
+
+	public static Rect GetPointCloudRectRelativeToDirection (IList<Vector3> pointCloud, Vector3 forward) {
 		Matrix4x4 inverseTransformMatrix = Matrix4x4.TRS(Vector3.zero, Quaternion.LookRotation(forward), Vector3.one).inverse;
-		Vector2[] localFlattenedPoints = new Vector2[pointCloud.Length];
-		for(int i = 0; i < pointCloud.Length; i++){
+		Vector2[] localFlattenedPoints = new Vector2[pointCloud.Count];
+		for(int i = 0; i < pointCloud.Count; i++){
 			Vector3 localPoint = inverseTransformMatrix.MultiplyPoint(pointCloud[i]);
 			localFlattenedPoints[i] = localPoint;
 		}

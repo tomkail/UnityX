@@ -1,51 +1,35 @@
-﻿
 using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-#nullable enable
 
-/// <summary>
-/// Mono singleton Class. Extend this class to make singleton component.
-/// Example: 
-/// <code>
-/// public class Foo : MonoSingleton<Foo>
-/// </code>. To get the instance of Foo class, use <code>Foo.instance</code>
-/// Override <code>Init()</code> method instead of using <code>Awake()</code>
-/// from this class.
-/// </summary>
+// We allow this to be found via findobjectoftype only once, when there's a chance the object hasn't had time to be woken up
+// When the instance is destroyed we allow findobjectoftype to be used again.
+// After that, all instance management is handled via awake/destroy
 public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T> {
-	public static bool isInitialized {
-		get {
-			return _instance == null;
-		}
-	}
-	static T? _instance = null;
-	public static T Instance { 
-		get {
-			// Instance requiered for the first time, we look for it
-			if( _instance == null ) {
-				_instance = (T)Object.FindObjectOfType(typeof(T));
-			}
-			return _instance;
-		}
-	}
+    static bool searched;
+    static T _Instance;
+    public static T Instance {
+        get {
+#if UNITY_EDITOR
+            if(!Application.isPlaying) searched = false;
+#endif
+            if(!searched && _Instance == null) {
+                _Instance = FindAnyObjectByType<T>(FindObjectsInactive.Include);
+                searched = true;
+            }
+            return _Instance;
+        }
+    }
 
-	// THIS DOESN'T RUN!
-	// #if UNITY_EDITOR
-    // [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    // static void CompileReset() {
-	//     _instance = null;
-    // }
-    // #endif
-	
-	// If no other monobehaviour request the instance in an awake function
-	// executing before this one, no need to search the object.
-	protected virtual void Awake() {
-		if (_instance == null) {
-			_instance = this as T;
-		} else if (_instance != this) {
-			Debug.LogError ("Another instance of " + GetType () + " already exists!");
-			return;
-		}
-	}
+    public static bool IsInitialized => _Instance != null;
+
+    protected virtual void Awake () {
+        _Instance = (T)this;
+    }
+    // Nullify the reference
+    // to clear up the native Unity representation of the MonoBehaviour
+    // so that newly created instances of this class are correctly set to the static _Instance
+    protected virtual void OnDestroy () {
+        if(_Instance != this) return;
+        _Instance = null;
+        searched = false;
+    }
 }

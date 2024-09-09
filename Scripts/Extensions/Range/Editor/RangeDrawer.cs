@@ -1,6 +1,5 @@
 using UnityEditor;
 using UnityEngine;
-using System;
 
 [CustomPropertyDrawer (typeof (Range))]
 public class RangeDrawer : PropertyDrawer

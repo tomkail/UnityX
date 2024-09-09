@@ -106,7 +106,7 @@ public class PolygonRenderer : BasePolygonRenderer {
             
         if(uvMode == UVMode.Rect) {
             for(int i = 0; i < points.Length; i++) {
-                uvs[i] = polygonRect.GetNormalizedPositionInsideRect(points[i]);
+                uvs[i] = Rect.PointToNormalized(polygonRect, points[i]);
             }
         } else if(uvMode == UVMode.Shape) {
             Vector2 uvXDirection = MathX.DegreesToVector2(uvXAngle);

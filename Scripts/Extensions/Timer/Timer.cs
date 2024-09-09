@@ -1,11 +1,10 @@
 using UnityEngine;
 using System;
-using System.Collections;
 
 /// <summary>
 /// Timer class.
 /// </summary>
-[System.Serializable]
+[Serializable]
 public class Timer {
 
 	public enum State {
@@ -22,26 +21,17 @@ public class Timer {
 	[SerializeField, Disable]
 	private float _targetTime = 0f;
 	public float targetTime {
-		get {
-			return _targetTime;
-		} set {
+		get => _targetTime;
+		set {
 			_targetTime = value;
 			_targetTimeReciprocal = null;
 
             if(OnSetTargetTime != null) OnSetTargetTime(); 
 		}
 	}
-	public float remainingTime {
-		get {
-			return targetTime - currentTime;
-		}
-	}
+	public float remainingTime => targetTime - currentTime;
 
-	public bool isComplete {
-		get {
-			return remainingTime <= 0.0f;
-		}
-	}
+	public bool isComplete => remainingTime <= 0.0f;
 
 	public int currentRepeats = 0;
 	public int targetRepeats = 1;

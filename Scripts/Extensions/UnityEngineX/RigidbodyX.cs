@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public static class RigidbodyX {
 	public static void ResetForcesImmediate (this Rigidbody rigidbody) {

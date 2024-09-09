@@ -3,7 +3,7 @@ using UnityEngine;
 
 public static class CanvasGroupX {
     // Taken from https://github.com/Unity-Technologies/uGUI/blob/2019.1/UnityEngine.UI/UI/Core/Selectable.cs
-    private static readonly List<CanvasGroup> m_CanvasGroupCache = new List<CanvasGroup>();
+    static readonly List<CanvasGroup> m_CanvasGroupCache = new();
     public static bool CanvasGroupsAllowInteraction (GameObject gameObject) {
         // Figure out if parent groups allow interaction
         // If no interaction is alowed... then we need

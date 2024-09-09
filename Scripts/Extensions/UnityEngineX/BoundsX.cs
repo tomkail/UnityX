@@ -1,7 +1,6 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 public static class BoundsX {
 	public static Bounds Lerp (Bounds start, Bounds end, float lerp) {
@@ -170,7 +169,7 @@ public static class BoundsX {
     }
 
     public static float SignedDistanceFromPoint (this Bounds bounds, Vector3 position) {
-        return (bounds.Contains(position) ? 1 : -1) * Vector3.Distance(position, ClosestPointOnPerimeter(bounds, position));
+        return (bounds.Contains(position) ? -1 : 1) * Vector3.Distance(position, ClosestPointOnPerimeter(bounds, position));
 	}
 
 
@@ -179,7 +178,7 @@ public static class BoundsX {
 	static bool IntersectLineInternal (this Bounds bounds, Vector3 startPoint, Vector3 endPoint, Vector3 direction, out float inDistance, out float outDistance) {
 		float tymin, tymax, tzmin, tzmax;
 		var invdir = direction.Reciprocal(); 
-		var sign = new int[] {
+		var sign = new[] {
 			(invdir.x < 0).ToInt(),
 			(invdir.y < 0).ToInt(),
 			(invdir.z < 0).ToInt()
@@ -207,10 +206,6 @@ public static class BoundsX {
 	    if (tzmax < outDistance) 
 	        outDistance = tzmax;
 	    return true; 
-	}
-
-	public static bool IntersectRay (this Bounds bounds, Line3D line, out float inDistance, out float outDistance) {
-		return IntersectLineInternal(bounds, line.start, line.end, line.direction, out inDistance, out outDistance);
 	}
 
 	public static bool IntersectRay (this Bounds bounds, Vector3 startPoint, Vector3 endPoint, out float inDistance, out float outDistance) {

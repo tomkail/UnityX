@@ -1,7 +1,7 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System;
 using System.IO;
-using System.Text;
+using UnityEditor;
+using UnityEngine;
 
 public static class EditorApplicationX {
 
@@ -78,7 +78,7 @@ public static class EditorApplicationX {
 	public static string ResourcesToAbsolutePath(string localPath) {
 		var asset = Resources.Load(localPath);
 		if(asset == null) return "";
-		var assetPath = UnityEditor.AssetDatabase.GetAssetPath(asset);
+		var assetPath = AssetDatabase.GetAssetPath(asset);
 		// This seems not to let it work consistently?
 //		Resources.UnloadAsset(asset);
 		return UnityRelativeToAbsolutePath(assetPath);
@@ -96,6 +96,6 @@ public static class EditorApplicationX {
 	#endregion
 
 	public static bool IsAbsolutePath(string filePath) {
-		return Path.IsPathRooted(filePath) && !Path.GetPathRoot(filePath).Equals(Path.DirectorySeparatorChar.ToString(), System.StringComparison.Ordinal);
+		return Path.IsPathRooted(filePath) && !Path.GetPathRoot(filePath).Equals(Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal);
 	}
 }

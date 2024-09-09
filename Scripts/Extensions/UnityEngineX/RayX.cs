@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public static class RayX {
     public static bool IntersectsSphere(this Ray ray, Vector3 sphereCenter, float sphereRadius) {

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 /// <summary>
@@ -63,9 +62,7 @@ public class Selector<T, TPrioritySource>
 	}
 
 	public bool nullRemovesValue {
-		get {
-			return _nullRemovesValue;
-		}
+		get => _nullRemovesValue;
 		set {
 			if (_nullRemovesValue != value) {
 				_nullRemovesValue = value;
@@ -76,7 +73,7 @@ public class Selector<T, TPrioritySource>
 	}
 	bool _nullRemovesValue;
 
-	public Selector (T defaultValue = default(T), Action<T> onChange = null)
+	public Selector (T defaultValue = default, Action<T> onChange = null)
 	{
 		// If the priority source is an enum, automatically 
 		// glean the priority values from  it.
@@ -95,20 +92,20 @@ public class Selector<T, TPrioritySource>
 	/// </summary>
 	public void AddPriority (TPrioritySource source, int priority)
 	{
-		if( typeof(TPrioritySource).IsEnum ) throw new System.Exception("Shouldn't explicitly add priorities for enum sources.");
+		if( typeof(TPrioritySource).IsEnum ) throw new Exception("Shouldn't explicitly add priorities for enum sources.");
 		_priorities [source] = priority;
 	}
 
 	public void SetWithPriority (TPrioritySource source, T desiredValue, int priority)
 	{
-		if( typeof(TPrioritySource).IsEnum ) throw new System.Exception("Shouldn't explicitly add priorities for enum sources.");
+		if( typeof(TPrioritySource).IsEnum ) throw new Exception("Shouldn't explicitly add priorities for enum sources.");
 		AddPriority (source, priority);
 		Set (source, desiredValue);
 	}
 
 	public void Remove (TPrioritySource source)
 	{
-		if( typeof(TPrioritySource).IsEnum ) throw new System.Exception("Should not remove an enum source. Use Unset instead.");
+		if( typeof(TPrioritySource).IsEnum ) throw new Exception("Should not remove an enum source. Use Unset instead.");
 		_priorities.Remove (source);
 		Unset (source);
 	}
@@ -116,12 +113,10 @@ public class Selector<T, TPrioritySource>
 	public T this [TPrioritySource source] {
 		get {
 			var entryIndex = _entries.FindIndex (e => e.source.Equals(source));
-			if (entryIndex == -1) throw new System.ArgumentException ("Source doesn't exist in Selector so cannot get value");
+			if (entryIndex == -1) throw new ArgumentException ("Source doesn't exist in Selector so cannot get value");
 			return _entries [entryIndex].desiredValue;
 		}
-		set {
-			Set (source, value);
-		}
+		set => Set (source, value);
 	}
 
 	public bool IsSet(TPrioritySource source) {
@@ -131,7 +126,7 @@ public class Selector<T, TPrioritySource>
 	public bool TryGetValue(TPrioritySource source, out T value) {
 		var entryIndex = _entries.FindIndex(e => e.source.Equals(source));
 		if( entryIndex == -1 ) {
-			value = default(T);
+			value = default;
 			return false;
 		}
 
@@ -240,14 +235,14 @@ public class Selector<T, TPrioritySource>
 		return priority2.CompareTo (priority1);
 	}
 
-	Dictionary<TPrioritySource, int> _priorities = new Dictionary<TPrioritySource, int> ();
+	Dictionary<TPrioritySource, int> _priorities = new();
 
 	struct Entry
 	{
 		public TPrioritySource source;
 		public T desiredValue;
 	}
-	List<Entry> _entries = new List<Entry> ();
+	List<Entry> _entries = new();
 
 	T _defaultValue;
 }
@@ -257,5 +252,5 @@ public class Selector<T, TPrioritySource>
 /// </summary>
 public class Selector<T> : Selector<T, object>
 {
-	public Selector (T defaultValue = default(T), Action<T> onChange = null) : base(defaultValue, onChange) {}
+	public Selector (T defaultValue = default, Action<T> onChange = null) : base(defaultValue, onChange) {}
 }

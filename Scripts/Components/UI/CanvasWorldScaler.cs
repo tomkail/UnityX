@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
-using System.Collections;
+using UnityEngine.EventSystems;
 
 [ExecuteAlways]
 [RequireComponent(typeof(Canvas))]
-public class CanvasWorldScaler : UIMonoBehaviour {
+public class CanvasWorldScaler : UIBehaviour {
+	public RectTransform rectTransform => (RectTransform) transform;
 	
 	public Vector2 worldScale;
 	public Vector2 pixelScale;

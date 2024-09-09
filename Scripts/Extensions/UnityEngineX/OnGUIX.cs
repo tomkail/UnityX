@@ -1,13 +1,13 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class OnGUIX : MonoBehaviour {
 
-	public static Stack<Matrix4x4> matricies = new Stack<Matrix4x4>();
-	public static Stack<Color> colors = new Stack<Color>();
-	public static Stack<Color> contentColors = new Stack<Color>();
-	public static Stack<Color> backgroundColors = new Stack<Color>();
+	public static Stack<Matrix4x4> matricies = new();
+	public static Stack<Color> colors = new();
+	public static Stack<Color> contentColors = new();
+	public static Stack<Color> backgroundColors = new();
 
 	public static void BeginMatrix (Matrix4x4 matrix) {
 		matricies.Push(GUI.matrix);
@@ -53,7 +53,7 @@ public class OnGUIX : MonoBehaviour {
     public static void DrawLine(Vector2 pointA, Vector2 pointB, Color color) { DrawLine(pointA, pointB, color, 1.0f); }
     public static void DrawLine(Vector2 pointA, Vector2 pointB, float width) { DrawLine(pointA, pointB, GUI.contentColor, width); }
 	
-	static Vector3 offset = new Vector3(0, -0.5f, 0); // Compensate for line width	
+	static Vector3 offset = new(0, -0.5f, 0); // Compensate for line width	
 	static Matrix4x4 guiTransMat = Matrix4x4.TRS(offset, Quaternion.identity, Vector3.one);
 	static Matrix4x4 guiTransMatInv = Matrix4x4.TRS(-offset, Quaternion.identity, Vector3.one);
 	public static void DrawLine(Vector2 pointA, Vector2 pointB, Color color, float width)
@@ -82,7 +82,7 @@ public class OnGUIX : MonoBehaviour {
 
 	    var delta = (Vector3)(pointB-pointA);
 		Quaternion guiRot = Quaternion.FromToRotation(Vector2.right, delta);
-		Matrix4x4 guiRotMat = Matrix4x4.TRS((Vector3)pointA, guiRot, new Vector3(delta.magnitude, width, 1));
+		Matrix4x4 guiRotMat = Matrix4x4.TRS(pointA, guiRot, new Vector3(delta.magnitude, width, 1));
 		GUI.matrix = guiTransMatInv * guiRotMat * guiTransMat;
         // Finally, draw the actual line.
         // We're really only drawing a 1x1 texture from pointA.
@@ -166,8 +166,8 @@ public class OnGUIX : MonoBehaviour {
 //		}
 //	}
 
-	static Dictionary<object, System.Action> drawActions = new Dictionary<object, System.Action>();
-	public static void StartDrawing (object obj, System.Action drawAction) {
+	static Dictionary<object, Action> drawActions = new();
+	public static void StartDrawing (object obj, Action drawAction) {
 		if(drawActions.ContainsKey(obj)) drawActions[obj] = drawAction;
 		else drawActions.Add(obj, drawAction);
 	}

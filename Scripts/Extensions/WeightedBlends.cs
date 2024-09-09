@@ -1,7 +1,6 @@
-using UnityEngine;
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using UnityEngine;
 
 public static class WeightedBlends {
 	public static bool WeightedBlend(IEnumerable<bool> values, IList<float> weights) {
@@ -40,11 +39,7 @@ public static class WeightedBlends {
 		);
 	}
 
-
-	public static SerializableTransform WeightedBlend(IEnumerable<SerializableTransform> values, IList<float> weights) {
-		return new SerializableTransform(WeightedBlend(values.Select(x => x.position), weights), WeightedBlend(values.Select(x => x.rotation), weights), Vector3.one);
-	}
-
+	
 	public static float WeightedBlendAngle(IEnumerable<float> values, IList<float> weights) {
 		return WeightedBlend(
 			values, v => v, weights,

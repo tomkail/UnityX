@@ -1,34 +1,33 @@
-using UnityEngine;
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
+// Various extensions for Unity's Mathf class.
 public static class MathX {
-
-	public static float Min(IEnumerable<float> values) {
-		return values.Min(x => x);
-	}
-
-	public static float Max(IEnumerable<float> values) {
-		return values.Max(x => x);
-	}
-
 	/// <summary>
 	/// Can be iterated using foreach(var sign in MathX.signs)
 	/// </summary>
-	public static int[] signs = new int[] {-1, +1};
+	public static int[] signs = {-1, +1};
 
 	// https://stackoverflow.com/questions/1082917/mod-of-negative-number-is-melting-my-brain
 	public static int Mod(this int a, int n) {
         if (n == 0) throw new ArgumentOutOfRangeException("n", "(a mod 0) is undefined.");
 
         //puts a in the [-n+1, n-1] range using the remainder operator
-        int remainder = a%n;
+        var remainder = a%n;
 
         //if the remainder is less than zero, add n to put it in the [0, n-1] range if n is positive
         //if the remainder is greater than zero, add n to put it in the [n-1, 0] range if n is negative
         if ((n > 0 && remainder < 0) || (n < 0 && remainder > 0)) return remainder + n;
         return remainder;
     }
+	
+	public static float ModF(this float a, float n) {
+		if (n == 0) throw new ArgumentOutOfRangeException("n", "(a mod 0) is undefined.");
+		var remainder = a%n;
+		if ((n > 0 && remainder < 0) || (n < 0 && remainder > 0)) return remainder + n;
+		return remainder;
+	}
 
 	/// <summary>
 	/// Repeat the specified value around a min and max.
@@ -77,7 +76,7 @@ public static class MathX {
         return val;
     }
 
-    // Calculates the shortest difference between two given angles.
+    // Calculates the shortest difference between two given values.
     public static float SignedDeltaRepeating(float a, float b, float val, float target) {
         b-=a;
         val-=a;
@@ -159,7 +158,7 @@ public static class MathX {
 		if (a == b)  { 
 			return true;
 		} else {
-			return MathX.Difference(a, b) < maxDifference;
+			return Difference(a, b) < maxDifference;
 	    }
 	}
 
@@ -267,7 +266,7 @@ public static class MathX {
 	/// <returns>The degrees.</returns>
 	/// <param name="degrees">Degrees.</param>
 	public static float WrapDegrees (float degrees) {
-		return MathX.RepeatInclusive(degrees, -180, 180);
+		return RepeatInclusive(degrees, -180, 180);
 	}
 	
 	/// <summary>
@@ -287,7 +286,7 @@ public static class MathX {
 	/// <param name="min">Minimum.</param>
 	/// <param name="max">Max.</param>
 	public static float ClampDegrees (float degrees, float min, float max) {
-		return Mathf.Clamp (MathX.WrapDegrees(degrees), min, max);
+		return Mathf.Clamp (WrapDegrees(degrees), min, max);
 	}
 
 	public static float LerpAngleUnclamped (float a, float b, float t) {
@@ -352,7 +351,7 @@ public static class MathX {
 	
 	// Clamps the scale of a value, keeping its original sign. The sign of unsignedMax is arbitrary. ClampMagnitude(-3, 1) = -1, ClampMagnitude(3, 1) = 1 ClampMagnitude(-3, -1) = -1
 	public static float ClampMagnitude (float value, float unsignedMax) {
-		return Mathf.Min(Mathf.Abs(value), Mathf.Abs(unsignedMax)) * MathX.Sign(value);
+		return Mathf.Min(Mathf.Abs(value), Mathf.Abs(unsignedMax)) * value.Sign();
 	}
 	public static float Clamp0Infinity(float value) {
 		return Mathf.Clamp(value, 0, Mathf.Infinity);
@@ -555,13 +554,13 @@ public static class MathX {
 
 		// E.g. how many times do we need to multiply by e to get to target (e.g. exactly once = 1.0)
 		const double baseZoom = 2.0;
-		var scaleStepsToTarget = (float)System.Math.Log(ratioToTarget, baseZoom);
+		var scaleStepsToTarget = (float)Math.Log(ratioToTarget, baseZoom);
 
 		// Smooth damp this "number of times" -> smooth damp the "distance" to target
 		var newScaleStepsToTarget = Mathf.SmoothDamp(scaleStepsToTarget, 0.0f, ref scaleSpeed, smoothTime, maxSpeed, Time.unscaledDeltaTime);
 
 		// Convert "number of multiplies" back to a ratio after the smooth damp.
-		var newRatioToTarget = System.Math.Pow(baseZoom, newScaleStepsToTarget);
+		var newRatioToTarget = Math.Pow(baseZoom, newScaleStepsToTarget);
 
 		// And get final scale
 		return target / newRatioToTarget;
@@ -588,7 +587,7 @@ public static class MathX {
 
 	//https://stackoverflow.com/questions/24887799/get-the-x-y-coordinate-on-a-square-based-on-the-square-center-angle
 	public static Vector2 CircleToSquare (float radians) {
-		var circleCoords = MathX.RadiansToVector2(radians);
+		var circleCoords = RadiansToVector2(radians);
 		var u = Mathf.Max(Mathf.Abs(circleCoords.x), Mathf.Abs(circleCoords.y));
 		
 		var xp = circleCoords.x / u;
@@ -622,5 +621,40 @@ public static class MathX {
 		if (t > 1f) return aOut2;
 		if(t < 0f) return aOut1;
 		return aOut1 + (aOut2 - aOut1) * t;
+	}
+	
+	
+	// Returns the interpolated index of a target number within an ordered list. 
+	// If the target falls between two numbers, it calculates the index based on relative distances.
+	// If the target is outside the range, it extrapolates using the scale of the closest two numbers.
+	public static float FindIndexPosition(IList<float> list, float target) {
+		if (list.Count == 0) return 0;
+        
+		// Check if the target is less than the first element
+		if (target < list[0]) {
+			var diff = list[1] - list[0];
+			var offset = (target - list[0]) / diff;
+			return offset; // It's below the first element, so it will be a negative index
+		}
+
+		// Check if the target is greater than the last element
+		if (target > list[^1]) {
+			var diff = list[^1] - list[^2];
+			var offset = (target - list[^1]) / diff;
+			return list.Count - 1 + offset; // The last index is Count - 1, so we add the offset to it
+		}
+        
+		for (int i = 0; i < list.Count; i++) {
+			// If the target matches a value in the list exactly
+			if (list[i] == target) return i;
+
+			// If it's less than the first value in the list
+			if (i < list.Count - 1 && list[i] < target && target < list[i + 1]) {
+				var diff = list[i + 1] - list[i];
+				var offset = (target - list[i]) / diff;
+				return i + offset;
+			}
+		}
+		return 0;
 	}
 }

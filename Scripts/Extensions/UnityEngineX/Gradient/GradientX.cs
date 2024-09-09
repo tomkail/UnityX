@@ -1,8 +1,5 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public static class GradientX {
 	
@@ -13,39 +10,17 @@ public static class GradientX {
 		Reflected
 	}
 
-	public static Gradient blackToWhite {
-		get {
-			return GradientX.Create(Color.black, Color.white);
-		}
-	}
-	public static Gradient whiteToBlack {
-		get {
-			return GradientX.Create(Color.white, Color.black);
-		}
-	}
-	
-	public static Gradient blackToClear {
-		get {
-			return GradientX.Create(Color.black, Color.black.WithAlpha(0));
-		}
-	}
-	public static Gradient whiteToClear {
-		get {
-			return GradientX.Create(Color.white, Color.white.WithAlpha(0));
-		}
-	}
-	
-	public static Gradient clearToBlack {
-		get {
-			return GradientX.Create(Color.black.WithAlpha(0), Color.black);
-		}
-	}
+	public static Gradient blackToWhite => Create(Color.black, Color.white);
 
-	public static Gradient clearToWhite {
-		get {
-			return GradientX.Create(Color.white.WithAlpha(0), Color.white);
-		}
-	}
+	public static Gradient whiteToBlack => Create(Color.white, Color.black);
+
+	public static Gradient blackToClear => Create(Color.black, Color.black.WithAlpha(0));
+
+	public static Gradient whiteToClear => Create(Color.white, Color.white.WithAlpha(0));
+
+	public static Gradient clearToBlack => Create(Color.black.WithAlpha(0), Color.black);
+
+	public static Gradient clearToWhite => Create(Color.white.WithAlpha(0), Color.white);
 
 	public static Gradient Reverse( this Gradient g ){
 		GradientColorKey[] colorKeys = g.colorKeys;
@@ -57,7 +32,7 @@ public static class GradientX {
 		for(int i = 0; i < alphaKeys.Length; i++) {
 			alphaKeys[i].time = 1f-alphaKeys[i].time;
 		}
-		return GradientX.Create(colorKeys, alphaKeys);
+		return Create(colorKeys, alphaKeys);
 	}
 
 	public static Color Random( this Gradient g ){
@@ -67,24 +42,34 @@ public static class GradientX {
 	public static Gradient Create(GradientColorKey[] colorKeys, GradientAlphaKey[] alphaKeys = null) {
 		Gradient gradient = new Gradient();
 		if (alphaKeys.IsNullOrEmpty()) {
-			alphaKeys = new GradientAlphaKey[] { new GradientAlphaKey (1, 0) };
+			alphaKeys = new GradientAlphaKey[] { new(1, 0) };
 		}
 		gradient.SetKeys(colorKeys, alphaKeys);
 		return gradient;
 	}
 	
-	public static Gradient Create(Color color, float time = 0f){
+	public static Gradient Create(params Color[] colors)
+	{
 		Gradient gradient = new Gradient();
-		GradientColorKey[] colorKeys = new GradientColorKey[1];
-		GradientAlphaKey[] alphaKeys = new GradientAlphaKey[1];
-		
-		colorKeys[0].color = color;
-		colorKeys[0].time = time;
-		alphaKeys[0].alpha = color.a;
-		alphaKeys[0].time = time;
-		
+
+		// Create color keys
+		GradientColorKey[] colorKeys = new GradientColorKey[colors.Length];
+		for (int i = 0; i < colors.Length; i++)
+		{
+			colorKeys[i].color = colors[i];
+			colorKeys[i].time = colors.Length == 1 ? 0 : (float)i / (colors.Length - 1); // normalize index to [0, 1] range
+		}
+
+		// Create alpha keys from the color list
+		GradientAlphaKey[] alphaKeys = new GradientAlphaKey[colors.Length];
+		for (int i = 0; i < colors.Length; i++)
+		{
+			alphaKeys[i].alpha = colors[i].a;
+			alphaKeys[i].time = colors.Length == 1 ? 0 : (float)i / (colors.Length - 1); // normalize index to [0, 1] range
+		}
+
 		gradient.SetKeys(colorKeys, alphaKeys);
-		
+
 		return gradient;
 	}
 	
@@ -93,11 +78,18 @@ public static class GradientX {
 		GradientColorKey[] colorKeys = new GradientColorKey[2];
 		GradientAlphaKey[] alphaKeys = new GradientAlphaKey[2];
 
+		if (start > stop) {
+			(stop, start) = (start, stop);
+			(stopColor, startColor) = (startColor, stopColor);
+		}
+		
+		if (start < 0) startColor = Color.LerpUnclamped(startColor, stopColor, -start);
 		colorKeys[0].color = startColor;
 		colorKeys[0].time = start;
 		alphaKeys[0].alpha = startColor.a;
 		alphaKeys[0].time = start;
 
+		if (stop > 1) stopColor = Color.LerpUnclamped(stopColor, startColor, stop-1);
 		colorKeys[1].color = stopColor;
 		colorKeys[1].time = stop;
 		alphaKeys[1].alpha = stopColor.a;
@@ -175,7 +167,7 @@ public static class GradientX {
 
 
 	private static float[] GetGradientKeyPositions(int numKeys = 8){
-		numKeys = (int)Mathf.Clamp(numKeys, 1,9);
+		numKeys = Mathf.Clamp(numKeys, 1,9);
 		float[] keyTimes = new float[numKeys];
 		for(int i = 0; i < numKeys; i++){
 			keyTimes[i] = i / (float)(numKeys-1);
@@ -184,7 +176,7 @@ public static class GradientX {
 	}
 	
 	public static Gradient Lerp(Gradient from, Gradient to, float t, int numKeys = 8){
-		return GradientX.Lerp(from, to, t, GradientX.GetGradientKeyPositions(numKeys));
+		return Lerp(from, to, t, GetGradientKeyPositions(numKeys));
 	}
 	
 	public static Gradient Lerp(Gradient from, Gradient to, float t, float[] keyTimes){
@@ -208,7 +200,7 @@ public static class GradientX {
 	
 	
 	public static Gradient Add(Gradient from, Gradient to, int numKeys = 8){
-		return GradientX.Add(from, to, GradientX.GetGradientKeyPositions(numKeys));
+		return Add(from, to, GetGradientKeyPositions(numKeys));
 	}
 	
 	public static Gradient Add(Gradient from, Gradient to, float[] keyTimes){
@@ -232,7 +224,7 @@ public static class GradientX {
 	
 	
 	public static Gradient Subtract(Gradient from, Gradient to, int numKeys = 8){
-		return GradientX.Subtract(from, to, GradientX.GetGradientKeyPositions(numKeys));
+		return Subtract(from, to, GetGradientKeyPositions(numKeys));
 	}
 	
 	public static Gradient Subtract(Gradient from, Gradient to, float[] keyTimes){

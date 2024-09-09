@@ -21,7 +21,7 @@ public class LockTransform : MonoBehaviour {
 	void OnDrawGizmosSelected () {
 		#if UNITY_EDITOR
 		if(!Application.isPlaying) {
-			ComponentMenuX.MoveToTop(this);
+			ComponentUtilityX.MoveToTop(this);
 		}
 		#endif
 	}

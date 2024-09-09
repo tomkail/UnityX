@@ -1,10 +1,8 @@
 ﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
 
 public static class ObjectX {
 	
-	public static bool IsNull (this UnityEngine.Object obj) {
+	public static bool IsNull (this Object obj) {
 		return obj == null || obj.Equals(null);
 	}
 	
@@ -17,13 +15,12 @@ public static class ObjectX {
 	public static void DestroyAutomatic(Object o) {
 		#if UNITY_EDITOR
 		if(Application.isPlaying)
-			UnityEngine.Object.Destroy (o);
+			Object.Destroy (o);
 		else
-			UnityEngine.Object.DestroyImmediate (o);
+			Object.DestroyImmediate (o);
 		#else
 		UnityEngine.Object.Destroy (o);
 		#endif
-
 	}
 
 	/// <summary>
@@ -33,13 +30,9 @@ public static class ObjectX {
 	/// </summary>
 	/// <returns>The transform from object.</returns>
 	/// <param name="source">Source.</param>
-	private static Transform GetTransformFromObject(Object source) {
-		if (source is GameObject) {
-			return (source as GameObject).transform;
-		} else if (source is Component) {
-			return (source as Component).transform;
-		} else {
-			return null;
-		}
+	static Transform GetTransformFromObject(Object source) {
+		if (source is GameObject gameObject) return gameObject.transform;
+		else if (source is Component component) return component.transform;
+		return null;
 	}
 }

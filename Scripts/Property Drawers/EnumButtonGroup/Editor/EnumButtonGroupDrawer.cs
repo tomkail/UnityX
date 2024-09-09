@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEditor;
-using System.Linq;
 using System.Collections.Generic;
+using System.Reflection;
 
 // Cribbed a lot from https://gamedev.stackexchange.com/questions/154696/picking-multiple-choices-from-an-enum/154699
 [CustomPropertyDrawer(typeof (EnumButtonGroupAttribute))]
@@ -52,36 +52,22 @@ class EnumButtonGroupDrawer : PropertyDrawer {
     public static void DrawLayout (SerializedProperty property) {
         DrawLayout(property, new GUIContent(property.displayName));
     }
-    // TODO - remove entries with a value of 0, or else have them set the entire thing. We might do the same with a -1 "everything" value.
     public static void DrawLayout (SerializedProperty property, GUIContent label) {
         var position = GUILayoutUtility.GetRect(0, EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
         Draw(position, property, label);
     }
     public static void Draw (Rect position, SerializedProperty property, GUIContent label) {
-		// EditorGUI.BeginProperty (position, label, property);
 		var containerRect = EditorGUI.PrefixLabel(new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight), label);
 		
         var parentType = property.serializedObject.targetObject.GetType();
-        var fieldInfo = parentType.GetField(property.propertyPath);
+        var fieldInfo = parentType.GetField(property.propertyPath, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
         var enumType = fieldInfo.FieldType;
         var trueNames = System.Enum.GetNames(enumType);
 
         var typedValues = GetTypedValues(property, enumType);
         var display = property.enumDisplayNames;
         var names = property.enumNames;
-
-        // for (int i = 0; i < names.Length; i++) {
-        //     int sortedIndex = System.Array.IndexOf(trueNames, names[i]);
-        //     int value = typedValues[sortedIndex];
-        //     int bitCount = 0;  
-
-        //     for (int temp = value; (temp != 0 && bitCount <= 1); temp >>= 1)
-        //         bitCount += temp & 1;
-                
-        //     if (bitCount != 1)
-        //         continue;
-        // }
-
+        
 		var numButtons = names.Length;
 		var width = containerRect.width/numButtons;
 
@@ -92,18 +78,53 @@ class EnumButtonGroupDrawer : PropertyDrawer {
             var entry = names[i];
 			var rect = new Rect(containerRect.x + width * i, containerRect.y, width, containerRect.height);
             EditorGUI.BeginChangeCheck();
-			bool pressed = (property.intValue & value) != 0;
+            bool pressed = property.intValue == value;
 			pressed = GUI.Toggle(rect, pressed, display[i], GetGUIStyle(i, numButtons, false));
             if (EditorGUI.EndChangeCheck()) {
                 if (pressed) {
                     property.intValue = value;
-                } else {
-                    property.intValue = ~value;
                 }
                 names[i] = entry;
             }
         }
-		// EditorGUI.EndProperty ();
+	}
+    
+	public static void DrawLayout<T> (SerializedProperty property, List<(T value, GUIContent label, bool disabled)> values) where T : System.Enum {
+		DrawLayout(property, new GUIContent(property.displayName), values);
+	}
+	public static void DrawLayout<T> (SerializedProperty property, GUIContent label, List<(T value, GUIContent label, bool disabled)> values) where T : System.Enum {
+		var position = GUILayoutUtility.GetRect(0, EditorGUIUtility.singleLineHeight);
+		Draw(position, property, label, values);
+		GUILayoutUtility.GetRect(0, EditorGUIUtility.standardVerticalSpacing);
+	}
+	public static void Draw<T> (Rect position, SerializedProperty property, GUIContent label, List<(T value, GUIContent label, bool disabled)> values) where T : System.Enum {
+		var containerRect = EditorGUI.PrefixLabel(new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight), label);
+		
+		var parentType = property.serializedObject.targetObject.GetType();
+		var fieldInfo = parentType.GetField(property.propertyPath, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+		var enumType = fieldInfo.FieldType;
+
+		var typedValues = GetTypedValues(property, enumType);
+        
+		var numButtons = values.Count;
+		var width = containerRect.width/numButtons;
+
+		for (var i = 0; i < values.Count; i++) {
+			var item = values[i];
+			int value = typedValues[(int)(object)item.value];
+
+			var rect = new Rect(containerRect.x + width * i, containerRect.y, width, containerRect.height);
+			EditorGUI.BeginChangeCheck();
+			bool pressed = property.intValue == value;
+			EditorGUI.BeginDisabledGroup(item.disabled);
+			pressed = GUI.Toggle(rect, pressed, item.label, GetGUIStyle(i, numButtons, property.hasMultipleDifferentValues));
+			EditorGUI.EndDisabledGroup();
+			if (EditorGUI.EndChangeCheck()) {
+				if (pressed) {
+					property.intValue = value;
+				}
+			}
+		}
 	}
 
 	
@@ -192,8 +213,8 @@ class EnumButtonGroupDrawer : PropertyDrawer {
 	static GUIStyle GetGUIStyle (int index, int numButtons, bool mixed) {
 		var style = mixed ? miniButtonMixed : EditorStyles.miniButton;
 		if(numButtons > 1) {
-			if(index == 0 && numButtons > 1) style = mixed ? miniButtonLeftMixed : EditorStyles.miniButtonLeft;
-			else if(index == numButtons-1 && numButtons > 1) style = mixed ? miniButtonRightMixed : EditorStyles.miniButtonRight;
+			if(index == 0) style = mixed ? miniButtonLeftMixed : EditorStyles.miniButtonLeft;
+			else if(index == numButtons-1) style = mixed ? miniButtonRightMixed : EditorStyles.miniButtonRight;
 			else style = mixed ? miniButtonMidMixed : EditorStyles.miniButtonMid;
 		}
 		return style;

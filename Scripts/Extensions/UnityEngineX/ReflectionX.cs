@@ -1,17 +1,15 @@
-﻿using UnityEngine;
-using System;
-using System.Linq;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using UnityEngine;
+using Object = System.Object;
 
 public static class ReflectionX {
-    static BindingFlags bindingAttr {
-        get {
-            return BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.FlattenHierarchy|BindingFlags.Static|BindingFlags.Instance;
-        }
-    }
-	public static Type GetTypeFromObject(object obj, string propertyPath) {
+    static BindingFlags bindingAttr => BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.FlattenHierarchy|BindingFlags.Static|BindingFlags.Instance;
+
+    public static Type GetTypeFromObject(object obj, string propertyPath) {
 		Debug.Assert(obj != null);
 		string[] parts = propertyPath.Split('.');
         FieldInfo fieldInfo = null;
@@ -34,7 +32,7 @@ public static class ReflectionX {
 			bool isArray = type != null && (type.IsArray || type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>));
 			if (i != parts.Length-1 && isArray) {
 				i+=2;
-				int indexStart = parts[i].IndexOf("[")+1;
+				int indexStart = parts[i].IndexOf("[", StringComparison.Ordinal)+1;
 				int collectionElementIndex = Int32.Parse(parts[i].Substring(indexStart, parts[i].Length-indexStart-1));
 				if(obj != null) {
 					IList list = obj as IList;
@@ -79,7 +77,7 @@ public static class ReflectionX {
 //			((PropertyInfo)fieldInfo).
 			
 			if (x is IList) {
-				int indexStart = parts[partIndex+2].IndexOf("[")+1;
+				int indexStart = parts[partIndex+2].IndexOf("[", StringComparison.Ordinal)+1;
 				int collectionElementIndex = Int32.Parse(parts[partIndex+2].Substring(indexStart, parts[partIndex+2].Length-indexStart-1));
 				IList list = x as IList;
 				if(MathX.IsBetweenInclusive(collectionElementIndex, 0, list.Count-1)) {
@@ -87,7 +85,7 @@ public static class ReflectionX {
 //					type = obj.GetType();
 				} else {
 					DebugX.LogWarning ("Index: "+collectionElementIndex+", List Count: "+list.Count+", Current Path Part: "+part+", Full Path: "+propertyPath);
-					return default(T);
+					return default;
 				}
 				continue;
 			} else {
@@ -99,7 +97,7 @@ public static class ReflectionX {
 //			obj = fieldInfo.GetValue(obj);
 		}
 			
-		if(!(obj is T)) return default(T);
+		if(!(obj is T)) return default;
 		return (T)obj;
 	}
 
@@ -120,16 +118,15 @@ public static object GetValueFromObject(object obj, string propertyPath, Type t)
 //			propertyInfo = obj.GetType().GetProperty(part, bindingAttr);
 //			if(propertyInfo == null)continue;
 			object x = null;
-			if(memberInfo is FieldInfo) x = ((FieldInfo)memberInfo).GetValue(obj);
-			if(memberInfo is PropertyInfo) x = ((PropertyInfo)memberInfo).GetValue(obj, null);
+			if(memberInfo is FieldInfo fieldInfo) x = fieldInfo.GetValue(obj);
+			if(memberInfo is PropertyInfo propertyInfo) x = propertyInfo.GetValue(obj, null);
 //			((PropertyInfo)fieldInfo).
 			
-			if (x is IList) {
-				int indexStart = parts[partIndex+2].IndexOf("[")+1;
+			if (x is IList list) {
+				int indexStart = parts[partIndex+2].IndexOf("[", StringComparison.Ordinal)+1;
 				int collectionElementIndex = Int32.Parse(parts[partIndex+2].Substring(indexStart, parts[partIndex+2].Length-indexStart-1));
-				IList list = x as IList;
 				if(MathX.IsBetweenInclusive(collectionElementIndex, 0, list.Count-1)) {
-					obj = (x as IList)[collectionElementIndex];
+					obj = list[collectionElementIndex];
 //					type = obj.GetType();
 				} else {
 					DebugX.LogWarning ("Index: "+collectionElementIndex+", List Count: "+list.Count+", Current Path Part: "+part+", Full Path: "+propertyPath);
@@ -150,7 +147,7 @@ public static object GetValueFromObject(object obj, string propertyPath, Type t)
 	}
 
 
-	public static System.Object GetValueFromObject(object obj, string propertyPath) {
+	public static Object GetValueFromObject(object obj, string propertyPath) {
 		Debug.Assert(obj != null);
 		MemberInfo fieldInfo = null;
 //		PropertyInfo propertyInfo = null;
@@ -164,7 +161,7 @@ public static object GetValueFromObject(object obj, string propertyPath, Type t)
 			if(fieldInfo is FieldInfo) x = ((FieldInfo)fieldInfo).GetValue(obj);
 			if(fieldInfo is PropertyInfo) x = ((PropertyInfo)fieldInfo).GetValue(obj, null);
 			if (x is IList) {
-				int indexStart = parts[partIndex+2].IndexOf("[")+1;
+				int indexStart = parts[partIndex+2].IndexOf("[", StringComparison.Ordinal)+1;
 				int collectionElementIndex = Int32.Parse(parts[partIndex+2].Substring(indexStart, parts[partIndex+2].Length-indexStart-1));
 				IList list = x as IList;
 				if(MathX.IsBetweenInclusive(collectionElementIndex, 0, list.Count-1)) {
@@ -231,7 +228,7 @@ public static object GetValueFromObject(object obj, string propertyPath, Type t)
 
 
 	// Nabbed from ReflectionUtils that comes with Unity ImageEffects. I'd like to unify this in with the code above sometime
-	static Dictionary<KeyValuePair<object, string>, FieldInfo> s_FieldInfoFromPaths = new Dictionary<KeyValuePair<object, string>, FieldInfo>();
+	static Dictionary<KeyValuePair<object, string>, FieldInfo> s_FieldInfoFromPaths = new();
 
 	public static FieldInfo GetFieldInfoFromPath(object source, string path)
 	{

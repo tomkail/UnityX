@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using System.Collections;
 using System.IO;
 
 /// <summary>
@@ -46,8 +45,9 @@ class AssetPathDrawer : BaseAttributePropertyDrawer<AssetPathAttribute> {
 		// Not found? Show the path that's there in red
 		if( pathExistsButNotFound ) {
 			OnGUIX.BeginBackgroundColor(Color.red);
-			property.stringValue = EditorGUI.TextField(position, property.displayName +" (not found)", currentPath);
+			property.stringValue = EditorGUI.TextField(new Rect(position.x,position.y, position.width-100, position.height), property.displayName +" (not found)", currentPath);
 			OnGUIX.EndBackgroundColor();
+			newObj = EditorGUI.ObjectField(new Rect(position.xMax-100,position.y, 100, position.height), obj, attribute.assetType, allowSceneObjects:false);
 		}
 
 		// Show object picker

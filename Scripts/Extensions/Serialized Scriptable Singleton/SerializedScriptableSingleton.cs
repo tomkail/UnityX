@@ -1,6 +1,6 @@
 using System;
-using UnityEngine;
 using UnityEditor;
+using UnityEngine;
 
 // Can be thought of as a singleton reference a scriptable object, loaded and saved to playerprefs rather than serialized to the inspector.
 // This is commonly useful for per-user settings files, especially for development debug settings.
@@ -9,11 +9,9 @@ public class SerializedScriptableSingleton<T> : ScriptableObject where T : Scrip
 	public static string settingsPrefsKey {
 		get {
 			if(_settingsPrefsKey == null)
-				_settingsPrefsKey = string.Format("{0} Settings ({1})", typeof(T).Name, Application.productName);
+				_settingsPrefsKey = $"{typeof(T).Name} Settings ({Application.productName})";
 			return _settingsPrefsKey;
-		} set {
-			_settingsPrefsKey = value;
-		}
+		} set => _settingsPrefsKey = value;
 	}
 	public static event Action OnCreateOrLoad;
 
@@ -32,7 +30,7 @@ public class SerializedScriptableSingleton<T> : ScriptableObject where T : Scrip
 	}
 
 	public static void CreateAndSave () {
-		_Instance = ScriptableObject.CreateInstance<T>();
+		_Instance = CreateInstance<T>();
 		Save(_Instance);
         if(OnCreateOrLoad != null) OnCreateOrLoad();
 	}
@@ -62,7 +60,7 @@ public class SerializedScriptableSingleton<T> : ScriptableObject where T : Scrip
 			data = EditorPrefs.GetString(settingsPrefsKey);
 		}
 		#endif
-		_Instance = ScriptableObject.CreateInstance<T>();
+		_Instance = CreateInstance<T>();
 		try {
 			JsonUtility.FromJsonOverwrite(data, _Instance);
             if(_Instance != null) if(OnCreateOrLoad != null) OnCreateOrLoad();

@@ -8,19 +8,19 @@ using UnityX.Geometry;
 [ExecuteAlways]
 [RequireComponent(typeof(MeshFilter))]
 public class PolygonOutlineRenderer : BasePolygonRenderer {
-    [Space]
-    public const string colorID = "_Color";
-    [SerializeField]
-    Color _tintColor = Color.white;
-    public Color tintColor {
-        get {
-            return _tintColor;
-        } set {
-            if(_tintColor == value) return;
-            _tintColor = value;
-            RefreshMaterialPropertyBlock();
-        }
-    }
+    // [Space]
+    // public const string colorID = "_Color";
+    // [SerializeField]
+    // Color _tintColor = Color.white;
+    // public Color tintColor {
+    //     get {
+    //         return _tintColor;
+    //     } set {
+    //         if(_tintColor == value) return;
+    //         _tintColor = value;
+    //         RefreshMaterialPropertyBlock();
+    //     }
+    // }
     public const string textureID = "_MainTex";
     [SerializeField]
     Texture2D _texture;

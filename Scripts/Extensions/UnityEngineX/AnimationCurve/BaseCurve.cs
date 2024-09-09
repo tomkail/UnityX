@@ -1,10 +1,10 @@
+using System;
 using UnityEngine;
-using System.Collections;
 
 /// <summary>
 /// Base class for a curve set.
 /// </summary>
-[System.Serializable]
+[Serializable]
 public abstract class BaseCurve<T> {
 	public abstract void AddKey(float time, T t);
 	public abstract T Evaluate(float time);

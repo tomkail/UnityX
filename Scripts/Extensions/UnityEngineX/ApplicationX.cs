@@ -1,17 +1,11 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using UnityEngine;
 
 public class ApplicationX : MonoBehaviour {
     public static bool isApplicationQuitting;
 
 
-	public static string projectPath {
-		get {
-			return Path.Combine(Application.dataPath, "../../");
-		}
-	}
+	public static string projectPath => Path.Combine(Application.dataPath, "../../");
 
 	// Cached for access in threads
 	static string _streamingAssetsPath;

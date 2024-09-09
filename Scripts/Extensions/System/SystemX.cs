@@ -1,21 +1,24 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.ComponentModel;
+using System.Diagnostics;
+using UnityEngine;
+using Debug = UnityEngine.Debug;
 #if UNITY_EDITOR
-using UnityEditor;
 using System.IO;
 #endif
 
 public static class SystemX {
 	// Can use EditorUtility.RevealInFinder in editor
 	public static bool OpenInFileBrowser(string path) {
-		if (SystemInfoX.IsWinOS) {
-			return OpenInWinFileBrowser(path);
-		} else if (SystemInfoX.IsMacOS) {
-			return OpenInMacFileBrowser(path);	
-		} else {
-			Debug.LogError ("Could not open in file browser because OS is unrecognized. OS is "+UnityEngine.SystemInfo.operatingSystem);
-			return false;
+		switch (Application.platform) {
+			case RuntimePlatform.WindowsEditor:
+			case RuntimePlatform.WindowsPlayer:
+				return OpenInWinFileBrowser(path);
+			case RuntimePlatform.OSXEditor:
+			case RuntimePlatform.OSXPlayer:
+				return OpenInMacFileBrowser(path);
+			default:
+				Debug.LogError ("Could not open in file browser because OS is unrecognized. OS is "+SystemInfo.operatingSystem);
+				return false;
 		}
 	}
 	
@@ -42,8 +45,8 @@ public static class SystemX {
 		string arguments = (openInsidesOfFolder ? "" : "-R ") + macPath;
 		
 		try {
-			System.Diagnostics.Process.Start("open", arguments);
-		} catch ( System.ComponentModel.Win32Exception e ) {
+			Process.Start("open", arguments);
+		} catch ( Win32Exception e ) {
 			// tried to open mac finder in windows
 			// just silently skip error
 			// we currently have no platform define for the current OS we are in, so we resort to this
@@ -66,8 +69,8 @@ public static class SystemX {
 		#endif
 		
 		try {
-			System.Diagnostics.Process.Start("explorer.exe", (openInsidesOfFolder ? "" : "/select, \"") + winPath+"\"");
-		} catch ( System.ComponentModel.Win32Exception e ) {
+			Process.Start("explorer.exe", (openInsidesOfFolder ? "" : "/select, \"") + winPath+"\"");
+		} catch ( Win32Exception e ) {
 			// tried to open win explorer in mac
 			// just silently skip error
 			// we currently have no platform define for the current OS we are in, so we resort to this

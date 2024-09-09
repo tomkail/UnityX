@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -11,7 +8,8 @@ namespace UnityX.Versioning {
     // It also updates some fields on VersionManager based on the build settings, such as if the build is a Development build.
     [InitializeOnLoad]
     public class VersionBuildPreProcessor : IPreprocessBuildWithReport {
-        public int callbackOrder { get { return 0; } }
+        public int callbackOrder => 0;
+
         public void OnPreprocessBuild(BuildReport buildReport) {
             var versionSO = UnityX.Versioning.CurrentVersionSO.Instance;
 
@@ -55,7 +53,7 @@ namespace UnityX.Versioning {
             }
             currentVersion.version.buildTarget = EditorUserBuildSettings.activeBuildTarget.ToString();
             currentVersion.version.isDevelopment = Debug.isDebugBuild;
-            currentVersion.version.buildDateTimeString = System.DateTime.Now.ToString();
+            currentVersion.version.buildDateTimeString = System.DateTime.Now.ToString("u");
         }
     }
 }

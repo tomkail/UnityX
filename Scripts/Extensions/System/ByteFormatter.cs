@@ -1,6 +1,6 @@
 ﻿//https://en.wikipedia.org/wiki/Units_of_information#Systematic_multiples
 // Ignores KiB/KB debate. 1024 bytes = 1KB 
-public class ByteFormatter {
+public static class ByteFormatter {
 	public enum SI {
 		B,KB,MB,GB,TB,PB,EB
 	}

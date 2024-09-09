@@ -1,107 +1,118 @@
 ﻿using System;
-using System.Collections;
-using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
-public class ExtendedSlider : Slider {
+namespace UnityEngine.UI {
+	public class ExtendedSlider : Slider {
 
-	[System.Serializable]
-	public class SliderDownEvent : UnityEvent {}
-	
-	[System.Serializable]
-	public class SliderUpEvent : UnityEvent {}
-	
-	[System.Serializable]
-	public class SliderEnterEvent : UnityEvent {}
-	
-	[System.Serializable]
-	public class SliderExitEvent : UnityEvent {}
+		[Serializable]
+		public class SliderDownEvent : UnityEvent {
+		}
 
-	[System.Serializable]
-	public class SliderSelectEvent : UnityEvent<BaseEventData> {}
+		[Serializable]
+		public class SliderUpEvent : UnityEvent {
+		}
 
-	[System.Serializable]
-	public class SliderDeselectEvent : UnityEvent<BaseEventData> {}
+		[Serializable]
+		public class SliderEnterEvent : UnityEvent {
+		}
 
-	[System.Serializable]
-	public class SliderMoveEvent : UnityEvent {}
+		[Serializable]
+		public class SliderExitEvent : UnityEvent {
+		}
 
-	[System.Serializable]
-	public class SliderDragEvent : UnityEvent {}
+		[Serializable]
+		public class SliderSelectEvent : UnityEvent<BaseEventData> {
+		}
+
+		[Serializable]
+		public class SliderDeselectEvent : UnityEvent<BaseEventData> {
+		}
+
+		[Serializable]
+		public class SliderMoveEvent : UnityEvent {
+		}
+
+		[Serializable]
+		public class SliderDragEvent : UnityEvent {
+		}
 
 
-	public SliderDownEvent onDown = new SliderDownEvent();
-	public SliderUpEvent onUp = new SliderUpEvent();
-	public SliderEnterEvent onEnter = new SliderEnterEvent();
-	public SliderExitEvent onExit = new SliderExitEvent();
-	public SliderSelectEvent onSelect = new SliderSelectEvent();
-	public SliderDeselectEvent onDeselect = new SliderDeselectEvent();
-	public SliderMoveEvent onMove = new SliderMoveEvent();
-	public SliderDragEvent onDrag = new SliderDragEvent();
+		public SliderDownEvent onDown = new();
+		public SliderUpEvent onUp = new();
+		public SliderEnterEvent onEnter = new();
+		public SliderExitEvent onExit = new();
+		public SliderSelectEvent onSelect = new();
+		public SliderDeselectEvent onDeselect = new();
+		public SliderMoveEvent onMove = new();
+		public SliderDragEvent onDrag = new();
 
-	public override void OnPointerDown (PointerEventData eventData) {
-		base.OnPointerDown (eventData);
+		public override void OnPointerDown(PointerEventData eventData) {
+			base.OnPointerDown(eventData);
 
-		if (!IsActive() || !IsInteractable())
-            return;
-		onDown.Invoke();
-	}
+			if (!IsActive() || !IsInteractable())
+				return;
+			onDown.Invoke();
+		}
 
-	public override void OnPointerUp (PointerEventData eventData) {
-		base.OnPointerUp (eventData);
+		public override void OnPointerUp(PointerEventData eventData) {
+			base.OnPointerUp(eventData);
 
-		if (!IsActive() || !IsInteractable())
-            return;
-		onUp.Invoke();
-	}
+			if (!IsActive() || !IsInteractable())
+				return;
+			onUp.Invoke();
+		}
 
-	public override void OnPointerEnter (PointerEventData eventData) {
-		base.OnPointerEnter (eventData);
+		public override void OnPointerEnter(PointerEventData eventData) {
+			base.OnPointerEnter(eventData);
 
-		if (!IsActive() || !IsInteractable())
-            return;
-		onEnter.Invoke();
-	}
+			if (!IsActive() || !IsInteractable())
+				return;
+			onEnter.Invoke();
+		}
 
-	public override void OnPointerExit (PointerEventData eventData) {
-		base.OnPointerExit (eventData);
+		public override void OnPointerExit(PointerEventData eventData) {
+			base.OnPointerExit(eventData);
 
-		if (!IsActive() || !IsInteractable())
-            return;
-		onExit.Invoke();
-    }
+			if (!IsActive() || !IsInteractable())
+				return;
+			onExit.Invoke();
+		}
 
-	public override void OnSelect (BaseEventData eventData) {
-		base.OnSelect (eventData);
+		public override void OnSelect(BaseEventData eventData) {
+			base.OnSelect(eventData);
 
-		if (!IsActive() || !IsInteractable())
-            return;
-		onSelect.Invoke(eventData);
-	}
+			if (!IsActive() || !IsInteractable())
+				return;
+			onSelect.Invoke(eventData);
+		}
 
-	public override void OnDeselect (BaseEventData eventData) {
-		base.OnDeselect (eventData);
+		public override void OnDeselect(BaseEventData eventData) {
+			base.OnDeselect(eventData);
 
-		if (!IsActive() || !IsInteractable())
-            return;
-		onDeselect.Invoke(eventData);
-	}
+			if (!IsActive() || !IsInteractable())
+				return;
+			onDeselect.Invoke(eventData);
+		}
 
-	public override void OnMove (AxisEventData eventData) {
-		base.OnMove (eventData);
+		public override void OnMove(AxisEventData eventData) {
+			base.OnMove(eventData);
 
-		if (!IsActive() || !IsInteractable())
-            return;
-		onMove.Invoke();
-	}
+			if (!IsActive() || !IsInteractable())
+				return;
+			onMove.Invoke();
+		}
 
-	public override void OnDrag (PointerEventData eventData) {
-		base.OnDrag (eventData);
+		public override void OnDrag(PointerEventData eventData) {
+			base.OnDrag(eventData);
 
-		if (!IsActive() || !IsInteractable())
-            return;
-		onDrag.Invoke();
+			if (!MayDrag(eventData))
+				return;
+			onDrag.Invoke();
+		}
+
+		bool MayDrag(PointerEventData eventData) {
+			return IsActive() && IsInteractable() && eventData.button == PointerEventData.InputButton.Left;
+		}
 	}
 }

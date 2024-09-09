@@ -1,8 +1,5 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.EventSystems;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public static class CanvasX {
 	public static RectTransform GetRectTransform (this Canvas canvas) {
@@ -18,16 +15,18 @@ public static class CanvasX {
         canvas.enabled = true;
 	}
 
-	private static void GetCameraFromCanvas (Canvas canvas, ref Camera camera) {
+	public static Camera GetRenderCamera(this Canvas canvas) {
+		if(canvas.rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay) return null;
+		return canvas.rootCanvas.worldCamera;
+	}
+
+	static void GetCameraFromCanvas (Canvas canvas, ref Camera camera) {
 		if(canvas.rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay) {
 			camera = null;
 		} else if(canvas.rootCanvas.renderMode == RenderMode.ScreenSpaceCamera) {
 			camera = canvas.rootCanvas.worldCamera;
 		} else if(canvas.rootCanvas.renderMode == RenderMode.WorldSpace && camera == null) {
-			if(canvas.rootCanvas.worldCamera != null)
-				camera = canvas.rootCanvas.worldCamera;
-			else
-				Debug.LogError("Canvas is in world space, but camera is null and no event camera exists on canvas.");
+			camera = canvas.rootCanvas.worldCamera;
 		}
 	}
 
@@ -95,6 +94,7 @@ public static class CanvasX {
 	/// <returns>The point to local point in rectangle.</returns>
 	/// <param name="canvas">Canvas.</param>
 	/// <param name="camera">Camera.</param>
+	/// <param name="rectTransform"></param>
 	/// <param name="worldPosition">World position.</param>
 	public static Vector3? WorldPointToLocalPointInRectangle (this Canvas canvas, Camera camera, RectTransform rectTransform, Vector3 worldPosition) {
 		Vector3 screenPoint = camera.WorldToScreenPoint(worldPosition);
@@ -106,9 +106,8 @@ public static class CanvasX {
 	}
 
 	public static Vector3? ScreenPointToLocalPointInRectangle (this Canvas canvas, RectTransform rectTransform, Vector2 screenPoint) {
-		Camera camera = canvas.renderMode == RenderMode.ScreenSpaceCamera ? canvas.worldCamera : null;
 		Vector2 localPosition;
-		if(RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, screenPoint, camera, out localPosition))
+		if(RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, screenPoint, GetRenderCamera(canvas), out localPosition))
 			return localPosition;
 		else return null;
 	}
@@ -119,17 +118,15 @@ public static class CanvasX {
 	
 	
 	public static Vector3? ScreenPointToCanvasSpace(this Canvas canvas, Vector2 screenPoint) {
-		Camera camera = canvas.renderMode == RenderMode.ScreenSpaceCamera ? canvas.worldCamera : null;
-		Vector3 canvasSpace = Vector3.zero;
-        var rectTransform = canvas.GetComponent<RectTransform>();
-		if(RectTransformUtility.ScreenPointToWorldPointInRectangle(rectTransform, screenPoint, camera, out canvasSpace))
+		var rectTransform = canvas.GetComponent<RectTransform>();
+		if(RectTransformUtility.ScreenPointToWorldPointInRectangle(rectTransform, screenPoint, GetRenderCamera(canvas), out var canvasSpace))
 			return canvasSpace;
 		else return null;
 	}
 
 
     // Taken from https://github.com/Unity-Technologies/uGUI/blob/2019.1/UnityEngine.UI/UI/Core/Selectable.cs
-    private static readonly List<CanvasGroup> m_CanvasGroupCache = new List<CanvasGroup>();
+    static readonly List<CanvasGroup> m_CanvasGroupCache = new();
     public static bool CanvasGroupsAllowInteraction (GameObject gameObject) {
         // Figure out if parent groups allow interaction
         // If no interaction is alowed... then we need

@@ -16,7 +16,7 @@ public static class CreateEditorScriptMenuItem {
 		return asset == null;
 	}
 
-	[MenuItem("Assets/Create/Editor Script", false, 81)]
+	[MenuItem("Assets/Create/Editor Script", false, 80)]
 	public static void CreateEditorScript () {
 		var typeName = Selection.activeObject.name;
 		var directoryPath = Path.GetDirectoryName(AssetDatabase.GetAssetPath(Selection.activeObject));

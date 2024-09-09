@@ -1,17 +1,12 @@
 ﻿// A state machine inspired by Prime31's StateKit (https://github.com/prime31/StateKit/tree/master/Assets/StateKit).
 
-using System.Collections;
-using UnityEngine;
-using System.Collections.Generic;
-
 namespace UnityX.StateMachine {	
 	/// <summary>
 	/// State.
 	/// </summary>
 	public abstract class State<T> : IState<T> {
-	
 		public StateMachine<T> machine { get; private set; }
-		public T context { get {return machine.context;}}
+		public T context => machine.context;
 		public bool active { get; set; }
 		
 		/// <summary>
@@ -26,7 +21,7 @@ namespace UnityX.StateMachine {
 		public event OnEnterStateEvent OnEnter;
 		
 		/// <summary>
-		/// Occurs when the state machine exists this state/
+		/// Occurs when the state machine exists this state.
 		/// </summary>
 		public event OnExitStateEvent OnExit;
 		
@@ -73,7 +68,7 @@ namespace UnityX.StateMachine {
 		}
 		
 		/// <summary>
-		/// When the state is set as inactive, just before entering the new state.
+		/// When the state is set as inactive, just before entering the new state or when the state machine dies.
 		/// </summary>
 		public virtual void Exit() {
 			if(OnExit != null) OnExit();

@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 
 /// <summary>
@@ -8,7 +7,6 @@ using System.Collections.Generic;
 /// </summary>
 [System.Serializable]
 public struct SerializableCamera  {
-	
 	public const bool defaultOrthographic = false;
 	public const float defaultFieldOfView = 60;
 	public const float defaultOrthographicSize = 10;
@@ -20,19 +18,13 @@ public struct SerializableCamera  {
 	public SerializableTransform transform;
 	
 	public Vector3 position {
-		get {
-			return transform.position;
-		} set {
-			transform.position = value;
-		}
+		get => transform.position;
+		set => transform.position = value;
 	}
 	
 	public Quaternion rotation {
-		get {
-			return transform.rotation;
-		} set {
-			transform.rotation = value;
-		}
+		get => transform.rotation;
+		set => transform.rotation = value;
 	}
 
     bool _projectionMatrixSet;
@@ -70,9 +62,8 @@ public struct SerializableCamera  {
 	[SerializeField]
     bool _orthographic;
     public bool orthographic {
-        get {
-            return _orthographic;
-        } set {
+        get => _orthographic;
+        set {
             _orthographic = value;
             _projectionMatrixSet = false;
             _inverseProjectionMatrixSet = false;
@@ -83,9 +74,8 @@ public struct SerializableCamera  {
 	[SerializeField]
     float _orthographicSize;
     public float orthographicSize {
-        get {
-            return _orthographicSize;
-        } set {
+        get => _orthographicSize;
+        set {
             _orthographicSize = value;
             _projectionMatrixSet = false;
             _inverseProjectionMatrixSet = false;
@@ -96,9 +86,8 @@ public struct SerializableCamera  {
 	[SerializeField]
     float _fieldOfView;
     public float fieldOfView {
-        get {
-            return _fieldOfView;
-        } set {
+        get => _fieldOfView;
+        set {
             _fieldOfView = value;
             _projectionMatrixSet = false;
             _inverseProjectionMatrixSet = false;
@@ -108,9 +97,8 @@ public struct SerializableCamera  {
 	[SerializeField]
     float _nearClipPlane;
     public float nearClipPlane {
-        get {
-            return _nearClipPlane;
-        } set {
+        get => _nearClipPlane;
+        set {
             _nearClipPlane = value;
             _projectionMatrixSet = false;
             _inverseProjectionMatrixSet = false;
@@ -120,89 +108,91 @@ public struct SerializableCamera  {
 	[SerializeField]
     float _farClipPlane;
     public float farClipPlane {
-        get {
-            return _farClipPlane;
-        } set {
+        get => _farClipPlane;
+        set {
             _farClipPlane = value;
             _projectionMatrixSet = false;
             _inverseProjectionMatrixSet = false;
         }
     }
+	
+    // This allows using a custom screen instead of the game view. If true, you must supply values to customScreenParams; 
+    public bool useCustomScreen;
+    public ScreenParams customScreenParams;
+
+    public ScreenParams screenParams {
+	    get {
+		    if (useCustomScreen) return customScreenParams;
+		    else return ScreenParams.gameScreenParams;
+	    }
+    }
+    public float screenWidth => screenParams.width;
+    public float screenHeight => screenParams.height;
+    [System.Serializable]
+    public struct ScreenParams {
+	    public float width;
+	    public float height;
+
+	    public static ScreenParams @default => new ScreenParams(1920, 1080);
+	    public static ScreenParams gameScreenParams => new ScreenParams(gameScreenWidth, gameScreenHeight);
+	    
+	    // ARGH I hate this. It's necessary because screen/display don't return the values for game view in some editor contexts (using inspector windows, for example)
+	    public static int gameScreenWidth {
+		    get {
+#if UNITY_EDITOR
+			    var res = UnityEditor.UnityStats.screenRes.Split('x');
+			    var width = int.Parse(res[0]);
+			    if (width != 0) return width;
+#endif
+			    // Consider adding target displays, then replace with this.
+			    // Display.displays[0].renderingWidth
+			    return Screen.width;
+		    }
+	    }
+	    public static int gameScreenHeight {
+		    get {
+#if UNITY_EDITOR
+			    var res = UnityEditor.UnityStats.screenRes.Split('x');
+			    var height = int.Parse(res[1]);
+			    if (height != 0) return height;
+#endif
+			    // Consider adding target displays, then replace with this.
+			    // Display.displays[0].renderingHeight
+			    return Screen.height;
+		    }
+	    }
+
+	    public ScreenParams(float width, float height) {
+		    this.width = width;
+		    this.height = height;
+	    }
+    }
+    
     Rect _rect;
     public Rect rect {
-        get {
-            return _rect;
-        } set {
+        get => _rect;
+        set {
             _rect = value;
             _projectionMatrixSet = false;
             _inverseProjectionMatrixSet = false;
         }
     }
 
-    Rect clampedRect {
-        get {
-            return Rect.MinMaxRect(Mathf.Clamp01(rect.xMin),Mathf.Clamp01(rect.yMin),Mathf.Clamp01(rect.xMax),Mathf.Clamp01(rect.yMax));
-        }
-    }
-	public float aspect {
-        get {
-            return (screenWidth * clampedRect.width)/(screenHeight * clampedRect.height);
-        }
-    }
+    Rect clampedRect => Rect.MinMaxRect(Mathf.Clamp01(rect.xMin),Mathf.Clamp01(rect.yMin),Mathf.Clamp01(rect.xMax),Mathf.Clamp01(rect.yMax));
+    public float aspect => (screenWidth * clampedRect.width)/(screenHeight * clampedRect.height);
+    
+	public int pixelWidth => Mathf.RoundToInt(screenWidth * clampedRect.width);
 
-
-    public int pixelWidth {
-        get {
-            return Mathf.RoundToInt(screenWidth * clampedRect.width);
-        }
-    }
-    public int pixelHeight {
-        get {
-            return Mathf.RoundToInt(screenHeight * clampedRect.height);
-        }
-    }
-
-	// ARGH I hate this. It's necessary because screen/display don't return the values for game view in some editor contexts (using inspector windows, for example)
-	static int screenWidth {
-		get {
-			#if UNITY_EDITOR
-			var res = UnityEditor.UnityStats.screenRes.Split('x');
-			return int.Parse(res[0]);
-			#else
-			// Consider adding target displays, then replace with this.
-			// Display.displays[0].renderingWidth
-			return Screen.width;
-			#endif
-		}
-	}
-	static int screenHeight {
-		get {
-			#if UNITY_EDITOR
-			var res = UnityEditor.UnityStats.screenRes.Split('x');
-			return int.Parse(res[1]);
-			#else
-			// Consider adding target displays, then replace with this.
-			// Display.displays[0].renderingHeight
-			return Screen.height;
-			#endif
-		}
-	}
+	public int pixelHeight => Mathf.RoundToInt(screenHeight * clampedRect.height);
 
 
 	// https://docs.unity3d.com/ScriptReference/Camera-worldToCameraMatrix
 	// "Note that camera space matches OpenGL convention: camera's forward is the negative Z axis. This is different from Unity's convention, where forward is the positive Z axis."
-	public Matrix4x4 cameraToWorldMatrix {
-		get {
-			return Matrix4x4.TRS(position, rotation, new Vector3(1, 1, -1));
-		}
-	}
-	public Matrix4x4 worldToCameraMatrix {
-		get {
-			return cameraToWorldMatrix.inverse;
-		}
-	}
-	
-    // Not currently used since what screen conversion code is very tested, and this is less so - kept since handy for passing to shaders. 
+	public Matrix4x4 cameraToWorldMatrix => Matrix4x4.TRS(position, rotation, new Vector3(1, 1, -1));
+
+	public Matrix4x4 worldToCameraMatrix => cameraToWorldMatrix.inverse;
+
+	// Not currently used since what screen conversion code is very tested, and this is less so - kept since handy for passing to shaders. 
     public Matrix4x4 worldToCameraViewportMatrix {
         get {
             // Transform from (-0.5,-0.5)/(0.5,0.5) space to camera rect space
@@ -250,28 +240,49 @@ public struct SerializableCamera  {
 
 	public SerializableCamera (SerializableTransform transform) {
 		this.transform = transform;
-		this._fieldOfView = defaultFieldOfView;
-		this._nearClipPlane = defaultNearClipPlane;
-		this._farClipPlane = defaultFarClipPlane;
-		this._orthographic = defaultOrthographic;
-		this._orthographicSize = defaultOrthographicSize;
-        this._rect = defaultRect;
+		_fieldOfView = defaultFieldOfView;
+		_nearClipPlane = defaultNearClipPlane;
+		_farClipPlane = defaultFarClipPlane;
+		_orthographic = defaultOrthographic;
+		_orthographicSize = defaultOrthographicSize;
+        _rect = defaultRect;
+
+        useCustomScreen = false;
+        customScreenParams = ScreenParams.@default;
         
         _projectionMatrix = Matrix4x4.identity;
         _projectionMatrixSet = false;
         _inverseProjectionMatrix = Matrix4x4.identity;
         _inverseProjectionMatrixSet = false;
 	}
-	
+
+	// SerializableCamera() {
+	// 	transform = SerializableTransform.identity;
+	// 	_fieldOfView = defaultFieldOfView;
+	// 	_nearClipPlane = defaultNearClipPlane;
+	// 	_farClipPlane = defaultFarClipPlane;
+	// 	_orthographic = defaultOrthographic;
+	// 	_orthographicSize = defaultOrthographicSize;
+	// 	_rect = defaultRect;
+	//
+	// 	_projectionMatrix = Matrix4x4.identity;
+	// 	_projectionMatrixSet = false;
+	// 	_inverseProjectionMatrix = Matrix4x4.identity;
+	// 	_inverseProjectionMatrixSet = false;
+	// }
+
 	public SerializableCamera (Camera camera) {
 		Debug.Assert(camera);
-		this.transform = new SerializableTransform(camera.transform);
-		this._fieldOfView = camera.fieldOfView;
-		this._nearClipPlane = camera.nearClipPlane;
-		this._farClipPlane = camera.farClipPlane;
-		this._orthographic = camera.orthographic;
-		this._orthographicSize = camera.orthographicSize;
-        this._rect = camera.rect;
+		transform = new SerializableTransform(camera.transform);
+		_fieldOfView = camera.fieldOfView;
+		_nearClipPlane = camera.nearClipPlane;
+		_farClipPlane = camera.farClipPlane;
+		_orthographic = camera.orthographic;
+		_orthographicSize = camera.orthographicSize;
+        _rect = camera.rect;
+        
+        useCustomScreen = false;
+        customScreenParams = ScreenParams.@default;
 
         _projectionMatrix = Matrix4x4.identity;
         _projectionMatrixSet = false;
@@ -280,13 +291,16 @@ public struct SerializableCamera  {
 	}
 	
 	public SerializableCamera (Vector3 position, Quaternion rotation, float fieldOfView, float aspectRatio) {
-		this.transform = new SerializableTransform(position, rotation);
-		this._fieldOfView = fieldOfView;
-		this._nearClipPlane = defaultNearClipPlane;
-		this._farClipPlane = defaultFarClipPlane;
-		this._orthographic = defaultOrthographic;
-		this._orthographicSize = defaultOrthographicSize;
-        this._rect = defaultRect;
+		transform = new SerializableTransform(position, rotation);
+		_fieldOfView = fieldOfView;
+		_nearClipPlane = defaultNearClipPlane;
+		_farClipPlane = defaultFarClipPlane;
+		_orthographic = defaultOrthographic;
+		_orthographicSize = defaultOrthographicSize;
+        _rect = defaultRect;
+        
+        useCustomScreen = false;
+        customScreenParams = ScreenParams.@default;
         
         _projectionMatrix = Matrix4x4.identity;
         _projectionMatrixSet = false;
@@ -295,13 +309,16 @@ public struct SerializableCamera  {
 	}
 	
 	public SerializableCamera (Vector3 position, Quaternion rotation, float fieldOfView, float aspectRatio, float nearClipPlane, float farClipPlane) {
-		this.transform = new SerializableTransform(position, rotation);
-		this._fieldOfView = fieldOfView;
-		this._nearClipPlane = nearClipPlane;
-		this._farClipPlane = farClipPlane;
-		this._orthographic = defaultOrthographic;
-		this._orthographicSize = defaultOrthographicSize;
-        this._rect = defaultRect;
+		transform = new SerializableTransform(position, rotation);
+		_fieldOfView = fieldOfView;
+		_nearClipPlane = nearClipPlane;
+		_farClipPlane = farClipPlane;
+		_orthographic = defaultOrthographic;
+		_orthographicSize = defaultOrthographicSize;
+        _rect = defaultRect;
+        
+        useCustomScreen = false;
+        customScreenParams = ScreenParams.@default;
         
         _projectionMatrix = Matrix4x4.identity;
         _projectionMatrixSet = false;
@@ -321,23 +338,23 @@ public struct SerializableCamera  {
 	}
 
 	public void ApplyFrom(Camera camera) {
-		this.transform.ApplyFrom(camera.transform);
-		this.fieldOfView = camera.fieldOfView;
-		this.nearClipPlane = camera.nearClipPlane;
-		this.farClipPlane = camera.farClipPlane;
-		this.orthographic = camera.orthographic;
-		this.orthographicSize = camera.orthographicSize;
-        this.rect = camera.rect;
+		transform.ApplyFrom(camera.transform);
+		fieldOfView = camera.fieldOfView;
+		nearClipPlane = camera.nearClipPlane;
+		farClipPlane = camera.farClipPlane;
+		orthographic = camera.orthographic;
+		orthographicSize = camera.orthographicSize;
+        rect = camera.rect;
 	}
 
 	public void ApplyFrom(SerializableCamera camera) {
-		this.transform.ApplyFrom(camera.transform);
-		this.fieldOfView = camera.fieldOfView;
-		this.nearClipPlane = camera.nearClipPlane;
-		this.farClipPlane = camera.farClipPlane;
-		this.orthographic = camera.orthographic;
-		this.orthographicSize = camera.orthographicSize;
-        this.rect = camera.rect;
+		transform.ApplyFrom(camera.transform);
+		fieldOfView = camera.fieldOfView;
+		nearClipPlane = camera.nearClipPlane;
+		farClipPlane = camera.farClipPlane;
+		orthographic = camera.orthographic;
+		orthographicSize = camera.orthographicSize;
+        rect = camera.rect;
 	}
 	
     // This is different to Unity's Camera by a tiny amount when the camera's rect is small. 
@@ -364,27 +381,41 @@ public struct SerializableCamera  {
 		viewportPoint.x = (viewportPoint.x - 0.5f) * 2;
 		viewportPoint.y = (viewportPoint.y - 0.5f) * 2;
 		
-        Vector3 p1 = new Vector3(viewportPoint.x, viewportPoint.y, -1);
-		Vector3 p2 = new Vector3(viewportPoint.x, viewportPoint.y, 1);
-		
-		Vector3 worldPointNear = inverseProjectionMatrix.MultiplyPoint(p1);
-		Vector3 worldPointFar = inverseProjectionMatrix.MultiplyPoint(p2);
-		// Compensate for Unity's inverted z
-        worldPointNear.z = -worldPointNear.z;
-        worldPointFar.z = -worldPointFar.z;
-		
-		// Create a direction that can be projected forward in world space.
-		Vector3 dir = worldPointFar-worldPointNear;
-		Vector3 normalizedDir = dir.normalized;
-		
-		// Get the length of the vector required to reach the target direction when using the direction we just calculated.
-		float dotLength = Vector3.Dot (Vector3.forward, normalizedDir);
-		// Debug.Log(dotLength);
-		Vector3 point = normalizedDir * viewportPoint.z/dotLength;
-		
-		// Get this point relative to the camera
-		point = transform.localToWorldDirectionMatrix.MultiplyPoint(point);
-		return point;
+		// Orthographic has to be handled separately because the method below assumes that two points at different distances will have a direction different from that of the camera.
+		// That said, it's just a simpler version of the same code.
+		if (orthographic) {
+			Vector3 p2 = new Vector3(viewportPoint.x, viewportPoint.y, 1);
+			Vector3 worldPointFar = inverseProjectionMatrix.MultiplyPoint(p2);
+			Vector3 point = new Vector3(worldPointFar.x, worldPointFar.y, viewportPoint.z);
+			
+			// Get this point relative to the camera
+			point = transform.localToWorldDirectionMatrix.MultiplyPoint(point);
+			return point;
+		}
+		// This works by tracing a ray in a direction defined by the viewport point and getting it at a distance in the direction of the camera
+		else {
+			Vector3 p1 = new Vector3(viewportPoint.x, viewportPoint.y, -1);
+			Vector3 p2 = new Vector3(viewportPoint.x, viewportPoint.y, 1);
+
+			Vector3 worldPointNear = inverseProjectionMatrix.MultiplyPoint(p1);
+			Vector3 worldPointFar = inverseProjectionMatrix.MultiplyPoint(p2);
+			// Compensate for Unity's inverted z
+			worldPointNear.z = -worldPointNear.z;
+			worldPointFar.z = -worldPointFar.z;
+
+			// Create a direction that can be projected forward in world space.
+			Vector3 dir = worldPointFar - worldPointNear;
+			Vector3 normalizedDir = dir.normalized;
+
+			// Get the length of the vector required to reach the target direction when using the direction we just calculated.
+			float dotLength = Vector3.Dot(Vector3.forward, normalizedDir);
+			// Debug.Log(dotLength);
+			Vector3 point = normalizedDir * viewportPoint.z / dotLength;
+
+			// Get this point relative to the camera
+			point = transform.localToWorldDirectionMatrix.MultiplyPoint(point);
+			return point;
+		}
 	}
 
 	public Ray ViewportPointToRay (Vector3 viewportPoint) {
@@ -407,12 +438,12 @@ public struct SerializableCamera  {
 		return new Ray(transform.localToWorldDirectionMatrix.MultiplyPoint(worldPointNear), transform.localToWorldDirectionMatrix.MultiplyVector(normalizedDir));
 	}
 	
-	public Vector2 ScreenToWorldPoint (Vector3 screenPoint) {
-		return ViewportToWorldPoint(Vector2.Scale(screenPoint, new Vector2(1f/screenWidth, 1f/screenHeight)));
+	public Vector3 ScreenToWorldPoint (Vector3 screenPoint) {
+		return ViewportToWorldPoint(new Vector3(screenPoint.x * 1f/screenWidth, screenPoint.y * 1f/screenHeight, screenPoint.z));
 	}
 	
 	public Ray ScreenPointToRay (Vector3 screenPoint) {
-		return ViewportPointToRay(Vector2.Scale(screenPoint, new Vector2(1f/screenWidth, 1f/screenHeight)));
+		return ViewportPointToRay(new Vector3(screenPoint.x * 1f/screenWidth, screenPoint.y * 1f/screenHeight, screenPoint.z));
 	}
 
     public Vector3 ScreenToViewportPoint (Vector3 screenPoint) {
@@ -548,6 +579,7 @@ public struct SerializableCamera  {
 		return CameraX.ConvertFrustumHeightToFrustumWidth(frustumHeight, aspect);
 	}
 	
+	
 	public void DrawGizmos () {
 		var cachedMatrix = Gizmos.matrix;
 		Gizmos.matrix = Matrix4x4.TRS(position, rotation, Vector3.one);
@@ -561,7 +593,41 @@ public struct SerializableCamera  {
 		Gizmos.matrix = cachedMatrix;
 	}
 
+	public static SerializableCamera Lerp(SerializableCamera a, SerializableCamera b, float l) {
+		return new SerializableCamera() {
+			transform = SerializableTransform.Lerp(a.transform, b.transform, l),
+			orthographic = l < 0.5f ? a.orthographic : b.orthographic,
+			orthographicSize = Mathf.Lerp(a.orthographicSize, b.orthographicSize, l),
+			fieldOfView = Mathf.Lerp(a.fieldOfView, b.fieldOfView, l),
+			nearClipPlane = Mathf.Lerp(a.nearClipPlane, b.nearClipPlane, l),
+			farClipPlane = Mathf.Lerp(a.farClipPlane, b.farClipPlane, l),
+			rect = Rect.MinMaxRect(
+				Mathf.Lerp(a.rect.min.x, b.rect.min.x, l),
+				Mathf.Lerp(a.rect.min.y, b.rect.min.y, l),
+				Mathf.Lerp(a.rect.max.x, b.rect.max.x, l),
+				Mathf.Lerp(a.rect.max.y, b.rect.max.y, l)
+			)
+		};
+	}
+	
+	public static SerializableCamera LerpUnclamped(SerializableCamera a, SerializableCamera b, float l) {
+		return new SerializableCamera() {
+			transform = SerializableTransform.LerpUnclamped(a.transform, b.transform, l),
+			orthographic = l < 0.5f ? a.orthographic : b.orthographic,
+			orthographicSize = Mathf.LerpUnclamped(a.orthographicSize, b.orthographicSize, l),
+			fieldOfView = Mathf.LerpUnclamped(a.fieldOfView, b.fieldOfView, l),
+			nearClipPlane = Mathf.LerpUnclamped(a.nearClipPlane, b.nearClipPlane, l),
+			farClipPlane = Mathf.LerpUnclamped(a.farClipPlane, b.farClipPlane, l),
+			rect = Rect.MinMaxRect(
+				Mathf.LerpUnclamped(a.rect.min.x, b.rect.min.x, l),
+				Mathf.LerpUnclamped(a.rect.min.y, b.rect.min.y, l),
+				Mathf.LerpUnclamped(a.rect.max.x, b.rect.max.x, l),
+				Mathf.LerpUnclamped(a.rect.max.y, b.rect.max.y, l)
+			)
+		};
+	}
+	
 	public override string ToString () {
-		return string.Format ("[SerializableCamera: position={0}, rotation={1}, field of view={2}, aspect={3}, near={4}, far={5}, rect={6}, orthSize={7}]", position, rotation, fieldOfView, aspect, nearClipPlane, farClipPlane, rect, orthographicSize);
+		return $"[SerializableCamera: position={position}, rotation={rotation}, field of view={fieldOfView}, aspect={aspect}, near={nearClipPlane}, far={farClipPlane}, rect={rect}, orthSize={orthographicSize}]";
 	}
 }

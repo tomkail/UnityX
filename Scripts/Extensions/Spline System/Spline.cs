@@ -50,11 +50,61 @@ namespace SplineSystem {
 			}
 		}
 		public Bounds bounds;
-		
-		public Spline (params SplineBezierPoint[] bezierPoints) {
+
+		public Spline(params SplineBezierPoint[] bezierPoints) {
 			this.bezierPoints = bezierPoints;
 			RefreshCurveData();
 		}
+
+		
+		// This creates a spline that runs through the points, placing control points at a specified distance from the points in the direction of the previous/next points.
+		public static Spline CreateFromPoints (IList<Vector3> points, IList<Quaternion> rotations, float normalizedControlPointDistance = 0.25f) {
+			Debug.Assert(points.Count == rotations.Count);
+			var numSplinePoints = points.Count;
+			var bezierPoints = new SplineBezierPoint[numSplinePoints];
+			for (int i = 0; i < numSplinePoints; i++) {
+				var point = points[i];
+				var rotation = rotations[i];
+				var previousControlPointDistanceMultiplier = 0f;
+				var nextControlPointDistanceMultiplier = 0f;
+				if(i == 0) {
+					var vectorToNext = points[i+1] - points[i];
+					previousControlPointDistanceMultiplier = nextControlPointDistanceMultiplier = vectorToNext.magnitude;
+				} else if(i == numSplinePoints-1) {
+					var vectorFromPrevious = points[i] - points[i-1];
+					previousControlPointDistanceMultiplier = nextControlPointDistanceMultiplier = vectorFromPrevious.magnitude;
+				} else {
+					var vectorToNext = points[i+1] - points[i];
+					nextControlPointDistanceMultiplier = vectorToNext.magnitude;
+					var vectorFromPrevious = points[i] - points[i-1];
+					previousControlPointDistanceMultiplier = vectorFromPrevious.magnitude;
+				}
+				bezierPoints[i] = new SplineBezierPoint(point, rotation, previousControlPointDistanceMultiplier * normalizedControlPointDistance, nextControlPointDistanceMultiplier * normalizedControlPointDistance);
+			}
+			return new Spline(bezierPoints);
+		}
+		
+		// This creates a spline that runs through the points, placing control points at a specified distance from the points in the direction of the previous/next points.
+		public static Spline CreateFromPoints (IList<Vector3> points, Vector3 upVector, float normalizedControlPointDistance = 0.25f) {
+			var numSplinePoints = points.Count;
+			var bezierPoints = new SplineBezierPoint[numSplinePoints];
+			for (int i = 0; i < numSplinePoints; i++) {
+				bezierPoints[i] = new SplineBezierPoint(points[i], Quaternion.identity, 1, 1);
+			}
+
+			for (int i = 0; i < numSplinePoints; i++) {
+				SetBezierPointToAuto(bezierPoints, i, upVector, normalizedControlPointDistance);
+			}
+
+			return new Spline(bezierPoints);
+		}
+
+		public static void SetBezierPointToAuto(SplineBezierPoint[] splineBezierPoints, int i, Vector3 upVector, float normalizedControlPointDistance = 0.25f) {
+			var previousBezierPointPosition = i > 0 ? (Vector3?)splineBezierPoints[i-1].position : null;
+			var nextBezierPointPosition = i < splineBezierPoints.Length-1 ? (Vector3?)splineBezierPoints[i+1].position : null;
+			splineBezierPoints[i] = SplineBezierPoint.CreateAuto(splineBezierPoints[i].position, previousBezierPointPosition, nextBezierPointPosition, upVector, normalizedControlPointDistance);
+		}
+
 
 		// Creates a smoothed version of the line defined by the points. The spline doesn't run through the points, but follows its shape.
 		// This means a line with a right angle produces a curve that doesn't include a point at the right angle, but curves inside it.
@@ -63,7 +113,7 @@ namespace SplineSystem {
 		// normalizedControlPointDistance defines how far the control points are. 
 		// This shouldn't be further than normalizedBezierPositionBetweenPoints if you want smooth curves.
 		// Half normalizedBezierPositionBetweenPoints is a good default for smooth curves.
-		public static Spline CreateFromPoints (IList<Vector3> points, Vector3 upVector, float normalizedBezierPositionBetweenPoints = 0.5f, float normalizedControlPointDistance = 0.25f) {
+		public static Spline CreateFromPointsInterpolated (IList<Vector3> points, Vector3 upVector, float normalizedBezierPositionBetweenPoints = 0.5f, float normalizedControlPointDistance = 0.25f) {
 			if(points.Count <= 1) {
 				Debug.LogError("Can't create spline because points array only has "+points.Count+" items");
 				return null;
@@ -103,7 +153,6 @@ namespace SplineSystem {
 						controlPointDistanceMultiplier = vectorToNext.magnitude;
 						rotation = Quaternion.LookRotation(vectorToNext, upVector);
 					} else if(i == numSplinePoints-1) {
-						point = points[index];
 						var vectorFromPrevious = points[index] - points[index-1];
 						controlPointDistanceMultiplier = vectorFromPrevious.magnitude;
 						rotation = Quaternion.LookRotation(vectorFromPrevious, upVector);
@@ -117,32 +166,6 @@ namespace SplineSystem {
 					}
 					bezierPoints[i] = new SplineBezierPoint(point, rotation, controlPointDistanceMultiplier * normalizedControlPointDistance, controlPointDistanceMultiplier * normalizedControlPointDistance);
 				}
-			}
-			return new Spline(bezierPoints);
-		}
-
-		public static Spline CreateFromPoints (IList<Vector3> points, IList<Quaternion> rotations, float normalizedControlPointDistance = 0.25f) {
-			Debug.Assert(points.Count == rotations.Count);
-			var numSplinePoints = points.Count;
-			var bezierPoints = new SplineBezierPoint[numSplinePoints];
-			for (int i = 0; i < numSplinePoints; i++) {
-				var point = points[i];
-				var rotation = rotations[i];
-				var previousControlPointDistanceMultiplier = 0f;
-				var nextControlPointDistanceMultiplier = 0f;
-				if(i == 0) {
-					var vectorToNext = points[i+1] - points[i];
-					previousControlPointDistanceMultiplier = nextControlPointDistanceMultiplier = vectorToNext.magnitude;
-				} else if(i == numSplinePoints-1) {
-					var vectorFromPrevious = points[i] - points[i-1];
-					previousControlPointDistanceMultiplier = nextControlPointDistanceMultiplier = vectorFromPrevious.magnitude;
-				} else {
-					var vectorToNext = points[i+1] - points[i];
-					nextControlPointDistanceMultiplier = vectorToNext.magnitude;
-					var vectorFromPrevious = points[i] - points[i-1];
-					previousControlPointDistanceMultiplier = vectorFromPrevious.magnitude;
-				}
-				bezierPoints[i] = new SplineBezierPoint(point, rotation, previousControlPointDistanceMultiplier * normalizedControlPointDistance, nextControlPointDistanceMultiplier * normalizedControlPointDistance);
 			}
 			return new Spline(bezierPoints);
 		}
@@ -223,7 +246,7 @@ namespace SplineSystem {
 			return Mathf.Clamp(targetArcLength, 0, length);
 		}
 
-		static List<float> sqrDistances = new List<float>();
+		static List<float> sqrDistances = new();
 		static void RemoveCurves (Vector3 position, ref List<SplineBezierCurve> curvesToTry, int numSamples, ref float smallestSqrDistance) {
 			if(curvesToTry.Count <= 1) return;
 
@@ -307,7 +330,7 @@ namespace SplineSystem {
 		// This isn't *perfectly* accurate, although it's pretty damned close. 
 		// Works by finding the best curve, subdividing that curve, then finally lerping between the resultant line
 		// Accuracy will depend on numArcLengthsForArcLengthToTCalculation and maxSqrDistanceToSpline and maxRange variables in this function.
-		static List<SplineBezierCurve> curvesToTry = new List<SplineBezierCurve>();
+		static List<SplineBezierCurve> curvesToTry = new();
 		public float EstimateArcLengthAlongCurve (Vector3 position, bool clampAtStart = false, bool clampAtEnd = false) {
 			if(curves == null || curves.Length == 0) {
 				Debug.LogError("No curves in spline");
@@ -530,8 +553,8 @@ namespace SplineSystem {
 			}
 			if(bezierPoints == null || bezierPoints.Length < 2) {
                 bezierPoints = new SplineBezierPoint[] {
-                    new SplineBezierPoint(new Vector3(-1,1,0), Quaternion.LookRotation(Vector3.right, Vector3.forward), 1f, 1f),
-                    new SplineBezierPoint(new Vector3(1,-1,0), Quaternion.LookRotation(Vector3.right, Vector3.forward), 1f, 1f)
+                    new(new Vector3(-1,1,0), Quaternion.LookRotation(Vector3.right, Vector3.forward), 1f, 1f),
+                    new(new Vector3(1,-1,0), Quaternion.LookRotation(Vector3.right, Vector3.forward), 1f, 1f)
                 };
                 didChange = true;
             } else {
@@ -541,21 +564,21 @@ namespace SplineSystem {
                         didChange = true;
                     }
                     
-                    if(bezierPoints[i].inControlPoint.directionSign != -1) {
-                        bezierPoints[i].inControlPoint.directionSign = -1;
+                    if(bezierPoints[i].inControlPoint.directionSign != SplineBezierControlPoint.DirectionSign.In) {
+	                    bezierPoints[i].inControlPoint = SplineBezierControlPoint.In(bezierPoints[i].inControlPoint.distance);
                         didChange = true;
                     }
                     if(bezierPoints[i].inControlPoint.distance < 0) {
-                        bezierPoints[i].inControlPoint.distance = 0;
+	                    bezierPoints[i].inControlPoint = SplineBezierControlPoint.In(0);
                         didChange = true;
                     }
 
-                    if(bezierPoints[i].outControlPoint.directionSign != 1) {
-                        bezierPoints[i].outControlPoint.directionSign = 1;
+                    if(bezierPoints[i].outControlPoint.directionSign != SplineBezierControlPoint.DirectionSign.Out) {
+	                    bezierPoints[i].outControlPoint = SplineBezierControlPoint.Out(bezierPoints[i].outControlPoint.distance);
                         didChange = true;
                     }
                     if(bezierPoints[i].outControlPoint.distance < 0) {
-                        bezierPoints[i].outControlPoint.distance = 0;
+                        bezierPoints[i].outControlPoint = SplineBezierControlPoint.Out(0);
                         didChange = true;
                     }
                 }

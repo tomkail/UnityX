@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// Serializable implementation of transform class. 
@@ -7,15 +6,12 @@ using UnityEngine;
 /// </summary>
 [System.Serializable]
 public struct SerializableTransform {
-	public static SerializableTransform identity {
-		get {
-			return new SerializableTransform(Vector3.zero, Quaternion.identity, Vector3.one);
-		}
-	}
+	public static SerializableTransform identity => new(Vector3.zero, Quaternion.identity, Vector3.one);
+
 	public SerializableTransform (Vector3 _position) {
 		this._position = _position;
-		this._rotation = Quaternion.identity;
-		this._localScale = Vector3.one;
+		_rotation = Quaternion.identity;
+		_localScale = Vector3.one;
         
         _localToWorldMatrix = Matrix4x4.identity;
         _localToWorldMatrixSet = false;
@@ -30,7 +26,7 @@ public struct SerializableTransform {
 	public SerializableTransform (Vector3 _position, Quaternion _rotation) {
 		this._position = _position;
 		this._rotation = _rotation;
-		this._localScale = Vector3.one;
+		_localScale = Vector3.one;
         
         _localToWorldMatrix = Matrix4x4.identity;
         _localToWorldMatrixSet = false;
@@ -44,8 +40,8 @@ public struct SerializableTransform {
 	
 	public SerializableTransform (Vector3 _position, Vector3 _eulerAngles) {
 		this._position = _position;
-		this._rotation = Quaternion.Euler (_eulerAngles);
-		this._localScale = Vector3.one;
+		_rotation = Quaternion.Euler (_eulerAngles);
+		_localScale = Vector3.one;
         
         _localToWorldMatrix = Matrix4x4.identity;
         _localToWorldMatrixSet = false;
@@ -74,7 +70,7 @@ public struct SerializableTransform {
 	
 	public SerializableTransform (Vector3 _position, Vector3 _eulerAngles, Vector3 _localScale) {
 		this._position = _position;
-		this._rotation = Quaternion.Euler (_eulerAngles);
+		_rotation = Quaternion.Euler (_eulerAngles);
 		this._localScale = _localScale;
         
         _localToWorldMatrix = Matrix4x4.identity;
@@ -88,9 +84,9 @@ public struct SerializableTransform {
 	}
 	
 	public SerializableTransform (Transform transform) {
-		this._position = transform.position;
-		this._rotation = transform.rotation;
-		this._localScale = transform.localScale;
+		_position = transform.position;
+		_rotation = transform.rotation;
+		_localScale = transform.localScale;
         
         _localToWorldMatrix = Matrix4x4.identity;
         _localToWorldMatrixSet = false;
@@ -103,9 +99,9 @@ public struct SerializableTransform {
 	}
 
 	public SerializableTransform (SerializableTransform transform) {
-		this._position = transform.position;
-		this._rotation = transform.rotation;
-		this._localScale = transform.localScale;
+		_position = transform.position;
+		_rotation = transform.rotation;
+		_localScale = transform.localScale;
         
         _localToWorldMatrix = Matrix4x4.identity;
         _localToWorldMatrixSet = false;
@@ -118,27 +114,27 @@ public struct SerializableTransform {
 	}
 
 	public void ApplyFrom(Transform transform) {
-		this.position = transform.position;
-		this.rotation = transform.rotation;
-		this.localScale = transform.localScale;
+		position = transform.position;
+		rotation = transform.rotation;
+		localScale = transform.localScale;
 	}
 
 	public void ApplyFrom(SerializableTransform transform) {
-		this.position = transform.position;
-		this.rotation = transform.rotation;
-		this.localScale = transform.localScale;
+		position = transform.position;
+		rotation = transform.rotation;
+		localScale = transform.localScale;
 	}
 
 	public void ApplyTo (Transform transform) {
-		transform.position = this.position;
-		transform.rotation = this.rotation;
-		transform.localScale = this.localScale;
+		transform.position = position;
+		transform.rotation = rotation;
+		transform.localScale = localScale;
 	}
 
 	public void ApplyToLocal (Transform transform) {
-		transform.localPosition = this.position;
-		transform.localRotation = this.rotation;
-		transform.localScale = this.localScale;
+		transform.localPosition = position;
+		transform.localRotation = rotation;
+		transform.localScale = localScale;
 	}
 
 	public static SerializableTransform FromLocal(Transform transform)
@@ -172,10 +168,7 @@ public struct SerializableTransform {
 	private Vector3 _position;
 	public Vector3 position
 	{
-		get
-		{
-			return _position;
-		}
+		get => _position;
 		set
 		{
 			_position = value;
@@ -191,10 +184,7 @@ public struct SerializableTransform {
 	private Quaternion _rotation;
 	public Quaternion rotation
 	{
-		get
-		{
-			return _rotation;
-		}
+		get => _rotation;
 		set
 		{
 			_rotation = value;
@@ -207,24 +197,15 @@ public struct SerializableTransform {
 
 	public Vector3 eulerAngles
 	{
-		get
-		{
-			return this.rotation.eulerAngles;
-		}
-		set
-		{
-			this.rotation = Quaternion.Euler (value);
-		}
+		get => rotation.eulerAngles;
+		set => rotation = Quaternion.Euler (value);
 	}
 
 	[SerializeField]
 	private Vector3 _localScale;
 	public Vector3 localScale
 	{
-		get
-		{
-			return _localScale;
-		}
+		get => _localScale;
 		set
 		{
 			_localScale = value;
@@ -235,38 +216,20 @@ public struct SerializableTransform {
 	
 	public Vector3 forward
 	{
-		get
-		{
-			return this.rotation * Vector3.forward;
-		}
-		set
-		{
-			this.rotation = Quaternion.LookRotation (value);
-		}
+		get => rotation * Vector3.forward;
+		set => rotation = Quaternion.LookRotation (value);
 	}
 
 	public Vector3 right
 	{
-		get
-		{
-			return this.rotation * Vector3.right;
-		}
-		set
-		{
-			this.rotation = Quaternion.FromToRotation (Vector3.right, value);
-		}
+		get => rotation * Vector3.right;
+		set => rotation = Quaternion.FromToRotation (Vector3.right, value);
 	}
 	
 	public Vector3 up
 	{
-		get
-		{
-			return this.rotation * Vector3.up;
-		}
-		set
-		{
-			this.rotation = Quaternion.FromToRotation (Vector3.up, value);
-		}
+		get => rotation * Vector3.up;
+		set => rotation = Quaternion.FromToRotation (Vector3.up, value);
 	}
 
     bool _worldToLocalMatrixSet;
@@ -286,7 +249,7 @@ public struct SerializableTransform {
         get {
             if(!_localToWorldMatrixSet) {
                 _localToWorldMatrixSet = true;
-                _localToWorldMatrix = Matrix4x4.TRS(this.position, this.rotation, this.localScale);
+                _localToWorldMatrix = Matrix4x4.TRS(position, rotation, localScale);
             }
             return _localToWorldMatrix;
         }
@@ -320,7 +283,7 @@ public struct SerializableTransform {
 	// Methods
 	//
 	public void Rotate (float xAngle, float yAngle, float zAngle, Space relativeTo = Space.Self) {
-		this.Rotate (new Vector3 (xAngle, yAngle, zAngle), relativeTo);
+		Rotate (new Vector3 (xAngle, yAngle, zAngle), relativeTo);
 	}
 	
 	public void Rotate (Vector3 axis, float angle, Space relativeTo = Space.Self) {
@@ -351,39 +314,39 @@ public struct SerializableTransform {
 	{
 		if (relativeTo)
 		{
-			this.position += relativeTo.TransformDirection (translation);
+			position += relativeTo.TransformDirection (translation);
 		}
 		else
 		{
-			this.position += translation;
+			position += translation;
 		}
 	}
 	
 	public void Translate (float x, float y, float z, Transform relativeTo)
 	{
-		this.Translate (new Vector3 (x, y, z), relativeTo);
+		Translate (new Vector3 (x, y, z), relativeTo);
 	}
 	
 	public void Translate (float x, float y, float z, Space relativeTo = Space.Self)
 	{
-		this.Translate (new Vector3 (x, y, z), relativeTo);
+		Translate (new Vector3 (x, y, z), relativeTo);
 	}
 	
 	public void Translate (Vector3 translation, Space relativeTo = Space.Self)
 	{
 		if (relativeTo == Space.World)
 		{
-			this.position += translation;
+			position += translation;
 		}
 		else
 		{
-			this.position += rotation * translation;
+			position += rotation * translation;
 		}
 	}
 
 	
 	public Vector3 InverseTransformDirection (float x, float y, float z) {
-		return this.InverseTransformDirection (new Vector3 (x, y, z));
+		return InverseTransformDirection (new Vector3 (x, y, z));
 	}
 	
 	public Vector3 InverseTransformDirection (Vector3 direction) {
@@ -392,7 +355,7 @@ public struct SerializableTransform {
 	}
 	
 	public Vector3 InverseTransformPoint (float x, float y, float z) {
-		return this.InverseTransformPoint (new Vector3 (x, y, z));
+		return InverseTransformPoint (new Vector3 (x, y, z));
 	}
 	
 	public Vector3 InverseTransformPoint (Vector3 position) {
@@ -401,7 +364,7 @@ public struct SerializableTransform {
 	}
 	
 	public Vector3 InverseTransformVector (float x, float y, float z) {
-		return this.InverseTransformVector (new Vector3 (x, y, z));
+		return InverseTransformVector (new Vector3 (x, y, z));
 	}
 	
 	public Vector3 InverseTransformVector (Vector3 vector) {
@@ -411,7 +374,7 @@ public struct SerializableTransform {
 	
 	
 	public Vector3 TransformDirection (float x, float y, float z) {
-		return this.TransformDirection (new Vector3 (x, y, z));
+		return TransformDirection (new Vector3 (x, y, z));
 	}
 	
 	public Vector3 TransformDirection (Vector3 direction) {
@@ -421,7 +384,7 @@ public struct SerializableTransform {
 	}
 	
 	public Vector3 TransformPoint (float x, float y, float z) {
-		return this.TransformPoint (new Vector3 (x, y, z));
+		return TransformPoint (new Vector3 (x, y, z));
 	}
 	
 	public Vector3 TransformPoint (Vector3 position) {
@@ -435,7 +398,7 @@ public struct SerializableTransform {
 	}
 	
 	public Vector3 TransformVector (float x, float y, float z) {
-		return this.TransformVector (new Vector3 (x, y, z));
+		return TransformVector (new Vector3 (x, y, z));
 	}
 
 
@@ -480,7 +443,7 @@ public struct SerializableTransform {
 	}
 
 	public static bool operator == (SerializableTransform left, SerializableTransform right) {
-		if (System.Object.ReferenceEquals(left, right))
+		if (ReferenceEquals(left, right))
 		{
 			return true;
 		}

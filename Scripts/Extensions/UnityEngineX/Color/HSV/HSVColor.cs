@@ -1,6 +1,8 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
+using Object = System.Object;
 
-[System.Serializable]
+[Serializable]
 public class HSVColor {
 	public float h;
 	public float s;
@@ -18,7 +20,7 @@ public class HSVColor {
         this.h = h;
         this.s = s;
         this.v = v;
-        this.a = 1f;
+        a = 1f;
     }
  
     public HSVColor(Color col) {
@@ -197,8 +199,8 @@ public class HSVColor {
         return new HSVColor(left.h-right.h, left.s-right.s, left.v-right.v, left.a-right.a);
     }
     
-    public override bool Equals(System.Object obj) {
-        return obj is HSVColor && this == (HSVColor)obj;
+    public override bool Equals(Object obj) {
+        return obj is HSVColor color && this == color;
     }
 
     public bool Equals(HSVColor p) {

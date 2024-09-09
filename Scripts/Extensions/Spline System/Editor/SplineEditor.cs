@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 
 
@@ -15,9 +12,8 @@ namespace SplineSystem {
 
 		bool _editing;
 		public bool editing {
-			get {
-				return _editing;
-			} set {
+			get => _editing;
+			set {
 				_editing = value;
 				if(_editing) Tools.hidden = true;
 				else Tools.hidden = false;
@@ -45,11 +41,8 @@ namespace SplineSystem {
 		public bool in2DMode;
 		public Plane localPlaneFor2DMode = new Plane(Vector3.forward, Vector3.zero);
 
-		bool creationMode {
-			get {
-				return editing && Event.current.shift;
-			}
-		}
+		bool creationMode => editing && Event.current.shift;
+
 		bool deletionMode {
 			get {
 				#if UNITY_EDITOR_WIN 
@@ -251,8 +244,9 @@ namespace SplineSystem {
 			if(controlPointPosition != newControlPointPosition) {
 				// This doesn't work very well when using a matrix with non-uniform scale. This rotation approach seems to help a little bit it's ultimately a bit broken.
 				controlPointRotation = matrix.rotation * controlPoint.GetRotation(bezierPoint);
+				var controlPointDistance = Vector3.Dot(matrix.inverse.MultiplyPoint3x4(newControlPointPosition) - matrix.inverse.MultiplyPoint3x4(bezierPointPosition), controlPointRotation * Vector3.forward);
+				controlPoint = controlPoint.WithDistance(controlPointDistance);
 				
-				controlPoint.distance = Vector3.Dot(matrix.inverse.MultiplyPoint3x4(newControlPointPosition) - matrix.inverse.MultiplyPoint3x4(bezierPointPosition), controlPointRotation * Vector3.forward);
 				changed = true;
 			}
 		}

@@ -25,7 +25,6 @@
 //	}
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace UnityX.StateMachine {
@@ -38,7 +37,7 @@ namespace UnityX.StateMachine {
 		/// </summary>
 		public T context { get; private set; }
 		
-		public delegate void OnStateChangedEvent(System.Type lastStateType, System.Type newStateType);
+		public delegate void OnStateChangedEvent(Type lastStateType, Type newStateType);
 		public event OnStateChangedEvent OnStateChanged;
 		
 		/// <summary>
@@ -52,7 +51,7 @@ namespace UnityX.StateMachine {
 		/// </summary>
 		public State<T> previousState { get; private set; }
 		
-		private Dictionary<System.Type, State<T>> states = new Dictionary<System.Type, State<T>>();
+		private Dictionary<Type, State<T>> states = new Dictionary<Type, State<T>>();
 
 		// Create a state machine without a default state (not recommended).
 		public StateMachine(T context) {
@@ -94,6 +93,7 @@ namespace UnityX.StateMachine {
 				return currentState as R;
 			
 			if(!ContainsState<R>()) {
+				// AddState(new R());
 				DebugX.LogError(this, "State " + newType.Name + " does not exist on "+context+". Did you forget to add it by calling addState? Current state will remain active.");
 				return null;
 			}

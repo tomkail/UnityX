@@ -3,11 +3,7 @@ using UnityEditor;
 
 public abstract class BaseAttributePropertyDrawer<T> : PropertyDrawer where T : PropertyAttribute {
 
-	protected new T attribute {
-        get {
-        	return (T)base.attribute;
-        }
-    }
+	protected new T attribute => (T)base.attribute;
 
 	protected abstract bool IsSupported (SerializedProperty property);
 	protected virtual void DrawNotSupportedGUI (Rect position, SerializedProperty property, GUIContent label) {

@@ -1,34 +1,35 @@
-using UnityEngine.UI;
+using System;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class ExtendedSelectable : Selectable {
 
-	[System.Serializable]
+	[Serializable]
 	public class ButtonDownEvent : UnityEvent<PointerEventData> {}
 	
-	[System.Serializable]
+	[Serializable]
 	public class ButtonUpEvent : UnityEvent<PointerEventData> {}
 	
-	[System.Serializable]
+	[Serializable]
 	public class ButtonEnterEvent : UnityEvent<PointerEventData> {}
 	
-	[System.Serializable]
+	[Serializable]
 	public class ButtonExitEvent : UnityEvent<PointerEventData> {}
 
-	[System.Serializable]
+	[Serializable]
 	public class ButtonSelectEvent : UnityEvent<BaseEventData> {}
 
-	[System.Serializable]
+	[Serializable]
 	public class ButtonDeselectEvent : UnityEvent<BaseEventData> {}
 
 
-	public ButtonDownEvent onDown = new ButtonDownEvent();
-	public ButtonUpEvent onUp = new ButtonUpEvent();
-	public ButtonEnterEvent onEnter = new ButtonEnterEvent();
-	public ButtonExitEvent onExit = new ButtonExitEvent();
-	public ButtonSelectEvent onSelect = new ButtonSelectEvent();
-	public ButtonDeselectEvent onDeselect = new ButtonDeselectEvent();
+	public ButtonDownEvent onDown = new();
+	public ButtonUpEvent onUp = new();
+	public ButtonEnterEvent onEnter = new();
+	public ButtonExitEvent onExit = new();
+	public ButtonSelectEvent onSelect = new();
+	public ButtonDeselectEvent onDeselect = new();
 
 	public override void OnPointerDown (PointerEventData eventData) {
 		base.OnPointerDown (eventData);

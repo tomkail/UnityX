@@ -23,16 +23,16 @@ public static class GizmosX {
 		static void DestroyAutomatic(Object o) {
 			#if UNITY_EDITOR
 			if(Application.isPlaying)
-				UnityEngine.Object.Destroy (o);
+				Object.Destroy (o);
 			else
-			UnityEngine.Object.DestroyImmediate (o);
+				Object.DestroyImmediate (o);
 			#else
 			UnityEngine.Object.Destroy (o);
 			#endif
 		}
 	}
 
-	static List<Mesh> meshes = new List<Mesh>();
+	static List<Mesh> meshes = new();
 	#endif
 
 	// static Mesh mesh;
@@ -49,7 +49,7 @@ public static class GizmosX {
 		#endif
 	}
 
-	static Stack<Color> colors = new Stack<Color>();
+	static Stack<Color> colors = new();
 
 	public static void BeginColor (Color color) {
 		colors.Push(Gizmos.color);
@@ -60,7 +60,7 @@ public static class GizmosX {
 		Gizmos.color = colors.Pop();	
 	}
 
-	static Stack<Matrix4x4> matricies = new Stack<Matrix4x4>();
+	static Stack<Matrix4x4> matricies = new();
 	public static void BeginMatrix (Matrix4x4 matrix) {
 		matricies.Push(Gizmos.matrix);
 		Gizmos.matrix = matrix;
@@ -402,7 +402,8 @@ public static class GizmosX {
 				topLeft,topRight,bottomLeft,
 				topRight,bottomRight,bottomLeft
 			};
-		};
+		}
+
 		tris = new int[verts.Length];
 		for(int t = 0; t < tris.Length; t++) tris[t] = t;
 

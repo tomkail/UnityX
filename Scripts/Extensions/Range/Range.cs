@@ -7,33 +7,67 @@ using UnityEngine;
 /// Has a property drawer for easy inspectorisification
 /// </summary>
 [Serializable]
-public struct Range : IEquatable<Range>
-{
+public struct Range : IEquatable<Range> {
 	public float min;
 	public float max;
+	
 	public float mid => 0.5f*(min+max);
-
 	public float length => max - min;
-
-	public Range negated => new Range(-max, -min);
-
-
-	public static readonly Range infinity = new Range(float.NegativeInfinity, float.PositiveInfinity);
-
-	public static readonly Range zero = default(Range);
+	public Range negated => new(-max, -min);
+	
+	public static readonly Range infinity = new(float.NegativeInfinity, float.PositiveInfinity);
+	public static readonly Range zero = default;
 
 	public Range(float min, float max) {
 		this.min = min;
 		this.max = max;
 	}
 
-	public static Range Centered(float mid, float width) => new Range(mid-0.5f*width, mid+0.5f*width);
+	public static Range Centered(float mid, float width) => new(mid-0.5f*width, mid+0.5f*width);
 
 	public static Range Auto(float x0, float x1) {
 		if( x0 <= x1 ) return new Range(x0, x1);
 		else return new Range(x1, x0);
 	}
 
+	/// <summary>
+	/// Creates new rect that encapsulates a list of vectors.
+	/// </summary>
+	/// <param name="points">Vectors.</param>
+	public static Range CreateEncapsulating (params float[] points) {
+		return CreateEncapsulating((IEnumerable<float>)points);
+	}
+	
+	/// <summary>
+	/// Creates new rect that encapsulates a list of vectors.
+	/// </summary>
+	/// <param name="points">Vectors.</param>
+	public static Range CreateEncapsulating (IEnumerable<float> points) {
+		using var enumerator = points.GetEnumerator();
+		enumerator.MoveNext();
+		float xMin = enumerator.Current;
+		float xMax = enumerator.Current;
+		while(enumerator.MoveNext()) {
+			var vector = enumerator.Current;
+			xMin = Mathf.Min (xMin, vector);
+			xMax = Mathf.Max (xMax, vector);
+		}
+		return new Range (xMin, xMax);
+	}
+
+	public static Range CreateEncapsulating (params Range[] ranges) {
+		return CreateEncapsulating((IEnumerable<Range>)ranges);
+	}
+    
+	public static Range CreateEncapsulating (IEnumerable<Range> ranges) {
+		using var enumerator = ranges.GetEnumerator();
+		enumerator.MoveNext();
+		Range rect = enumerator.Current;
+		while(enumerator.MoveNext())
+			rect = rect.ExpandedToInclude(enumerator.Current);
+		return rect;
+	}
+	
 	public float Random() {
 		return UnityEngine.Random.Range(min, max);
 	}
@@ -75,6 +109,10 @@ public struct Range : IEquatable<Range>
 		else return this;
 	}
 	
+	public Range ExpandedToInclude (Range valueToInclude) {
+		return ExpandedToInclude(valueToInclude.min).ExpandedToInclude(valueToInclude.max);
+	}
+	
 	public Range ShrunkToExclude (float trunctationValue, int directionToShrinkFrom) {
 		if (trunctationValue > min || trunctationValue < max) {
 			if (directionToShrinkFrom == -1) {
@@ -88,8 +126,8 @@ public struct Range : IEquatable<Range>
 		return this;
 	}
 	
-	public Range ExpandedFromPivot (Range range, float expansion, float pivot) {
-		return new Range(range.min - expansion * pivot, range.min + expansion * (1-pivot));
+	public Range ExpandedFromPivot (float expansion, float pivot) {
+		return new Range(min - expansion * pivot, min + expansion * (1-pivot));
 	}
 
 
@@ -111,6 +149,12 @@ public struct Range : IEquatable<Range>
         var intersectionMin = Math.Max (min, otherRange.min);
         var intersectionMax = Math.Min (max, otherRange.max);
         return new Range(intersectionMin, intersectionMax);
+	}
+	
+	public static Range Intersection (Range a, Range b) {
+		var intersectionMin = Math.Max (a.min, b.min);
+		var intersectionMax = Math.Min (a.max, b.max);
+		return new Range(intersectionMin, intersectionMax);
 	}
 
 	// The magnitude of the shared range between this range and another
@@ -225,54 +269,26 @@ public struct Range : IEquatable<Range>
 		return new Range(left/right.min, left/right.max);
 	}
 
-	public override bool Equals(System.Object obj) {
-		// If parameter is null return false.
-		if (obj == null) {
-			return false;
-		}
-
-		// If parameter cannot be cast to Range return false.
-		Range p = (Range)obj;
-		if ((System.Object)p == null) {
-			return false;
-		}
-
-		// Return true if the fields match:
-		return Equals(p);
+	public override bool Equals(object obj) {
+		return obj is Range other && Equals(other);
 	}
 
 	public bool Equals(Range p) {
-		// If parameter is null return false:
-		if ((object)p == null) {
-			return false;
-		}
-
-		// Return true if the fields match:
-		return (min == p.min) && (max == p.max);
+		return min == p.min && max == p.max;
 	}
 
 	public override int GetHashCode() {
 		unchecked // Overflow is fine, just wrap
 		{
 			int hash = 27;
-			hash = hash * min.GetHashCode();
-			hash = hash * max.GetHashCode();
+			hash *= min.GetHashCode();
+			hash *= max.GetHashCode();
 			return hash;
 		}
 	}
 
 	public static bool operator == (Range left, Range right) {
-		if (System.Object.ReferenceEquals(left, right))
-		{
-			return true;
-		}
-
 		// If one is null, but not both, return false.
-		if (((object)left == null) || ((object)right == null))
-		{
-			return false;
-		}
-
 		return left.Equals(right);
 	}
 
@@ -369,7 +385,7 @@ public struct Range : IEquatable<Range>
 
 	
 	public override string ToString() {
-		return string.Format("[{0:N1} to {1:N1}]", min, max);
+		return $"[{min:N1} to {max:N1}]";
 	}
 }
 

@@ -1,6 +1,8 @@
+using System;
 using UnityEngine;
+using Object = System.Object;
 
-[System.Serializable]
+[Serializable]
 public struct HSLColor {
 	public float h;
 	public float s;
@@ -18,7 +20,7 @@ public struct HSLColor {
 		this.h = h;
 		this.s = s;
 		this.l = l;
-		this.a = 1f;
+		a = 1f;
 	}
 	
 	public HSLColor(Color c) {
@@ -117,8 +119,8 @@ public struct HSLColor {
 		return new HSLColor(left.h-right.h, left.s-right.s, left.l-right.l, left.a-right.a);
 	}
     
-    public override bool Equals(System.Object obj) {
-		return obj is HSLColor && this == (HSLColor)obj;
+    public override bool Equals(Object obj) {
+		return obj is HSLColor color && this == color;
 	}
 
 	public bool Equals(HSLColor p) {

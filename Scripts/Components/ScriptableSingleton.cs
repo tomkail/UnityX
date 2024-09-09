@@ -1,22 +1,21 @@
-﻿using System.Linq;  
-using UnityEngine;
+﻿using UnityEngine;
 
 public abstract class ScriptableSingleton<T> : ScriptableObject where T : ScriptableSingleton<T>{
-	private static T _Instance;
+	public static T FindInResources(string assetName) {
+		return Resources.Load<T>(assetName);
+	}
+	static T _Instance;
 	public static T Instance {
 		get {
-			if(_Instance == null) _Instance = Resources.Load<T>(typeof(T).Name);
-#if UNITY_EDITOR
-			if(_Instance == null) _Instance = AssetDatabaseX.LoadAssetOfType<T>();
-
-            //			_instance = Resources.FindObjectsOfTypeAll<T>().FirstOrDefault();
-            //			if(_Instance == null) _Instance = Resources.FindObjectsOfTypeAll<T>().FirstOrDefault();
-#else
+			if(_Instance == null) _Instance = FindInResources(typeof(T).Name);
+// #if UNITY_EDITOR
+// 			if(_Instance == null) _Instance = AssetDatabaseX.LoadAssetOfType<T>();
+// #else
 			if(_Instance == null){
 				Debug.LogWarning("No instance of " + typeof(T).Name + " found, using default values");
-				_Instance = ScriptableObject.CreateInstance<T>();
+				_Instance = CreateInstance<T>();
 			}
-#endif
+// #endif
             return _Instance;
 		}
 	}

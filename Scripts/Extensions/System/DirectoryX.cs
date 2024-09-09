@@ -1,14 +1,11 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
 
 public static class DirectoryX {
 	public static void DeleteAllContents (this DirectoryInfo directoryInfo, bool alsoDeleteFolder = true) {
         if(!directoryInfo.Exists) return;
-		foreach(System.IO.FileInfo file in directoryInfo.GetFiles()) file.Delete();
-    	foreach(System.IO.DirectoryInfo subDirectory in directoryInfo.GetDirectories()) subDirectory.Delete(true);
+		foreach(FileInfo file in directoryInfo.GetFiles()) file.Delete();
+    	foreach(DirectoryInfo subDirectory in directoryInfo.GetDirectories()) subDirectory.Delete(true);
 		if(alsoDeleteFolder) directoryInfo.Delete(true);
 	}
 

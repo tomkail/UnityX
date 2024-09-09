@@ -1,7 +1,5 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public static class Vector3X {
 
@@ -25,11 +23,7 @@ public static class Vector3X {
 	/// Returns a half.
 	/// </summary>
 	/// <value>The half.</value>
-	public static Vector3 half {
-		get {
-			return new Vector3(0.5f, 0.5f, 0.5f);
-		}
-	}
+	public static Vector3 half => new(0.5f, 0.5f, 0.5f);
 
 	/// <summary>
 	/// Returns direction from a to b.
@@ -110,19 +104,19 @@ public static class Vector3X {
 	/// <param name="direction">Direction.</param>
 	public static float SignedDistanceInDirection (Vector3 fromVector, Vector3 toVector, Vector3 direction) {
 		Vector3 normalizedDirection = direction.sqrMagnitude == 1 ? direction : direction.normalized;
-		return Vector3.Dot(Vector3X.FromTo(fromVector, toVector), normalizedDirection);
+		return Vector3.Dot(FromTo(fromVector, toVector), normalizedDirection);
 	}
 
 	public static float SqrDistanceAgainstDirection (Vector3 fromVector, Vector3 toVector, Vector3 direction) {
         Vector3 normalizedDirection = direction.sqrMagnitude == 1 ? direction : direction.normalized;
-		var projected = Vector3.ProjectOnPlane(Vector3X.FromTo(fromVector, toVector), normalizedDirection);
+		var projected = Vector3.ProjectOnPlane(FromTo(fromVector, toVector), normalizedDirection);
 		return projected.sqrMagnitude;
     }
 
 	// Find the distance that "fromVector" to "toVector" travels away from a given direction vector.
 	public static float DistanceAgainstDirection (Vector3 fromVector, Vector3 toVector, Vector3 direction) {
 		Vector3 normalizedDirection = direction.sqrMagnitude == 1 ? direction : direction.normalized;
-		var projected = Vector3.ProjectOnPlane(Vector3X.FromTo(fromVector, toVector), normalizedDirection);
+		var projected = Vector3.ProjectOnPlane(FromTo(fromVector, toVector), normalizedDirection);
 		return projected.magnitude;
 	}
 
@@ -130,7 +124,7 @@ public static class Vector3X {
 	// additionally signed by if the direction between the two vectors and the specified direction face the same way
 	public static float SignedDistanceAgainstDirection (Vector3 fromVector, Vector3 toVector, Vector3 direction) {
 		Vector3 normalizedDirection = direction.sqrMagnitude == 1 ? direction : direction.normalized;
-		var fromTo = Vector3X.FromTo(fromVector, toVector);
+		var fromTo = FromTo(fromVector, toVector);
 		var projected = Vector3.ProjectOnPlane(fromTo, normalizedDirection);
 		return projected.magnitude * Vector3.Dot(fromTo, normalizedDirection).Sign();
 	}
@@ -165,7 +159,7 @@ public static class Vector3X {
 		Vector3 normalizedDirection = direction.sqrMagnitude == 1 ? direction : direction.normalized;
 		Vector3 projectedA = Vector3.ProjectOnPlane(a, normalizedDirection).normalized;
 		Vector3 projectedB = Vector3.ProjectOnPlane(b, normalizedDirection).normalized;
-		return Vector2.SignedAngle(projectedA, projectedB);
+		return Vector3.SignedAngle(projectedA, projectedB, direction);
 	}
 
 	/// <summary>
@@ -314,14 +308,14 @@ public static class Vector3X {
 	/// Creates a Vector2 from a Vector3, using the X and Y components (in that order).
 	/// </summary> 
 	public static Vector2 XY (this Vector3 v) {
-		return new UnityEngine.Vector2(v.x,v.y);
+		return new Vector2(v.x,v.y);
 	}
 
 	/// <summary>
 	/// Creates a Vector2 from a Vector3, using the X and Z components (in that order).
 	/// </summary> 
 	public static Vector2 XZ (this Vector3 v) {
-		return new UnityEngine.Vector2(v.x, v.z);
+		return new Vector2(v.x, v.z);
 	}
 
 
@@ -375,7 +369,7 @@ public static class Vector3X {
 	/// </summary>
 	/// <param name="v">V.</param>
 	public static Vector3 XZ(Vector2 v) {
-		return new UnityEngine.Vector3(v.x, 0, v.y);
+		return new Vector3(v.x, 0, v.y);
 	}
 
     //Similar to Unity's epsilon comparison, but allows for any precision.
@@ -398,10 +392,6 @@ public static class Vector3X {
 	}
 
 	public static string ToString(this Vector3 v, int significantFigures) {
-		return string.Format("({0}, {1}, {2})",
-			string.Format("{0:F"+significantFigures+"}", v.x), 
-			string.Format("{0:F"+significantFigures+"}", v.y), 
-			string.Format("{0:F"+significantFigures+"}", v.z)
-		);
+		return $"({v.x.ToString("F" + significantFigures)}, {v.y.ToString("F" + significantFigures)}, {v.z.ToString("F" + significantFigures)})";
 	}
 }

@@ -71,10 +71,10 @@ public static class Noise {
 	private const int gradientsMask1D = 1;
 	
 	private static Vector2[] gradients2D = {
-		new Vector2( 1f, 0f),
-		new Vector2(-1f, 0f),
-		new Vector2( 0f, 1f),
-		new Vector2( 0f,-1f),
+		new( 1f, 0f),
+		new(-1f, 0f),
+		new( 0f, 1f),
+		new( 0f,-1f),
 		new Vector2( 1f, 1f).normalized,
 		new Vector2(-1f, 1f).normalized,
 		new Vector2( 1f,-1f).normalized,
@@ -84,23 +84,23 @@ public static class Noise {
 	private const int gradientsMask2D = 7;
 
 	private static Vector3[] gradients3D = {
-		new Vector3( 1f, 1f, 0f),
-		new Vector3(-1f, 1f, 0f),
-		new Vector3( 1f,-1f, 0f),
-		new Vector3(-1f,-1f, 0f),
-		new Vector3( 1f, 0f, 1f),
-		new Vector3(-1f, 0f, 1f),
-		new Vector3( 1f, 0f,-1f),
-		new Vector3(-1f, 0f,-1f),
-		new Vector3( 0f, 1f, 1f),
-		new Vector3( 0f,-1f, 1f),
-		new Vector3( 0f, 1f,-1f),
-		new Vector3( 0f,-1f,-1f),
+		new( 1f, 1f, 0f),
+		new(-1f, 1f, 0f),
+		new( 1f,-1f, 0f),
+		new(-1f,-1f, 0f),
+		new( 1f, 0f, 1f),
+		new(-1f, 0f, 1f),
+		new( 1f, 0f,-1f),
+		new(-1f, 0f,-1f),
+		new( 0f, 1f, 1f),
+		new( 0f,-1f, 1f),
+		new( 0f, 1f,-1f),
+		new( 0f,-1f,-1f),
 		
-		new Vector3( 1f, 1f, 0f),
-		new Vector3(-1f, 1f, 0f),
-		new Vector3( 0f,-1f, 1f),
-		new Vector3( 0f,-1f,-1f)
+		new( 1f, 1f, 0f),
+		new(-1f, 1f, 0f),
+		new( 0f,-1f, 1f),
+		new( 0f,-1f,-1f)
 	};
 	
 	private const int gradientsMask3D = 15;

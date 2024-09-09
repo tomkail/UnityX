@@ -9,8 +9,8 @@ public class PreviewTextureAttribute : PropertyAttribute {
 	public PreviewTextureAttribute () {}
 
 	public PreviewTextureAttribute (int size, ScaleMode scaleMode = ScaleMode.ScaleToFit) {
-		this.width = size;
-		this.height = size;
+		width = size;
+		height = size;
 		this.scaleMode = scaleMode;
 	}
 

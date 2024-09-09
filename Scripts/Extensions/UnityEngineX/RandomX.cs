@@ -1,36 +1,32 @@
-﻿using UnityEngine;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
+using Random = UnityEngine.Random;
 
 public static class RandomX {
-	public static Stack<UnityEngine.Random.State> seeds = new Stack<UnityEngine.Random.State>();
+	public static Stack<Random.State> seeds = new();
 	public static void BeginSeed (int seed) {
-		seeds.Push(UnityEngine.Random.state);
-        UnityEngine.Random.InitState(seed);
+		seeds.Push(Random.state);
+        Random.InitState(seed);
 	}
 
 	public static void EndSeed () {
-		UnityEngine.Random.state = seeds.Pop();	
+		Random.state = seeds.Pop();	
 	}
 
 	/// <summary>
 	/// Returns random true/false
 	/// </summary>
-	public static bool boolean {
-		get { return (UnityEngine.Random.value > 0.5f); }
-	}
+	public static bool boolean => (Random.value > 0.5f);
 
-	public static int sign {
-		get { return boolean ? -1 : 1; }
-	}
-	
+	public static int sign => boolean ? -1 : 1;
+
 	/// <summary>
 	/// Returns a random Vector2 of a circle edge 
 	/// </summary>
 	public static Vector2 onUnitCircle {
 		get {
-			float angle = RandomX.eulerAngle;
+			float angle = eulerAngle;
 			return MathX.DegreesToVector2(angle);
 		}
 	}
@@ -38,21 +34,17 @@ public static class RandomX {
 	/// <summary>
 	/// Returns a random float between 0 and 360
 	/// </summary>
-	public static float eulerAngle {
-		get {
-			return UnityEngine.Random.value*360;
-		}
-	}
-	
+	public static float eulerAngle => Random.value*360;
+
 	/// <summary>
 	/// Returns a boolean from a chance value between 0 and 1, where 0.25 is unlikely and 0.75 is likely.
 	/// </summary>
 	/// <param name="chance">Chance.</param>
 	public static bool Chance(float chance) {
-		return chance > UnityEngine.Random.value;
+		return chance > Random.value;
 	}
 
-	public static T WeightedValue<T>(IList<T> values, Func<T, float> getWeight, float? optionalTotal = null, T defaultVal = default(T)) {
+	public static T WeightedValue<T>(IList<T> values, Func<T, float> getWeight, float? optionalTotal = null, T defaultVal = default) {
 		float total = 0;
 		// TODO - getWeight can be called twice, which is inefficient. If we get weight of each value for totalling, cache them and use them in the next step
 		if(optionalTotal == null) {
@@ -63,7 +55,7 @@ public static class RandomX {
 
 		if(total <= 0) return defaultVal;
 		float currentValue = 0;
-		float randomValue = UnityEngine.Random.Range(0f, total);
+		float randomValue = Random.Range(0f, total);
 		for(int i = 0; i < values.Count; i++) {
 			var value = values[i];
 			currentValue += getWeight(value);
@@ -79,7 +71,7 @@ public static class RandomX {
 	/// <returns>The random index.</returns>
 	/// <param name="weights">Weights.</param>
 	public static int WeightedIndex(IList<float> weights){
-		return RandomX.WeightedIndex(weights, weights.Sum());
+		return WeightedIndex(weights, weights.Sum());
 	}
 	
 	/// <summary>
@@ -95,7 +87,7 @@ public static class RandomX {
 		}
 		if(total == 0) return weights.RandomIndex();
 		float currentValue = 0;
-		float randomValue = UnityEngine.Random.Range(0f, total);
+		float randomValue = Random.Range(0f, total);
 		for(int i = 0; i < weights.Count; i++){
 			currentValue += weights[i];
 			if(currentValue >= randomValue) return i;

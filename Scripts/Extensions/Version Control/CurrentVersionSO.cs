@@ -8,7 +8,7 @@ namespace UnityX.Versioning {
                 if(_Instance == null) _Instance = Resources.Load<CurrentVersionSO>(typeof(CurrentVersionSO).Name);
                 if(_Instance == null){
                     Debug.LogWarning("No instance of " + typeof(CurrentVersionSO).Name + " found, using default values");
-                    _Instance = ScriptableObject.CreateInstance<CurrentVersionSO>();
+                    _Instance = CreateInstance<CurrentVersionSO>();
                 }
                 return _Instance;
             }

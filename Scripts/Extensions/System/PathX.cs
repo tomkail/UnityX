@@ -1,7 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 
 public static class PathX {
 	public static string GetFullPathWithNewFileName(string fullPath, string newFileName) {
@@ -33,7 +30,7 @@ public static class PathX {
 	// https://chrisbitting.com/2014/04/14/fixing-removing-invalid-characters-from-a-file-path-name-c/
 	public static string ReplaceIllegalCharacters (string toCleanPath, string replaceWith = "_") {
 		//get just the filename - can't use Path.GetFileName since the path might be bad!  
-		string[] pathParts = toCleanPath.Split(new char[] { '\\' });  
+		string[] pathParts = toCleanPath.Split(new[] { '\\' });  
 		string newFileName = pathParts[pathParts.Length - 1];  
 		//get just the path  
 		string newPath = toCleanPath.Substring(0, toCleanPath.Length - newFileName.Length);   
@@ -50,8 +47,8 @@ public static class PathX {
 		//remove duplicate "replaceWith" characters. ie: change "test-----file.txt" to "test-file.txt"  
 		if (string.IsNullOrWhiteSpace(replaceWith) == false)  
 		{  
-			newPath = newPath.Replace(replaceWith.ToString() + replaceWith.ToString(), replaceWith.ToString());  
-			newFileName = newFileName.Replace(replaceWith.ToString() + replaceWith.ToString(), replaceWith.ToString());  
+			newPath = newPath.Replace(replaceWith + replaceWith, replaceWith);  
+			newFileName = newFileName.Replace(replaceWith + replaceWith, replaceWith);  
 		}  
 		//return new, clean path:  
 		return newPath + newFileName;  

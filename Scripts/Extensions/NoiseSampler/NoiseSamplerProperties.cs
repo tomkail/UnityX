@@ -1,13 +1,9 @@
-using System.Collections;
+using System;
 
-[System.Serializable]
+[Serializable]
 public struct NoiseSamplerProperties {
 
-	public static NoiseSamplerProperties standard {
-		get {
-			return new NoiseSamplerProperties(0.1f, 1, 2, 0.5f);
-		}
-	}
+	public static NoiseSamplerProperties standard => new(0.1f, 1, 2, 0.5f);
 
 	public float frequency;
 	public int octaves;
