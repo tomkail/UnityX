@@ -400,17 +400,25 @@ public static class Noise {
 	}
 
 	// Returns a value between -0.5 and 0.5.
-	public static NoiseSample Sum (NoiseMethod method, Vector3 point, float frequency, int octaves, float lacunarity = 2, float persistence = 0.5f) {
+	// octaves is fractional: the integer part is summed at full amplitude, then a final octave is faded in weighted
+	// by the fractional part so detail ramps in smoothly. Matches the GPU FractalNoise in NoiseVectorField.compute.
+	public static NoiseSample Sum (NoiseMethod method, Vector3 point, float frequency, float octaves, float lacunarity = 2, float persistence = 0.5f) {
 		NoiseSample sum = new NoiseSample();
 		float amplitude = 1f;
 		float maxValue = 0;
-		for (int o = 0; o < octaves; o++) {
+		int fullOctaves = Mathf.FloorToInt(octaves);
+		for (int o = 0; o < fullOctaves; o++) {
 			sum += method(point, frequency) * amplitude;
 			maxValue += amplitude;
 
 			amplitude *= persistence;
 			frequency *= lacunarity;
 		}
-		return sum * (1f / maxValue);
+		float partialOctave = octaves - fullOctaves;
+		if (partialOctave > 0f) {
+			sum += method(point, frequency) * (amplitude * partialOctave);
+			maxValue += amplitude * partialOctave;
+		}
+		return maxValue > 0f ? sum * (1f / maxValue) : sum;
 	}
 }

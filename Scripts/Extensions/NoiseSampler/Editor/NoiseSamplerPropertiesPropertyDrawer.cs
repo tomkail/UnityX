@@ -28,7 +28,7 @@ public class NoiseSamplerPropertiesPropertyDrawer : PropertyDrawer {
             var octaves = property.FindPropertyRelative("octaves");
             var lacunarity = property.FindPropertyRelative("lacunarity");
             var persistence = property.FindPropertyRelative("persistence");
-            DrawNoiseGraph(curveRect, Noise.Perlin3D, frequency.floatValue, octaves.intValue, lacunarity.floatValue, persistence.floatValue);
+            DrawNoiseGraph(curveRect, Noise.Perlin3D, frequency.floatValue, octaves.floatValue, lacunarity.floatValue, persistence.floatValue);
             EditorGUI.indentLevel--;
         }
         property.isExpanded = EditorGUI.Foldout(new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight), property.isExpanded, property.displayName, true);
@@ -48,7 +48,7 @@ public class NoiseSamplerPropertiesPropertyDrawer : PropertyDrawer {
                 var octaves = noiseProperties.FindPropertyRelative("octaves");
                 var lacunarity = noiseProperties.FindPropertyRelative("lacunarity");
                 var persistence = noiseProperties.FindPropertyRelative("persistence");
-                DrawNoiseGraph(curveRect, Noise.Perlin3D, frequency.floatValue, octaves.intValue, lacunarity.floatValue, persistence.floatValue, positionOffset);
+                DrawNoiseGraph(curveRect, Noise.Perlin3D, frequency.floatValue, octaves.floatValue, lacunarity.floatValue, persistence.floatValue, positionOffset);
             }
             EditorGUI.indentLevel--;
         }
@@ -74,8 +74,8 @@ public class NoiseSamplerPropertiesPropertyDrawer : PropertyDrawer {
         
         EditorGUI.PropertyField(frequencyRect, frequency, new GUIContent("Frequency"));
         EditorGUI.PropertyField(octavesRect, octaves, new GUIContent("Octaves"));
-        octaves.intValue = Mathf.Max(octaves.intValue, 1);
-        if (octaves.intValue > 1) {
+        octaves.floatValue = Mathf.Max(octaves.floatValue, 1f);
+        if (octaves.floatValue > 1f) {
             Rect lacunarityRect = new Rect(indentedRect.x, y, indentedRect.width, EditorGUIUtility.singleLineHeight);
             var lacunarity = property.FindPropertyRelative("lacunarity");
             y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
@@ -101,20 +101,20 @@ public class NoiseSamplerPropertiesPropertyDrawer : PropertyDrawer {
         var graphSize = property.isExpanded ? curveHeight + EditorGUIUtility.standardVerticalSpacing : 0;
         if (property.isExpanded) {
             var octaves = property.FindPropertyRelative("octaves");
-            if(octaves.intValue > 1) return EditorGUIUtility.singleLineHeight * 5 + EditorGUIUtility.standardVerticalSpacing * 5 + graphSize;
+            if(octaves.floatValue > 1f) return EditorGUIUtility.singleLineHeight * 5 + EditorGUIUtility.standardVerticalSpacing * 5 + graphSize;
             else return EditorGUIUtility.singleLineHeight * 3 + EditorGUIUtility.standardVerticalSpacing * 3 + graphSize;
         }
         else return EditorGUIUtility.singleLineHeight;
     }
 
-    public static void DrawNoiseGraph(Rect rect, float frequency, int octaves, float lacunarity, float persistence) {
+    public static void DrawNoiseGraph(Rect rect, float frequency, float octaves, float lacunarity, float persistence) {
         DrawNoiseGraph(rect, Noise.Perlin3D, frequency, octaves, lacunarity, persistence, Vector3.zero);
     }
-    public static void DrawNoiseGraph(Rect rect, NoiseMethod noiseMethod, float frequency, int octaves, float lacunarity, float persistence) {
+    public static void DrawNoiseGraph(Rect rect, NoiseMethod noiseMethod, float frequency, float octaves, float lacunarity, float persistence) {
         DrawNoiseGraph(rect, noiseMethod, frequency, octaves, lacunarity, persistence, Vector3.zero);
     }
 
-    public static void DrawNoiseGraph(Rect rect, NoiseMethod noiseMethod, float frequency, int octaves, float lacunarity, float persistence, Vector3 offsetPosition) {
+    public static void DrawNoiseGraph(Rect rect, NoiseMethod noiseMethod, float frequency, float octaves, float lacunarity, float persistence, Vector3 offsetPosition) {
         // Draw graph
         float minGraphTime = offsetPosition.x + -graphXRange * 0.5f;
         float maxGraphTime = offsetPosition.x + graphXRange * 0.5f;
