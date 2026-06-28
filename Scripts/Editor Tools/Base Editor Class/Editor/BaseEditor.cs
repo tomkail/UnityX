@@ -55,10 +55,13 @@ public class BaseEditor<T> : Editor where T : UnityEngine.Object {
 		}
 
 		datas = new List<T>();
-		foreach(Object t in targets) {
+		// Read the target list off the SerializedObject rather than the Editor.targets property: targets is guarded
+		// and logs "The targets array should not be used inside OnSceneGUI or OnPreviewGUI" when SetData runs during
+		// a preview/scene-GUI repaint (e.g. an editor with RequiresConstantRepaint being re-enabled on the tick).
+		foreach(Object t in serializedObject.targetObjects) {
 			if( t == null ) continue;
 			Debug.Assert(t as T != null, "Cannot cast "+t + " to "+typeof(T));
-			datas.Add((T) t); 
+			datas.Add((T) t);
 		}
 	}
 }
