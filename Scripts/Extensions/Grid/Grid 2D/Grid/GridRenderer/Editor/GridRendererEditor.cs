@@ -20,6 +20,7 @@ public class GridRendererEditor : BaseEditor<GridRenderer> {
 	}
 
 	void HandleUndoRedoCallback () {
-        data.Refresh();
+        if(data != null)
+            data.Refresh();
 	}
 }
