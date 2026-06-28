@@ -19,7 +19,7 @@ namespace UnityEditor.UI
 		SerializedProperty polygon;
         // SerializedProperty centreIsBoundsCentre;
 		private ReorderableList pointsList;
-        PolygonEditorHandles polygonEditor;
+        PolygonEditorInstance polygonEditorInstance;
 
         #pragma warning disable
         protected UIPolygon data;
@@ -32,11 +32,20 @@ namespace UnityEditor.UI
 			texture = serializedObject.FindProperty("_texture");
 			polygon = serializedObject.FindProperty("_polygon");
             // centreIsBoundsCentre = serializedObject.FindProperty("centreIsBoundsCentre");
-            polygonEditor = new PolygonEditorHandles(data.transform, Matrix4x4.Translate(data.GetPixelAdjustedRect().position));
-            polygonEditor.snapInterval = 100;
+
+            // Editing happens in the scene view while the "Edit Polygon" tool is active
+            // (Tools overlay, or the U shortcut). The offset matrix tracks the pixel-adjusted
+            // rect, so polygon space matches UI pixel space.
+            polygonEditorInstance = new PolygonEditorInstance(data.transform, Matrix4x4.Translate(data.GetPixelAdjustedRect().position)) {
+                snapInterval = 100,
+                undoTarget = data,
+                GetPolygon = () => data.polygon,
+                OnPolygonChanged = _ => data.SetVerticesDirty(),
+            };
+            PolygonEditorTool.StartDrawing(this, polygonEditorInstance);
             data.RegisterDirtyLayoutCallback(OnGraphicChange);
 //			pointsList = new ReorderableList(serializedObject, points, true, true, true, true);
-//			pointsList.drawHeaderCallback = (Rect rect) => {  
+//			pointsList.drawHeaderCallback = (Rect rect) => {
 //    			EditorGUI.LabelField(rect, "Points");
 //			};
 //			pointsList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => {
@@ -47,12 +56,14 @@ namespace UnityEditor.UI
         }
 
         void OnDisable() {
-            // polygonEditor.Destroy();
+            PolygonEditorTool.StopDrawing(this);
+            if(data != null) data.UnregisterDirtyLayoutCallback(OnGraphicChange);
         }
 
-    
+
         void OnGraphicChange () {
-            polygonEditor.offsetMatrix = Matrix4x4.Translate(data.GetPixelAdjustedRect().position);
+            if(polygonEditorInstance != null && data != null)
+                polygonEditorInstance.offsetMatrix = Matrix4x4.Translate(data.GetPixelAdjustedRect().position);
         }
 
         protected void SetData () {
@@ -91,15 +102,6 @@ namespace UnityEditor.UI
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("uvYAngle"));
             
             serializedObject.ApplyModifiedProperties();
-        }
-
-        void OnSceneGUI () {
-            Undo.RecordObject(target, "Modified Polygon");
-            polygonEditor.drawPolygon = Selection.activeGameObject == data.gameObject;
-		    if(polygonEditor.OnSceneGUI(data.polygon)) {
-                polygon.SetValue(data.polygon);
-                data.SetVerticesDirty();
-            }
         }
 	}
 }

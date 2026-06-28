@@ -6,7 +6,7 @@ using System.Linq;
 [CustomEditor(typeof(Region)), CanEditMultipleObjects]
 public class RegionEditor : Editor {
 	Region data;
-	PolygonEditorHandles polygonEditor;
+	PolygonEditorInstance polygonEditorInstance;
 
 	public void OnEnable() {
 		if(target == null) {
@@ -15,24 +15,30 @@ public class RegionEditor : Editor {
 			Debug.Assert(target as Region != null, "Cannot cast "+target + " to "+typeof(Region));
 			data = (Region) target;
 		}
-		
+
 		Undo.undoRedoPerformed += HandleUndoRedoCallback;
 		SceneView.duringSceneGui += OnSceneView;
-		polygonEditor = new PolygonEditorHandles(data.transform, data.offsetMatrix);
-		polygonEditor.defaultPolygonFunc = () => {
-			return new Vector2[] {
+
+		// Editing happens in the scene view while the "Edit Polygon" tool is active
+		// (Tools overlay, or the U shortcut).
+		polygonEditorInstance = new PolygonEditorInstance(data.transform, data.offsetMatrix) {
+			undoTarget = data,
+			GetPolygon = () => data.polygon,
+			OnPolygonChanged = _ => data.OnPropertiesChanged(),
+			DefaultPolygonFunc = () => new Vector2[] {
 				new Vector2(-0.5f, 0.5f),
 				new Vector2(0.5f, 0.5f),
 				new Vector2(0.5f, -0.5f),
 				new Vector2(-0.5f, -0.5f),
-			};
+			},
 		};
-	}		
+		PolygonEditorTool.StartDrawing(this, polygonEditorInstance);
+	}
 
 	void OnDisable() {
 		Undo.undoRedoPerformed -= HandleUndoRedoCallback;
 		SceneView.duringSceneGui -= OnSceneView;
-        // polygonEditor.Destroy();
+		PolygonEditorTool.StopDrawing(this);
 	}
 
 	public override void OnInspectorGUI() {
@@ -61,11 +67,10 @@ public class RegionEditor : Editor {
 	}
 
 	void OnSceneGUI () {
-		Undo.RecordObject(data, "Edit polygon");
-		polygonEditor.offsetMatrix = data.offsetMatrix;
-		polygonEditor.OnSceneGUI(data.polygon);
-		
-		if(!data.in2DMode && !polygonEditor.editing) {
+		// Keep the editing plane in sync; the polygon itself is edited by the Edit Polygon tool.
+		if(polygonEditorInstance != null) polygonEditorInstance.offsetMatrix = data.offsetMatrix;
+
+		if(!data.in2DMode && !PolygonEditorTool.editing) {
 			var worldPosition = data.transform.position;
 			var matrix = data.matrix;
 			var handleSize = HandleUtility.GetHandleSize(worldPosition) * 0.2f;

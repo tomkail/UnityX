@@ -61,6 +61,9 @@ public class PolygonEditorInstance {
 	
 	public bool closed = true;
 
+	// When snapping (Ctrl, or forceSnapToPoint), positions round to multiples of this in polygon space.
+	public float snapInterval = 1;
+
 	public bool drawPolygon = true;
 	public bool drawEdgeNormals;
 	public bool drawVertNormals;

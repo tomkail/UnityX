@@ -6,7 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+[EditorTool("Edit Polygon")]
 class PolygonEditorTool : EditorTool {
+    const string iconPath = "Assets/UnityX/Scripts/Extensions/Geometry/Polygon/Editor/polygonEditorToolIcon.png";
+
     // Serialize this value to set a default value in the Inspector.
     [SerializeField]
     Texture2D m_ToolIcon = null;
@@ -44,8 +47,6 @@ class PolygonEditorTool : EditorTool {
 		}
 	}
 	
-	// When control is down, this snaps to the nearest interval
-	public static float snapInterval = 1;
 	static bool holdingSnapToPointKey {
 		get {
 			#if UNITY_EDITOR_WIN 
@@ -91,11 +92,12 @@ class PolygonEditorTool : EditorTool {
 
     void OnEnable()
     {
+        if(m_ToolIcon == null) m_ToolIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(iconPath);
         m_IconContent = new GUIContent()
         {
             image = m_ToolIcon,
-            text = "Polygon Editor Tool",
-            tooltip = "Polygon Editor Tool"
+            text = "Edit Polygon",
+            tooltip = "Edit Polygon"
         };
     }
 
@@ -104,7 +106,7 @@ class PolygonEditorTool : EditorTool {
         get { return m_IconContent; }
     }
 
-    [Shortcut("My Project/My Tool", KeyCode.U)]
+    [Shortcut("Tools/Edit Polygon", KeyCode.U)]
     private static void Shortcut()
     {
 		// var polygonEditorTool = UnityEditor.EditorTools.EditorTool.FindObjectOfType<PolygonEditorTool>();
@@ -460,7 +462,7 @@ class PolygonEditorTool : EditorTool {
 					var closestScreenPoint = screenSpacePolygon.FindClosestPointOnPolygon(bestPointOnScreenPolygon, instance.closed);
 					var worldBestPointOnPolygon = Vector3.zero;
 					instance.GetScreenPointIntersectingRegionPlane(closestScreenPoint, ref worldBestPointOnPolygon);
-					if(instance.forceSnapToPoint ^ holdingSnapToPointKey) worldBestPointOnPolygon = instance.SnapToWorldInterval(worldBestPointOnPolygon, snapInterval);
+					if(instance.forceSnapToPoint ^ holdingSnapToPointKey) worldBestPointOnPolygon = instance.SnapToWorldInterval(worldBestPointOnPolygon, instance.snapInterval);
 					Handles.DotHandleCap(0, worldBestPointOnPolygon, Quaternion.identity, HandleUtility.GetHandleSize(worldBestPointOnPolygon) * handleSize, Event.current.type);
 
 					if(mouseDown) {
@@ -495,7 +497,7 @@ class PolygonEditorTool : EditorTool {
 				HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
 				Vector2 newPolyPoint = instance.WorldToPolygonPoint(worldMousePointOnPlane);
 				if(instance.forceSnapToPoint ^ holdingSnapToPointKey) {
-					newPolyPoint = PolygonEditorInstance.SnapToPolygonInterval(newPolyPoint, snapInterval);
+					newPolyPoint = PolygonEditorInstance.SnapToPolygonInterval(newPolyPoint, instance.snapInterval);
 					worldMousePointOnPlane = instance.PolygonToWorldPoint(newPolyPoint);
 				}
 				if(instance.polygon.vertices[editingPointIndex] != newPolyPoint) {
