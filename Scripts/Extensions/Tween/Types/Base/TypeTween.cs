@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 
+[System.Serializable]
 public abstract class TypeTween<T> {
 	[SerializeField]
 	private T _currentValue;

@@ -56,8 +56,8 @@ public static class SelectionX {
 	static SerializedSelection CreateSerializedSelection () {
 		var selection = new SerializedSelection();
 		selection.activeContext = Selection.activeContext;
-		selection.activeInstanceID = Selection.activeInstanceID;
-		selection.instanceIDs = Selection.instanceIDs;
+		selection.activeInstanceID = EntityId.ToULong(Selection.activeEntityId);
+		selection.instanceIDs = Selection.entityIds.Select(e => EntityId.ToULong(e)).ToArray();
 		return selection;
 	}
 
@@ -66,7 +66,7 @@ public static class SelectionX {
 		if(lastSelection != null) {
 			CompareWithLastSelection(lastSelection);
 		}
-		if(Selection.instanceIDs.Length == 0)
+		if(Selection.entityIds.Length == 0)
 			lastSelection = CreateSerializedSelection();
 		SaveLastSelection(lastSelection);
 		if(OnSelectionChanged != null) OnSelectionChanged();
@@ -107,25 +107,25 @@ public static class SelectionX {
 	}
 
 	class SerializedSelection {
-		public int activeContextInstanceID;
-		public int activeInstanceID;
-		public int[] instanceIDs;
+		public ulong activeContextInstanceID;
+		public ulong activeInstanceID;
+		public ulong[] instanceIDs;
 
 		public Object activeContext {
 			get {
-				return EditorUtility.InstanceIDToObject(activeContextInstanceID);
+				return EditorUtility.EntityIdToObject(EntityId.FromULong(activeContextInstanceID));
 			} set {
 				if(value == null) activeContextInstanceID = 0;
-				else activeContextInstanceID = value.GetInstanceID();
+				else activeContextInstanceID = EntityId.ToULong(value.GetEntityId());
 			}
 		}
 
 		public Object activeObject {
 			get {
-				return EditorUtility.InstanceIDToObject(activeInstanceID);
+				return EditorUtility.EntityIdToObject(EntityId.FromULong(activeInstanceID));
 			} set {
 				if(value == null) activeInstanceID = 0;
-				activeInstanceID = value.GetInstanceID();
+				activeInstanceID = EntityId.ToULong(value.GetEntityId());
 			}
 		}
 
@@ -143,10 +143,10 @@ public static class SelectionX {
 
 		public Object[] objects {
 			get {
-				return instanceIDs.Select(instanceID => EditorUtility.InstanceIDToObject(instanceID)).ToArray();
+				return instanceIDs.Select(instanceID => EditorUtility.EntityIdToObject(EntityId.FromULong(instanceID))).ToArray();
 			} set {
 				if(value == null) objects = new Object[0];
-				else instanceIDs = value.Where(obj => obj != null).Select(obj => obj.GetInstanceID()).ToArray();
+				else instanceIDs = value.Where(obj => obj != null).Select(obj => EntityId.ToULong(obj.GetEntityId())).ToArray();
 			}
 		}
 

@@ -26,7 +26,7 @@ public abstract class MonoInstancer<T> : MonoBehaviour where T : MonoInstancer<T
 #if UNITY_EDITOR
             if(!_upToDate) {
                 _all.Clear();
-                _all.AddRange(FindObjectsByType<T>(FindObjectsInactive.Exclude, FindObjectsSortMode.None));
+                _all.AddRange(FindObjectsByType<T>(FindObjectsInactive.Exclude));
                 _upToDate = true;
             }
 #endif

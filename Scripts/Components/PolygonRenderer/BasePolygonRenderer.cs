@@ -120,17 +120,17 @@ public abstract class BasePolygonRenderer : MonoBehaviour {
     }
 
     protected void GetMesh () {
-        if(mesh != null && mesh.name != "Polygon Renderer Mesh "+ GetInstanceID()) {
+        if(mesh != null && mesh.name != "Polygon Renderer Mesh "+ GetEntityId()) {
             mesh = null;
             if(meshFilter != null) meshFilter.mesh = null;
 		    if(meshCollider != null) meshCollider.sharedMesh = null;
         }
         if(mesh == null) {
-            if(meshFilter.name == "Polygon Renderer Mesh "+ GetInstanceID()) {
+            if(meshFilter.name == "Polygon Renderer Mesh "+ GetEntityId()) {
                 mesh = meshFilter.mesh;
             } else {
                 mesh = new Mesh();
-                mesh.name = "Polygon Renderer Mesh "+ GetInstanceID();
+                mesh.name = "Polygon Renderer Mesh "+ GetEntityId();
                 if(meshFilter != null) meshFilter.mesh = mesh;
                 if(meshCollider != null) meshCollider.sharedMesh = mesh;
             }

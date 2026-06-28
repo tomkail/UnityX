@@ -18,7 +18,7 @@ public class Draggable : Selectable, IBeginDragHandler, IEndDragHandler, IDragHa
 			return (RectTransform)transform;
 		}
 	}
-	public PointerEventData lastPointerEventData;
+	[System.NonSerialized] public PointerEventData lastPointerEventData;
 
 	/// <summary>
 	/// Occurs when a drag starts.

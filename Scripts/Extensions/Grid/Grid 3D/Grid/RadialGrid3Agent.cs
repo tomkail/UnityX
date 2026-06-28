@@ -9,7 +9,7 @@ using System.Collections.ObjectModel;
 public class RadialGrid3Agent : MonoBehaviour {
 	public WorldGrid3 worldGrid;
 	public float spawnRadius = 50;	
-	public HashSet<Point3> chunkPoints = new HashSet<Point3>();
+	[System.NonSerialized] public HashSet<Point3> chunkPoints = new HashSet<Point3>();
 	public System.Action<List<Point3>> OnEnterPoints;
 	public System.Action<List<Point3>> OnExitPoints;
 

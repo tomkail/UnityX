@@ -238,8 +238,8 @@ public static class AssetDatabaseX {
 				.Where(i => t.IsInstanceOfType(i)).Cast<T>();
 				var obj = assets.FirstOrDefault(i => i.name == assetName);
 				if (obj == null) {
-					if (int.TryParse(parts[1], out var id))
-						obj = assets.FirstOrDefault(i => i.GetInstanceID() == id);
+					if (ulong.TryParse(parts[1], out var id))
+						obj = assets.FirstOrDefault(i => EntityId.ToULong(i.GetEntityId()) == id);
 				}
 				if (obj != null)
 					return obj;
@@ -251,7 +251,7 @@ public static class AssetDatabaseX {
 		if (!aObj) return "";
 		string path = AssetDatabase.GetAssetPath(aObj);
 		if (!string.IsNullOrEmpty(aObj.name)) path += "::" + aObj.name;
-		else path += "::" + aObj.GetInstanceID();
+		else path += "::" + EntityId.ToULong(aObj.GetEntityId());
 		return path;
 	}
 #endif

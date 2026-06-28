@@ -3,14 +3,14 @@
 public static class RigidbodyX {
 	public static void ResetForcesImmediate (this Rigidbody rigidbody) {
 		rigidbody.isKinematic = true;
-		rigidbody.velocity = Vector3.zero;
+		rigidbody.linearVelocity = Vector3.zero;
 		rigidbody.angularVelocity = Vector3.zero;
 		rigidbody.isKinematic = false;
 	}
 
 	public static void TeleportAndResetForcesImmediate (this Rigidbody rigidbody, Vector3 position, Quaternion rotation) {
 		rigidbody.isKinematic = true;
-		rigidbody.velocity = Vector3.zero;
+		rigidbody.linearVelocity = Vector3.zero;
 		rigidbody.angularVelocity = Vector3.zero;
 
 		rigidbody.position = position;

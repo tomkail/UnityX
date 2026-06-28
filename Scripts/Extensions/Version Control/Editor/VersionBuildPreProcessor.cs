@@ -28,17 +28,20 @@ namespace UnityX.Versioning {
                 PlayerSettings.macOS.buildNumber = bundleVersionCode.ToString()+"00";
             }
             
-            {
-                PlayerSettings.Switch.displayVersion = versionString;
-                if(System.IO.File.Exists(PlayerSettings.Switch.NMETAOverrideFullPath)) {
-                    var text = System.IO.File.ReadAllText(PlayerSettings.Switch.NMETAOverrideFullPath);
-                    var startIndex = text.IndexOf("<DisplayVersion>") + "<DisplayVersion>".Length;
-                    var endIndex = text.IndexOf("</DisplayVersion>");
-                    text = text.Remove(startIndex, endIndex-startIndex);
-                    text = text.Insert(startIndex, versionString);
-                    System.IO.File.WriteAllText(PlayerSettings.Switch.NMETAOverrideFullPath, text);
-                }
-            }
+            // Nintendo Switch version stamping disabled in Unity 6000.5: the NMETA-based PlayerSettings.Switch
+            // API (displayVersion, releaseVersion, NMETAOverrideFullPath, etc.) was removed/obsoleted with no
+            // 1:1 replacement. If shipping on Switch, reimplement against the current Switch metadata workflow.
+            // {
+            //     PlayerSettings.Switch.displayVersion = versionString;
+            //     if(System.IO.File.Exists(PlayerSettings.Switch.NMETAOverrideFullPath)) {
+            //         var text = System.IO.File.ReadAllText(PlayerSettings.Switch.NMETAOverrideFullPath);
+            //         var startIndex = text.IndexOf("<DisplayVersion>") + "<DisplayVersion>".Length;
+            //         var endIndex = text.IndexOf("</DisplayVersion>");
+            //         text = text.Remove(startIndex, endIndex-startIndex);
+            //         text = text.Insert(startIndex, versionString);
+            //         System.IO.File.WriteAllText(PlayerSettings.Switch.NMETAOverrideFullPath, text);
+            //     }
+            // }
             
             UpdateCurrentVersion(versionSO);
             EditorUtility.SetDirty(versionSO);

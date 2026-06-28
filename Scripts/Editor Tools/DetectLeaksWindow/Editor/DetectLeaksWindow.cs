@@ -41,7 +41,7 @@ public class DetectLeaksWindow : EditorWindow {
 
 		public void Refresh () {
             var type = typeof(T);
-			Object[] objects = DetectLeaksWindow.showEditorResources ? Resources.FindObjectsOfTypeAll(type) : Object.FindObjectsOfType<T>();
+			Object[] objects = DetectLeaksWindow.showEditorResources ? Resources.FindObjectsOfTypeAll(type) : Object.FindObjectsByType<T>();
 			quantity = objects.Length;
 
             all.Clear();

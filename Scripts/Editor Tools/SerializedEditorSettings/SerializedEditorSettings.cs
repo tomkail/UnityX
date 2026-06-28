@@ -4,7 +4,8 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
-// Can be thought of as a singleton reference for editor settings, saved via editor prefs.   
+// Can be thought of as a singleton reference for editor settings, saved via editor prefs.
+[System.Serializable]
 public class SerializedEditorSettings<T> where T : class, new() {
     #if UNITY_EDITOR
 	static string _settingsEditorPrefsKey;

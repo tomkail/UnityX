@@ -10,7 +10,7 @@ public static class ScriptAssetCreator {
 		CreateScriptAssetFromTemplate(filePath, text);
 	}
     public static void CreateNewFileAndStartNameEditing (string filePath, string text) {
-		ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<CreateScriptAssetAction>(), filePath, null, text);
+		ProjectWindowUtil.StartNameEditingIfProjectWindowExists(EntityId.None, ScriptableObject.CreateInstance<CreateScriptAssetAction>(), filePath, null, text);
 	}
 
     public static UnityEngine.Object CreateScriptAssetFromTemplate(string filePath, string text) {
@@ -24,8 +24,8 @@ public static class ScriptAssetCreator {
         return AssetDatabase.LoadAssetAtPath(filePath, typeof(DefaultAsset));
     }
 
-	class CreateScriptAssetAction : EndNameEditAction {
-		public override void Action(int instanceId, string filePath, string text) {
+	class CreateScriptAssetAction : AssetCreationEndAction {
+		public override void Action(EntityId entityId, string filePath, string text) {
 			UnityEngine.Object asset = CreateScriptAssetFromTemplate(filePath, text);
 			ProjectWindowUtil.ShowCreatedAsset(asset);
 		}	

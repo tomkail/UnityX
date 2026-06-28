@@ -101,7 +101,7 @@ public class LogicBlender<T> {
 		string name;
 		#pragma warning restore 0414
 		
-		public object source;
+		[System.NonSerialized] public object source;
 		public T value;
 
 		public LogicGateSource (object source, T value) {
