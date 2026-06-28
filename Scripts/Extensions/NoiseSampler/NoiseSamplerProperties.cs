@@ -1,7 +1,7 @@
 using System;
 
 [Serializable]
-public struct NoiseSamplerProperties {
+public struct NoiseSamplerProperties : IEquatable<NoiseSamplerProperties> {
 
 	public static NoiseSamplerProperties standard => new(0.1f, 1, 2, 0.5f);
 
@@ -22,4 +22,11 @@ public struct NoiseSamplerProperties {
 		lacunarity = _lacunarity;
 		persistence = _persistence;
 	}
+
+	public bool Equals (NoiseSamplerProperties other) =>
+		frequency == other.frequency && octaves == other.octaves && lacunarity == other.lacunarity && persistence == other.persistence;
+	public override bool Equals (object obj) => obj is NoiseSamplerProperties other && Equals(other);
+	public override int GetHashCode () => HashCode.Combine(frequency, octaves, lacunarity, persistence);
+	public static bool operator == (NoiseSamplerProperties a, NoiseSamplerProperties b) => a.Equals(b);
+	public static bool operator != (NoiseSamplerProperties a, NoiseSamplerProperties b) => !a.Equals(b);
 }
