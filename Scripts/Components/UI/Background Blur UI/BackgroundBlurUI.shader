@@ -112,7 +112,6 @@ Shader "Hidden/BackgroundBlurUI"
                 #pragma fragmentoption ARB_precision_hint_fastest
                 #pragma multi_compile __ IS_BLUR_ALPHA_MASKED
                 #pragma multi_compile __ IS_SPRITE_VISIBLE
-                #pragma multi_compile __ UNITY_UI_ALPHACLIP
                 ENDCG
             }
 
@@ -128,7 +127,6 @@ Shader "Hidden/BackgroundBlurUI"
                 #pragma fragmentoption ARB_precision_hint_fastest
                 #pragma multi_compile __ IS_BLUR_ALPHA_MASKED
                 #pragma multi_compile __ IS_SPRITE_VISIBLE
-                #pragma multi_compile __ UNITY_UI_ALPHACLIP
                 ENDCG
             }
         }

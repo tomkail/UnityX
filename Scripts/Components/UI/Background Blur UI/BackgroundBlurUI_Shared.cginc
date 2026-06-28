@@ -92,8 +92,10 @@ float4 GaussianBlur(pixel_info pinfo, int2 dir, int kernelSize, sampler2D weight
     float4 colorSum = float4(0.0, 0.0, 0.0, 0.0);
     float weightSum = 0.0;
 
-    // Offset the kernel so that it is centered around the current pixel
-    int remainder = kernelSize % stepSize;
+    // Offset the kernel so that it is centered around the current pixel.
+    // kernelSize and stepSize are always non-negative, so do the modulus in
+    // uint space to avoid the "integer modulus may be much slower" warning on Metal.
+    int remainder = (int)((uint)kernelSize % (uint)stepSize);
     int start = -kernelSize + remainder;
     int end = kernelSize - remainder;
 
