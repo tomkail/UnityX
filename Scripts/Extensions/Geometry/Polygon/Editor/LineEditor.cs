@@ -56,22 +56,18 @@ public class LineEditor {
 			return editing && Event.current.shift;
 		}
 	}
+	// EditorGUI.actionKey is the platform action modifier: Ctrl on Windows/Linux, Cmd on macOS.
+	// We must NOT use Event.current.control on macOS because the OS reinterprets Ctrl+click as a
+	// right-click (context) before the tool ever sees a button-0 mouse-down, so the delete gesture
+	// never fires. This matches Unity's own collider/point editors.
 	bool deletionMode {
 		get {
-			#if UNITY_EDITOR_WIN 
-			return editing && Event.current.control;
-			#else
-			return editing && Event.current.control;
-			#endif
+			return editing && EditorGUI.actionKey;
 		}
 	}
 	bool snapToPoint {
 		get {
-			#if UNITY_EDITOR_WIN 
-			// return editing && Event.current.alt;
-			#else
-			return editing && (Event.current.command);
-			#endif
+			return editing && EditorGUI.actionKey;
 		}
 	}
 

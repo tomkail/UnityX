@@ -37,23 +37,19 @@ class PolygonEditorTool : EditorTool {
 			return Event.current.shift;
 		}
 	}
+	// EditorGUI.actionKey is the platform action modifier: Ctrl on Windows/Linux, Cmd on macOS.
+	// We must NOT use Event.current.control on macOS because the OS reinterprets Ctrl+click as a
+	// right-click (context) before the tool ever sees a button-0 mouse-down, so the delete gesture
+	// never fires. This matches Unity's own collider/point editors.
 	static bool deletionMode {
 		get {
-			#if UNITY_EDITOR_WIN 
-			return !isEditingPoint && Event.current.control;
-			#else
-			return !isEditingPoint && Event.current.control;
-			#endif
+			return !isEditingPoint && EditorGUI.actionKey;
 		}
 	}
-	
+
 	static bool holdingSnapToPointKey {
 		get {
-			#if UNITY_EDITOR_WIN 
-			return Event.current.control;
-			#else
-			return Event.current.control;
-			#endif
+			return EditorGUI.actionKey;
 		}
 	}
 	
