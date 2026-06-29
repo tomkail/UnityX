@@ -7,7 +7,7 @@ public class NoiseSampler {
 	public NoiseSamplerProperties properties = NoiseSamplerProperties.standard;
 
 	public static NoiseSample SampleAtPosition (Vector3 position, NoiseSamplerProperties properties) {
-		return Noise.Sum(Noise.Perlin3D, position, properties.frequency, properties.octaves, properties.lacunarity, properties.persistence);
+		return Noise.Sum(Noise.Perlin3D, position, properties.frequency, properties.octaves, properties.lacunarity, properties.persistence, properties.normalization);
 	}
 
 	public NoiseSample SampleAtPosition (Vector3 position) {

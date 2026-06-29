@@ -399,26 +399,36 @@ public static class Noise {
 		return sample;
 	}
 
-	// Returns a value between -0.5 and 0.5.
+	// Returns a value between -0.5 and 0.5 (for Sum normalization).
 	// octaves is fractional: the integer part is summed at full amplitude, then a final octave is faded in weighted
-	// by the fractional part so detail ramps in smoothly. Matches the GPU FractalNoise in NoiseVectorField.compute.
-	public static NoiseSample Sum (NoiseMethod method, Vector3 point, float frequency, float octaves, float lacunarity = 2, float persistence = 0.5f) {
+	// by the fractional part so detail ramps in smoothly. Matches the GPU FractalNoise in NoiseVectorField.compute,
+	// including the normalization mode (see NoiseNormalization).
+	public static NoiseSample Sum (NoiseMethod method, Vector3 point, float frequency, float octaves, float lacunarity = 2, float persistence = 0.5f, NoiseNormalization normalization = NoiseNormalization.Sum) {
 		NoiseSample sum = new NoiseSample();
 		float amplitude = 1f;
-		float maxValue = 0;
+		float sumAmplitude = 0f;
+		float sumAmplitudeSq = 0f;
 		int fullOctaves = Mathf.FloorToInt(octaves);
 		for (int o = 0; o < fullOctaves; o++) {
 			sum += method(point, frequency) * amplitude;
-			maxValue += amplitude;
+			sumAmplitude += amplitude;
+			sumAmplitudeSq += amplitude * amplitude;
 
 			amplitude *= persistence;
 			frequency *= lacunarity;
 		}
 		float partialOctave = octaves - fullOctaves;
 		if (partialOctave > 0f) {
-			sum += method(point, frequency) * (amplitude * partialOctave);
-			maxValue += amplitude * partialOctave;
+			float partialAmplitude = amplitude * partialOctave;
+			sum += method(point, frequency) * partialAmplitude;
+			sumAmplitude += partialAmplitude;
+			sumAmplitudeSq += partialAmplitude * partialAmplitude;
 		}
-		return maxValue > 0f ? sum * (1f / maxValue) : sum;
+		float norm = normalization switch {
+			NoiseNormalization.RootMeanSquare => Mathf.Sqrt(sumAmplitudeSq), // constant typical strength across octaves
+			NoiseNormalization.None => 1f,                                   // octaves act as gain
+			_ => sumAmplitude,                                               // Sum (default): canonical fBm
+		};
+		return norm > 0f ? sum * (1f / norm) : sum;
 	}
 }

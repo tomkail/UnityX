@@ -28,7 +28,8 @@ public class NoiseSamplerPropertiesPropertyDrawer : PropertyDrawer {
             var octaves = property.FindPropertyRelative("octaves");
             var lacunarity = property.FindPropertyRelative("lacunarity");
             var persistence = property.FindPropertyRelative("persistence");
-            DrawNoiseGraph(curveRect, Noise.Perlin3D, frequency.floatValue, octaves.floatValue, lacunarity.floatValue, persistence.floatValue);
+            var normalization = property.FindPropertyRelative("normalization");
+            DrawNoiseGraph(curveRect, Noise.Perlin3D, frequency.floatValue, octaves.floatValue, lacunarity.floatValue, persistence.floatValue, Vector3.zero, (NoiseNormalization)normalization.enumValueIndex);
             EditorGUI.indentLevel--;
         }
         property.isExpanded = EditorGUI.Foldout(new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight), property.isExpanded, property.displayName, true);
@@ -48,7 +49,8 @@ public class NoiseSamplerPropertiesPropertyDrawer : PropertyDrawer {
                 var octaves = noiseProperties.FindPropertyRelative("octaves");
                 var lacunarity = noiseProperties.FindPropertyRelative("lacunarity");
                 var persistence = noiseProperties.FindPropertyRelative("persistence");
-                DrawNoiseGraph(curveRect, Noise.Perlin3D, frequency.floatValue, octaves.floatValue, lacunarity.floatValue, persistence.floatValue, positionOffset);
+                var normalization = noiseProperties.FindPropertyRelative("normalization");
+                DrawNoiseGraph(curveRect, Noise.Perlin3D, frequency.floatValue, octaves.floatValue, lacunarity.floatValue, persistence.floatValue, positionOffset, (NoiseNormalization)normalization.enumValueIndex);
             }
             EditorGUI.indentLevel--;
         }
@@ -83,9 +85,14 @@ public class NoiseSamplerPropertiesPropertyDrawer : PropertyDrawer {
             Rect persistenceRect = new Rect(indentedRect.x, y, indentedRect.width, EditorGUIUtility.singleLineHeight);
             var persistence = property.FindPropertyRelative("persistence");
             y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-                
+
+            Rect normalizationRect = new Rect(indentedRect.x, y, indentedRect.width, EditorGUIUtility.singleLineHeight);
+            var normalization = property.FindPropertyRelative("normalization");
+            y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+
             EditorGUI.PropertyField(lacunarityRect, lacunarity, new GUIContent("Lacunarity"));
             EditorGUI.PropertyField(persistenceRect, persistence, new GUIContent("Persistence"));
+            EditorGUI.PropertyField(normalizationRect, normalization, new GUIContent("Normalization"));
         }
 		
         EditorGUI.indentLevel = cachedIndentLevel;
@@ -101,20 +108,20 @@ public class NoiseSamplerPropertiesPropertyDrawer : PropertyDrawer {
         var graphSize = property.isExpanded ? curveHeight + EditorGUIUtility.standardVerticalSpacing : 0;
         if (property.isExpanded) {
             var octaves = property.FindPropertyRelative("octaves");
-            if(octaves.floatValue > 1f) return EditorGUIUtility.singleLineHeight * 5 + EditorGUIUtility.standardVerticalSpacing * 5 + graphSize;
+            if(octaves.floatValue > 1f) return EditorGUIUtility.singleLineHeight * 6 + EditorGUIUtility.standardVerticalSpacing * 6 + graphSize;
             else return EditorGUIUtility.singleLineHeight * 3 + EditorGUIUtility.standardVerticalSpacing * 3 + graphSize;
         }
         else return EditorGUIUtility.singleLineHeight;
     }
 
-    public static void DrawNoiseGraph(Rect rect, float frequency, float octaves, float lacunarity, float persistence) {
-        DrawNoiseGraph(rect, Noise.Perlin3D, frequency, octaves, lacunarity, persistence, Vector3.zero);
+    public static void DrawNoiseGraph(Rect rect, float frequency, float octaves, float lacunarity, float persistence, NoiseNormalization normalization = NoiseNormalization.Sum) {
+        DrawNoiseGraph(rect, Noise.Perlin3D, frequency, octaves, lacunarity, persistence, Vector3.zero, normalization);
     }
     public static void DrawNoiseGraph(Rect rect, NoiseMethod noiseMethod, float frequency, float octaves, float lacunarity, float persistence) {
         DrawNoiseGraph(rect, noiseMethod, frequency, octaves, lacunarity, persistence, Vector3.zero);
     }
 
-    public static void DrawNoiseGraph(Rect rect, NoiseMethod noiseMethod, float frequency, float octaves, float lacunarity, float persistence, Vector3 offsetPosition) {
+    public static void DrawNoiseGraph(Rect rect, NoiseMethod noiseMethod, float frequency, float octaves, float lacunarity, float persistence, Vector3 offsetPosition, NoiseNormalization normalization = NoiseNormalization.Sum) {
         // Draw graph
         float minGraphTime = offsetPosition.x + -graphXRange * 0.5f;
         float maxGraphTime = offsetPosition.x + graphXRange * 0.5f;
@@ -126,7 +133,7 @@ public class NoiseSamplerPropertiesPropertyDrawer : PropertyDrawer {
         for (int i = 0; i < numKeys; i++) {
             var sampleTime = Mathf.Lerp(minGraphTime, maxGraphTime, r * i);
             var position = new Vector3(sampleTime, offsetPosition.y, offsetPosition.z);
-            var val = Noise.Sum(noiseMethod, position, frequency, octaves, lacunarity, persistence);
+            var val = Noise.Sum(noiseMethod, position, frequency, octaves, lacunarity, persistence, normalization);
             keys[i] = new Keyframe(sampleTime, val.value);
         }
         AnimationCurve curve = new AnimationCurve(keys);
