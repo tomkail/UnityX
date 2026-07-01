@@ -22,4 +22,6 @@ public class ColorMap : TypeMap<Color> {
 	protected override Color Lerp (Color a, Color b, float l) {
 		return Color.Lerp(a,b,l);
 	}
+
+	public override TypeMap<Color> CloneMap () => new ColorMap(this);
 }

@@ -31,6 +31,8 @@ public class Vector2Map : TypeMap<Vector2> {
 		return Vector2.Lerp(a,b,l);
 	}
 
+	public override TypeMap<Vector2> CloneMap () => new Vector2Map(this);
+
 
 
 	//OPERATORS

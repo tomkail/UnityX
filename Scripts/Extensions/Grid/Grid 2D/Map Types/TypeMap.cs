@@ -33,6 +33,12 @@ public class TypeMap<T> : Grid, IEnumerable<TypeMapCellInfo<T>> {
 	public virtual void Clear() {
 		values = new T[size.area];
 	}
+
+	/// <summary>
+	/// Returns a deep copy of this map. Overridden by subclasses (Vector2Map, ColorMap) to return their own type, so
+	/// the clone keeps the subclass's Lerp — important when the copy is bilinearly sampled (GetValueAtGridPosition).
+	/// </summary>
+	public virtual TypeMap<T> CloneMap() => new TypeMap<T>(this);
 	
 	/// <summary>
 	/// Calculates additional properties from the map. 
