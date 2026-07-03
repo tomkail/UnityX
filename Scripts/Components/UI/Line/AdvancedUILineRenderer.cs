@@ -250,15 +250,16 @@ namespace UnityEngine.UI.Extensions
                 color1.a = 0;
                 color4.a = 0;
             } else if(properties.innerAlpha < 1) {
-                color1.a = (byte)(color1.a*properties.innerAlpha);
-                color4.a = (byte)(color4.a*properties.innerAlpha);
+                // color1..4 are float Color; the 0..1 → 0..255 scaling happens on assignment to the Color32[] below.
+                color1.a = color1.a*properties.innerAlpha;
+                color4.a = color4.a*properties.innerAlpha;
             }
             if(properties.outerAlpha == 0) {
                 color2.a = 0;
                 color3.a = 0;
             } else if(properties.outerAlpha < 1) {
-                color2.a = (byte)(color2.a*properties.outerAlpha);
-                color3.a = (byte)(color3.a*properties.outerAlpha);
+                color2.a = color2.a*properties.outerAlpha;
+                color3.a = color3.a*properties.outerAlpha;
             }
             colors[0] = color1;
             colors[1] = color2;
