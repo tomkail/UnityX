@@ -19,6 +19,7 @@ public static class PlaneX {
 		return plane.GetHitPoint(new Ray(origin, direction));
 	}
 
+	// NOTE: ignores Plane.Raycast's bool result — returns the raw out distance, which is negative for hits behind the ray and 0 when the ray is parallel to the plane.
 	public static float GetDistanceToPointInDirection(this Plane plane, Ray ray) { 
 		float distance = 0;
 		plane.Raycast(ray, out distance);

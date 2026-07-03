@@ -396,7 +396,7 @@ public static class RectX {
         return r == otherRect || (r.Contains(otherRect.min) && r.Contains(otherRect.max));
     }
 
-	// THIS IS THE SAME AS INTERSECT!
+	// Returns the smallest Rect containing both r and rect (a union / bounding rect — NOT an intersection).
 	public static Rect Encapsulating(this Rect r, Rect rect) {
 		r = r.Encapsulating(rect.min);
 		r = r.Encapsulating(rect.max);

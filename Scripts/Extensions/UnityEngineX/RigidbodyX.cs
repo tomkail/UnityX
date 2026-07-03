@@ -118,25 +118,24 @@ public static class RigidbodyX {
 	
 	
 	/// <summary>
-	/// Rotates the rigidbody about axis passing through point in world coordinates by angle degrees.
+	/// Rotates the rigidbody by the given Euler angles, relative to the given space.
 	///
-	/// This modifies both the position and the rotation of the rigidbody.
+	/// This modifies the rotation of the rigidbody.
 	/// </summary>
-	/// <param name="point">Point.</param>
-	/// <param name="axis">Axis.</param>
-	/// <param name="angle">Angle.</param>
+	/// <param name="eulerAngles">Euler angles to rotate by.</param>
+	/// <param name="relativeTo">Local (Self) or World space.</param>
 	public static void Rotate (this Rigidbody rigidbody, Vector3 eulerAngles, Space relativeTo = Space.Self) {
 		rigidbody.MoveRotation(rigidbody.rotation.Rotate(Quaternion.Euler(eulerAngles), relativeTo));
 	}
 	
 	/// <summary>
-	/// Rotates the rigidbody about axis passing through point in world coordinates by angle degrees.
+	/// Rotates the rigidbody by angle degrees around axis, relative to the given space.
 	///
-	/// This modifies both the position and the rotation of the rigidbody.
+	/// This modifies the rotation of the rigidbody.
 	/// </summary>
-	/// <param name="point">Point.</param>
-	/// <param name="axis">Axis.</param>
-	/// <param name="angle">Angle.</param>
+	/// <param name="axis">Axis to rotate around.</param>
+	/// <param name="angle">Angle in degrees.</param>
+	/// <param name="relativeTo">Local (Self) or World space.</param>
 	public static void Rotate (this Rigidbody rigidbody, Vector3 axis, float angle, Space relativeTo = Space.Self) {
 		rigidbody.MoveRotation(rigidbody.rotation.Rotate(Quaternion.AngleAxis (angle, axis), relativeTo));
 	}

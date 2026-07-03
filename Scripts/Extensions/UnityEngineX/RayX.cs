@@ -60,6 +60,7 @@ public static class RayX {
     // 	// return sphereCenter + directionFromSphere * Mathf.Min(directionFromSphere.magnitude, sphereRadius);
     // }
 
+    /// <summary>Signed distance along the ray to the projection of the sphere's CENTRE. NOTE: sphereRadius is currently ignored, so this is distance-to-centre, not distance-to-surface.</summary>
     public static float GetClosestDistanceToSphere(this Ray ray, Vector3 sphereCenter, float sphereRadius) {
         Vector3 rayOriginToSphereCenter = sphereCenter - ray.origin;
         float signedDistanceOnRay = Vector3.Dot(rayOriginToSphereCenter, ray.direction);

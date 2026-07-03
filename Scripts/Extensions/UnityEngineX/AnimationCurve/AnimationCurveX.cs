@@ -2,7 +2,6 @@ using UnityEngine;
 
 /// <summary>
 /// Extension methods for UnityEngine.AnimationCurve.
-/// Note that tangents are between 0 and Mathf.PI.
 /// </summary>
 public static class AnimationCurveX {
 	public const float DefaultTangent = 0.63694267515f;
@@ -232,7 +231,7 @@ public static class AnimationCurveX {
 	}
 
 	/// <summary>
-	/// Returns the value of the first key
+	/// Returns the time of the first key
 	/// </summary>
 	public static float GetFirstTime(this AnimationCurve curve){
 		var len = curve.length;
@@ -241,7 +240,7 @@ public static class AnimationCurveX {
 	}
 
 	/// <summary>
-	/// Returns the value of the last key
+	/// Returns the time of the last key
 	/// </summary>
 	public static float GetLastTime(this AnimationCurve curve){
 		var len = curve.length;

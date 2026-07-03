@@ -7,7 +7,7 @@ using UnityEngine.PlayerLoop;
 using Screen = UnityEngine.Device.Screen;
 
 /// <summary>
-/// Manages screen properties. Must be attached to a GameObject to function.
+/// Manages screen properties. Static [InitializeOnLoad] class — not a MonoBehaviour, so no GameObject is required.
 /// </summary>
 [InitializeOnLoad]
 public class ScreenX {

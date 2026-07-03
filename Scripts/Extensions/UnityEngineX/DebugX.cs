@@ -73,8 +73,7 @@ public static class DebugX {
 	}
 	
 	/// <summary>Returns a log for the target string, along with the current time and the log source.</summary>
-	/// <param name="o">The log source.</param>
-	/// <param name="item">The log item.</param>
+	/// <param name="msg">The log source.</param>
 	/// <returns>The string.</returns>
 	public static string LogString (Object msg) {
 		StringBuilder sb = new StringBuilder(msg == null ? "NULL" : msg.ToString());
@@ -84,8 +83,8 @@ public static class DebugX {
 	}
 	
 	/// <summary>Returns a log for the target string, along with the current time and the log source.</summary>
-	/// <param name="o">The log source.</param>
-	/// <param name="item">The log item.</param>
+	/// <param name="obj">The log source.</param>
+	/// <param name="msg">The log item.</param>
 	/// <returns>The string.</returns>
 	public static string LogString (Object obj, Object msg) {
 		StringBuilder sb = new StringBuilder(msg.ToString());
@@ -134,18 +133,15 @@ public static class DebugX {
 	}
 	
 	/// <summary>Logs an error with the target string, along with the current time and the log source.</summary>
-	/// <param name="o">The log source.</param>
-	/// <param name="item">The log item.</param>
-	/// <param name="color">The log color.</param>
+	/// <param name="a">The log source.</param>
 	public static void LogError (Object a) {
 		if(!debug) return;
 		Debug.LogError(LogString(a));
 	}
 	
 	/// <summary>Logs an error with the target string, along with the current time and the log source.</summary>
-	/// <param name="o">The log source.</param>
-	/// <param name="item">The log item.</param>
-	/// <param name="color">The log color.</param>
+	/// <param name="obj">The log source.</param>
+	/// <param name="a">The log item.</param>
 	public static void LogError (Object obj, Object a) {
 		if(!debug) return;
 		var logString = LogString(obj, a);
@@ -312,7 +308,7 @@ public static class DebugX {
 	
 	// Following functions taken from UnityWiki, created by Hayden Scott-Baron (Dock) - http://starfruitgames.com
 	
-	/// <summary>Draws a cube in the scene window.</summary>
+	/// <summary>Draws a cube in the scene view. NOTE: currently only the front (+z) face is drawn — the back face and connecting edges are missing.</summary>
 	/// <param name="pos">Position of the cube.</param>
 	/// <param name="scale">Scale of the cube.</param>
 	/// <param name="col">Color of the cube.</param>
@@ -364,9 +360,9 @@ public static class DebugX {
 	}
 	
 	/// <summary>Draws a point in the scene window.</summary>
-	/// <param name="pos">Position of the rect.</param>
-	/// <param name="scale">Scale of the rect.</param>
-	/// <param name="col">Color of the rect.</param>
+	/// <param name="pos">Position of the point.</param>
+	/// <param name="scale">Size of the point.</param>
+	/// <param name="col">Color of the point.</param>
 	public static void DrawPoint (Vector3 pos, float scale, Color col) {
 		Vector3[] points = {
 			pos + (Vector3.up * scale), 

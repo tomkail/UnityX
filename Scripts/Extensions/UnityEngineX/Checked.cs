@@ -16,8 +16,8 @@ using UnityEngine;
 /// 
 ///  * FloatChecked     - float values, replaces with zero if inf/NaN
 ///  * FloatCheckedOne  - float values, replaces with one if inf/NaN
-///  * DoubleChecked    - float values, replaces with zero if inf/NaN
-///  * DoubleCheckedOne - float values, replaces with one if inf/NaN
+///  * DoubleChecked    - double values, replaces with zero if inf/NaN
+///  * DoubleCheckedOne - double values, replaces with one if inf/NaN
 /// 
 /// </summary>
 /// 

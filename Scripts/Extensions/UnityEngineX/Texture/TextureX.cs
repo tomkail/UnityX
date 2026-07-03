@@ -23,10 +23,9 @@ public static class TextureX {
     /// <summary>
     /// Returns a scaled copy of given texture.
     /// </summary>
-    /// <param name="tex">Source texure to scale</param>
-    /// <param name="width">Destination texture width</param>
-    /// <param name="height">Destination texture height</param>
-    /// <param name="mode">Filtering mode</param>
+    /// <param name="src">Source texture to scale.</param>
+    /// <param name="width">Destination texture width.</param>
+    /// <param name="height">Destination texture height.</param>
     public static Texture2D CopyWithSizeScaled(this Texture src, int width, int height) {
         Rect texR = new Rect(0,0,width,height);
         GPUScale(src,width,height);
@@ -41,10 +40,9 @@ public static class TextureX {
     /// <summary>
     /// Scales the texture data of the given texture.
     /// </summary>
-    /// <param name="tex">Texure to scale</param>
-    /// <param name="width">New width</param>
-    /// <param name="height">New height</param>
-    /// <param name="mode">Filtering mode</param>
+    /// <param name="tex">Texture to scale.</param>
+    /// <param name="width">New width.</param>
+    /// <param name="height">New height.</param>
     public static void ResizeScaled(this Texture2D tex, int width, int height) {
         Rect texR = new Rect(0,0,width,height);
         GPUScale(tex,width,height);

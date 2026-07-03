@@ -61,6 +61,7 @@ public static class QuaternionX {
 		return rotatedAxis;
 	}
 
+	/// <summary>Only checks the quaternion is not all-zero; NaN and non-normalized quaternions still return true (use IsNaN for a NaN check).</summary>
 	public static bool IsValid(this Quaternion q) {
 		return !(q.x == 0 && q.y == 0 && q.z == 0 && q.w == 0);
 	}

@@ -208,6 +208,7 @@ public static class BoundsX {
 	    return true; 
 	}
 
+	// NOTE: despite the "Ray" name this takes a start/end segment; the direction is derived from start→end.
 	public static bool IntersectRay (this Bounds bounds, Vector3 startPoint, Vector3 endPoint, out float inDistance, out float outDistance) {
 		return IntersectLineInternal(bounds, startPoint, endPoint, Vector3X.NormalizedDirection(startPoint, endPoint), out inDistance, out outDistance);
 	}
