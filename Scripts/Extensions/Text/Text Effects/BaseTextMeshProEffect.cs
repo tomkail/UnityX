@@ -29,7 +29,7 @@ public abstract class BaseTextMeshProEffect : MonoBehaviour {
         m_TextComponent.UnregisterDirtyLayoutCallback(OnDirtyTMPComponent);
         m_TextComponent.UnregisterDirtyMaterialCallback(OnDirtyTMPComponent);
         m_TextComponent.OnPreRenderText -= OnPreRenderText;
-        // Also refresh on disable if dirty so we catch anything that would have been updated had this component had a final update
+        // Clear on disable so any pending vertex changes are reverted (unconditional — there is no dirty check).
         Clear();
     }
     

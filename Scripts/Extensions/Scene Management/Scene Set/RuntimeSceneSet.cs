@@ -28,9 +28,9 @@ public class RuntimeSceneSet : ScriptableObject {
 	public RuntimeSceneSet () {}
 
 	/// <summary>
-	/// Calls the method named methodName on every MonoBehaviour in this game object or any of its children.
+	/// Calls the method named methodName on every MonoBehaviour in each scene in this set.
 	/// </summary>
-	/// <param name="message">Message.</param>
+	/// <param name="methodName">Name of the method to call.</param>
 	public void BroadcastMessageToIncludedScenes (string methodName) {
 		foreach(var scene in GetScenes()) {
 			RuntimeSceneSetLoader.BroadcastMessageScene(scene, methodName);
@@ -38,9 +38,10 @@ public class RuntimeSceneSet : ScriptableObject {
 	}
 
 	/// <summary>
-	/// Calls the method named methodName on every MonoBehaviour in this game object or any of its children.
+	/// Calls the method named methodName (passing parameter) on every MonoBehaviour in each scene in this set.
 	/// </summary>
-	/// <param name="message">Message.</param>
+	/// <param name="methodName">Name of the method to call.</param>
+	/// <param name="parameter">Argument passed to the method.</param>
 	public void BroadcastMessageToIncludedScenes (string methodName, object parameter) {
 		foreach(var scene in GetScenes()) {
 			RuntimeSceneSetLoader.BroadcastMessageScene(scene, methodName, parameter);
@@ -71,7 +72,7 @@ public class RuntimeSceneSet : ScriptableObject {
 	}
 
 	/// <summary>
-	/// Determines whether the current scene manager setup exactly matches this setup.
+	/// Determines whether the current scene-manager setup exactly matches this setup, including scene ORDER (uses SequenceEqual).
     /// Scenes may be in the process of being loaded/unloaded so be careful when using this!
     /// A more robust solution is to manually track which scene sets are loaded.
 	/// </summary>

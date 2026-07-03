@@ -145,12 +145,13 @@ public static class ListX {
     }
     
 	/// <summary>
-	/// G
+	/// Returns a new list of the elements whose exact runtime type equals the given type.
+	/// (Note: the parameter is named `removeType` but is actually the type to KEEP.)
 	/// </summary>
-	/// <returns>The all of type.</returns>
-	/// <param name="list">List.</param>
-	/// <typeparam name="T">The 1st type parameter.</typeparam>
-	/// <typeparam name="Q">The 2nd type parameter.</typeparam>
+	/// <returns>The matching elements.</returns>
+	/// <param name="list">The source list.</param>
+	/// <param name="removeType">The exact type to keep.</param>
+	/// <typeparam name="T">Element type of the list.</typeparam>
 	public static List<T> GetAllOfType<T>(this List<T> list, Type removeType) {
 		List<T> newList = new List<T>();
 		for (int i = list.Count-1; i >= 0; i--) {

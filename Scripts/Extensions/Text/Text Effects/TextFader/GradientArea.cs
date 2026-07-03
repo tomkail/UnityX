@@ -47,7 +47,7 @@ public class GradientArea : MonoBehaviour {
         return gradient.Evaluate((normalizedPosition - Vector2.one * 0.5f).magnitude*2);
     }
     static Color EvaluateConicalGradientAtPosition(Vector2 normalizedPosition, Gradient gradient) {
-        // Not done
+        // TODO: conical gradient not implemented — falls back to a linear (along-X) gradient. NOTE: Conical is the default mode, so this fallback is used by default.
         return gradient.Evaluate(normalizedPosition.x);
     }
     static Color EvaluateReflectedGradientAtPosition(Vector2 normalizedPosition, Gradient gradient) {

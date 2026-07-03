@@ -151,7 +151,7 @@ public class TextEffectsController : MonoBehaviour
         if (effects == null) return;
         if (fontMaterial == null) return;
         effects.ApplyToMaterial(fontMaterial);
-        // This is expensive and I think always true, because it creates a new material; but for some reason it doesn't work without it?!
+        // Reassigning fontMaterial is expensive (it instantiates a new material), so only do it when it actually differs (see the guard below).
         if (m_TextComponent.fontMaterial != fontMaterial)
             m_TextComponent.fontMaterial = fontMaterial;
 
