@@ -85,15 +85,15 @@ public static class CameraShotGeneratorTools {
 	/// <returns>The bounds.</returns>
 	public static Vector3[] GetVerticesFromTransform (Transform transform) {
 		Vector3 halfLocalScale = 	transform.localScale * 0.5f;
-		Vector3 leftTopFront = 		transform.position + transform.rotation * new Vector3(-halfLocalScale.x, -halfLocalScale.y, halfLocalScale.z);
-		Vector3 rightTopFront = 	transform.position + transform.rotation * new Vector3(halfLocalScale.x, -halfLocalScale.y, halfLocalScale.z);
-		Vector3 leftTopBack = 		transform.position + transform.rotation * new Vector3(-halfLocalScale.x, -halfLocalScale.y, -halfLocalScale.z);
-		Vector3 rightTopBack = 		transform.position + transform.rotation * new Vector3(halfLocalScale.x, -halfLocalScale.y, -halfLocalScale.z);
-		Vector3 leftBottomFront = 	transform.position + transform.rotation * new Vector3(-halfLocalScale.x, halfLocalScale.y, halfLocalScale.z);
-		Vector3 rightBottomFront = 	transform.position + transform.rotation * new Vector3(halfLocalScale.x, halfLocalScale.y, halfLocalScale.z);
-		Vector3 leftBottomBack = 	transform.position + transform.rotation * new Vector3(-halfLocalScale.x, halfLocalScale.y, -halfLocalScale.z);
-		Vector3 rightBottomBack = 	transform.position + transform.rotation * new Vector3(halfLocalScale.x, halfLocalScale.y, -halfLocalScale.z);
-		return new Vector3[8]{leftTopFront, rightTopFront, leftTopBack, rightTopBack, leftBottomFront, rightBottomFront, leftBottomBack, rightBottomBack};
+		Vector3 leftBottomFront = 		transform.position + transform.rotation * new Vector3(-halfLocalScale.x, -halfLocalScale.y, halfLocalScale.z);
+		Vector3 rightBottomFront = 	transform.position + transform.rotation * new Vector3(halfLocalScale.x, -halfLocalScale.y, halfLocalScale.z);
+		Vector3 leftBottomBack = 		transform.position + transform.rotation * new Vector3(-halfLocalScale.x, -halfLocalScale.y, -halfLocalScale.z);
+		Vector3 rightBottomBack = 		transform.position + transform.rotation * new Vector3(halfLocalScale.x, -halfLocalScale.y, -halfLocalScale.z);
+		Vector3 leftTopFront = 	transform.position + transform.rotation * new Vector3(-halfLocalScale.x, halfLocalScale.y, halfLocalScale.z);
+		Vector3 rightTopFront = 	transform.position + transform.rotation * new Vector3(halfLocalScale.x, halfLocalScale.y, halfLocalScale.z);
+		Vector3 leftTopBack = 	transform.position + transform.rotation * new Vector3(-halfLocalScale.x, halfLocalScale.y, -halfLocalScale.z);
+		Vector3 rightTopBack = 	transform.position + transform.rotation * new Vector3(halfLocalScale.x, halfLocalScale.y, -halfLocalScale.z);
+		return new Vector3[8]{leftBottomFront, rightBottomFront, leftBottomBack, rightBottomBack, leftTopFront, rightTopFront, leftTopBack, rightTopBack};
 	}
 	
 	/// <summary>

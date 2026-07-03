@@ -21,6 +21,7 @@ public static class CameraShotTools {
 		return results;
 	}
 		
+	// NOTE: despite "ScreenSpace" in these method names, they return WORLD-space positions (via Camera.ViewportToWorldPoint) from viewport coords.
 	private static Vector3 GetPointInScreenSpaceFromViewportCoord (Camera camera, Vector2 point, float drawDistance) {
 		return camera.ViewportToWorldPoint(new Vector3(point.x, point.y, drawDistance));
 	}

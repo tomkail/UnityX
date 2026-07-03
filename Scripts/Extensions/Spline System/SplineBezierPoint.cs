@@ -36,7 +36,7 @@ namespace SplineSystem {
 			} else {
 				var vectorToNext = (Vector3)nextBezierPointPosition - position;
 				var vectorFromPrevious = position - (Vector3)previousBezierPointPosition;
-				// This lerp could be considered wrong - should it be biased towards the shorter of the two vectors?
+				// This slerp could be considered wrong - should it be biased towards the shorter of the two vectors?
 				rotation = Quaternion.LookRotation(Vector3.Slerp(vectorFromPrevious, vectorToNext, 0.5f), upVector);
 			}
 			inControlPoint = SplineBezierControlPoint.InAuto(position, (Vector3)previousBezierPointPosition, normalizedControlPointDistance);
@@ -65,7 +65,7 @@ namespace SplineSystem {
 			} else {
 				var vectorToNext = (Vector3)nextBezierPointPosition - position;
 				var vectorFromPrevious = position - (Vector3)previousBezierPointPosition;
-				// This lerp could be considered wrong - should it be biased towards the shorter of the two vectors?
+				// This slerp could be considered wrong - should it be biased towards the shorter of the two vectors?
 				rotation = Quaternion.LookRotation(Vector3.Slerp(vectorFromPrevious, vectorToNext, 0.5f), upVector);
 			}
 			

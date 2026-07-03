@@ -197,15 +197,15 @@ public struct CameraProperties {
 	/// If you don't care, you can use the simple basePosition property.
 	/// </summary>
 	public Vector3 PositionWithViewportAspectRatio(float aspect) {
-		float halfHeight = 0f;
+		float fullHeight = 0f;
 		if(orthographic) {
-			halfHeight = orthographicSize * 2;
+			fullHeight = orthographicSize * 2;
 		} else {
 			var distanceInDirection = distance;
-			halfHeight = distanceInDirection * Mathf.Tan(fieldOfView * 0.5f * Mathf.Deg2Rad) * 2;
+			fullHeight = distanceInDirection * Mathf.Tan(fieldOfView * 0.5f * Mathf.Deg2Rad) * 2;
 		}
-		float halfWidth  = aspect * halfHeight;
-		var viewportScaledOffset = new Vector3(halfWidth * viewportOffset.x, halfHeight * viewportOffset.y, 0.0f);
+		float fullWidth  = aspect * fullHeight;
+		var viewportScaledOffset = new Vector3(fullWidth * viewportOffset.x, fullHeight * viewportOffset.y, 0.0f);
 
 		var finalRotation = rotation;
 		var localUp    = finalRotation * Vector3.up;
