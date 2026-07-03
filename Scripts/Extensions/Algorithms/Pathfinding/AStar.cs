@@ -263,7 +263,9 @@ namespace Utils.Algorithms {
 			}
 			
 			var solutionList = ExtractSolution(targetElement, allowPartialSolution);
-			Assert.IsTrue (solutionList == null || startElement.Equals (solutionList.solution[0]));
+			// Local fix: ExtractSolution always returns a non-null PathfinderSolution whose .solution may be
+			// null, so guard on .solution (mirrors the synchronous Calculate) to avoid an NRE when no path exists.
+			Assert.IsTrue (solutionList.solution == null || startElement.Equals (solutionList.solution[0]));
 
 			StopCalculateAsync();
 
@@ -294,7 +296,9 @@ namespace Utils.Algorithms {
 			{
 				GraphEntry currTestEntry = GetCurrBestTestEntry();
 
-				if (currTestEntry.Equals(targetElement))
+				// Local fix: GraphEntry has no Equals override, so comparing it to a GraphElement was always
+				// false and the target fast-path never fired. Compare the entry against the target entry instead.
+				if (currTestEntry == _targetEntry)
 				{
 					// We have a full best solution to the target.
 					return true;

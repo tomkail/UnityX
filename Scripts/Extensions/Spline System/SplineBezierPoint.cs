@@ -39,16 +39,22 @@ namespace SplineSystem {
 				// This slerp could be considered wrong - should it be biased towards the shorter of the two vectors?
 				rotation = Quaternion.LookRotation(Vector3.Slerp(vectorFromPrevious, vectorToNext, 0.5f), upVector);
 			}
-			inControlPoint = SplineBezierControlPoint.InAuto(position, (Vector3)previousBezierPointPosition, normalizedControlPointDistance);
-			outControlPoint = SplineBezierControlPoint.OutAuto(position, (Vector3)nextBezierPointPosition, normalizedControlPointDistance);
+			// At the first/last point one neighbour is null; fall back to the other so we don't unbox a null.
+			var inNeighbour = previousBezierPointPosition ?? (Vector3)nextBezierPointPosition;
+			var outNeighbour = nextBezierPointPosition ?? (Vector3)previousBezierPointPosition;
+			inControlPoint = SplineBezierControlPoint.InAuto(position, inNeighbour, normalizedControlPointDistance);
+			outControlPoint = SplineBezierControlPoint.OutAuto(position, outNeighbour, normalizedControlPointDistance);
 		}
 		
 		public void SetAutoDistance(Vector3? previousBezierPointPosition, Vector3? nextBezierPointPosition, Vector3 upVector, float normalizedControlPointDistance = 0.25f) {
 			if (previousBezierPointPosition == null && nextBezierPointPosition == null) {
 				return;
 			}
-			inControlPoint = SplineBezierControlPoint.InAuto(position, (Vector3)previousBezierPointPosition, normalizedControlPointDistance);
-			outControlPoint = SplineBezierControlPoint.OutAuto(position, (Vector3)nextBezierPointPosition, normalizedControlPointDistance);
+			// At the first/last point one neighbour is null; fall back to the other so we don't unbox a null.
+			var inNeighbour = previousBezierPointPosition ?? (Vector3)nextBezierPointPosition;
+			var outNeighbour = nextBezierPointPosition ?? (Vector3)previousBezierPointPosition;
+			inControlPoint = SplineBezierControlPoint.InAuto(position, inNeighbour, normalizedControlPointDistance);
+			outControlPoint = SplineBezierControlPoint.OutAuto(position, outNeighbour, normalizedControlPointDistance);
 		}
 		
 		public static SplineBezierPoint CreateAuto(Vector3 position, Vector3? previousBezierPointPosition, Vector3? nextBezierPointPosition, Vector3 upVector, float normalizedControlPointDistance = 0.25f) {
@@ -69,11 +75,14 @@ namespace SplineSystem {
 				rotation = Quaternion.LookRotation(Vector3.Slerp(vectorFromPrevious, vectorToNext, 0.5f), upVector);
 			}
 			
+			// At the first/last point one neighbour is null; fall back to the other so we don't unbox a null.
+			var inNeighbour = previousBezierPointPosition ?? (Vector3)nextBezierPointPosition;
+			var outNeighbour = nextBezierPointPosition ?? (Vector3)previousBezierPointPosition;
 			return new SplineBezierPoint(
 				position,
 				rotation,
-				SplineBezierControlPoint.GetAutoDistanceIn(position, (Vector3)previousBezierPointPosition, normalizedControlPointDistance),
-				SplineBezierControlPoint.GetAutoDistanceOut(position, (Vector3)nextBezierPointPosition, normalizedControlPointDistance)
+				SplineBezierControlPoint.GetAutoDistanceIn(position, inNeighbour, normalizedControlPointDistance),
+				SplineBezierControlPoint.GetAutoDistanceOut(position, outNeighbour, normalizedControlPointDistance)
 			);
 		}
 	}

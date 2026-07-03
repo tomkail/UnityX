@@ -43,7 +43,7 @@ public class CameraPropertiesModifier {
 		}
 		if(modifiers.HasFlag(CameraProperties.CameraPropertiesAxis.Axis)) {
 			if(mode == Mode.Additive) {
-				propertiesToModify.axis = propertiesToModify.axis * Quaternion.Euler(properties.targetPoint * strength);
+				propertiesToModify.axis = propertiesToModify.axis * Quaternion.Euler(properties.axis.eulerAngles * strength);
 			} else if(mode == Mode.Multiply) {
 
 			} else if(mode == Mode.Override) {

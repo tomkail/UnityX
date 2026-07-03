@@ -63,8 +63,7 @@ public static class UpscaleTools {
         }
 
         bool IsOnVisibilityMap(int x, int y) {
-            return true;
-            // return (x >= 0 && x < sourceMapSize.x && y >= 0 && y < sourceMapSize.y);
+            return (x >= 0 && x < sourceMapSize.x && y >= 0 && y < sourceMapSize.y);
         }
         
         for (int x = 0; x < sourceMapSize.x; x++) {
@@ -112,7 +111,11 @@ public static class UpscaleTools {
                     SetMapValues(colorMap, colorMapSize.x, edgePointRect, c);
                 }
 
+                // The centre "cell" fill samples the right/down/corner neighbours and writes a 4x4 block
+                // offset by (2,2), so it's only valid for cells that have those neighbours. Skipping the
+                // last row/column keeps neighbour sampling and pointRect within bounds.
                 var fill = x < sourceMapSize.x-1 && y < sourceMapSize.y-1;
+                if(!fill) continue;
                 var pointRect = new RectInt(2 + x*4, 2 + y*4, 4, 4);
 
                 var rightPix = IsOnVisibilityMap(x+1,y) ? GetValueAtGridPoint(x+1,y) : thisPix;

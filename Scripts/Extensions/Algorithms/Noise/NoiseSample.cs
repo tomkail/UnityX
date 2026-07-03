@@ -65,13 +65,15 @@ public struct NoiseSample {
 	}
 
 	public static NoiseSample operator / (float a, NoiseSample b) {
-		b.value /= a;
-		b.derivative /= a;
+		// Quotient rule for a / f(x): value = a / f, derivative = -a * f' / f^2.
+		b.derivative = -a * b.derivative / (b.value * b.value);
+		b.value = a / b.value;
 		return b;
 	}
 
 	public static NoiseSample operator / (NoiseSample a, NoiseSample b) {
-		a.derivative = a.derivative / b.value + b.derivative / a.value;
+		// Quotient rule: (f/g)' = (f'g - fg') / g^2.
+		a.derivative = (a.derivative * b.value - a.value * b.derivative) / (b.value * b.value);
 		a.value /= b.value;
 		return a;
 	}
