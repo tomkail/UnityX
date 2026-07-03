@@ -250,15 +250,15 @@ namespace UnityEngine.UI.Extensions
                 color1.a = 0;
                 color4.a = 0;
             } else if(properties.innerAlpha < 1) {
-                color1.a = (byte)(color1.a*properties.innerAlpha*255f);
-                color4.a = (byte)(color4.a*properties.innerAlpha*255f);
+                color1.a = (byte)(color1.a*properties.innerAlpha);
+                color4.a = (byte)(color4.a*properties.innerAlpha);
             }
             if(properties.outerAlpha == 0) {
                 color2.a = 0;
                 color3.a = 0;
             } else if(properties.outerAlpha < 1) {
-                color1.a = (byte)(color2.a*properties.outerAlpha*255f);
-                color4.a = (byte)(color3.a*properties.outerAlpha*255f);
+                color2.a = (byte)(color2.a*properties.outerAlpha);
+                color3.a = (byte)(color3.a*properties.outerAlpha);
             }
             colors[0] = color1;
             colors[1] = color2;

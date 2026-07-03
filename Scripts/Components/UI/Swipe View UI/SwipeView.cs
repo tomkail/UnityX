@@ -421,6 +421,8 @@ namespace UnityEngine.UI {
 		}
 
 		public float GetNormalizedProgress() {
+			// With 0 or 1 pages there's no range to normalize over.
+			if (pages.Count <= 1) return 0;
 			return GetInterpolatedCurrentPageIndex() / (pages.Count - 1);
 		}
 

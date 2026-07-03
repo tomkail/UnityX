@@ -66,8 +66,10 @@ public class AbsoluteRectTransformController : UIBehaviour {
 		
 		var targetScreenRect = Rect.MinMaxRect(canvasScreenRect.x + viewportRect.x * canvasScreenRect.width, canvasScreenRect.y + viewportRect.y * canvasScreenRect.height, canvasScreenRect.xMax + (viewportRect.xMax-1) * canvasScreenRect.width, canvasScreenRect.yMax + (viewportRect.yMax-1) * canvasScreenRect.height);
 		
-		RectTransformUtility.ScreenPointToLocalPointInRectangle(parent, targetScreenRect.min, canvas.renderMode == RenderMode.ScreenSpaceCamera ? canvas.worldCamera : null, out Vector2 minLocalPoint);
-		RectTransformUtility.ScreenPointToLocalPointInRectangle(parent, targetScreenRect.max, canvas.renderMode == RenderMode.ScreenSpaceCamera ? canvas.worldCamera : null, out Vector2 maxLocalPoint);
+		// Overlay canvases resolve screen points without a camera; ScreenSpaceCamera and WorldSpace both need it.
+		var eventCamera = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
+		RectTransformUtility.ScreenPointToLocalPointInRectangle(parent, targetScreenRect.min, eventCamera, out Vector2 minLocalPoint);
+		RectTransformUtility.ScreenPointToLocalPointInRectangle(parent, targetScreenRect.max, eventCamera, out Vector2 maxLocalPoint);
 		
 		var minWorldPoint = parent.TransformPoint(minLocalPoint);
 		var maxWorldPoint = parent.TransformPoint(maxLocalPoint);

@@ -115,7 +115,7 @@ public class BackgroundBlurUI : UIBehaviour {
     void Refresh() {
         graphic.material = material;
         var finalStrength = strength * (canvasGroupAlphaAffectsStrength ? canvasGroupAlpha : 1);
-        var sigma = blurRadius/3;
+        var sigma = blurRadius/3f;
         var finalSigma = finalStrength * sigma;
         if(quality == Quality.Low) stepSize = (int) (Mathf.Lerp(0.125f,1f,finalStrength) * blurRadius * 0.14f);
         else if(quality == Quality.Medium) stepSize = (int) (Mathf.Lerp(0.25f,1f,finalStrength) * blurRadius * 0.06f);

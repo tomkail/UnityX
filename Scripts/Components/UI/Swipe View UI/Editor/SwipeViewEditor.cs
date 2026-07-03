@@ -60,9 +60,7 @@ namespace UnityEditor.UI {
 					new(new GUIContent("Loose"), 0.6f),
 				});
 				rubberbanding.floatValue = Mathf.Max(rubberbanding.floatValue, 0);
-				
-				EditorGUI.BeginChangeCheck();
-				
+
 				EditorGUILayout.EndHorizontal();
 				EditorGUI.indentLevel--;
 			}

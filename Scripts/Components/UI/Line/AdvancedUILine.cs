@@ -103,10 +103,12 @@ public class AdvancedUILine {
     /// <param name="_scaleModifier">_scale modifier.</param>
     public static AdvancedUILine Scale (AdvancedUILine _polygonDefinition, AdvancedUILine _scaleModifier) {
         AdvancedUILine newAdvancedUILineDefinition = new AdvancedUILine(_polygonDefinition);
-        if(newAdvancedUILineDefinition.vertices.Length > _scaleModifier.vertices.Length) 
+        if(newAdvancedUILineDefinition.vertices.Length > _scaleModifier.vertices.Length) {
             DebugX.Log(null, "Cannot Scale AdvancedUILineDefinition because the input modifier does not have enough vertices. It has "+_scaleModifier.vertices.Length+". It requires at least "+_polygonDefinition.vertices.Length+".");
+            return newAdvancedUILineDefinition;
+        }
         for(int i = 0; i < _polygonDefinition.vertices.Length; i++) {
-            Vector2.Scale(newAdvancedUILineDefinition.vertices[i], _scaleModifier.vertices[i]);
+            newAdvancedUILineDefinition.vertices[i] = Vector2.Scale(newAdvancedUILineDefinition.vertices[i], _scaleModifier.vertices[i]);
         }
 
         return newAdvancedUILineDefinition;
@@ -122,7 +124,7 @@ public class AdvancedUILine {
         
         AdvancedUILine newAdvancedUILineDefinition = new AdvancedUILine(_polygonDefinition);
         for(int i = 0; i < _polygonDefinition.vertices.Length; i++) {
-            Vector2.Scale(newAdvancedUILineDefinition.vertices[i], _scaleModifier);
+            newAdvancedUILineDefinition.vertices[i] = Vector2.Scale(newAdvancedUILineDefinition.vertices[i], _scaleModifier);
         }
         return newAdvancedUILineDefinition;
     }
@@ -386,7 +388,8 @@ public class AdvancedUILine {
             }
         }
     
-        return crossings > 0 && crossings % 2 == 0;  
+        // A hit occurred if the ray crossed any edge; hit.point holds the closest crossing.
+        return crossings > 0;
     }
 
     public List<AdvancedUILineRaycastHit> RayAdvancedUILineIntersections(Vector2 rayOrigin, Vector2 rayDirection) {
@@ -540,7 +543,7 @@ public class AdvancedUILine {
             var sqrDistance = Vector2X.SqrDistance(point, currentPoint);
             if(sqrDistance < bestSqrDistance) {
                 bestSqrDistance = sqrDistance;
-                closestPoint = point;
+                closestPoint = currentPoint;
             }
         }
         return closestPoint;
@@ -654,8 +657,14 @@ public class AdvancedUILine {
     }
 
     public override int GetHashCode() {
-        // Not 100% on this. Should I be using actual values, since arrays are classes?
-        return _vertices.GetHashCode();
+        // Content-based hash so it stays consistent with Equals/== (which compare via SequenceEqual).
+        if (_vertices == null) return 0;
+        unchecked {
+            int hash = 17;
+            for (int i = 0; i < _vertices.Length; i++)
+                hash = hash * 31 + _vertices[i].GetHashCode();
+            return hash;
+        }
     }
 
     public static bool operator == (AdvancedUILine left, AdvancedUILine right) {

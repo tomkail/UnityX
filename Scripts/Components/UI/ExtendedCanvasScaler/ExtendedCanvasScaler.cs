@@ -10,7 +10,7 @@ namespace UnityEngine.UI {
         // This is a hack to fix an issue where DeviceSim returns the wrong DPI on the first frame in editor (ARGHHH)
         float ScreenDPI {
             get => EditorPrefs.GetFloat("UnityX/ExtendedCanvasScaler/prevDPI", Screen.dpi);
-            set => EditorPrefs.SetFloat("UnityX/ExtendedCanvasScaler/prevDPI", Screen.dpi);
+            set => EditorPrefs.SetFloat("UnityX/ExtendedCanvasScaler/prevDPI", value);
         }
 #else
         float ScreenDPI => Screen.dpi;

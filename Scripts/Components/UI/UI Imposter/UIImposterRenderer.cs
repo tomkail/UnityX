@@ -79,7 +79,9 @@ public static class UIImposterRenderer {
 
         // Setup
         var epsilon = 0.01f;
-        var targetCanvas = target.GetComponentInParent<Canvas>().rootCanvas;
+        var targetParentCanvas = target.GetComponentInParent<Canvas>();
+        if(targetParentCanvas == null) return;
+        var targetCanvas = targetParentCanvas.rootCanvas;
 
         // Cache the bits we're changing so we can restore them once we're done.
         var originalParent = target.parent;

@@ -77,7 +77,8 @@ namespace UnityEngine.UI {
 			get {
                 var _contentOffset = contentOffset;
                 var _freeMovementSize = freeMovementSize;
-				return new Vector2(_contentOffset.x/_freeMovementSize.x, _contentOffset.y/_freeMovementSize.y);
+                // When the content fits (freeMovementSize ~0) the ratio is undefined; return 0 rather than NaN/Inf.
+				return new Vector2(_freeMovementSize.x == 0 ? 0 : _contentOffset.x/_freeMovementSize.x, _freeMovementSize.y == 0 ? 0 : _contentOffset.y/_freeMovementSize.y);
 			}
 		}
         
@@ -240,12 +241,13 @@ namespace UnityEngine.UI {
 		/// </summary>
 		public override void OnInitializePotentialDrag(PointerEventData eventData)
 		{
-			ExecuteEvents.ExecuteHierarchy(transform.parent.gameObject, eventData, ExecuteEvents.initializePotentialDrag);
+			if (transform.parent != null)
+				ExecuteEvents.ExecuteHierarchy(transform.parent.gameObject, eventData, ExecuteEvents.initializePotentialDrag);
 			base.OnInitializePotentialDrag(eventData);
 		}
 
 		public override void OnScroll (PointerEventData eventData) {
-			if (routeScrollEventsToParent)
+			if (routeScrollEventsToParent && transform.parent != null)
 				ExecuteEvents.ExecuteHierarchy(transform.parent.gameObject, eventData, ExecuteEvents.scrollHandler);
 			else {
 				base.OnScroll(eventData);
@@ -254,9 +256,10 @@ namespace UnityEngine.UI {
 		}
 		
 		public override void OnBeginDrag (PointerEventData eventData) {
-			if (routeUnusedAxisDragEventsToParent && !horizontal && Math.Abs(eventData.delta.x) > Math.Abs(eventData.delta.y))
+			// Only route to a parent if one actually exists (a root ScrollRect has none).
+			if (routeUnusedAxisDragEventsToParent && transform.parent != null && !horizontal && Math.Abs(eventData.delta.x) > Math.Abs(eventData.delta.y))
 				routedUnusedAxisDragToParent = true;
-			else if (routeUnusedAxisDragEventsToParent && !vertical && Math.Abs(eventData.delta.x) < Math.Abs(eventData.delta.y))
+			else if (routeUnusedAxisDragEventsToParent && transform.parent != null && !vertical && Math.Abs(eventData.delta.x) < Math.Abs(eventData.delta.y))
 				routedUnusedAxisDragToParent = true;
 			else
 				routedUnusedAxisDragToParent = false;
@@ -294,7 +297,7 @@ namespace UnityEngine.UI {
 		public override void OnDrag (PointerEventData eventData) {
 			var excessDrag = GetAmountOfExcessMovement(eventData);
 			var excessDragReroutable = ExcessDragIsReroutable(excessDrag);
-			var canRouteExcessDragToParent = !routedUnusedAxisDragToParent && excessDragReroutable;
+			var canRouteExcessDragToParent = !routedUnusedAxisDragToParent && excessDragReroutable && transform.parent != null;
 			if (!currentlyRoutingExcessDragToParent && canRouteExcessDragToParent) {
 				// var parent = ExecuteEvents.ExecuteHierarchy(transform.parent.gameObject, eventData, ExecuteEvents.beginDragHandler);
 				// var reroutableParent = parent.GetComponent<IReroutableDrag>();

@@ -29,6 +29,15 @@ public class UISaturationEffect : MonoBehaviour {
             img.material = mat = new Material(matPrefab);
     }
 
+    void OnDisable () {
+        if (mat == null) return;
+        if (img == null) img = GetComponent<Graphic>();
+        if (img != null && img.material == mat) img.material = null;
+        if (Application.isPlaying) Destroy(mat);
+        else DestroyImmediate(mat);
+        mat = null;
+    }
+
     void Update() {
         if (mat != null) mat.SetFloat("_Saturation", saturation);
     }

@@ -10,13 +10,14 @@ public class WorldSpaceUIElement : UIBehaviour {
 	[SerializeField] bool _updateInEditMode = true;
 
 	[SerializeField] Camera _worldCamera;
+	[System.NonSerialized] Camera _worldCameraFallback;
 	public Camera worldCamera {
 		get {
-			if(_worldCamera == null) {
-				_worldCamera = Camera.main;
-				Debug.Log("No camera specified. Setting to current value of Camera.main: "+(_worldCamera == null ? "Null" : _worldCamera.name), this);
-			}
-			return _worldCamera;
+			if(_worldCamera != null) return _worldCamera;
+			// Fall back to Camera.main, cached in a non-serialized field so we don't churn the serialized
+			// value or spam the console on every access while unset.
+			if(_worldCameraFallback == null) _worldCameraFallback = Camera.main;
+			return _worldCameraFallback;
 		} set {
 			if(_worldCamera == value)
 				return;
@@ -245,7 +246,11 @@ public class WorldSpaceUIElement : UIBehaviour {
 				rectTransform.position = (Vector3)canvasSpace;
 		}
 		
-		onScreen = rootCanvasRT.rect.Contains((Vector2)targetPosition);
+		// targetPosition is in the parent RectTransform's local space; convert it into the root canvas's
+		// local space so it's comparable with rootCanvasRT.rect.
+		var parentRectTransform = parentRT;
+		var worldTargetPoint = parentRectTransform != null ? parentRectTransform.TransformPoint(targetPosition) : targetPosition;
+		onScreen = rootCanvasRT.rect.Contains((Vector2)rootCanvasRT.InverseTransformPoint(worldTargetPoint));
 	}
 
 	public void SetAngleFromRotation () {

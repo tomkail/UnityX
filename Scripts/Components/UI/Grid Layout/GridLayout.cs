@@ -277,6 +277,8 @@ namespace UnityEngine.UI {
 
 		// Given a container size, items of a certain size, spacing and margins; calculate the maximum number of items that could fit inside the container without going out of bounds.
 		public static int CalculateCellCount(float containerSize, float itemSize, float spacing, Vector2 margin) {
+			// A non-positive item size (e.g. when both axes are set to AspectRatio) has no defined cell count and would divide by zero.
+			if (itemSize <= 0) return 0;
 			return Mathf.FloorToInt((containerSize - (margin.x + margin.y) - itemSize) / (itemSize + spacing) + 1);
 		}
 

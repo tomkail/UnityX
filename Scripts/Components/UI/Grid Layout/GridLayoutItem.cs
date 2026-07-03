@@ -24,6 +24,7 @@ namespace UnityEngine.UI {
 		void Refresh() {
 			drivenRectTransformTracker.Clear();
 
+			if (gridLayout == null) return;
 
 			var size = gridLayout.GetItemSize();
 			rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size.x);

@@ -18,11 +18,9 @@ public class CanvasGroupOpacityInteractionEnabler : UIBehaviour {
 	public bool blocksRaycasts = true;
 
     void Update () {
-        if(ignoreParentGroups) return;
         Refresh();
     }
     protected override void OnCanvasGroupChanged() {
-        if(!ignoreParentGroups) return;
         base.OnCanvasGroupChanged();
         Refresh();
     }

@@ -256,7 +256,9 @@ namespace UnityEngine.UI.Extensions
         {
             Rect spriteRect = sprite.rect;
             //if (type == Type.Simple || type == Type.Filled)
-                return new Vector2(local.x * rect.width, local.y * rect.height);
+                // Map rect-space local coords into sprite-rect space; the caller then divides by the
+                // sprite size to normalise to 0..1. (Was multiplying by rect size → double-scaled.)
+                return new Vector2(local.x * spriteRect.width / rect.width, local.y * spriteRect.height / rect.height);
 
             //Vector4 border = sprite.border;
             //Vector4 adjustedBorder = GetAdjustedBorders(border / pixelsPerUnit, rect);

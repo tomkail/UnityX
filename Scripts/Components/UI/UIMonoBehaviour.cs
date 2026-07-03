@@ -10,7 +10,8 @@ public class UIMonoBehaviour : MonoBehaviour {
 
 	public Canvas rootCanvas {
 		get {
-			return canvas.rootCanvas;
+			var c = canvas;
+			return c == null ? null : c.rootCanvas;
 		}
 	}
 

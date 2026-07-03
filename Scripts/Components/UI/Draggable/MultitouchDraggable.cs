@@ -65,7 +65,9 @@ public class MultitouchDraggable : Selectable, IBeginDragHandler, IEndDragHandle
 	void LateUpdate () {
 		if(dragInputs.Count > 0) {
 			// This really wants to use whatever camera the PointerEventData used, but it's this in pretty much all cases I ever deal with.
-			var camera = GetComponentInParent<Canvas>().rootCanvas.worldCamera;
+			var parentCanvas = GetComponentInParent<Canvas>();
+			if(parentCanvas == null) return;
+			var camera = parentCanvas.rootCanvas.worldCamera;
 			
 			if(dragInputs.Count == 1) {
 				RectTransformUtility.ScreenPointToWorldPointInRectangle(target, dragInputs[0].screenPos, camera, out Vector3 newWorldPos);
@@ -131,15 +133,14 @@ public class MultitouchDraggable : Selectable, IBeginDragHandler, IEndDragHandle
 		var dragInput = dragInputs.FirstOrDefault(x => x.pointerId == eventData.pointerId);
 		if(dragInput != null) {
 			#if UNITY_EDITOR
-			dragInputs.RemoveRange(1,dragInputs.Count-1);
 			// This code path is used for testing in editor, where the second click is treated as a new input and the first is turned into a static input point.
+			dragInputs.RemoveRange(1,dragInputs.Count-1);
 			dragInput.pointerId = 0;
-			var pointerStartLocalCursor = Vector2.zero;
 			dragInputs.Add(new DragInput(eventData));
+			#else
+			Debug.LogWarning("Drag started but an input tracker for this pointer already exists!");
 			#endif
-			Debug.LogWarning("Drag started but input tracker was found!");
 		} else {
-			var pointerStartLocalCursor = Vector2.zero;
 			dragInputs.Add(new DragInput(eventData));
 		}
 	}

@@ -15,6 +15,7 @@ public class CarouselUIView : MonoBehaviour {
     }
 
     public CanvasGroup GetActiveItem () {
+        if (canvasGroups.IsNullOrEmpty()) return null;
         var index = Mathf.FloorToInt(currentTime / imageDuration);
         index %= canvasGroups.Count;
         return canvasGroups[index];

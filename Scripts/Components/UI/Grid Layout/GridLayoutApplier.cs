@@ -46,9 +46,10 @@ namespace UnityEngine.UI {
 
 			var numValidChildren = validChildren.Count;
 			if (autoFillMode == AutoFillMode.XAxis) {
-				gridLayout.xAxis.SetTargetCellCount(GridLayout.ArrayIndexToGridCoord(numValidChildren - 1, gridLayout.yAxis.GetCellCount()).y + 1);
+				// With no children ArrayIndexToGridCoord(-1, ...) would give a negative cell count.
+				gridLayout.xAxis.SetTargetCellCount(numValidChildren > 0 ? GridLayout.ArrayIndexToGridCoord(numValidChildren - 1, gridLayout.yAxis.GetCellCount()).y + 1 : 0);
 			} else if (autoFillMode == AutoFillMode.YAxis) {
-				gridLayout.yAxis.SetTargetCellCount(GridLayout.ArrayIndexToGridCoord(numValidChildren - 1, gridLayout.xAxis.GetCellCount()).y + 1);
+				gridLayout.yAxis.SetTargetCellCount(numValidChildren > 0 ? GridLayout.ArrayIndexToGridCoord(numValidChildren - 1, gridLayout.xAxis.GetCellCount()).y + 1 : 0);
 			}
 			// else if(autoFillMode == AutoFillMode.Auto) {
 			//     if(gridLayout.xAxis.fillMode == GridLayout.CellCountMode.Defined) {

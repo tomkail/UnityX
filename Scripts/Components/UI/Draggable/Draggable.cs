@@ -12,7 +12,7 @@ public delegate void OnStartDraggingEvent();
 /// </summary>
 public delegate void OnStopDraggingEvent();
 
-public class Draggable : Selectable, IBeginDragHandler, IEndDragHandler, IDragHandler {
+public class Draggable : Selectable, IBeginDragHandler, IEndDragHandler, IDragHandler, IPointerClickHandler {
 	public RectTransform rectTransform {
 		get {
 			return (RectTransform)transform;
@@ -138,7 +138,7 @@ public class Draggable : Selectable, IBeginDragHandler, IEndDragHandler, IDragHa
 		dragVelocity = Vector2.zero;
 		dragOffset = Vector2.zero;
 		if(revert) {
-			dragTargetPosition = m_PointerStartLocalCursor;
+			dragTargetPosition = m_ContentStartPosition;
 		}
 		if(OnStopDragging != null) OnStopDragging();
 	}
@@ -169,6 +169,7 @@ public class Draggable : Selectable, IBeginDragHandler, IEndDragHandler, IDragHa
 	/// <param name="space">Space.</param>
 	protected virtual Vector3 GetPosition (Vector2 screenPosition) {
 		var canvas = transform.GetComponentInParent<Canvas>();
+		if(canvas == null) return transform.position;
 		Vector3 point;
 		RectTransformUtility.ScreenPointToWorldPointInRectangle(canvas.GetComponent<RectTransform>(), screenPosition, canvas.worldCamera, out point);
 		return point;
