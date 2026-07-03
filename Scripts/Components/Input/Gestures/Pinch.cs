@@ -15,7 +15,7 @@ public class Pinch : Gesture {
 		}
 	}
 
-    // Sum of the delta of both fingers from the center.
+    // Per-finger movement projected onto the direction to the pinch center, summed (positive = fingers moving apart).
     // UNTESTED
 	public Vector2 deltaPinch;
 

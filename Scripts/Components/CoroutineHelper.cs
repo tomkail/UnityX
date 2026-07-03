@@ -45,7 +45,7 @@ public class CoroutineHelper : MonoSingleton<CoroutineHelper> {
 	//		
 	//	}, 1.0f);
 	// or
-	//	CoroutineHelper.Delay(1.0f, Method());
+	//	CoroutineHelper.Delay(Method, 1.0f);
 	public static IEnumerator Delay(Action action, float delay) {
 		IEnumerator routine = DelayCR(action, delay);
 		Execute(routine);

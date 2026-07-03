@@ -9,7 +9,7 @@ public struct StrokeGeometryAttributes {
     public Cap cap;          // butt, round, square
     public Join join;          // bevel, round, miter
     public float miterLimit;   // for join miter, the maximum angle value to use the miter
-    public bool closed;   // for join miter, the maximum angle value to use the miter
+    public bool closed;   // whether the stroke forms a closed loop
 
     public StrokeGeometryAttributes (float width, float extrusion, Cap cap, Join join, float miterLimit, bool closed) {
         this.width = width;

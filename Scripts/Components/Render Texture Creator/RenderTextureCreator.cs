@@ -31,7 +31,7 @@ public class RenderTextureCreator : MonoBehaviour {
 
     // public static Vector2Int screenSize => new Vector2Int(Screen.width, Screen.height);
     public static Vector2Int screenSize => new(screenWidth, screenHeight);
-    // ARGH I hate this. It's necessary because screen/display don't return the values for game view in some editor contexts (using inspector windows, for example)
+    // Screen/Display don't report the Game view size in some editor contexts (e.g. from inspector windows). TODO: replace this string-parse with UnityEditor.Handles.GetMainGameViewSize().
 	static int screenWidth {
 		get {
 			#if UNITY_EDITOR

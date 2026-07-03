@@ -5,7 +5,7 @@ using System.Collections;
 public class Finger : InputPoint {
 	//The ID of the touch, as defined by Unity's Touch class. This never changes.
 	public int fingerId;
-	//The index of the touch, where index 0 is the active touch and index 1 is the second touch
+	//Enumeration order of this touch within the current touch set (0-based); not a priority or "active" ordering.
 	public int fingerArrayIndex;
 	//The index of the touch, where index 0 is the active touch and index 1 is the second touch
 	//public int order;
