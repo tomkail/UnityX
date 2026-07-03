@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Handy extendable wrapper for Unity's SmoothDamp functions, tucking away the several variables for each smooth damp you want to have running.
+/// Handy extendable wrapper for Unity's Vector/Mathf.MoveTowards functions, tucking away the state for each ease you want running.
 /// </summary>
 [System.Serializable]
 public abstract class MoveTowardsEaser<T> : BaseEaser<T> {

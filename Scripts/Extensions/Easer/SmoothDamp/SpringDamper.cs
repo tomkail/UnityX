@@ -75,7 +75,7 @@ public class SpringDamper {
 		return DampedSpring(current, target, ref velocity, springConstant, damping, Time.deltaTime);
 	}
 	public static float DampedSpring(float current, float target, ref float velocity, float springConstant, float damping, float deltaTime) {
-		// we fix deltatime because a varying rate can see the spring go out of equilibrium. This is always smooth!
+		// we fix deltatime because a varying rate can see the spring go out of equilibrium. (Note: fixing the step trades exactness for stability — it is not truly framerate-independent.)
 		deltaTime = 1f/60f;
 
 		var currentToTarget = target - current;
@@ -90,7 +90,7 @@ public class SpringDamper {
 	}
 
 	public static float CriticallyDampedSpring(float current, float target, ref float velocity, float springConstant) {
-		// we fix deltatime because a varying rate can see the spring go out of equilibrium. This is always smooth! 
+		// we fix deltatime because a varying rate can see the spring go out of equilibrium. (Note: fixing the step trades exactness for stability — it is not truly framerate-independent.) 
 		var deltaTime = 1f/60f;
 
 		float currentToTarget = target - current;

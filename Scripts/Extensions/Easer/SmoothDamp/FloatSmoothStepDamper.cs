@@ -130,6 +130,6 @@ public class FloatSmoothStepDamper {
 	}
 
 	public override string ToString () {
-		return string.Format ("[BaseEaser] Current={0}, Target={1}", current, target);
+		return string.Format ("[FloatSmoothStepDamper] Current={0}, Target={1}", current, target);
 	}
 }
