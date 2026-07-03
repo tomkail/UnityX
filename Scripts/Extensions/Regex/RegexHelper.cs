@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 public static class RegexHelper {
+	// NOTE: this pattern matches uppercase letters and whitespace — despite the name it is NOT "empty or whitespace" (that would be @"^\s*$").
 	public const string emptyOrWhiteSpace = @"^[A-Z\s]*$";
 
 	public const string urlPattern = @"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)";

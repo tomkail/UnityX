@@ -90,7 +90,7 @@ public static class VersionControlX {
             gitSha = headFileContent;
         }
 
-        // Does it look like a git SHA?
+        // Does it look like a git SHA? (git SHA-1 is 40 hex chars; the 42 upper bound here is a loose/arbitrary guard.)
         if( gitSha.Length < 6 || gitSha.Length > 42 || gitSha.Contains(" ") )
             return ReturnNullAndWarn("Tried to get git SHA to put in Version object, but got unexpected output: "+gitSha);
 

@@ -190,7 +190,7 @@ public abstract class PropertyCurve<T> {
 	}
 	
 	/// <summary>
-	/// Removes the keys between and including startTime and endTime.
+	/// Removes the keys strictly between startTime and endTime (exclusive of both endpoints — uses IsBetween).
 	/// </summary>
 	/// <param name="startTime">Start time.</param>
 	/// <param name="endTime">End time.</param>

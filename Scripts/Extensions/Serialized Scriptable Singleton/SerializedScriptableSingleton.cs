@@ -2,7 +2,7 @@ using System;
 using UnityEditor;
 using UnityEngine;
 
-// Can be thought of as a singleton reference a scriptable object, loaded and saved to playerprefs rather than serialized to the inspector.
+// Can be thought of as a singleton reference to a scriptable object, loaded/saved to EditorPrefs (PlayerPrefs at runtime) rather than serialized to the inspector.
 // This is commonly useful for per-user settings files, especially for development debug settings.
 public class SerializedScriptableSingleton<T> : ScriptableObject where T : ScriptableObject {
 	static string _settingsPrefsKey;
