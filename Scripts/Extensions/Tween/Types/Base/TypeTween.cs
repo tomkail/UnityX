@@ -122,7 +122,7 @@ public abstract class TypeTween<T> {
 	/// Starts a new tween between the current value and the target value over a specified time
 	/// </summary>
 	/// <param name="myTargetValue">The value to tween towards.</param>
-	/// <param name="myTargetTime">The time over which the tween will occur.</param>
+	/// <param name="myTweenTime">The time over which the tween will occur.</param>
 	public virtual void Tween(T myTargetValue, float myTweenTime){
 		Tween(currentValue, myTargetValue, myTweenTime);
 	}
@@ -131,8 +131,8 @@ public abstract class TypeTween<T> {
 	/// Starts a new tween between the current value and the target value over a specified time, using an easing curve
 	/// </summary>
 	/// <param name="myTargetValue">The value to tween towards.</param>
-	/// <param name="myTargetTime">The time over which the tween will occur.</param>
-	/// <param name="myLerpCurve">The easing curve fro the tween</param>
+	/// <param name="myTweenTime">The time over which the tween will occur.</param>
+	/// <param name="myLerpCurve">The easing curve for the tween</param>
 	public virtual void Tween(T myTargetValue, float myTweenTime, AnimationCurve myLerpCurve){
 		Tween(currentValue, myTargetValue, myTweenTime, myLerpCurve);
 	}
@@ -150,7 +150,7 @@ public abstract class TypeTween<T> {
 	/// </summary>
 	/// <param name="myStartValue">The start value of the tween.</param>
 	/// <param name="myTargetValue">The value to tween towards.</param>
-	/// <param name="myTargetTime">The time over which the tween will occur.</param>
+	/// <param name="myTweenTime">The time over which the tween will occur.</param>
 	public virtual void Tween(T myStartValue, T myTargetValue, float myTweenTime){
 		Tween(myStartValue, myTargetValue, myTweenTime, AnimationCurve.Linear(0, 0, 1, 1));
 	}
@@ -188,8 +188,8 @@ public abstract class TypeTween<T> {
 	/// </summary>
 	/// <param name="myStartValue">The start value of the tween.</param>
 	/// <param name="myTargetValue">The value to tween towards.</param>
-	/// <param name="myTargetTime">The time over which the tween will occur.</param>
-	/// <param name="myLerpCurve">The easing curve fro the tween</param>
+	/// <param name="myTweenTime">The time over which the tween will occur.</param>
+	/// <param name="myLerpCurve">The easing curve for the tween</param>
 	public virtual void Tween(T myStartValue, T myTargetValue, float myTweenTime, AnimationCurve myLerpCurve, LerpFunction lerpFunction){
 		if(tweening) {
 			Interrupt();
