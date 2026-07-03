@@ -62,7 +62,7 @@ public static class StringX {
 	}
 
     /// <summary>
-    /// Get string value after [first] a.
+    /// Returns the substring before the first occurrence of `a`.
     /// </summary>
     public static string Before(this string value, string a, bool returnEmptyIfNotFound = true) {
 		int posA = value.IndexOf(a, StringComparison.Ordinal);
@@ -73,7 +73,7 @@ public static class StringX {
     }
 
 	/// <summary>
-    /// Get string value after [first] a.
+    /// Returns the substring before the last occurrence of `a`.
     /// </summary>
     public static string BeforeLast(this string value, string a, bool returnEmptyIfNotFound = true) {
 		int posA = value.LastIndexOf(a, StringComparison.Ordinal);
@@ -84,7 +84,7 @@ public static class StringX {
     }
 	
 	/// <summary>
-	/// Get string value after [first] a.
+	/// Returns the substring after the first occurrence of `a`.
 	/// </summary>
 	public static string AfterFirst(this string value, string a, bool returnEmptyIfNotFound = true) {
 		int posA = value.IndexOf(a);

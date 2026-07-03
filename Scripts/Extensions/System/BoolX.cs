@@ -6,7 +6,7 @@ public static class BoolX {
 	/// Returns bool based on int value, as defined by C#.
 	/// </summary>
 	/// <returns>The bool.</returns>
-	/// <param name="_bool">If set to <c>true</c> _bool.</param>
+	/// <param name="_int">The int to convert (0 = false, non-zero = true).</param>
 	public static bool ToBool(this int _int) {
 		return Convert.ToBoolean(_int);
 	}

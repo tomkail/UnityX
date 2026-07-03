@@ -6,7 +6,7 @@ public static class ByteFormatter {
 	}
 	
 	// public static double FromToSize (long from, SI fromOrder, SI targetOrder) {}
-	// 1 Indexed. 3 is MB
+	// SI is 0-indexed (B=0, KB=1, MB=2, …).
 	public static double ToSize (long bytes, SI targetOrder) {
 		int orderIndex = 0;
 		int targetOrderIndex = (int)targetOrder;

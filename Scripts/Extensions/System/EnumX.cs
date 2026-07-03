@@ -21,7 +21,7 @@ public static class EnumX {
 	/// <typeparam name="T">The 1st type parameter.</typeparam>
 	public static int Length<T>() where T : Enum {
 		#if !UNITY_WINRT
-		if (!typeof(T).IsEnum) throw new Exception("Argument {0} is not an Enum "+typeof(T).FullName);
+		if (!typeof(T).IsEnum) throw new Exception("Argument is not an Enum: "+typeof(T).FullName);
 		#endif
 		return Enum.GetNames(typeof(T)).Length;
 	}
@@ -34,7 +34,7 @@ public static class EnumX {
 	/// <typeparam name="T">The 1st type parameter.</typeparam>
 	public static int IndexOf<T>(T src) where T : Enum {
 		#if !UNITY_WINRT
-		if (!typeof(T).IsEnum) throw new ("Argument {0} is not an Enum "+typeof(T).FullName);
+		if (!typeof(T).IsEnum) throw new ("Argument is not an Enum: "+typeof(T).FullName);
 		#endif
 		var values = GetValues<T>();
 		return Array.IndexOf(values, src);
@@ -46,7 +46,7 @@ public static class EnumX {
 	/// <typeparam name="T">The 1st type parameter.</typeparam>
 	public static T Random<T>() where T : Enum {
 		#if !UNITY_WINRT
-		if (!typeof(T).IsEnum) throw new ("Argument {0} is not an Enum "+typeof(T).FullName);
+		if (!typeof(T).IsEnum) throw new ("Argument is not an Enum: "+typeof(T).FullName);
 		#endif
 		return (T)Enum.ToObject(typeof(T), UnityEngine.Random.Range(0, Length<T>()));
 	}
@@ -58,7 +58,7 @@ public static class EnumX {
 	/// <typeparam name="T">The 1st type parameter.</typeparam>
 	public static T Next<T>(T src) where T : Enum {
 		#if !UNITY_WINRT
-		if (!typeof(T).IsEnum) throw new ("Argument {0} is not an Enum "+typeof(T).FullName);
+		if (!typeof(T).IsEnum) throw new ("Argument is not an Enum: "+typeof(T).FullName);
 		#endif
 		T[] Arr = (T[])GetValues<T>();
 		int j = Array.IndexOf(Arr, src) + 1;
@@ -72,7 +72,7 @@ public static class EnumX {
 	/// <typeparam name="T">The 1st type parameter.</typeparam>
 	public static T Previous<T>(T src) where T : Enum {
 		#if !UNITY_WINRT
-		if (!typeof(T).IsEnum) throw new ("Argument {0} is not an Enum "+typeof(T).FullName);
+		if (!typeof(T).IsEnum) throw new ("Argument is not an Enum: "+typeof(T).FullName);
 		#endif
 		T[] Arr = (T[])GetValues<T>();
 		int j = Array.IndexOf(Arr, src) - 1;
@@ -90,9 +90,9 @@ public static class EnumX {
 	}
 
 	/// <summary>
-	/// Returns an array of all the values of the enum.
+	/// Returns an enumerable over all the values of the enum.
 	/// </summary>
-	/// <returns>The array.</returns>
+	/// <returns>The values.</returns>
 	/// <typeparam name="T">The 1st type parameter.</typeparam>
 	public static IEnumerable<T> GetEnumerable<T>() where T : Enum {
 		var values = GetValues<T>();
