@@ -153,7 +153,6 @@ public static class AssetDatabaseX {
 		else return false;
 	}
 
-// Texture2D.CreateExternalTexture()
 	public static void UnSetAsSubAsset<T>(ref T asset) where T : Object {
 		var isSubAsset = AssetDatabase.IsSubAsset(asset);
 		if(!isSubAsset) return;

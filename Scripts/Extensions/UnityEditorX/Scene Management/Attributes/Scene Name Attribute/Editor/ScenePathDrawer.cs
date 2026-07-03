@@ -18,7 +18,7 @@ public class ScenePathDrawer : PropertyDrawer {
 		return property.propertyType == SerializedPropertyType.String;
 	}
 	void DrawNotSupportedGUI (Rect position, SerializedProperty property, GUIContent label) {
-		EditorGUI.HelpBox(position, "Type "+property.propertyType+" is not supported with this property attribute. Use Object type instead.", MessageType.Error);
+		EditorGUI.HelpBox(position, "Type "+property.propertyType+" is not supported with this property attribute. Use a string field instead.", MessageType.Error);
 	}
 
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {

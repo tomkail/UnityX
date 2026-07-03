@@ -344,7 +344,7 @@ public class HeightMapMeshGenerator : MonoBehaviour {
 			}
 		}
 		
-		//NOTE: UVS ARNT PERFECT - I WAS GETTING -0.1 to 0.9 on some tests- possibly linked to size drawing
+		//TODO: UVs aren't perfect here — some tests produced -0.1 to 0.9, possibly linked to size drawing.
 		if(drawFloor){
 			if(externals){
 				savedVertIndex = vertIndex;
@@ -616,7 +616,7 @@ public class HeightMapMeshGenerator : MonoBehaviour {
 					tris[triIndex + 5] = savedVertIndex + 0;
 					triIndex += 6;
 					
-					//This is weird? Look into this later.
+					//TODO: revisit — UV assignment here looks suspect.
 					uv0 = new Vector2(0,0);
 					uv1 = new Vector2(1,0);
 					uv2 = new Vector2(0,1);

@@ -186,7 +186,6 @@ public class TypeMap<T> : Grid, IEnumerable<TypeMapCellInfo<T>> {
 		gridPosition = ClampGridPosition(gridPosition);
 		if(gridPosition.x.IsWhole() && gridPosition.y.IsWhole()) {
 			SetValueAtGridPoint((int)gridPosition.x, (int)gridPosition.y, value);
-//			return GetValueAtGridPoint((int)gridPosition.x, (int)gridPosition.y);
 		}
 
 		int left = Mathf.FloorToInt(gridPosition.x);
@@ -224,7 +223,7 @@ public class TypeMap<T> : Grid, IEnumerable<TypeMapCellInfo<T>> {
 
 	/// <summary>
 	/// Resize the grid to specified size, optionally offsetting the existing contents simultaniously in order to control the expansion pivot.
-	/// Operates silently, avoiding OnChangeGridPoint calls from entities.
+	/// Operates silently (does not raise OnChangeGridPoint callbacks).
 	/// For example, Resize(size + Point.one * 2, Point.one * 2) resizes from the top right, whereas Resize(size + Point.one, Point.zero) resizes from the bottom right.
 	/// </summary>
 	/// <param name="size">Size.</param>

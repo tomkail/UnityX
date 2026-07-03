@@ -5,7 +5,7 @@ using System.Linq;
 
 /// <summary>
 /// Grid class.
-/// Normalized space is in the range (0, 1) on the X, Y and Z axis.
+/// Normalized space is in the range (0, 1) on the X and Y axes.
 /// Grid space is in the range (0, size), on the X and Y axis.
 /// </summary>
 [System.Serializable]
