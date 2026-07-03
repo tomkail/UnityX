@@ -79,7 +79,7 @@ public class Grid3D {
 	}
 	
 	public Point3 ArrayIndexToGridPoint (int arrayIndex){
-		return Grid3D.ArrayIndexToGridPoint(arrayIndex, size.x, size.y);
+		return Grid3D.ArrayIndexToGridPoint(arrayIndex, size.y, size.z);
 	}
 
 	public Point3 ArrayIndexToNormalizedPosition (int arrayIndex){
@@ -147,7 +147,7 @@ public class Grid3D {
 	public void ClampGridPoint(ref int x, ref int y, ref int z, int minX, int maxX, int minY, int maxY, int minZ, int maxZ){
 		x = Mathf.Clamp(x, minX, maxX);
 		y = Mathf.Clamp(y, minY, maxY);
-		z = Mathf.Clamp(y, minZ, maxZ);
+		z = Mathf.Clamp(z, minZ, maxZ);
 	}
 	
 	public Point3 ClampGridPoint(Point3 gridPoint){
@@ -200,7 +200,7 @@ public class Grid3D {
 	}
 
 	public Point3[] ValidAdjacentDirections(Point3 gridPoint){
-		return Grid3D.Filter(Grid3D.Filter(Grid3D.AdjacentDirections(gridPoint).ToList(), IsOnGrid)).ToArray();
+		return Grid3D.Filter(Grid3D.AdjacentDirections(gridPoint).ToList(), IsOnGrid).ToArray();
 	}
 
 	/// <summary>
@@ -224,11 +224,11 @@ public class Grid3D {
 		return GridPointToArrayIndex(gridPoint.x, gridPoint.y, gridPoint.z, height, depth);
 	}
 	
-	public static Point3 ArrayIndexToGridPoint (int arrayIndex, int width, int height){
-		int z = arrayIndex / (width * height);
-		arrayIndex -= (z * width * height);
-		int y = arrayIndex / width;
-		int x = arrayIndex % width;
+	public static Point3 ArrayIndexToGridPoint (int arrayIndex, int height, int depth){
+		int x = arrayIndex / (height * depth);
+		arrayIndex -= (x * height * depth);
+		int y = arrayIndex / depth;
+		int z = arrayIndex % depth;
     	return new Point3(x, y, z);
 	}
 
@@ -253,7 +253,7 @@ public class Grid3D {
 	}
 	
 	public static Vector3 RandomNormalizedPosition () {
-		return new Vector3 (UnityEngine.Random.Range(0, 1), UnityEngine.Random.Range(0, 1), UnityEngine.Random.Range(0, 1));
+		return new Vector3 (UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f));
 	}
 
 	public static Point3[] AdjacentDirections(){

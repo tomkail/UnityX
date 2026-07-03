@@ -7,7 +7,11 @@ public static class EditorApplicationX {
 
 	static bool? _isRetina;
 	public static bool IsRetina () {
-		if(_isRetina == null) _isRetina = Application.platform == RuntimePlatform.OSXEditor && float.Parse(Application.unityVersion.Substring(0,3)) >= 5.4;
+		if(_isRetina == null) {
+			float version = 0f;
+			float.TryParse(Application.unityVersion.Substring(0,3), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out version);
+			_isRetina = Application.platform == RuntimePlatform.OSXEditor && version >= 5.4f;
+		}
 		return (bool)_isRetina;
 	}
 

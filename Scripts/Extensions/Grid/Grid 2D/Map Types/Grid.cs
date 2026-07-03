@@ -96,7 +96,7 @@ public class Grid {
 	}
 	
 	public Point ArrayIndexToGridPoint (int arrayIndex){
-		return new Point(arrayIndex%size.x, Mathf.FloorToInt((float)arrayIndex * sizeReciprocal.x));
+		return new Point(arrayIndex%size.x, arrayIndex/size.x);
 	}
 
 	public Vector2 ArrayIndexToNormalizedPosition (int arrayIndex){
@@ -249,15 +249,15 @@ public class Grid {
 
 
 	public Point[] ValidCardinalDirections(Point gridPoint){
-		return Grid.Filter(Grid.Filter(Point.CardinalDirections(gridPoint).ToList(), IsOnGrid)).ToArray();
+		return Grid.Filter(Point.CardinalDirections(gridPoint).ToList(), IsOnGrid).ToArray();
 	}
 
 	public Point[] ValidOrdinalDirections(Point gridPoint){
-		return Grid.Filter(Grid.Filter(Point.OrdinalDirections(gridPoint).ToList(), IsOnGrid)).ToArray();
+		return Grid.Filter(Point.OrdinalDirections(gridPoint).ToList(), IsOnGrid).ToArray();
 	}
 
 	public Point[] ValidCompassDirections(Point gridPoint){
-		return Grid.Filter(Grid.Filter(Point.CompassDirections(gridPoint).ToList(), IsOnGrid)).ToArray();
+		return Grid.Filter(Point.CompassDirections(gridPoint).ToList(), IsOnGrid).ToArray();
 	}
 	
 	
@@ -318,7 +318,7 @@ public class Grid {
 	}
 	
 	public static Point ArrayIndexToGridPoint (int arrayIndex, int width){
-		return new Point(arrayIndex%width, Mathf.FloorToInt((float)arrayIndex/width));
+		return new Point(arrayIndex%width, arrayIndex/width);
 	}
 
 	public static Vector2 GridToNormalizedPosition (Vector2 gridPosition, Point gridSize){
@@ -342,7 +342,7 @@ public class Grid {
 	}
 	
 	public static Vector2 RandomNormalizedPosition () {
-		return new Vector2 (UnityEngine.Random.Range(0, 1), UnityEngine.Random.Range(0, 1));
+		return new Vector2 (UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f));
 	}
 
 

@@ -19,7 +19,7 @@ public class GridRenderer : MonoBehaviour {
             Refresh();
 		}
 	}
-	public Vector3 cellSize => scaleWithGridSize ? Vector3.one : new Vector3(1f/gridSize.x, 1f/gridSize.y, 1f/gridSize.x);
+	public Vector3 cellSize => scaleWithGridSize ? Vector3.one : new Vector3(1f/gridSize.x, 1f/gridSize.y, 1f/gridSize.y);
 	
 	public bool showGizmos;
 	
@@ -298,8 +298,7 @@ public class GridRenderer : MonoBehaviour {
 		var pointRect = PointRect.MinMaxRect(min, max);
 
 		foreach(var point in pointRect.GetPoints()) {
-			// if(bounds.Contains(cellCenter.GridToWorldPoint(point)))
-				yield return point;
+			yield return point;
 		}
 	}
 
@@ -318,13 +317,7 @@ public class GridRenderer : MonoBehaviour {
 			end.y = Mathf.Clamp(end.y, 0, gridSize.y);
 		}
 		if(start.x == end.x || start.y == end.y) yield break;
-		// var gridStep = cellCenter.WorldVectorToGridVector(Vector2.one);
-		// var gridStep = new Vector2(0,cellCenter.gridSize.x);
-		// new Vector2(1f/(cellCenter.gridSize.x-1), 1f/(cellCenter.gridSize.y-1));
 		float radiusSquared = radius * radius;
-		//  - (gridStep * 0.5f).sqrMagnitude;
-		// radiusSquared = (radius - (gridStep.magnitude * 0.5f));
-		// radiusSquared *= radiusSquared;
 		for (int x = start.x; x < end.x; x++) {
 			for (int y = start.y; y < end.y; y++) {
 				var point = new Point(x,y);
@@ -361,8 +354,6 @@ public class GridRenderer : MonoBehaviour {
 		GizmosX.BeginColor(Color.white.WithAlpha(1f));
         var bounds = edge.NormalizedToWorldRect(new Rect(0,0,1,1));
 		GizmosX.DrawWirePolygon(bounds);
-        // bounds = cellCenter.NormalizedRectToWorldRect(new Rect(0,0,1,1));
-		// GizmosX.DrawWirePolygon(bounds);
 		GizmosX.EndColor();
 
 		GizmosX.BeginColor(Color.white.WithAlpha(0.25f));

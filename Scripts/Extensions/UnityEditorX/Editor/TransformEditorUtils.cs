@@ -114,7 +114,7 @@ public class TransformEditorUtils
         _hasCopiedLocalTransform = true;
     }
 
-    [MenuItem("Tools/Transform/Paste transform %&c", isValidateFunction: true)]
+    [MenuItem("Tools/Transform/Paste transform %&v", isValidateFunction: true)]
     private static bool PasteTransformValidator() { return Selection.activeTransform != null && _hasCopiedLocalTransform; }
     [MenuItem("Tools/Transform/Paste transform %&v")]
     private static void PasteTransform()

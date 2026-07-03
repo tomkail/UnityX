@@ -157,7 +157,7 @@ public static class SerializedPropertyX
 	public static bool Contains(this SerializedProperty prop, System.Object value)
 	{
 		for (int i = 0, size = prop.arraySize; i < size; i++) {
-			if (prop.GetAt(i).Value() == value)
+			if (object.Equals(prop.GetAt(i).Value(), value))
 				return true;
 		}
 		return false;

@@ -6,7 +6,6 @@ using UnityX.Geometry;
 [System.Serializable]
 public class TypeMap3D<T> : Grid3D, IEnumerable<TypeMap3DCellInfo<T>> {
 
-	[System.NonSerialized]
 	public T[] values;
 	public float valuesLengthReciprocal {
 		get {
@@ -16,7 +15,6 @@ public class TypeMap3D<T> : Grid3D, IEnumerable<TypeMap3DCellInfo<T>> {
 	
 	public TypeMap3D (Point3 _size) : base (_size) {
 		Clear();
-		values = new T[size.area];
 	}
 	
 	public TypeMap3D (Point3 _size, T _value) : this (_size) {
@@ -192,7 +190,6 @@ public class TypeMap3D<T> : Grid3D, IEnumerable<TypeMap3DCellInfo<T>> {
 	/// <param name="size">Size.</param>
 	/// <param name="offset">Offset.</param>
 	public virtual void Resize (Point3 size, Point3 offset) {
-		DebugX.LogList(values);
 		Point3 lastSize = this.size;
 		this.size = size;
 
@@ -200,7 +197,7 @@ public class TypeMap3D<T> : Grid3D, IEnumerable<TypeMap3DCellInfo<T>> {
 		System.Array.Copy(values, cachedValues, values.Length);
 		values = new T[size.area];
 		for(int i = 0; i < cachedValues.Length; i++) {
-			Point3 gridPoint = ArrayIndexToGridPoint(i, lastSize.x, lastSize.y);
+			Point3 gridPoint = ArrayIndexToGridPoint(i, lastSize.y, lastSize.z);
 			gridPoint += offset;
 			if(IsOnGrid(gridPoint))
 				SetValueAtGridPoint(gridPoint, cachedValues[i]);

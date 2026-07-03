@@ -45,6 +45,7 @@ public class SceneDrawer : PropertyDrawer {
 
         if (sceneNames.Length == 0) {
             EditorGUI.LabelField(position, ObjectNames.NicifyVariableName(property.name), "No Scenes in build.");
+            EditorGUI.EndProperty();
             return;
         }
 
@@ -75,40 +76,13 @@ public class SceneDrawer : PropertyDrawer {
 		for(int i = 0; i < paths.Length; i++) {
 			o[i+1] = AssetDatabase.LoadAssetAtPath<Object>(paths[i]);
 		}
-//		if(sceneNameAttribute.findMethod == SceneNameAttribute.SceneFindMethod.AllInProject) {
-//			return ;
-//		}
-//        List<EditorBuildSettingsScene> scenes = null;
-//		if(sceneNameAttribute.findMethod == SceneNameAttribute.SceneFindMethod.AllInBuild) scenes = EditorBuildSettings.scenes.ToList();
-//		else if(sceneNameAttribute.findMethod == SceneNameAttribute.SceneFindMethod.EnabledInBuild) scenes = EditorBuildSettings.scenes.Where(scene => scene.enabled).ToList();
-//        HashSet<string> sceneNames = new HashSet<string>();
-//        scenes.ForEach(scene => {
-//			sceneNames.Add(scene.path);
-//        });
-//        return sceneNames.ToArray();
 		return o;
 	}
 
     private string[] GetSceneNames()
     {
 		List<string> paths = EditorSceneManagerX.scenePaths.ToList();
-//		if(sceneNameAttribute.findMethod == SceneNameAttribute.SceneFindMethod.AllInProject) {
-//		}
-//        List<EditorBuildSettingsScene> scenes = null;
-//		if(sceneNameAttribute.findMethod == SceneNameAttribute.SceneFindMethod.AllInBuild) scenes = EditorBuildSettings.scenes.ToList();
-//		else if(sceneNameAttribute.findMethod == SceneNameAttribute.SceneFindMethod.EnabledInBuild) scenes = EditorBuildSettings.scenes.Where(scene => scene.enabled).ToList();
-//        HashSet<string> sceneNames = new HashSet<string>();
-//        scenes.ForEach(scene => {
-//			sceneNames.Add(scene.path);
-//        });
-//        return sceneNames.ToArray();
 		paths.Insert(0, "None");
 		return paths.ToArray();
-    }
-
-    private void SetSceneNumbers(int[] sceneNumbers, string[] sceneNames) {
-        for (int i = 0; i < sceneNames.Length; i++) {
-            sceneNumbers[i] = i;
-        }
     }
 }

@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEditor;
 
 public static class HierarchyX {
@@ -10,17 +11,16 @@ public static class HierarchyX {
 	public static void CollapseHierarchyView() {
        var svhType = Type.GetType("UnityEditor.SceneHierarchyWindow, UnityEditor");
        var hierarchies = (IEnumerable)svhType.GetMethod("GetAllSceneHierarchyWindows", BindingFlags.Public | BindingFlags.Static).Invoke(null, null);
-       var getExpandedSceneNameMethod = svhType.GetMethod("GetExpandedSceneNames", BindingFlags.NonPublic | BindingFlags.Instance);
-       var setScenesExpandedMethod = svhType.GetMethod("SetScenesExpanded", BindingFlags.NonPublic | BindingFlags.Instance);
-	//    var setExpandedRecursiveMethod = svhType.GetMethod("SetExpandedRecursive", BindingFlags.Public | BindingFlags.Instance);
+       var setExpandedRecursiveMethod = svhType.GetMethod("SetExpandedRecursive", BindingFlags.Public | BindingFlags.Instance);
 
        foreach (var hierarchy in hierarchies) {
-			var expandedScenes = new List<string>();
-			foreach (var scene in (IEnumerable<string>)getExpandedSceneNameMethod.Invoke(hierarchy, null)) {
-				if (!scene.StartsWith("sgnode_")) 
-					expandedScenes.Add(scene);
+			for (int i = 0; i < SceneManager.sceneCount; i++) {
+				var scene = SceneManager.GetSceneAt(i);
+				if (!scene.isLoaded) continue;
+				foreach (var root in scene.GetRootGameObjects()) {
+					setExpandedRecursiveMethod.Invoke(hierarchy, new object[] { root.GetInstanceID(), false });
+				}
 			}
-			setScenesExpandedMethod.Invoke(hierarchy, new object[] { expandedScenes });
 		}
 		EditorApplication.RepaintHierarchyWindow();
 	}

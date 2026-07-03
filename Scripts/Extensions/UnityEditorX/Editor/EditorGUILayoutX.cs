@@ -271,22 +271,6 @@ public static class EditorGUILayoutX {
     
 	static void DrawObjectViaReflection(object obj, int indentLevel)
 	{
-		// PropertyInfo[] properties = obj.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
-		// foreach (var property in properties)
-		// {
-		// 	EditorGUI.indentLevel = indentLevel;
-		// 	object value = property.GetValue(obj);
-		//
-		// 	if (value != null && property.PropertyType.IsClass && property.PropertyType != typeof(string))
-		// 	{
-		// 		EditorGUILayout.LabelField(property.Name, EditorStyles.boldLabel);
-		// 		DrawObjectViaReflection(value, indentLevel + 1);
-		// 	}
-		// 	else
-		// 	{
-		// 		DrawPropertyViaReflection(property, value, obj);
-		// 	}
-		// }
 		FieldInfo[] fields = obj.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
 		foreach (FieldInfo field in fields)
 		{
@@ -305,63 +289,7 @@ public static class EditorGUILayoutX {
 		}
 		EditorGUI.indentLevel = 0;
 	}
-	
-	static void DrawPropertyViaReflection(PropertyInfo property, object value, object obj) {
-		if (property.PropertyType == typeof(int))
-		{
-			int newValue = EditorGUILayout.IntField(property.Name, (int)value);
-			if(property.SetMethod != null)
-				property.SetValue(obj, newValue);
-		}
-		else if (property.PropertyType == typeof(float))
-		{
-			float newValue = EditorGUILayout.FloatField(property.Name, (float)value);
-			if(property.SetMethod != null)
-				property.SetValue(obj, newValue);
-		}
-		else if (property.PropertyType == typeof(string))
-		{
-			// if (field.GetCustomAttribute<TextAreaAttribute>() != null)
-			// {
-			// 	string newValue = EditorGUILayout.TextArea((string)value, GUILayout.Height(50));
-			// 	field.SetValue(obj, newValue);
-			// }
-			// else
-			// {
-			// 	string newValue = EditorGUILayout.TextField(field.Name, (string)value);
-			// 	field.SetValue(obj, newValue);
-			// }
-			string newValue = DrawAutoSizedTextArea(property.Name, (string)value);
-			if(property.SetMethod != null)
-				property.SetValue(obj, newValue);
-		}
-		else if (property.PropertyType == typeof(bool))
-		{
-			bool newValue = EditorGUILayout.Toggle(property.Name, (bool)value);
-			if(property.SetMethod != null)
-				property.SetValue(obj, newValue);
-		}
-		else if (property.PropertyType.IsEnum)
-		{
-			Enum newValue = EditorGUILayout.EnumPopup(property.Name, (Enum)value);
-			if(property.SetMethod != null)
-				property.SetValue(obj, newValue);
-		}
-		else if (typeof(IEnumerable<string>).IsAssignableFrom(property.PropertyType))
-		{
-			var list = (IEnumerable<string>)value;
-			EditorGUILayout.LabelField(property.Name, EditorStyles.boldLabel);
-			foreach (var item in list)
-			{
-				EditorGUILayout.LabelField("- " + item);
-			}
-		}
-		else
-		{
-			EditorGUILayout.LabelField(property.Name, value != null ? value.ToString() : "null");
-		}
-	}
-	
+
 	static void DrawFieldViaReflection(FieldInfo field, object value, object obj) {
 		if (field.FieldType == typeof(int))
 		{

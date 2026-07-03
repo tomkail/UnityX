@@ -163,7 +163,7 @@ public class HeightMapMeshGenerator : MonoBehaviour {
 					float z1 = z * sizeReciprocal.y;
 					float z2 = (z+1) * sizeReciprocal.y;
 					
-					if(!drawFloor && (heightMap.values[z * (sizeMinusOne.x+1) + x] == 0f && heightMap.values[z * (sizeMinusOne.x+1) + x] == 0f && heightMap.values[(z+1) * (sizeMinusOne.x+1) + x] == 0f && heightMap.values[(z+1) * (sizeMinusOne.x+1) + (z+1)] == 0f)){
+					if(!drawFloor && (heightMap.values[z * (sizeMinusOne.x+1) + x] == 0f && heightMap.values[z * (sizeMinusOne.x+1) + (x+1)] == 0f && heightMap.values[(z+1) * (sizeMinusOne.x+1) + x] == 0f && heightMap.values[(z+1) * (sizeMinusOne.x+1) + (x+1)] == 0f)){
 						continue;
 					}
 					
@@ -543,8 +543,8 @@ public class HeightMapMeshGenerator : MonoBehaviour {
 					}
 				}
 				//Right
-				topLeftVert = Vector3.Scale(new Vector3(1 + offset.x, heightMap.values[(z+1) * (sizeMinusOne.x+1) + (sizeMinusOne.y)] + offset.y, z2 + offset.z), scale);
-				topRightVert = Vector3.Scale(new Vector3(1 + offset.x, heightMap.values[(z) * (sizeMinusOne.x+1) + (sizeMinusOne.y)] + offset.y, z1 + offset.z), scale);
+				topLeftVert = Vector3.Scale(new Vector3(1 + offset.x, heightMap.values[(z+1) * (sizeMinusOne.x+1) + (sizeMinusOne.x)] + offset.y, z2 + offset.z), scale);
+				topRightVert = Vector3.Scale(new Vector3(1 + offset.x, heightMap.values[(z) * (sizeMinusOne.x+1) + (sizeMinusOne.x)] + offset.y, z1 + offset.z), scale);
 				bottomLeftVert = Vector3.Scale(new Vector3(1 + offset.x, offset.y, z2 + offset.z), scale);
 				bottomRightVert = Vector3.Scale(new Vector3(1 + offset.x, offset.y, z1 + offset.z), scale);
 				
@@ -646,8 +646,8 @@ public class HeightMapMeshGenerator : MonoBehaviour {
 				float x1 = x * sizeReciprocal.x;
 				float x2 = (x+1) * sizeReciprocal.x;
 				//Front
-				topLeftVert = Vector3.Scale(new Vector3(x1 + offset.x, heightMap.values[sizeMinusOne.x*(sizeMinusOne.x+1)+x] + offset.y, 1 + offset.z), scale);
-				topRightVert = Vector3.Scale(new Vector3(x2 + offset.x, heightMap.values[sizeMinusOne.x*(sizeMinusOne.x+1)+x+1] + offset.y, 1 + offset.z), scale);
+				topLeftVert = Vector3.Scale(new Vector3(x1 + offset.x, heightMap.values[sizeMinusOne.y*(sizeMinusOne.x+1)+x] + offset.y, 1 + offset.z), scale);
+				topRightVert = Vector3.Scale(new Vector3(x2 + offset.x, heightMap.values[sizeMinusOne.y*(sizeMinusOne.x+1)+x+1] + offset.y, 1 + offset.z), scale);
 				bottomLeftVert = Vector3.Scale(new Vector3(x1 + offset.x, offset.y, 1 + offset.z), scale);
 				bottomRightVert = Vector3.Scale(new Vector3(x2 + offset.x, offset.y, 1 + offset.z), scale);
 				

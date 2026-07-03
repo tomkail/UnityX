@@ -176,8 +176,10 @@ public class UGroup : EditorWindow {
         {
             parentObject = groupMember.parent.gameObject;
 			grandfatherObject = parentObject.transform.parent;
+			int parentSiblingIndex = parentObject.transform.GetSiblingIndex();
 			Undo.SetTransformParent(groupMember.transform, grandfatherObject, "Ungroup");
-			groupMember.transform.SetSiblingIndex(grandfatherObject.GetSiblingIndex());
+			if (grandfatherObject != null)
+				groupMember.transform.SetSiblingIndex(parentSiblingIndex);
             if (parentObject.GetComponents<Component>().Length < 2)
             {
                 if (parentObject.transform.childCount == 0)

@@ -47,7 +47,7 @@ public static class HandlesX {
 
 	static Stack<Matrix4x4> matricies = new Stack<Matrix4x4>();
 	public static void BeginMatrix (Matrix4x4 matrix) {
-		matricies.Push(GUI.matrix);
+		matricies.Push(Handles.matrix);
 		Handles.matrix = matrix;
 	}
 
@@ -69,30 +69,24 @@ public static class HandlesX {
 	public static float DrawWheelHandle (Vector3 position, float angle, float handleSize) {
 		int id = GUIUtility.GetControlID(FocusType.Passive);
 		Vector3 position2 = Handles.matrix.MultiplyPoint(position);
-//		Matrix4x4 matrix = Handles.matrix;
 		Event current = Event.current;
 
 		Vector2 screenPosition = Camera.current.WorldToScreenPoint(position);
 
 		float newAngle = angle;
 		float deltaAngle = 0;
-//		Debug.Log(angleStart+" "+angle+" "+lastAngle);
 
 		switch (current.GetTypeForControl(id)) {
 			case EventType.Repaint:
 			Handles.color = Color.white.WithAlpha(0.5f);
 
-//			Handles.matrix = Matrix4x4.identity;
 			Handles.DrawWireDisc(position, Camera.current.transform.forward, handleSize);
-//			Handles.matrix = matrix;
 
 			if (GUIUtility.hotControl == id) {
 				Handles.color = Color.white.WithAlpha(0.1f);
 				Vector3 startDirection = Quaternion.AngleAxis(-angle + angleStart, Camera.current.transform.forward) * Vector3.up;
 				Vector3 endDirection = Quaternion.AngleAxis(-angle + angleStart + (lastAngle-angleStart), Camera.current.transform.forward) * Vector3.up;
 				float drawAngle = -Mathf.DeltaAngle(lastAngle, angleStart);
-//				float drawAngle = lastAngle-angleStart;
-//				Debug.Log(drawAngle+" "+lastAngle+" "+angleStart);
 				Handles.DrawSolidArc(position, Camera.current.transform.forward, startDirection, drawAngle, handleSize);
 				Handles.color = Color.white.WithAlpha(0.5f);
 				Handles.DrawLine(position, position + startDirection * handleSize);
@@ -102,9 +96,7 @@ public static class HandlesX {
 	        break;
 
 		    case EventType.Layout:
-//			Handles.matrix = Matrix4x4.identity;
 			HandleUtility.AddControl(id, HandleUtility.DistanceToCircle(position2, handleSize));
-//			Handles.matrix = matrix;
 	        break;
 
 			case EventType.MouseDown:

@@ -146,7 +146,7 @@ public class DeleteEmptyFolders : AssetPostprocessor
     private static bool IsEmptyRecursive(string path)
     {
         // A folder is empty if it (and all its subdirs) have no files (ignore .meta files)
-        return Directory.GetFiles(path).Select(file => !file.EndsWith(".meta")).Count() == 0
-            && Directory.GetDirectories(path, string.Empty, SearchOption.AllDirectories).All(IsEmptyRecursive);
+        return Directory.GetFiles(path).Where(file => !file.EndsWith(".meta")).Count() == 0
+            && Directory.GetDirectories(path, "*", SearchOption.AllDirectories).All(IsEmptyRecursive);
     }
 }

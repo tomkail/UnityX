@@ -38,7 +38,7 @@ public static class AssetDatabaseX {
 		if(path.EndsWith("/")) {
 			path = path.TrimEnd('/');
 		}
-		string[] GUIDs = AssetDatabase.FindAssets("", new[] {path}).Distinct().ToArray();
+		string[] GUIDs = AssetDatabase.FindAssets("t:Object", new[] {path}).Distinct().ToArray();
 
 		Object[] objectList = new Object[GUIDs.Length];
 		for (int index = 0; index < GUIDs.Length; index++)

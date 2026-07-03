@@ -95,23 +95,23 @@ public struct Point3 {
 	}
 
 	public override string ToString() {
-		return "X: " + x + " Y: " + y + " Z: " + y;
+		return "X: " + x + " Y: " + y + " Z: " + z;
 	}
 
 	public int area {
 		get { return x * y * z; }
 	}
 
-	public int magnitude {
-		get { return x * x + y * y + z * z; }
+	public float magnitude {
+		get { return Mathf.Sqrt(sqrMagnitude); }
 	}
 
-	public int normalized {
-		get { return 1; }
+	public Vector3 normalized {
+		get { return ((Vector3)this).normalized; }
 	}
 
 	public int sqrMagnitude {
-		get { return 1; }
+		get { return x * x + y * y + z * z; }
 	}
 
 	public static Point3 Add(Point3 left, Point3 right){
@@ -186,18 +186,7 @@ public struct Point3 {
 	}
 
 	public static bool operator == (Point3 left, Point3 right) {
-		if (System.Object.ReferenceEquals(left, right))
-		{
-			return true;
-		}
-
-		// If one is null, but not both, return false.
-		if (((object)left == null) || ((object)right == null))
-		{
-			return false;
-		}
-		if(left.x == right.x && left.y == right.y && left.z == right.z)return true;
-		return false;
+		return left.x == right.x && left.y == right.y && left.z == right.z;
 	}
 
 	public static bool operator != (Point3 left, Point3 right) {
@@ -236,247 +225,3 @@ public struct Point3 {
 		return src.ToPoint();
 	}
 }
-
-
-
-/*
-FROM PATHFINDING - HAD TO DELETE SOME COMMENTS - THEY MIGHT BE WORTH BRINGING BACK
-using Pathfinding;
-using UnityEngine;
-
-namespace Pathfinding
-{
-	public struct Int3 {
-		public int x;
-		public int y;
-		public int z;
-		
-		
-		public const int Precision = 1000;
-		
-		
-		public const float FloatPrecision = 1000F;
-		
-		
-		public const float PrecisionFactor = 0.001F;
-		
-		
-		//public const float CostFactor = 0.01F;
-		
-		private static Int3 _zero = new Int3(0,0,0);
-		public static Int3 zero { get { return _zero; } }
-		
-		public Int3 (Vector3 position) {
-			x = (int)System.Math.Round (position.x*FloatPrecision);
-			y = (int)System.Math.Round (position.y*FloatPrecision);
-			z = (int)System.Math.Round (position.z*FloatPrecision);
-			//x = Mathf.RoundToInt (position.x);
-			//y = Mathf.RoundToInt (position.y);
-			//z = Mathf.RoundToInt (position.z);
-		}
-		
-		
-		public Int3 (int _x, int _y, int _z) {
-			x = _x;
-			y = _y;
-			z = _z;
-		}
-		
-		public static bool operator == (Int3 lhs, Int3 rhs) {
-			return 	lhs.x == rhs.x &&
-					lhs.y == rhs.y &&
-					lhs.z == rhs.z;
-		}
-		
-		public static bool operator != (Int3 lhs, Int3 rhs) {
-			return 	lhs.x != rhs.x ||
-					lhs.y != rhs.y ||
-					lhs.z != rhs.z;
-		}
-		
-		public static explicit operator Int3 (Vector3 ob) {
-			return new Int3 (
-				(int)System.Math.Round (ob.x*FloatPrecision),
-				(int)System.Math.Round (ob.y*FloatPrecision),
-				(int)System.Math.Round (ob.z*FloatPrecision)
-				);
-			//return new Int3 (Mathf.RoundToInt (ob.x*FloatPrecision),Mathf.RoundToInt (ob.y*FloatPrecision),Mathf.RoundToInt (ob.z*FloatPrecision));
-		}
-		
-		public static explicit operator Vector3 (Int3 ob) {
-			return new Vector3 (ob.x*PrecisionFactor,ob.y*PrecisionFactor,ob.z*PrecisionFactor);
-		}
-		
-		public static Int3 operator - (Int3 lhs, Int3 rhs) {
-			lhs.x -= rhs.x;
-			lhs.y -= rhs.y;
-			lhs.z -= rhs.z;
-			return lhs;
-		}
-		
-		public static Int3 operator + (Int3 lhs, Int3 rhs) {
-			lhs.x += rhs.x;
-			lhs.y += rhs.y;
-			lhs.z += rhs.z;
-			return lhs;
-		}
-		
-		public static Int3 operator * (Int3 lhs, int rhs) {
-			lhs.x *= rhs;
-			lhs.y *= rhs;
-			lhs.z *= rhs;
-			
-			return lhs;
-		}
-		
-		public static Int3 operator * (Int3 lhs, float rhs) {
-			lhs.x = (int)System.Math.Round (lhs.x * rhs);
-			lhs.y = (int)System.Math.Round (lhs.y * rhs);
-			lhs.z = (int)System.Math.Round (lhs.z * rhs);
-			
-			return lhs;
-		}
-		
-		public static Int3 operator * (Int3 lhs, Vector3 rhs) {
-			lhs.x = (int)System.Math.Round (lhs.x * rhs.x);
-			lhs.y =	(int)System.Math.Round (lhs.y * rhs.y);
-			lhs.z = (int)System.Math.Round (lhs.z * rhs.z);
-			
-			return lhs;
-		}
-		
-		public static Int3 operator / (Int3 lhs, float rhs) {
-			lhs.x = (int)System.Math.Round (lhs.x / rhs);
-			lhs.y = (int)System.Math.Round (lhs.y / rhs);
-			lhs.z = (int)System.Math.Round (lhs.z / rhs);
-			return lhs;
-		}
-		
-		public int this[int i] {
-			get {
-				return i == 0 ? x : (i == 1 ? y : z);
-			}
-		}
-		
-		public static int Dot (Int3 lhs, Int3 rhs) {
-			return
-					lhs.x * rhs.x +
-					lhs.y * rhs.y +
-					lhs.z * rhs.z;
-		}
-		
-		public Int3 NormalizeTo (int newMagn) {
-			float magn = magnitude;
-			
-			if (magn == 0) {
-				return this;
-			}
-			
-			x *= newMagn;
-			y *= newMagn;
-			z *= newMagn;
-			
-			x = (int)System.Math.Round (x/magn);
-			y = (int)System.Math.Round (y/magn);
-			z = (int)System.Math.Round (z/magn);
-			
-			return this;
-		}
-		
-		public float magnitude {
-			get {
-				//It turns out that using doubles is just as fast as using ints with Mathf.Sqrt. And this can also handle larger numbers (possibly with small errors when using huge numbers)!
-				
-				double _x = x;
-				double _y = y;
-				double _z = z;
-				
-				return (float)System.Math.Sqrt (_x*_x+_y*_y+_z*_z);
-				
-				//return Mathf.Sqrt (x*x+y*y+z*z);
-			}
-		}
-		
-		public int costMagnitude {
-			get {
-				return (int)System.Math.Round (magnitude);
-			}
-		}
-		
-		public float worldMagnitude {
-			get {
-				double _x = x;
-				double _y = y;
-				double _z = z;
-				
-				return (float)System.Math.Sqrt (_x*_x+_y*_y+_z*_z)*PrecisionFactor;
-				
-			}
-		}
-		
-		public float sqrMagnitude {
-			get {
-				double _x = x;
-				double _y = y;
-				double _z = z;
-				return (float)(_x*_x+_y*_y+_z*_z);
-				//return x*x+y*y+z*z;
-			}
-		}
-		
-		public int unsafeSqrMagnitude {
-			get {
-				return x*x+y*y+z*z;
-			}
-		}
-		
-		
-		[System.Obsolete ("Same implementation as .magnitude")]
-		public float safeMagnitude {
-			get {
-				//Of some reason, it is faster to use doubles (almost 40% faster)
-				double _x = x;
-				double _y = y;
-				double _z = z;
-				
-				return (float)System.Math.Sqrt (_x*_x+_y*_y+_z*_z);
-				
-			}
-		}
-		
-		[System.Obsolete (".sqrMagnitude is now per default safe (.unsafeSqrMagnitude can be used for unsafe operations)")]
-		public float safeSqrMagnitude {
-			get {
-				float _x = x*PrecisionFactor;
-				float _y = y*PrecisionFactor;
-				float _z = z*PrecisionFactor;
-				return _x*_x+_y*_y+_z*_z;
-			}
-		}
-		
-		public static implicit operator string (Int3 ob) {
-			return ob.ToString ();
-		}
-		
-		
-		public override string ToString () {
-			return "( "+x+", "+y+", "+z+")";
-		}
-		
-		public override bool Equals (System.Object o) {
-			
-			if (o == null) return false;
-			
-			Int3 rhs = (Int3)o;
-			
-			return 	x == rhs.x &&
-					y == rhs.y &&
-					z == rhs.z;
-		}
-		
-		public override int GetHashCode () {
-			return x*9+y*10+z*11;
-		}
-	}
-}
-*/

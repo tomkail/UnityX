@@ -88,11 +88,11 @@ public static class SelectionX {
 	static void CompareWithLastSelection (SerializedSelection selection) {
 		List<Object> objects = new List<Object>();
 		objects.AddRange(selection.objects);
-		foreach(var deselected in selection.objects.Except(Selection.gameObjects)) {
+		foreach(var deselected in selection.objects.Except(Selection.objects)) {
 			objects.Remove(deselected);
 			if(OnDeselectObject != null) OnDeselectObject(deselected);
 		}
-		foreach(var selected in Selection.objects.Except(selection.gameObjects)) {
+		foreach(var selected in Selection.objects.Except(selection.objects)) {
 			objects.Remove(selected);
 			objects.Add(selected);
 			if(OnSelectObject != null) OnSelectObject(selected);
@@ -125,7 +125,7 @@ public static class SelectionX {
 				return EditorUtility.EntityIdToObject(EntityId.FromULong(activeInstanceID));
 			} set {
 				if(value == null) activeInstanceID = 0;
-				activeInstanceID = EntityId.ToULong(value.GetEntityId());
+				else activeInstanceID = EntityId.ToULong(value.GetEntityId());
 			}
 		}
 

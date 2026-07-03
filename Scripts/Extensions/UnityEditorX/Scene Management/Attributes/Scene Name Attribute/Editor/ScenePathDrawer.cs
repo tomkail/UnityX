@@ -54,7 +54,7 @@ public class ScenePathDrawer : PropertyDrawer {
 		if(sceneAsset != newSceneAsset) {
 			string assetPath = AssetDatabase.GetAssetPath(newSceneAsset);
 			if(!scenePathAttribute.useFullPath) {
-				assetPath = System.IO.Path.GetFileNameWithoutExtension(property.stringValue);
+				assetPath = System.IO.Path.GetFileNameWithoutExtension(assetPath);
 			}
 			if(scenePaths.Contains(assetPath)) {
 				property.stringValue = assetPath;
@@ -76,12 +76,6 @@ public class ScenePathDrawer : PropertyDrawer {
 		sceneNames.Add("NONE");
 		scenes.ForEach(scene => sceneNames.Add(scene.path.Replace("\\", "/")));
         return sceneNames.ToArray();
-    }
-
-	private int[] GetSceneIndexes (string[] sceneNames) {
-		int[] sceneIndexes = new int[sceneNames.Length];
-		for (int i = 0; i < sceneNames.Length; i++) sceneIndexes[i] = i;
-        return sceneIndexes;
     }
 
     private int GetSceneIndex (string[] sceneNames, string sceneName) {

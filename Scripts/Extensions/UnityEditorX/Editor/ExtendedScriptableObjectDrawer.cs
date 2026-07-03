@@ -238,7 +238,7 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 		if(objectReferenceValue != null) {
 			EditorGUILayout.EndHorizontal();
 			if(isExpanded) {
-				
+				DrawScriptableObjectChildFields(objectReferenceValue);
 			}
 		} else {
 			if(GUILayout.Button("Create", GUILayout.Width(buttonWidth))) {

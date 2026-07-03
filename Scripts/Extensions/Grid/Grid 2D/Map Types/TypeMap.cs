@@ -186,6 +186,7 @@ public class TypeMap<T> : Grid, IEnumerable<TypeMapCellInfo<T>> {
 		gridPosition = ClampGridPosition(gridPosition);
 		if(gridPosition.x.IsWhole() && gridPosition.y.IsWhole()) {
 			SetValueAtGridPoint((int)gridPosition.x, (int)gridPosition.y, value);
+			return;
 		}
 
 		int left = Mathf.FloorToInt(gridPosition.x);
@@ -229,7 +230,6 @@ public class TypeMap<T> : Grid, IEnumerable<TypeMapCellInfo<T>> {
 	/// <param name="size">Size.</param>
 	/// <param name="offset">Offset.</param>
 	public virtual void Resize (Point size, Point offset) {
-		DebugX.LogList(values);
 		Point lastSize = this.size;
 		this.size = size;
 
@@ -278,11 +278,11 @@ public class TypeMap<T> : Grid, IEnumerable<TypeMapCellInfo<T>> {
 	public TypeMap<T> GetTrimmed (Rect rect, Point resolution) {
 		PointRect expandedPointRect = new PointRect(Mathf.FloorToInt(rect.x), Mathf.FloorToInt(rect.y), Mathf.CeilToInt(rect.width), Mathf.CeilToInt(rect.height));
 		TypeMap<T> expandedMap = GetTrimmed(expandedPointRect);
-		TypeMap<T> heightMap = new TypeMap<T>(resolution);
-		foreach(var cellInfo in heightMap) {
-			expandedMap.GetValueAtGridPosition(cellInfo.point);
+		TypeMap<T> trimmedMap = new TypeMap<T>(resolution);
+		foreach(var cellInfo in trimmedMap) {
+			trimmedMap[cellInfo.index] = expandedMap.GetValueAtGridPosition(cellInfo.point);
 		}
-		return expandedMap;
+		return trimmedMap;
 	}
 	
 	protected virtual T Lerp (T a, T b, float l) {
