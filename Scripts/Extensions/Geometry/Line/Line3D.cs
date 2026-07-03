@@ -137,8 +137,21 @@ public struct Line3D {
 			return false;
 		}
 		
+		// Solve the XY intersection point.
+		float x = (B2*C1 - B1*C2)/delta;
+		float y = (A1*C2 - A2*C1)/delta;
+
+		// This only solves the XY projection, so interpolate z along line1 at the
+		// solved XY parameter so the returned point actually lies on line1.
+		// (Limitation: if the two lines don't truly intersect in 3D, this returns
+		// the point on line1 above/below the XY crossing, not a true 3D closest point.)
+		float dx = line1.end.x - line1.start.x;
+		float dy = line1.end.y - line1.start.y;
+		float t = ((x - line1.start.x) * dx + (y - line1.start.y) * dy) / (dx*dx + dy*dy);
+		float z = line1.start.z + t * (line1.end.z - line1.start.z);
+
 		// now return the Vector3 intersection point
-		intersectionPoint = new Vector3((B2*C1 - B1*C2)/delta, (A1*C2 - A2*C1)/delta);
+		intersectionPoint = new Vector3(x, y, z);
 		return true;
 	}
 

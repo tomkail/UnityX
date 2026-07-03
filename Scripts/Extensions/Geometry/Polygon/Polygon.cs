@@ -53,9 +53,9 @@ public class Polygon {
 			float x = 0.0f;
 			float y = 0.0f;
 
-			for (int i = 0; i < _vertices.Length - 1; i++) {
+			for (int i = 0; i < _vertices.Length; i++) {
 				var a = _vertices [i];
-				var b = i == _vertices.Length ? _vertices [0] : _vertices [i + 1];
+				var b = _vertices [(i + 1) % _vertices.Length];
 				var f = a.x * b.y - b.x * a.y;
 				x += (a.x + b.x) * f;
 				y += (a.y + b.y) * f;
@@ -206,7 +206,7 @@ public class Polygon {
 		if(newPolygonDefinition.vertices.Length > _scaleModifier.vertices.Length) 
 			Debug.Log("Cannot Scale PolygonDefinition because the input modifier does not have enough vertices. It has "+_scaleModifier.vertices.Length+". It requires at least "+_polygonDefinition.vertices.Length+".");
 		for(int i = 0; i < _polygonDefinition.vertices.Length; i++) {
-			Vector2.Scale(newPolygonDefinition.vertices[i], _scaleModifier.vertices[i]);
+			newPolygonDefinition.vertices[i] = Vector2.Scale(newPolygonDefinition.vertices[i], _scaleModifier.vertices[i]);
 		}
 
 		return newPolygonDefinition;
@@ -222,7 +222,7 @@ public class Polygon {
 		
 		Polygon newPolygonDefinition = new Polygon(_polygonDefinition);
 		for(int i = 0; i < _polygonDefinition.vertices.Length; i++) {
-			Vector2.Scale(newPolygonDefinition.vertices[i], _scaleModifier);
+			newPolygonDefinition.vertices[i] = Vector2.Scale(newPolygonDefinition.vertices[i], _scaleModifier);
 		}
 		return newPolygonDefinition;
 	}
@@ -345,7 +345,7 @@ public class Polygon {
 	public float GetVertexDegreesInternal(int vertIndex){
 		Vector2 leftDir = GetVertex(vertIndex) - GetVertex(vertIndex-1);
 		Vector2 rightDir = GetVertex(vertIndex) - GetVertex(vertIndex+1);
-		return Vector2.SignedAngle(rightDir-leftDir, Vector2.up);
+		return Vector2.Angle(leftDir, rightDir);
 	}
 	
 	public float GetVertexDegreesInternal (int i = 0, int j = 1) {
@@ -442,7 +442,7 @@ public class Polygon {
 			var score = Vector2.Dot(vert, direction);
 			if(score > bestScore) {
 				best = vert;
-				score = bestScore;
+				bestScore = score;
 			}
 		}
 		return best;
@@ -502,7 +502,7 @@ public class Polygon {
 	}
 
 	static Vector2 PointInPolyFromIndex(Polygon poly, int index) {
-		return poly.vertices [index % poly.vertices.Length];
+		return poly.vertices [Mod(index, poly.vertices.Length)];
 	}
 
 	static int GetIndexInPolyAtPoint(Polygon poly, Vector2 point) {
@@ -664,7 +664,7 @@ public class Polygon {
 		hit.point = rayOrigin;
 		// int crossings = 0;
 
-		float bestDistance = ray.magnitude;
+		float bestDistance = float.MaxValue;
 		for (int j = _vertices.Length - 1, i = 0; i < _vertices.Length; j = i, i++) {
 			if (new Line(_vertices[j], _vertices[i]).RayLineIntersect(rayOrigin, rayDir, out float distance)) {
 				// crossings++;
@@ -1527,7 +1527,8 @@ public class Polygon {
 
 
 
-	Vector2 _poleOfInaccessibility = new Vector2(0, 0); 
+	Vector2 _poleOfInaccessibility = new Vector2(0, 0);
+	bool _hasComputedPoleOfInaccessibility = false;
 
 	/// <summary>
 	/// The point within the poly which is the hardest to reach from all of its boundaries.
@@ -1536,8 +1537,9 @@ public class Polygon {
 	/// <value>The pole of inaccessibility.</value>
 	public Vector2 poleOfInaccessibility {
 		get {
-			if (_poleOfInaccessibility.magnitude == 0.0f) {
+			if (!_hasComputedPoleOfInaccessibility) {
 				_poleOfInaccessibility = computePoleOfInaccesibility();
+				_hasComputedPoleOfInaccessibility = true;
 			}
 			return  _poleOfInaccessibility;
 		}
@@ -1549,7 +1551,7 @@ public class Polygon {
 		}
 
 		// find the bounding box of the outer ring
-		float minX = float.MaxValue, minY = float.MaxValue, maxX = float.MaxValue, maxY = float.MaxValue;
+		float minX = float.MaxValue, minY = float.MaxValue, maxX = float.MinValue, maxY = float.MinValue;
 		for (var i = 0; i < _vertices.Length; i++) {
 		var p = _vertices[i];
 			if (i == 0 || p [0] < minX) minX = p[0];

@@ -85,8 +85,8 @@ namespace UnityX.Geometry {
 		private Polygon RegularPolygonToPolygon () {
 			Vector2[] vertices = new Vector2[NumVertices];
 			for(int i = 0; i < NumVertices; i++) {
-				var radians = (i/(float)NumVertices) * Mathf.PI * 2;
-				var dir = new Vector2(Mathf.Sin(radians), Mathf.Sin(radians));
+				var radians = (i/(float)NumVertices) * Mathf.PI * 2 + rotation;
+				var dir = new Vector2(Mathf.Sin(radians), Mathf.Cos(radians));
 				vertices[i] = offset + dir * radius;
 			}
 			return new Polygon(vertices);
@@ -96,12 +96,12 @@ namespace UnityX.Geometry {
 			int calculatedNumVerts = 2 * NumVertices;
 			Vector2[] vertices = new Vector2[calculatedNumVerts];
 			for (int i = 0; i < calculatedNumVerts; i += 2) {
-				var radians = (i/(float)calculatedNumVerts) * Mathf.PI * 2;
-				var dir = new Vector2(Mathf.Sin(radians), Mathf.Sin(radians));
+				var radians = (i/(float)calculatedNumVerts) * Mathf.PI * 2 + rotation;
+				var dir = new Vector2(Mathf.Sin(radians), Mathf.Cos(radians));
 				vertices[i] = offset + dir * radius;
-				
-				radians = ((i + 1)/(float)calculatedNumVerts) * Mathf.PI * 2;
-				dir = new Vector2(Mathf.Sin(radians), Mathf.Sin(radians));
+
+				radians = ((i + 1)/(float)calculatedNumVerts) * Mathf.PI * 2 + rotation;
+				dir = new Vector2(Mathf.Sin(radians), Mathf.Cos(radians));
 				vertices[i + 1] = offset + dir * concaveRadius;
 			}
 			return new Polygon(vertices);

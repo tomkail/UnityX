@@ -26,8 +26,8 @@ namespace UnityX.Geometry {
 			this.radius = radius;
 		}
 		
-		public Sphere CreateFromBounds(Bounds bounds) {
-			return new Sphere(bounds.center, Mathf.Max(bounds.extents.x,bounds.extents.y,bounds.extents.z));
+		public static Sphere CreateFromBounds(Bounds bounds) {
+			return new Sphere(bounds.center, bounds.extents.magnitude);
 		}
 
 		// If the sphere contains a point
@@ -80,7 +80,7 @@ namespace UnityX.Geometry {
 		/// 
 		/// </summary>
 		/// <param name="points">Collection of points</param>
-		public Sphere CreateFromPoints(Vector3[] points) {
+		public static Sphere CreateFromPoints(Vector3[] points) {
 			Vector3[] copy = new Vector3[points.Length];
 			Array.Copy(points, copy, points.Length);
 			return CalculateWelzl(copy, copy.Length, 0, 0);
@@ -92,7 +92,7 @@ namespace UnityX.Geometry {
 	
 		
 		//Welzl minimum bounding sphere algorithm
-		Sphere CalculateWelzl(Vector3[] points, int length, int supportCount, int index) {
+		static Sphere CalculateWelzl(Vector3[] points, int length, int supportCount, int index) {
 			Sphere sphere = new Sphere(Vector3.zero, 0);
 			switch(supportCount) {
 				case 0:
@@ -123,16 +123,15 @@ namespace UnityX.Geometry {
 						points[j + index] = b;
 						points[j - 1 + index] = a;
 					}
-					return CalculateWelzl(points, i, supportCount + 1, index + 1);
+					sphere = CalculateWelzl(points, i, supportCount + 1, index + 1);
 				}
 			}
-			Debug.LogError("Should never get here");
 			return sphere;
 		}
 		
 		//For Welzl calc - 2 support points
-		public Sphere CalculateWelzl(Vector3 O, Vector3 A) {
-			radius = (float) System.Math.Sqrt(((A.x - O.x) * (A.x - O.x) + (A.y - O.y)
+		public static Sphere CalculateWelzl(Vector3 O, Vector3 A) {
+			float radius = (float) System.Math.Sqrt(((A.x - O.x) * (A.x - O.x) + (A.y - O.y)
 											* (A.y - O.y) + (A.z - O.z) * (A.z - O.z)) / 4.0f) + RADIUS_EPSILON - 1.0f;
 			float x = (1 - .5f) * O.x + .5f * A.x;
 			float y = (1 - .5f) * O.y + .5f * A.y;
@@ -142,7 +141,7 @@ namespace UnityX.Geometry {
 		}
 		
 		//For Welzl calc - 3 support points
-		public Sphere CalculateWelzl(Vector3 O, Vector3 A, Vector3 B) {
+		public static Sphere CalculateWelzl(Vector3 O, Vector3 A, Vector3 B) {
 			Vector3 a = A - O;
 			Vector3 b = B - O;
 			Vector3 aCrossB = Vector3.Cross(a, b);
@@ -156,7 +155,7 @@ namespace UnityX.Geometry {
 		}
 		
 		//For Welzl calc - 4 support points
-		public Sphere CalculateWelzl(Vector3 O, Vector3 A, Vector3 B, Vector3 C) {
+		public static Sphere CalculateWelzl(Vector3 O, Vector3 A, Vector3 B, Vector3 C) {
 			Vector3 a = A - O;
 			Vector3 b = B - O;
 			Vector3 c = C - O;

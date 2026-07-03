@@ -56,8 +56,8 @@ using System.Collections.Generic;
 				get {
 					return new Point(xMax, yMax);
 				} set {
-					xMax = value.x + width;
-					yMax = value.y + height;
+					xMax = value.x;
+					yMax = value.y;
 				}
 			}
 
@@ -262,7 +262,7 @@ using System.Collections.Generic;
 				}
 		
 				// Return true if the fields match:
-				return (x == p.x) && (y == p.y) && (y == p.width) && (y == p.height);
+				return (x == p.x) && (y == p.y) && (width == p.width) && (height == p.height);
 			}
 		
 			public override int GetHashCode() {
@@ -305,11 +305,11 @@ using System.Collections.Generic;
 			}
 		
 			public static PointRect operator *(PointRect left, PointRect right) {
-				return Add(left, right);
+				return Multiply(left, right);
 			}
-		
+
 			public static PointRect operator /(PointRect left, PointRect right) {
-				return Subtract(left, right);
+				return Divide(left, right);
 			}
 		
 			public static implicit operator PointRect(Rect src) {
