@@ -2,6 +2,10 @@
 using UnityEditor;
 using System.Collections.Generic;
 
+/// <summary>
+/// Counts live (undestroyed) UnityEngine.Objects of various types via FindObjectsByType / Resources.FindObjectsOfTypeAll.
+/// This is an object census to help spot objects that outlive their expected lifetime — NOT true memory-leak detection.
+/// </summary>
 public class DetectLeaksWindow : EditorWindow {
     public static int numObjects;
 	private static bool _showEditorResources = false;

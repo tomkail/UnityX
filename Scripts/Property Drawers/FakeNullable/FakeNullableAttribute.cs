@@ -1,6 +1,7 @@
 using UnityEngine;
 
-// Allows you to create inspectable nullable types, when given the path to a serializable bool storing if the variable is null.
+// Emulates an inspectable nullable value using a companion serializable bool that marks whether the value is "null".
+// Note: the value field itself is never cleared — it keeps its last/default value; only the bool represents the null state.
 /*
 [SerializeField, HideInInspector]
 bool _distanceFromFloorSet;
