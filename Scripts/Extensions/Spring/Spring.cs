@@ -30,8 +30,7 @@ public struct Spring {
     // Concept taken from Apple, as described in this WWDC video https://developer.apple.com/videos/play/wwdc2018/803/, and implementation taken from https://medium.com/ios-os-x-development/demystifying-uikit-spring-animations-2bb868446773
     // More info on their API (borrowed for this) at https://developer.apple.com/documentation/swiftui/spring
     
-    // The time taken to oscellate once, or to (approximately) come to a stop for fully damped springs.
-    // The stiffness of the spring, defined as an approximate duration in seconds.
+    // Stiffness expressed as a duration in seconds: the period of one oscillation (or, for fully damped springs, roughly the time to come to rest).
     [SerializeField] float _response;
     public float response {
         get => _response;
@@ -185,7 +184,7 @@ public struct Spring {
         }
         // Overdamped
         else if (dampingRatio > 1) {
-            var omegaD = omega0 * Mathf.Sqrt(dampingRatio * dampingRatio - 1); // frequency of damped oscillation
+            var omegaD = omega0 * Mathf.Sqrt(dampingRatio * dampingRatio - 1); // real decay-rate term (overdamped springs don't oscillate)
             var z1 = -omegaZeta - omegaD;
             var z2 = -omegaZeta + omegaD;
             var e1 = Mathf.Exp(z1 * time);
@@ -254,7 +253,7 @@ public struct Spring {
         }
         // Overdamped (UNTESTED)
         else if (dampingRatio > 1) {
-            var omegaD = omega0 * Math.Sqrt(dampingRatio * dampingRatio - 1); // frequency of damped oscillation
+            var omegaD = omega0 * Math.Sqrt(dampingRatio * dampingRatio - 1); // real decay-rate term (overdamped springs don't oscillate)
             var z1 = dampingRatio * -omega0 - omegaD;
             var z2 = dampingRatio * -omega0 + omegaD;
 
@@ -309,7 +308,7 @@ public struct Spring {
 
     // Calculates the time at which the spring will reach its maximum displacement.
     // Because I don't know how this can be done closed form, we use a loop. This means that it can lose accuracy as damping ratio approaches 1 and the search time grows longer.
-    // For critically/overdamped springs, which don't oscellate, we return the settling time using a high epsilon to provide a smoother ramp between damping ratios.
+    // For critically/overdamped springs, which don't oscillate, we return the settling time using a very tight epsilon (1e-7) to provide a smoother ramp between damping ratios.
     public static float CalculateTimeOfMaximumDisplacement(float startValue, float endValue, float initialVelocity, float mass, float stiffness, float damping) {
         if (startValue == endValue && initialVelocity == 0) return 0;
         
@@ -382,7 +381,7 @@ public struct Spring {
         }
     }
     
-    // Get the settling duration of a spring with given parameters.
+    // Returns whether the spring has effectively settled by the given time (within epsilon).
     public static bool IsDone(float time, float mass, float stiffness, float damping, float epsilon = defaultEpsilon) {
         return IsDone(time, 0, 0, mass, stiffness, damping, epsilon);
     }
