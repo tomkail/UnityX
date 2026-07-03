@@ -1,17 +1,16 @@
-﻿using UnityEngine;
-using System.Collections;
+using UnityEngine;
 
 public static class SystemInfoX {
-	
+
 	public static bool IsMacOS {
 		get {
-			return UnityEngine.SystemInfo.operatingSystem.Contains("Mac OS");
+			return SystemInfo.operatingSystemFamily == OperatingSystemFamily.MacOSX;
 		}
 	}
-	
+
 	public static bool IsWinOS {
 		get {
-			return UnityEngine.SystemInfo.operatingSystem.Contains("Windows");
+			return SystemInfo.operatingSystemFamily == OperatingSystemFamily.Windows;
 		}
 	}
 }
