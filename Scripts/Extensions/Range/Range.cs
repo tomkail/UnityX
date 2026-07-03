@@ -31,26 +31,26 @@ public struct Range : IEquatable<Range> {
 	}
 
 	/// <summary>
-	/// Creates new rect that encapsulates a list of vectors.
+	/// Creates a new Range that encapsulates a set of float values (min..max).
 	/// </summary>
-	/// <param name="points">Vectors.</param>
+	/// <param name="points">The values to encapsulate.</param>
 	public static Range CreateEncapsulating (params float[] points) {
 		return CreateEncapsulating((IEnumerable<float>)points);
 	}
 	
 	/// <summary>
-	/// Creates new rect that encapsulates a list of vectors.
+	/// Creates a new Range that encapsulates a set of float values (min..max).
 	/// </summary>
-	/// <param name="points">Vectors.</param>
+	/// <param name="points">The values to encapsulate.</param>
 	public static Range CreateEncapsulating (IEnumerable<float> points) {
 		using var enumerator = points.GetEnumerator();
 		enumerator.MoveNext();
 		float xMin = enumerator.Current;
 		float xMax = enumerator.Current;
 		while(enumerator.MoveNext()) {
-			var vector = enumerator.Current;
-			xMin = Mathf.Min (xMin, vector);
-			xMax = Mathf.Max (xMax, vector);
+			var value = enumerator.Current;
+			xMin = Mathf.Min (xMin, value);
+			xMax = Mathf.Max (xMax, value);
 		}
 		return new Range (xMin, xMax);
 	}
@@ -176,7 +176,7 @@ public struct Range : IEquatable<Range> {
 		return newRanges;
 	}
 
-	// It's not really clear what this should do tbh. Remove!
+	// NOTE: the semantics of SignedDistance are unclear — review whether it's still needed.
 	public static float SignedDistance (Range rangeA, Range rangeB) {
 		if (rangeB.Contains(rangeA.mid)) {
 			return -rangeA.length * 0.5f;
@@ -288,7 +288,6 @@ public struct Range : IEquatable<Range> {
 	}
 
 	public static bool operator == (Range left, Range right) {
-		// If one is null, but not both, return false.
 		return left.Equals(right);
 	}
 

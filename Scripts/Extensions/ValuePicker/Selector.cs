@@ -14,7 +14,7 @@ using System.Text;
 ///         SetUIVisible(newValue);
 ///     });
 /// 
-/// The the individual sources can set whether the UI is visible:
+/// The individual sources can set whether the UI is visible:
 /// 
 ///     // Indicates that 'this' wants the UI to be visible
 ///     game.uiVisible[this] = true;
@@ -42,6 +42,7 @@ using System.Text;
 /// 
 ///     bool isUIVisible = uiVisibleSelector;
 /// 
+/// Note: the full type is Selector&lt;T, TPrioritySource&gt; — T is the stored value type and TPrioritySource identifies each source/key. A single-type-parameter Selector&lt;T&gt; convenience form is used in the examples above.
 /// </summary>
 public class Selector<T, TPrioritySource>
 {
