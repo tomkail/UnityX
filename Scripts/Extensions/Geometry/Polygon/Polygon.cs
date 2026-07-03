@@ -45,7 +45,7 @@ public class Polygon {
 	}
 	
 	/// <summary>
-	///  Centroid (the place where the perpendiculars from each vertex intersect)
+	///  Area centroid (centre of mass) of the polygon.
 	/// </summary>
 	Vector2 centroid {
 		get { 
@@ -1036,7 +1036,7 @@ public class Polygon {
 	}
 
 	/// <summary>
-	///  Adds the second polygon from the first polygon, and returns the result as a new polygon
+	///  Adds (unions) the second polygon to the first polygon, and returns the result as a new polygon
 	/// </summary>
 	/// <param name="initialPoly">Initial poly.</param>
 	/// <param name="additionPoly">Addition poly.</param>
@@ -1694,15 +1694,10 @@ public class Polygon {
 
 		return hull;
 
-		// Return a number that gives the ordering of angles
-		// WRST horizontal from the point (x1, y1) to (x2, y2).
-		// In other words, AngleValue(x1, y1, x2, y2) is not
-		// the angle, but if:
-		//   Angle(x1, y1, x2, y2) > Angle(x1, y1, x2, y2)
-		// then
-		//   AngleValue(x1, y1, x2, y2) > AngleValue(x1, y1, x2, y2)
-		// this angle is greater than the angle for another set
-		// of points,) this number for
+		// Returns a monotonic proxy for the angle measured counter-clockwise from horizontal at (x1, y1)
+		// toward (x2, y2) — it preserves ORDERING, not the angle itself:
+		//   if Angle(x1,y1, x2,y2) > Angle(x1,y1, x3,y3) then AngleValue(x1,y1, x2,y2) > AngleValue(x1,y1, x3,y3).
+		// Computed as dy / (|dx| + |dy|).
 		//
 		// This function is dy / (dy + dx).
 		float AngleValue(float x1, float y1, float x2, float y2) {
@@ -1714,7 +1709,7 @@ public class Polygon {
 			ay = Mathf.Abs(dy);
 			if (ax + ay == 0)
 			{
-				// if (the two points are the same, return 360.
+				// Degenerate case: the two points are the same.
 				t = 360f / 9f;
 			}
 			else

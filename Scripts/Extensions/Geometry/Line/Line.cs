@@ -252,7 +252,6 @@ public struct Line {
 	// Consider the line extending the segment, parameterized as v + t (w - v).
 		// We find projection of point p onto the line. 
 		// It falls where t = [(p-v) . (w-v)] / |w-v|^2
-//		    float t = (Vector2.Distance(p - start) * Vector2.Distance(end, start)) / length;
 	static float GetNormalizedDistanceOnLineInternal(Vector2 start, Vector2 end, Vector2 p, float sqrLength, bool clamped = true) {
 		if (sqrLength == 0f) return 0;
 		// Divide by length squared so that we can save on normalising (end-start), since

@@ -412,12 +412,11 @@ public struct Point : IEquatable<Point> {
 	}
 
 	/// <summary>
-	/// Enumerate this hex's six corners.
+	/// Enumerate this cell's four corners.
 	/// </summary>
 	/// <remarks>
 	/// Corner 0 is at the upper left, others proceed counterclockwise.
 	/// </remarks>
-	/// <param name="first">Index of the first corner to enumerate.</param>
 	public IEnumerable<Vector2> Corners() {
 		Vector2 pos = (Vector2)this;
 		foreach (Vector2 v in corners)
@@ -425,12 +424,12 @@ public struct Point : IEquatable<Point> {
 	}
 
 	/// <summary>
-	/// Unity position vector from hex center to a corner.
+	/// Unity position vector from the cell centre to a corner.
 	/// </summary>
 	/// <remarks>
 	/// Corner 0 is at the upper left, others proceed counterclockwise.
 	/// </remarks>
-	/// <param name="index">Index of the desired corner. Cyclically constrained 0..5.</param>
+	/// <param name="index">Index of the desired corner. Cyclically constrained 0..3.</param>
 	public static Vector2 CornerVector(int index) {
 		return corners[NormalizeRotationIndex(index)];
 	}

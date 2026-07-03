@@ -182,8 +182,8 @@ using System.Collections.Generic;
 			/// <summary>
 			/// Clamps a point inside the rect.
 			/// </summary>
-			/// <param name="r">The red component.</param>
-			/// <param name="point">Point.</param>
+			/// <param name="rect">The rect to clamp within.</param>
+			/// <param name="point">The point to clamp.</param>
 			public static Point ClampPoint(PointRect rect, Point point) {
 				point.x = Mathf.Clamp(point.x, rect.min.x, rect.max.x);
 				point.y = Mathf.Clamp(point.y, rect.min.y, rect.max.y);
