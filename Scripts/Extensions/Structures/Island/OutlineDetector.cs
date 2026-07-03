@@ -37,7 +37,10 @@ public static class OutlineDetector {
 		// var startRotIndex = rotIndex;
 
 		// Execute
-		// We'll break out of this loop before this loop ends, but that's fine - it's just a safe while loop.
+		// Find a starting cell and vert.
+		// Rotate around that cell's verts while the vert is not touching any other cells
+		// If it is, keep going using the cell that we're touching and the rotation index where it touches.
+		// Bounded loop (cap 1000) standing in for a while-loop; normally breaks early. WARNING: if it hits the cap it falls through and returns a PARTIAL outline.
 		for(int n = 0; n < 1000; n++) {
 			bool foundNext = false;
 			for(int i = rotIndex+1; i <= rotIndex + numCorners; i++) {
@@ -71,13 +74,10 @@ public static class OutlineDetector {
 			}
 			if(!foundNext) break;
 		}
-		// Find a starting cell and vert.
-		// Rotate around that cell's verts while the vert is not touching any other cells
-		// If it is, keep going using the cell that we're touching and the rotation index where it touches.
 		return outline;
 	}
 	
-	// Outline distance of 0 is the edge of the shape and 1 is outside the shape
+	// outlineDistance selects a ring by signed distance from the edge: 0 = the edge itself, positive = outside, negative = inside (interior rings).
 	public static IEnumerable<Coord> GetOutlineCoords<Coord> (List<Coord> points, int outlineDistance, Func<Coord, int, IList<Coord>> GetCoordsOnRing) where Coord : IEquatable<Coord> {
 		HashSet<Coord> outline = null;
 		// if(outlineDistance != 0) 
