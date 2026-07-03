@@ -44,7 +44,7 @@ namespace UnityEngine.UI {
 
         // The content rect is scaled, so there's some minor inaccuracy when comparing sizes which this helps mitigate.
         const float Epsilon = 0.001f;
-        // The viewport rect transform. Uses this component's rect transform if none is specified.
+        // The viewport rect transform (Unity's ScrollRect.viewRect).
 		public new RectTransform viewRect => base.viewRect;
 
 		public Rect containerRect => RectX.MinMaxRect(viewBounds.min, viewBounds.max);
@@ -55,9 +55,9 @@ namespace UnityEngine.UI {
 
         public Bounds contentBounds {
 			get {
-				// Actually it's best we just do this all the time, else we have to remember to call ForceUpdateBounds() when we want to get the bounds.
+				// Recomputed on every access (not just in Update) so it works even when the component is disabled.
 				ForceUpdateBounds();
-				// This only runs in update when enabled. Since we want to be able to call this even when disabled, we force the bounds to be calculated here.
+				// (The Update-driven path only runs while enabled.)
 				// if(!enabled) ForceUpdateBounds();
 				return m_ContentBounds;
 			}

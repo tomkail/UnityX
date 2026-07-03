@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 
 // Handles moving, scaling and rotating UI objects using multitouch.
 // Should be just about 1-1, as you'd expect on a touch screen, although because it applies deltas there's a bit of "slippage" if you manipulate the same object for a while/rapidly.
-// To test multitouch with a mouse editor you can comment out the marked line in OnEndDrag.
+// To test multitouch with a mouse in the editor, comment out the line marked "[multitouch-test]" in OnEndDrag.
 public class MultitouchDraggable : Selectable, IBeginDragHandler, IEndDragHandler, IDragHandler {
 	public RectTransform rectTransform => (RectTransform)transform;
 	[SerializeField]
@@ -161,7 +161,7 @@ public class MultitouchDraggable : Selectable, IBeginDragHandler, IEndDragHandle
 		isPointerDown = false;
 		var dragInput = dragInputs.FirstOrDefault(x => x.pointerId == eventData.pointerId);
 		if(dragInput != null) {
-			// Remove this to vaguely test multitouch in editor, with this ended drag used as the first of two fingers.
+			// [multitouch-test] Comment this out to fake multitouch in the editor (reuses this ended drag as the first of two fingers).
 			dragInputs.Remove(dragInput);
 		} else {
 			Debug.LogWarning("Drag ended but no input tracker found!");
@@ -208,7 +208,7 @@ public class MultitouchDraggable : Selectable, IBeginDragHandler, IEndDragHandle
 	/// </summary>
 	/// <param name="target">The object to scale.</param>
 	/// <param name="pivot">The point to scale around in the space of target.</param>
-	/// <param name="scaleFactor">The new localScale the target object will have after scaling.</param>
+	/// <param name="newScale">The new localScale the target object will have after scaling.</param>
 	public static void ScaleAround(Transform target, Vector3 pivot, Vector3 newScale)
 	{
 		// pivot

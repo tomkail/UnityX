@@ -196,8 +196,7 @@ public class AdvancedUILine {
         return Vector2X.DegreesBetween(center, GetEdgePosition(edgeDistance));
     }
     
-    //Returns the angle of a side of a shape at a distance. 
-    //If the shape is a triangle, the angle of the sides are 0, 120 and 240.
+    //Returns the interior angle at a vertex (between its two adjacent edges).
     public float GetVertexDegreesInternal(int vertIndex){
         Vector2 leftDir = GetVertex(vertIndex) - GetVertex(vertIndex-1);
         Vector2 rightDir = GetVertex(vertIndex) - GetVertex(vertIndex+1);
@@ -260,21 +259,19 @@ public class AdvancedUILine {
     }
     
     /// <summary>
-    /// Gets the edge between two vert indices.
-    /// If the two verts are not adjacent, the edge is technically known as a diagonal.
+    /// Midpoint of the edge between two vertex indices (a diagonal if they aren't adjacent).
     /// </summary>
-    /// <returns>The edge.</returns>
-    /// <param name="i">The index.</param>
-    /// <param name="j">J.</param>
+    /// <returns>The edge midpoint.</returns>
+    /// <param name="i">First vertex index.</param>
+    /// <param name="j">Second vertex index.</param>
     public Vector2 GetEdgeCenter (int i = 0, int j = 1) {
         return Vector2.Lerp(GetVertex(i), GetVertex(j), 0.5f);
     }
     
     /// <summary>
-    /// Gets the edge center.
+    /// Midpoints of every edge.
     /// </summary>
-    /// <returns>The edge center.</returns>
-    /// <param name="edgeDistance">Edge distance.</param>
+    /// <returns>An array of edge midpoints, one per vertex.</returns>
     public Vector2[] GetEdgeCenters () {
         Vector2[] centers = new Vector2[VertCount];
         for(int i = 0; i < centers.Length; i++) {

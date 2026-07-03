@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 
 /// <summary>
-/// SLayout does two things:
+/// SLayout does three things:
 ///  - Provides an easy-to-use interface for dynamic UI Layout that uses a consistent coordinate space for positioning
 ///    UI rather than being dependent on Unity's anchoring etc.
 ///  - Allows iOS-style "implicit animation" by wrapping calls to change the layout in an animation function, causing
@@ -248,7 +248,7 @@ public partial class SLayout : UIBehaviour {
 	Canvas _canvas;
 
 	/// <summary>
-	/// Width of canvas, taking into account scaling mode.
+	/// Width of the canvas's RectTransform (raw rect width; scaling mode is not applied).
 	/// </summary>
 	public float canvasWidth {
 		get {
@@ -882,8 +882,7 @@ public partial class SLayout : UIBehaviour {
     // This function "corrects" for that difference
     //  (assuming set to top-left mode but this works for either)
 
-	// WARNING! This seems not to work when the object is in a non-full-size container! It moves more than it should from the center. We probably need to offset it by the container's position.
-	// IT's been commented out for that reason.
+	// WARNING! Known limitation: in a non-full-size container this moves more than it should from the center (probably needs offsetting by the container's position). It is still used — verify before relying on it in nested containers.
     public Vector2 CanvasToSLayoutSpace (Vector2 canvasSpacePos) {
 		Vector2 offset = Vector2.zero;
 

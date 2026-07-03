@@ -3,8 +3,8 @@ using System;
 using System.Collections.Generic;
 
 /// <summary>
-/// Base abstract class for the animation settings for a single property (e.g. X coordinate, width, or color)
-/// for a single property. When an SLayoutProperty is animated, it receives an instances of this class.
+/// Base abstract class for the animation settings for a single property (e.g. X coordinate, width, or color).
+/// When an SLayoutProperty is animated, it receives an instance of this class.
 /// </summary>
 public abstract class SAnimatedProperty
 {

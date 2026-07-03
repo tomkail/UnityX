@@ -41,7 +41,7 @@ public class CarouselUIView : MonoBehaviour {
         }
     }
     
-    // Calculates the shortest difference between two given values.
+    // Signed shortest delta from val to target within the repeating range [a, b).
     static float SignedDeltaRepeating(float a, float b, float val, float target) {
         b-=a;
         val-=a;

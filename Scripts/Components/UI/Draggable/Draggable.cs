@@ -48,7 +48,7 @@ public class Draggable : Selectable, IBeginDragHandler, IEndDragHandler, IDragHa
 	
 	[Space]
 	/// <summary>
-	/// The drag velocity.
+	/// The axes along which drag translation is applied (per-axis multiplier).
 	/// </summary>
 	public Vector2 dragTranslateAxis = Vector2.one;
 	
@@ -64,7 +64,7 @@ public class Draggable : Selectable, IBeginDragHandler, IEndDragHandler, IDragHa
 	
 	
 	/// <summary>
-	/// The drag velocity.
+	/// The axes around which drag rotation is applied (per-axis multiplier).
 	/// </summary>
 	public Vector3 dragRotateAxis = Vector3.one;
 	

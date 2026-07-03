@@ -170,7 +170,7 @@ public static class UIImposterRenderer {
         target.localScale = originalScale;
         target.localPosition = originalPos;
 
-        // Destroy renderer. This is optional, but it's a good idea to do this if you're not going to be using the renderer again.
+        // Destroy the temporary camera/canvas GameObjects.
         if(Application.isPlaying) {
             Object.Destroy(camera.gameObject);
             camera = null;

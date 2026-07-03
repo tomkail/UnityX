@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System;
 
 /// <summary>
-/// Tool script taken from the UI source as it's set to Internal for some reason. So to use in the extensions project it is needed here also.
+/// Utility copied from Unity's UGUI source (the original type is internal, so it's duplicated here for use in this project).
 /// </summary>
 /// 
 /**

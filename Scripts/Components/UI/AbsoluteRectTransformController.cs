@@ -52,7 +52,7 @@ public class AbsoluteRectTransformController : UIBehaviour {
 		
 		var parent = rectTransform.parent as RectTransform;
 		if(parent == null) {
-			Debug.LogWarning("Parent of "+GetType().Name+" is not null!", this);
+			Debug.LogWarning("Parent of "+GetType().Name+" is null (expected a RectTransform parent)!", this);
 			return;
 		}
 
