@@ -21,11 +21,7 @@ public class RuntimeSceneSet : ScriptableObject {
 	/// The object representations of .unity scene files.
 	/// This is only used in the editor.
 	/// </summary>
-	// [SceneAttribute]
 	public Object[] sceneAssets;
-
-
-	public RuntimeSceneSet () {}
 
 	/// <summary>
 	/// Calls the method named methodName on every MonoBehaviour in each scene in this set.
@@ -121,7 +117,7 @@ public class RuntimeSceneSet : ScriptableObject {
 	/// <summary>
 	/// Checks if this set includes another set anywhere in its hierarchy.
 	/// </summary>
-	/// <returns><c>true</c>, if set was includesed, <c>false</c> otherwise.</returns>
+	/// <returns><c>true</c>, if set was included, <c>false</c> otherwise.</returns>
 	/// <param name="setToFind">Set to find.</param>
 	public bool IncludesSet (RuntimeSceneSet setToFind) {
 		List<RuntimeSceneSet> allSets = GetSetsInHierarchy();
@@ -135,7 +131,7 @@ public class RuntimeSceneSet : ScriptableObject {
 	/// <summary>
 	/// Checks if a scene with a specific name exists in the hierarchy of this set.
 	/// </summary>
-	/// <returns><c>true</c>, if scene name was includesed, <c>false</c> otherwise.</returns>
+	/// <returns><c>true</c>, if scene name was included, <c>false</c> otherwise.</returns>
 	/// <param name="name">Name.</param>
 	public bool IncludesSceneName (string name) {
 		return AllSceneNames().Contains(name);
@@ -148,7 +144,7 @@ public class RuntimeSceneSet : ScriptableObject {
 			scenesInBuildSettings.Add(scene.path);
 		}
 		List<string> allScenesInSet = AllScenePaths();
-		return allScenesInSet.Except(scenesInBuildSettings).Count() > 0;
+		return allScenesInSet.Except(scenesInBuildSettings).Count() == 0;
 	}
 
 	public void AddMissingToBuildSettings () {
@@ -224,6 +220,8 @@ public class RuntimeSceneSet : ScriptableObject {
 
 	public void LoadInEditor () {
 		var sceneSetup = ToSceneSetup();
+		if(sceneSetup.Length == 0)
+			return;
 		EditorSceneManager.RestoreSceneManagerSetup(sceneSetup);
 		var lastScene = SceneManager.GetSceneAt(sceneSetup.Length-1);
 		SceneManager.SetActiveScene(lastScene);

@@ -17,7 +17,6 @@ public struct TextRevealAnimatorCalculatedParams {
     
 
     public static TextRevealAnimatorCalculatedParams Calculate(TMP_TextInfo textInfo, float animationProgress, float characterEffectWidth) {
-        // if (textInfo.characterCount == 0) return;
         var calculatedParams = new TextRevealAnimatorCalculatedParams();
         
         calculatedParams.totalWidth = TMPUtils.GetTotalWidth(textInfo, true);
@@ -27,7 +26,7 @@ public struct TextRevealAnimatorCalculatedParams {
         calculatedParams.normalizedEffectStart = Mathf.Lerp(-calculatedParams.normalizedEffectWidth, 1, animationProgress);
         calculatedParams.normalizedEffectEnd = Mathf.Lerp(0, 1 + calculatedParams.normalizedEffectWidth, animationProgress);
         
-        calculatedParams.normalizedEffectWidthMinusOne = characterEffectWidth / (calculatedParams.numCharacters - 1);
+        calculatedParams.normalizedEffectWidthMinusOne = characterEffectWidth / Mathf.Max(1, calculatedParams.numCharacters - 1);
         calculatedParams.normalizedEffectStartMinusOne = Mathf.Lerp(-calculatedParams.normalizedEffectWidthMinusOne, 1, animationProgress);
         calculatedParams.normalizedEffectEndMinusOne = Mathf.Lerp(0, 1 + calculatedParams.normalizedEffectWidthMinusOne, animationProgress);
 
@@ -55,22 +54,4 @@ public struct TextRevealAnimatorCalculatedParams {
         var normalizedCurrentWidth = currentWidth / totalWidthMinusLast;
         return Mathf.InverseLerp(normalizedEffectEndMinusOne, normalizedEffectStartMinusOne, normalizedCurrentWidth);
     }
-
-    
-    // public void X(TMP_TextInfo textInfo) {
-    //     var currentCharacterDistance = 0f;
-    //     foreach (var characterInfo in textInfo.characterInfo) {
-    //         if (!characterInfo.isVisible) continue;
-    //
-    //         var characterWidth = TMPUtils.GetCharacterWidth(characterInfo);
-    //
-    //         var effectLength = effectEnd - effectStart;
-    //         var distanceFromCenter = Mathf.Abs(currentCharacterDistance - Mathf.Lerp(effectEnd, effectStart, 0.5f));
-    //         var heightOffset = distanceFromCenter / effectLength * 2;
-    //         heightOffset = 1 - Mathf.Clamp01(heightOffset);
-    //         heightOffset = Mathf.Sin(heightOffset * Mathf.PI * 0.5f);
-    //
-    //         currentCharacterDistance += characterWidth;
-    //     }
-    // }
 }

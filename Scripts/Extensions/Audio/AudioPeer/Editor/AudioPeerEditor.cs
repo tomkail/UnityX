@@ -3,10 +3,6 @@ using UnityEditor;
 
 [CustomEditor(typeof(AudioPeer)), CanEditMultipleObjects]
 public class AudioPeerEditor : BaseEditor<AudioPeer> {
-    // SerializedProperty _renderTextureProperty;
-	// void OnEnable() {
-		// _renderTextureProperty = serializedObject.FindProperty("rt");
-	// }
 	public static string editorPrefsKey = "Audio Peer Editor Visualization Mode";
 	static AudioPeerEditorDrawerSettings settings = new AudioPeerEditorDrawerSettings();
 	public class AudioPeerEditorDrawerSettings {
@@ -14,9 +10,6 @@ public class AudioPeerEditor : BaseEditor<AudioPeer> {
 	}
 	
 	public enum VisualisationMode {
-		// SamplesLeft,
-		// SamplesRight,
-		// SamplesStereo,
 		AudioBand8,
 		AudioBandBuffer8,
 		AudioBand64,
@@ -42,15 +35,6 @@ public class AudioPeerEditor : BaseEditor<AudioPeer> {
 
     public override void OnPreviewGUI(Rect r, GUIStyle background) {
 		if(Event.current.type == EventType.Repaint) {
-			// if(settings.visualisationMode == VisualisationMode.SamplesLeft) {
-			// 	DrawSpectrum(data._audioBand);
-			// }
-			// if(settings.visualisationMode == VisualisationMode.SamplesRight) {
-			// 	DrawSpectrum(data._audioBand);
-			// }
-			// if(settings.visualisationMode == VisualisationMode.SamplesStereo) {
-			// 	DrawSpectrum(data);
-			// }
 			if(settings.visualisationMode == VisualisationMode.AudioBand8) {
 				DrawSpectrum(data._audioBand);
 			}

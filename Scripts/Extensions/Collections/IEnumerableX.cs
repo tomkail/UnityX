@@ -111,7 +111,7 @@ public static class IEnumerableX {
 	        }
 	    }
 	    if (hasValue) return value;
-	    return -1;
+	    throw new System.InvalidOperationException("Sequence contains no elements");
     }
 
 	public static float Min<T>(this IEnumerable<T> source, Func<T, float> selector) {
@@ -128,7 +128,7 @@ public static class IEnumerableX {
 	        }
 	    }
 	    if (hasValue) return value;
-	    return -1;
+	    throw new System.InvalidOperationException("Sequence contains no elements");
     }
 
 	public static int Max<T>(this IEnumerable<T> source, Func<T, int> selector) {
@@ -145,7 +145,7 @@ public static class IEnumerableX {
 	        }
 	    }
 	    if (hasValue) return value;
-	    return -1;
+	    throw new System.InvalidOperationException("Sequence contains no elements");
     }
 
 	public static float Max<T>(this IEnumerable<T> source, Func<T, float> selector) {
@@ -162,7 +162,7 @@ public static class IEnumerableX {
 	        }
 	    }
 	    if (hasValue) return value;
-	    return -1;
+	    throw new System.InvalidOperationException("Sequence contains no elements");
     }
 
     public static T Random<T>(this IEnumerable<T> source) {
@@ -186,10 +186,10 @@ public static class IEnumerableX {
 	public static bool CompareSize<T>(this IEnumerable<T> list, int targetSize) {
 		int count = 0;
 		foreach(var element in list) {
-			if(targetSize >= count) return true;
 			count++;
+			if(count >= targetSize) return true;
 		}
-		return false;
+		return count >= targetSize;
 	}
 
 	public static bool IsNullOrEmpty<T>(this IEnumerable<T> collection) {

@@ -256,21 +256,6 @@ public struct SerializableCamera  {
         _inverseProjectionMatrixSet = false;
 	}
 
-	// SerializableCamera() {
-	// 	transform = SerializableTransform.identity;
-	// 	_fieldOfView = defaultFieldOfView;
-	// 	_nearClipPlane = defaultNearClipPlane;
-	// 	_farClipPlane = defaultFarClipPlane;
-	// 	_orthographic = defaultOrthographic;
-	// 	_orthographicSize = defaultOrthographicSize;
-	// 	_rect = defaultRect;
-	//
-	// 	_projectionMatrix = Matrix4x4.identity;
-	// 	_projectionMatrixSet = false;
-	// 	_inverseProjectionMatrix = Matrix4x4.identity;
-	// 	_inverseProjectionMatrixSet = false;
-	// }
-
 	public SerializableCamera (Camera camera) {
 		Debug.Assert(camera);
 		transform = new SerializableTransform(camera.transform);
@@ -363,13 +348,6 @@ public struct SerializableCamera  {
 		Matrix4x4 viewProjectionMatrix = projectionMatrix * worldToCameraMatrix;
 		Vector3 viewportPoint = viewProjectionMatrix.MultiplyPoint(worldPoint);
 		return new Vector3(0.5f + (viewportPoint.x * 0.5f), 0.5f + (viewportPoint.y * 0.5f), transform.worldToLocalDirectionMatrix.MultiplyPoint(worldPoint).z);
-
-		// to try!
-		// Vector4 worldPos = new Vector4(position.x, position.y, position.z, 1.0);
-		// Vector4 viewPos = camera.worldToCameraMatrix * worldPos;
-		// Vector4 projPos = camera.projectionMatrix * viewPos;
-		// Vector3 ndcPos = new Vector3(projPos.x / projPos.w, projPos.y / projPos.w, projPos.z / projPos.w);
-		// Vector3 viewportPos = new Vector3(ndcPos.x * 0.5 + 0.5, ndcPos.y * 0.5 + 0.5, -viewPos.z);
 	}
 
 	public Vector2 WorldToScreenPoint (Vector3 worldPoint) {

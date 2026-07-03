@@ -15,7 +15,6 @@ public class WordWobble : MonoBehaviour
 
     public Gradient rainbow;
 
-    // Start is called before the first frame update
     void Start()
     {
         textMesh = GetComponent<TMP_Text>();
@@ -32,7 +31,6 @@ public class WordWobble : MonoBehaviour
         wordLengths.Add(s.Length - wordIndexes[wordIndexes.Count - 1]);
     }
 
-    // Update is called once per frame
     void Update()
     {
         textMesh.ForceMeshUpdate();
@@ -48,9 +46,15 @@ public class WordWobble : MonoBehaviour
 
             for (int i = 0; i < wordLengths[w]; i++)
             {
+                if (wordIndex + i >= textMesh.textInfo.characterInfo.Length) break;
+
                 TMP_CharacterInfo c = textMesh.textInfo.characterInfo[wordIndex+i];
 
+                if (!c.isVisible) continue;
+
                 int index = c.vertexIndex;
+
+                if (index + 3 >= vertices.Length) continue;
 
                 colors[index] = rainbow.Evaluate(Mathf.Repeat(Time.time + vertices[index].x*0.001f, 1f));
                 colors[index + 1] = rainbow.Evaluate(Mathf.Repeat(Time.time + vertices[index + 1].x*0.001f, 1f));

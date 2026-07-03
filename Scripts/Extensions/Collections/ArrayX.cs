@@ -13,11 +13,7 @@ public static class ArrayX {
     }
 	
 	public static T[] GetShiftedRepeating<T>(IList<T> items, int places) {
-		places %= items.Count;
-		T[] shiftedItems = new T[items.Count];
-		for (int i = 0; i < items.Count; i++)
-			shiftedItems[i] = items.GetRepeating(i-places);
-		return shiftedItems;
+		return ListX.GetShiftedRepeating(items, places);
 	}
 
 	public static void Shift<T>(T[] arr, int shifts) {

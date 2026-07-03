@@ -21,7 +21,6 @@ public enum LoadTaskMode {
 /// </summary>
 public class RuntimeSceneSetLoader : MonoSingleton<RuntimeSceneSetLoader> {
 	#if UNITY_EDITOR
-	public static bool _debugLogging = false;
 	public static bool debugLogging {
         get {
             return UnityEditor.EditorPrefs.GetBool(pathPlayerPrefsKey);
@@ -66,8 +65,6 @@ public class RuntimeSceneSetLoader : MonoSingleton<RuntimeSceneSetLoader> {
 		}
 	}
 
-//	public RuntimeSceneSetLoadTask pendingLevelSetLoadTask {get; private set;}
-
 	private List<RuntimeSceneSetLoadTask> _pendingLevelSetLoadTasks = new List<RuntimeSceneSetLoadTask>();
 	public List<RuntimeSceneSetLoadTask> pendingLevelSetLoadTasks {
 		get {
@@ -86,10 +83,7 @@ public class RuntimeSceneSetLoader : MonoSingleton<RuntimeSceneSetLoader> {
 	public event OnSceneSetTaskCompleteEvent OnCompleteTaskQueue;
 	public event OnSceneSetTaskCompleteEvent OnCompleteTask;
 	public event OnSceneSetTaskCompleteEvent OnAddTask;
-//	public event OnSceneSetLoadEvent OnWillLoad;
-//	public event OnSceneSetLoadEvent OnDidLoad;
 	public event OnSceneSetUnloadEvent OnWillUnload;
-//	public event OnSceneSetUnloadEvent OnDidUnload;
 
     // Helper function, cutting out the creation of a LoadTask. Remove this for the next project since, I think.
 	public RuntimeSceneSetLoadTask LoadSceneSetup(RuntimeSceneSet sceneSet, LoadTaskMode sceneLoadMode, System.Action<RuntimeSceneSetLoadTask> whenLoaded = null, System.Action<RuntimeSceneSetLoadTask> whenActivated = null) {
@@ -99,7 +93,7 @@ public class RuntimeSceneSetLoader : MonoSingleton<RuntimeSceneSetLoader> {
 	}
 
 	public void LoadSceneSetup(RuntimeSceneSetLoadTask newLevelSetLoadTask) {
-		Debug.Log("LoadSceneSetup "+newLevelSetLoadTask.sceneSet.name);
+		if(debugLogging) Debug.Log("LoadSceneSetup "+newLevelSetLoadTask.sceneSet.name);
 		if(RuntimeSceneSetLoader.debugLogging) RuntimeSceneSetLoader.Log(this, "Add scene set load task to queue "+newLevelSetLoadTask);
 		if(OnAddTask != null) OnAddTask(newLevelSetLoadTask);
 		if(currentLevelSetLoadTask == null) {
@@ -135,14 +129,13 @@ public class RuntimeSceneSetLoader : MonoSingleton<RuntimeSceneSetLoader> {
 
 	private IEnumerator LoadSceneSetupCR() {
         var startTime = Time.realtimeSinceStartup;
-//		if(OnWillLoad != null) OnWillLoad(currentLevelSetLoadTask.sceneSet);
-		currentLevelSetLoadTask.AssignTasks(); 
+		currentLevelSetLoadTask.AssignTasks();
 
 		if(currentLevelSetLoadTask.unloadTasks.Count != 0 && OnWillUnload != null)
 			OnWillUnload();
 
 		yield return StartCoroutine(currentLevelSetLoadTask.LoadSceneSetupCR(() => {
-			Debug.Log("Scene set task "+currentLevelSetLoadTask.sceneSet+" "+currentLevelSetLoadTask.sceneLoadMode+" took "+(Time.realtimeSinceStartup-startTime)+" seconds");
+			if(debugLogging) Debug.Log("Scene set task "+currentLevelSetLoadTask.sceneSet+" "+currentLevelSetLoadTask.sceneLoadMode+" took "+(Time.realtimeSinceStartup-startTime)+" seconds");
 			if(!currentLevelSetLoadTask.cancelled) {
 				if (OnCompleteTask != null) OnCompleteTask(currentLevelSetLoadTask);
 			}
@@ -165,13 +158,13 @@ public class RuntimeSceneSetLoader : MonoSingleton<RuntimeSceneSetLoader> {
 		} else {
 			RuntimeSceneSetLoadTask lastLoadTask = currentLevelSetLoadTask;
 			currentLevelSetLoadTask = null;
-			Debug.Log("OnPreCompleteSceneSetLoad");
+			if(debugLogging) Debug.Log("OnPreCompleteSceneSetLoad");
 			OnCompleteLoadQueue(lastLoadTask);
 		}
     }
 	private void OnPostCompleteSceneSetLoad() {
 		if(currentLevelSetLoadTask == null && pendingLevelSetLoadTasks.IsEmpty()) {
-			Debug.Log("OnPostCompleteSceneSetLoad");
+			if(debugLogging) Debug.Log("OnPostCompleteSceneSetLoad");
 			OnCompleteLoadQueue(_lastLevelSetLoadTask);
 			_lastLevelSetLoadTask = null;
 		}
@@ -205,7 +198,7 @@ public class RuntimeSceneSetLoader : MonoSingleton<RuntimeSceneSetLoader> {
 			for (int i = _tasksCompletedSinceQueue.Count - 1; i >= 0; i--) {
 				var task = _tasksCompletedSinceQueue [i];
 				if(!task.cancelled) {
-					if (OnCompleteTaskQueue != null) OnCompleteTaskQueue(lastLoadTask);
+					if (OnCompleteTaskQueue != null) OnCompleteTaskQueue(task);
 					break;
 				}
 			}
@@ -308,8 +301,8 @@ public class RuntimeSceneSetLoader : MonoSingleton<RuntimeSceneSetLoader> {
 	public static void BetterBroadcastMessage (GameObject go, string message, object obj = null, SendMessageOptions sendMessageOptions = SendMessageOptions.DontRequireReceiver) {
 		#if UNITY_EDITOR
 		if(!Application.isPlaying) {
-			foreach(var transform in go.GetComponentsInChildren<Transform>()) 
-				BetterSendMessage(go, message, obj, sendMessageOptions);
+			foreach(var transform in go.GetComponentsInChildren<Transform>())
+				BetterSendMessage(transform.gameObject, message, obj, sendMessageOptions);
 			return;
 		}
 		#endif

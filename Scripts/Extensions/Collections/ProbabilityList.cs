@@ -40,7 +40,7 @@ public class ProbabilityList<T> : IEnumerable<KeyValuePair<T, float>> {
 	}
 
 	public T GetRandom () {
-		int index = RandomX.WeightedIndex(probabilities.ToArray());
+		int index = RandomX.WeightedIndex(probabilities);
 		return values[index];
 	}
 
@@ -64,9 +64,7 @@ public class ProbabilityList<T> : IEnumerable<KeyValuePair<T, float>> {
     /// </summary>
     /// <returns>The enumerator.</returns>
     IEnumerator IEnumerable.GetEnumerator() {
-		for (int i = 0; i < values.Count; i++) {
-			yield return null;
-	    }
+		return ((IEnumerable<KeyValuePair<T, float>>)this).GetEnumerator();
     }
 
 	/// <summary>

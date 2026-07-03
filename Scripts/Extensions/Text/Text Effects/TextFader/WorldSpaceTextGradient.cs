@@ -5,13 +5,9 @@ using UnityEngine;
 public class WorldSpaceTextGradient : BaseTextMeshProEffect {
     public GradientArea gradientArea;
 
-    // protected override void Update() {
-    //     SetDirty();
-    //     base.Update();
-    // }
-
     protected override void OnPreRenderText(TMP_TextInfo textInfo) {
         if (textInfo.characterCount == 0) return;
+        if (gradientArea == null) return;
         Color32[] newVertexColors;
         
         Matrix4x4 matrix = m_TextComponent.transform.localToWorldMatrix;

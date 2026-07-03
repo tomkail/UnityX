@@ -11,8 +11,7 @@ public class TextDuplicator : MonoBehaviour
 
     void Update() {
         if (duplicated == null) {
-            // duplicated = Object.Instantiate<TMP_Text>(m_TextComponent, transform, true);
-                
+            duplicated = Object.Instantiate<TMP_Text>(m_TextComponent, transform, true);
         }
 
         CopyNonStyleProperties(m_TextComponent, duplicated);

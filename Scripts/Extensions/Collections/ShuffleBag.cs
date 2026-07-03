@@ -79,28 +79,11 @@ public class ShuffleBag<T> {
     /// </summary>
     /// <param name="list">List.</param>
     /// <typeparam name="T">The 1st type parameter.</typeparam>
-    public static void Shuffle(IList<T> list) {  
-		int n = list.Count;  
-		while (n > 1) {  
-			n--;  
-			int k = UnityEngine.Random.Range (0, n + 1);  
-			T value = list [k];  
-			list [k] = list [n];  
-			list [n] = value;  
-		}  
+    public static void Shuffle(IList<T> list) {
+		list.Shuffle();
 	}
 
-	public static void Shuffle(IList<T> list, int seed) {  
-		var oldState = UnityEngine.Random.state;
-		UnityEngine.Random.InitState(seed);
-		int n = list.Count;  
-		while (n > 1) {  
-			n--;  
-			int k = UnityEngine.Random.Range (0, n + 1);  
-			T value = list [k];  
-			list [k] = list [n];  
-			list [n] = value;  
-		}
-		UnityEngine.Random.state = oldState;
+	public static void Shuffle(IList<T> list, int seed) {
+		list.Shuffle(seed);
 	}
 }

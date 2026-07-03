@@ -434,10 +434,10 @@ public struct SerializableTransform {
 	public override int GetHashCode() {
 		unchecked // Overflow is fine, just wrap
 		{
-			int hash = 27;
-			hash = hash * position.GetHashCode();
-			hash = hash * rotation.GetHashCode();
-			hash = hash * localScale.GetHashCode();
+			int hash = 17;
+			hash = hash * 31 + position.GetHashCode();
+			hash = hash * 31 + rotation.GetHashCode();
+			hash = hash * 31 + localScale.GetHashCode();
 			return hash;
 		}
 	}

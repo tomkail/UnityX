@@ -61,13 +61,13 @@ public class RuntimeSceneSetEditor : BaseEditor<RuntimeSceneSet> {
 			data.SetScenePaths();
 		}
 
-		int numSceneAssets = data.sceneAssets.Where(x => x != null).Count();
-		int numPaths = data.scenePaths.Length;
+		int numSceneAssets = data.sceneAssets == null ? 0 : data.sceneAssets.Where(x => x != null).Count();
+		int numPaths = data.scenePaths == null ? 0 : data.scenePaths.Length;
 		if(numPaths != numSceneAssets) {
 			EditorGUILayout.HelpBox("Scene paths do not match scenes. This means some code is not working!", MessageType.Error);
 		}
 
-		if(data.IsIncludedInBuildSettings()) {
+		if(!data.IsIncludedInBuildSettings()) {
 			EditorGUILayout.HelpBox("Not all scenes added to build settings. This is critical if this setup is intended outside editor use.", MessageType.Warning);
 			if(GUILayout.Button("Add missing scenes")) {
 				data.AddMissingToBuildSettings();

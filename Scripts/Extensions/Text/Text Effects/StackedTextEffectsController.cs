@@ -36,13 +36,6 @@ public class StackedTextEffectsController : MonoBehaviour {
             } else {
                 duplicatedText[i].effects = effects[i];
                 TextDuplicator.CopyNonStyleProperties(sourceTextComponent, duplicatedText[i].m_TextComponent);
-                // duplicatedText[i].isDirty = true;
-                // duplicatedText[i].m_TextComponent.havePropertiesChanged = true;
-                // duplicatedText[i].m_TextComponent.ClearMesh();
-                // duplicatedText[i].m_TextComponent.SetText(duplicatedText[i].m_TextComponent.text);
-                // duplicatedText[i].m_TextComponent.SetMaterialDirty();
-                // duplicatedText[i].m_TextComponent.SetAllDirty();
-                // duplicatedText[i].m_TextComponent.ForceMeshUpdate();
             }
         }
 
@@ -52,11 +45,14 @@ public class StackedTextEffectsController : MonoBehaviour {
                 newGameObject.transform.SetParent(transform, false);
                 newGameObject.transform.ResetTransform();
                 newGameObject.transform.Translate(Vector3.back * ((i + 1) * 0.001f));
-                
-                // newGameObject.hideFlags = HideFlags.DontSave | HideFlags.NotEditable;
+
                 TMP_Text text = null;
                 if(sourceTextComponent is TextMeshPro) text = newGameObject.AddComponent<TextMeshPro>();
                 else if(sourceTextComponent is TextMeshProUGUI) text = newGameObject.AddComponent<TextMeshProUGUI>();
+                if (text == null) {
+                    ObjectX.DestroyAutomatic(newGameObject);
+                    continue;
+                }
                 TextDuplicator.CopyNonStyleProperties(sourceTextComponent, text);
                 
                 if (newGameObject.transform is RectTransform rectTransform) {
@@ -67,9 +63,6 @@ public class StackedTextEffectsController : MonoBehaviour {
                 
                 var newComponent = newGameObject.AddComponent<TextEffectsController>();
                 duplicatedText.Add(newComponent);
-                
-                // duplicatedText[i].effects = effects[i];
-                // duplicatedText[i].isDirty = true;
             }
         }
     }

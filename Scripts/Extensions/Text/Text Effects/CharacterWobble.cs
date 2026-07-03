@@ -9,13 +9,11 @@ public class CharacterWobble : MonoBehaviour
 
     Vector3[] vertices;
 
-    // Start is called before the first frame update
     void Start()
     {
         textMesh = GetComponent<TMP_Text>();
     }
 
-    // Update is called once per frame
     void Update()
     {
         textMesh.ForceMeshUpdate();
@@ -26,7 +24,11 @@ public class CharacterWobble : MonoBehaviour
         {
             TMP_CharacterInfo c = textMesh.textInfo.characterInfo[i];
 
+            if (!c.isVisible) continue;
+
             int index = c.vertexIndex;
+
+            if (index + 3 >= vertices.Length) continue;
 
             Vector3 offset = Wobble(Time.time + i);
             vertices[index] += offset;

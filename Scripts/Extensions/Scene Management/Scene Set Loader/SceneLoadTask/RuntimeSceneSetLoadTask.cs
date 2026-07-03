@@ -105,19 +105,21 @@ public class RuntimeSceneSetLoadTask {
 			pathsToUnload = currentPaths.Except(sceneSetPaths).ToList();
 			pathsToUnload.Reverse();
 		} else if(sceneLoadMode == LoadTaskMode.UnloadSoft) {
+			// From all the scenes in this set, scan through all the active scene sets and select any scenes which aren't used in any others.
+			// A scene is only unloaded if it isn't contained by ANY of the loaded scene sets, so a scene still used by another set is kept.
+			var loadedSceneSets = RuntimeSceneSetLoader.GetLoadedSceneSets();
 			foreach(var scenePath in sceneSetPaths) {
-				foreach(var loadedSceneSet in RuntimeSceneSetLoader.GetLoadedSceneSets()) {
-					bool found = false;
+				bool containedByAnySet = false;
+				foreach(var loadedSceneSet in loadedSceneSets) {
 					if(loadedSceneSet.AllScenePaths().Contains(scenePath)) {
-						found = true;
+						containedByAnySet = true;
 						break;
 					}
-					if(!found) {
-						pathsToUnload.Add(scenePath);
-					}
+				}
+				if(!containedByAnySet) {
+					pathsToUnload.Add(scenePath);
 				}
 			}
-			// From all the scenes in this set, scan through all the active scene sets and select any scenes which aren't used in an others
 		} else if(sceneLoadMode == LoadTaskMode.UnloadHard) {
 			pathsToUnload = sceneSetPaths.ToList();
 		}
@@ -239,15 +241,6 @@ public class RuntimeSceneSetLoadTask {
 			task.Uncancel();
 		}
     }
-    /*
-	public string[] GetSceneNamesToLoad () {
-		return loadTasks.Select(x => x.sceneName).ToArray();
-	}
-
-	public bool IsEqual (SceneSetLoadTask other) {
-		return GetSceneNamesToLoad().SequenceEqual(other.GetSceneNamesToLoad()) && unloadTasks.SequenceEqual(other.unloadTasks);
-    }
-    */
 
     public override string ToString () {
 		System.Text.StringBuilder sb = new System.Text.StringBuilder();

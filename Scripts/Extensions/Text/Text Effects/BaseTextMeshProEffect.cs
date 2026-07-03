@@ -25,10 +25,12 @@ public abstract class BaseTextMeshProEffect : MonoBehaviour {
     }
 
     void OnDisable() {
-        m_TextComponent.UnregisterDirtyVerticesCallback(OnDirtyTMPComponent);
-        m_TextComponent.UnregisterDirtyLayoutCallback(OnDirtyTMPComponent);
-        m_TextComponent.UnregisterDirtyMaterialCallback(OnDirtyTMPComponent);
-        m_TextComponent.OnPreRenderText -= OnPreRenderText;
+        if (m_TextComponent != null) {
+            m_TextComponent.UnregisterDirtyVerticesCallback(OnDirtyTMPComponent);
+            m_TextComponent.UnregisterDirtyLayoutCallback(OnDirtyTMPComponent);
+            m_TextComponent.UnregisterDirtyMaterialCallback(OnDirtyTMPComponent);
+            m_TextComponent.OnPreRenderText -= OnPreRenderText;
+        }
         // Clear on disable so any pending vertex changes are reverted (unconditional — there is no dirty check).
         Clear();
     }

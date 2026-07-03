@@ -60,14 +60,9 @@ public class AudioPeer : MonoBehaviour {
 		_audioBand64 = new float[64];
 		_audioBandBuffer64 = new float[64];
 
-		
-		// _mixerGroupMicrophone = Resources.Load<AudioMixerGroup>("Audios/AudioMixer/Microphone");
-
 
 		_audioSource = GetComponent<AudioSource> ();
 		AudioProfile (_audioProfile);
-
-		// _audioclip = Resources.Load<AudioClip> ("Audios/audioclip_1");
 
 		//Microphone input
 
@@ -153,11 +148,8 @@ public class AudioPeer : MonoBehaviour {
 	}
 
 	void GetSpectrumAudioSource () {
-		// if(_audioSource.clip.channels == 1) {
-		// } else if(_audioSource.clip.channels == 2) {
-			_audioSource.GetSpectrumData (_samplesLeft, 0, fftWindow);
-			_audioSource.GetSpectrumData (_samplesRight, 1, fftWindow);
-		// }
+		_audioSource.GetSpectrumData (_samplesLeft, 0, fftWindow);
+		_audioSource.GetSpectrumData (_samplesRight, 1, fftWindow);
 	}
 
 	void GetStereoSpectrumAudioSource(){

@@ -115,61 +115,7 @@ public static class TextMeshProUtils {
         textComponent.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, preferredSize.x);
         textComponent.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, preferredSize.y);
     }
-    //
-    // // Applies tight preferred values for the current text using GetTightPreferredValues
-    // // Note this uses sizeDelta for sizing so won't work when using anchors.
-    // public static void ApplyPreferredWidth (this TMP_Text textComponent, float maxWidth = veryLargeNumber, float maxHeight = veryLargeNumber) {
-    //     var preferredSize = GetPreferredValues(textComponent, maxWidth, maxHeight);
-    //     textComponent.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, preferredSize.x);
-    // }
-    //
-    // // Applies tight preferred values for the current text using GetTightPreferredValues
-    // // Note this uses sizeDelta for sizing so won't work when using anchors.
-    // public static void ApplyPreferredHeight (this TMP_Text textComponent, float maxWidth = veryLargeNumber, float maxHeight = veryLargeNumber) {
-    //     var preferredSize = GetPreferredValues(textComponent, maxWidth, maxHeight);
-    //     textComponent.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, preferredSize.y);
-    // }
-    //
-    // // A fixed version of GetPreferredValues that correctly takes into account the wrapping mode of the text; the regular one always returns width as if the text were on one line.
-    // // Allows clamping the output to the input width and height in the case that the preferred values are larger than the values specified.
-    // public static Vector2 GetPreferredValues (this TMP_Text textComponent, float maxWidth = veryLargeNumber, float maxHeight = veryLargeNumber, bool clamped = true) {
-    //     var preferredValues = textComponent.GetPreferredValues(textComponent.text, maxWidth, maxHeight);
-    //     if (clamped) preferredValues = new Vector2(Mathf.Min(preferredValues.x, maxWidth), Mathf.Min(preferredValues.y, maxHeight));
-    //     return preferredValues;
-    // }
-    //
-    // // This method reproduces TMP_Text.GetPreferredWidth, but uses the wrapping mode of the text, which is always set to NoWrap in GetPreferredWidth in the original function.
-    // public static float GetPreferredWidthWithCorrectWrappingMode(this TMP_Text textComponent, Vector2 margin) => GetPreferredWidth(textComponent, margin, textComponent.textWrappingMode);
-    // // This method reproduces TMP_Text.GetPreferredWidth but allows passing a wrapping mode.
-    // public static float GetPreferredWidth(this TMP_Text textComponent, Vector2 margin, TextWrappingModes textWrappingMode) {
-    //     System.Type type = typeof(TMP_Text);
-    //     
-    //     float fontSize = textComponent.enableAutoSizing ? textComponent.fontSizeMax : textComponent.fontSize;
-    //
-    //     // Reset auto sizing point size bounds
-    //     type.GetField("m_minFontSize", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(textComponent, textComponent.fontSizeMin);
-    //     type.GetField("m_maxFontSize", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(textComponent, textComponent.fontSizeMax);
-    //     type.GetField("m_charWidthAdjDelta", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(textComponent, 0);
-    //
-    //     type.GetField("m_AutoSizeIterationCount", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(textComponent, 0);
-    //     
-    //     MethodInfo methodInfo = type.GetMethod("CalculatePreferredValues", BindingFlags.NonPublic | BindingFlags.Instance);
-    //     object[] parameters = { fontSize, margin, false, textWrappingMode };
-    //     Vector2 result = (Vector2)methodInfo.Invoke(textComponent, parameters);
-    //     return result.x;
-    // }
-    //
-    //
-    // // Width for GetPreferredValues always returns the length of the text as if it was on one line.
-    // // This function additionally clamps the returned width of GetPreferredValues to the input width.
-    // // It does this for both width and height, but probably doesn't need to (?) because this issue is specific to width.
-    // public static Vector2 GetPreferredValues (this TMP_Text textComponent, string text, float maxWidth = veryLargeNumber, float maxHeight = veryLargeNumber) {
-    //     var preferredSize = textComponent.GetPreferredValues(text, maxWidth, maxHeight);
-    //     preferredSize.x = Mathf.Min(preferredSize.x*preferredWidthMultiplierFudge, maxWidth);
-    //     preferredSize.y = Mathf.Min(preferredSize.y, maxHeight);
-    //     return preferredSize;
-    // }
-    
+
     // TMP_Text.GetPreferredWidth has a bug the overload without text uses NoWrap so the width is always the width of the text as if it were on one line.
     // Additionally, adds a tiny amount to the width, as sometimes the returned value can be slightly less than the size that actually appears to be required.
     // This is a workaround.
@@ -267,8 +213,7 @@ public static class TextMeshProUtils {
         var best = outputs.Best(x => x.score, (other, currentBest) => other > currentBest, Mathf.NegativeInfinity);
         Debug.Assert(!outputs.IsNullOrEmpty());
         Debug.Assert(best.score > Mathf.NegativeInfinity);
-        // Debug.Log($"Iterated {num} times adding {outputs.Count} outputs for input {maxWidth} which created preferred width {unoptimisedPreferredValues.x} with {lineCount} lines, found best output {best.size} with score {best.score}");
-        
+
         text.renderMode = originalRenderMode;
         text.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, originalSize.x);
         // text.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, originalSize.y);
@@ -305,7 +250,6 @@ public static class TextMeshProUtils {
                             else wordPunctuationScore = Mathf.Lerp(0, -1, Mathf.InverseLerp(lineInfo.wordCount-4, lineInfo.wordCount-1, wordIndex+1));
                             wordPunctuationScores.Add(wordPunctuationScore);
                         }
-                        // Debug.Log($"Line: {i+1} Word: {word} {wordIndex+1}/{lineInfo.wordCount}. Punc score: {wordPunctuationScore}");
                         word.Clear();
                         wordHasPunctuation = false;
                         wordIndex++;
@@ -317,7 +261,6 @@ public static class TextMeshProUtils {
 
             
             // Score based on the ratio between the smallest and largest line.
-            // Debug.Log($"size:{output.size} min:{minLineWidth} max:{maxLineWidth}");
 			var comparableLineWidthScore = minLineWidth/maxLineWidth;
 			if(comparableLineWidthScore > 1) comparableLineWidthScore = 1/comparableLineWidthScore;
             
@@ -325,7 +268,6 @@ public static class TextMeshProUtils {
             // Good scores for when (especially terminating) punctuation ends a line.
             // Bad scores when (especially terminating) punctuation is very near the end of a line.
             var punctuationScore = wordPunctuationScores.Any() ? wordPunctuationScores.Sum() / wordPunctuationScores.Count : 0;
-            // Debug.Log(punctuationScore);
 
             // var splitTextScore = TextMeshProUtils.IsAnyWordSplit(textInfo) ? -1 : 0;
             
@@ -549,8 +491,6 @@ public static class TextMeshProUtils {
                 bottomLeft = new Vector3(currentCharInfo.bottomLeft.x, currentCharInfo.descender, 0);
                 topLeft = new Vector3(currentCharInfo.bottomLeft.x, currentCharInfo.ascender, 0);
 
-                //Debug.Log("Start Word Region at [" + currentCharInfo.character + "]");
-
                 // If Word is one character
                 if (wInfo.characterCount == 1)
                 {
@@ -595,8 +535,8 @@ public static class TextMeshProUtils {
     }
     
     // Utility function for other parts of this class.
-    static Rect WorldToScreenRect(TMP_Text textComponent, Vector3 topLeft, Vector3 bottomLeft, Vector3 bottomRight, Vector3 topRight) {
-        return CreateEncapsulating(RectTransformUtility.WorldToScreenPoint(textComponent.canvas.rootCanvas.worldCamera, topLeft), RectTransformUtility.WorldToScreenPoint(textComponent.canvas.rootCanvas.worldCamera, bottomRight));
+    static Rect WorldToScreenRect(TMP_Text textComponent, Vector3 bottomLeft, Vector3 topLeft, Vector3 topRight, Vector3 bottomRight) {
+        return CreateEncapsulating(RectTransformUtility.WorldToScreenPoint(textComponent.canvas.rootCanvas.worldCamera, bottomLeft), RectTransformUtility.WorldToScreenPoint(textComponent.canvas.rootCanvas.worldCamera, topRight));
     }
     #endregion
     
@@ -609,15 +549,6 @@ public static class TextMeshProUtils {
 
         // Find the point where the generated text differs from the original text
         int clippedIndex = FindClippedIndex(originalText, generatedText);
-        //
-        // if (clippedIndex >= 0)
-        // {
-        //     Debug.Log($"Text is clipped at index: {clippedIndex} ({originalText.Substring(clippedIndex)})");
-        // }
-        // else
-        // {
-        //     Debug.Log("Text is not clipped.");
-        // }
         return clippedIndex;
         
         static int FindClippedIndex(string originalText, string generatedText)
@@ -673,23 +604,10 @@ public static class TextMeshProUtils {
             if(textInfo.characterInfo[i].lineNumber == textInfo.characterInfo[i+1].lineNumber) continue;
             var lastCharInLine = textInfo.characterInfo[i].character;
             if(!char.IsSeparator(lastCharInLine) && !char.IsPunctuation(lastCharInLine)) {
-                // Debug.LogWarning(textInfo.characterInfo[i].character +" "+ textInfo.characterInfo[i+1].character+" "+textInfo.characterInfo[i].lineNumber+" "+textInfo.characterInfo[i+1].lineNumber);
                 return true;
             }
         }
         return false;
-        // foreach(var line in text.textInfo.lineInfo) {
-        // 	if(line.characterCount == 0) continue;
-        // 	Debug.Log(line.lastCharacterIndex+" "+text.textInfo.characterInfo[line.lastCharacterIndex].character);
-        // }
-        // foreach(var word in text.textInfo.wordInfo) {
-        // 	// if(word.characterCount == 0) continue;
-        // 	Debug.Log(word.firstCharacterIndex+", "+word.lastCharacterIndex+": "+text.text.Substring(word.firstCharacterIndex, word.lastCharacterIndex-word.firstCharacterIndex+1));
-        // 	// Debug.Log(word.characterCount);
-        // 	if(text.textInfo.characterInfo[word.firstCharacterIndex].lineNumber != text.textInfo.characterInfo[word.lastCharacterIndex].lineNumber) {
-        // 		Debug.LogWarning(text.text.Substring(word.firstCharacterIndex, word.lastCharacterIndex-word.firstCharacterIndex+1));
-        // 	}
-        // }	
     }
     
     public static string ReplaceUnsupportedQuoteMarks (string textString, TMP_FontAsset font) {
