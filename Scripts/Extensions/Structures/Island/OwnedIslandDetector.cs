@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System;
 using System.Linq;
 using System.Collections;
@@ -8,11 +8,10 @@ using UnityX.Geometry;
 // Finds islands "owned" by a specific property of the coord, such as the land type
 public class OwnedIslandDetector<Coord, Owner> : IslandDetector<Coord> where Coord : IEquatable<Coord> {
 	static new List<OwnedIsland<Coord, Owner>> islands = new List<OwnedIsland<Coord, Owner>>();
-	
+
 	public Func<Coord, Owner> GetPointOwner;
-	
+
 	public OwnedIslandDetector (IEnumerable<Coord> startPoints, Func<Coord, IEnumerable<Coord>> GetAdjacentPoints, Func<Coord, bool> GetPointIsValid, Func<Coord, Owner> GetPointOwner) : base (startPoints, GetAdjacentPoints, GetPointIsValid) {
-		this.GetAdjacentPoints = GetAdjacentPoints;
 		this.GetPointOwner = GetPointOwner;
 		Debug.Assert(GetAdjacentPoints != null);
 		Debug.Assert(GetPointOwner != null);
@@ -21,50 +20,25 @@ public class OwnedIslandDetector<Coord, Owner> : IslandDetector<Coord> where Coo
 	public new List<OwnedIsland<Coord, Owner>> FindIslands () {
 		islands.Clear();
 		testedPoints.Clear();
-		islandStartPointsToTest.Clear();
 
-		islandStartPointsToTest.AddRange(startPoints);
-		while(islandStartPointsToTest.Count > 0) {
-			Coord pointToTest = islandStartPointsToTest.First();
-			var ownedIsland = CreateIsland(GetPointOwner(pointToTest));
-			ConnectAdjacentTilesWithSameOwner(ownedIsland, pointToTest);
+		// Seeds are processed from a queue (Dequeue = pop, never peek → cannot hang). Flood-filling a
+		// region hands its valid-but-differently-owned boundary neighbours back onto the queue, so a
+		// single start point still discovers every connected owner-region (partitioned by owner).
+		// `testedPoints` dedupes: a point does real work only the first time it is dequeued/filled.
+		Queue<Coord> seedQueue = new Queue<Coord>(startPoints);
+		while(seedQueue.Count > 0) {
+			Coord seed = seedQueue.Dequeue();
+			if(testedPoints.Contains(seed) || !GetPointIsValid(seed)) continue;
+			Owner owner = GetPointOwner(seed);
+			OwnedIsland<Coord, Owner> island = new OwnedIsland<Coord, Owner>(owner, new List<Coord>());
+			FloodFill(
+				seed,
+				point => GetPointIsValid(point) && GetPointOwner(point).Equals(owner),
+				island.points.Add,
+				seedQueue.Enqueue
+			);
+			islands.Add(island);
 		}
 		return islands;
-	}
-
-	OwnedIsland<Coord, Owner> CreateIsland (Owner owner) {
-		var ownedIsland = new OwnedIsland<Coord, Owner>(owner, new List<Coord>());
-		islands.Add(ownedIsland);
-		return ownedIsland;
-	}
-	
-	void ConnectAdjacentTilesWithSameOwner (OwnedIsland<Coord, Owner> island, Coord gridPoint) {
-		island.points.Add(gridPoint);
-		islandStartPointsToTest.Remove (gridPoint);
-		
-		testedPoints.Add (gridPoint);
-		var validAdjacent = GetAdjacentPoints(gridPoint);
-		foreach(Coord adjacentPoint in validAdjacent) {
-			TryConnectTileWithSameOwner(island, adjacentPoint);
-		}
-	}
-
-	void TryConnectTileWithSameOwner (OwnedIsland<Coord, Owner> island, Coord gridPoint) {
-		if(testedPoints.Contains(gridPoint)) return;
-		if(!GetPointIsValid(gridPoint)) return;
-
-		bool alreadyCheckedInIsland = island.points.Contains(gridPoint);
-		if(!alreadyCheckedInIsland) {
-			if(island.owner.Equals(GetPointOwner(gridPoint))) {
-				ConnectAdjacentTilesWithSameOwner(island, gridPoint);
-				return;
-			}
-		}
-
-		bool markedToCheck = islandStartPointsToTest.Contains(gridPoint);
-		if(!markedToCheck) {
-			islandStartPointsToTest.Add (gridPoint);
-			return;
-		}
 	}
 }

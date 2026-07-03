@@ -8,7 +8,6 @@ public class IslandDetector<Coord> where Coord : IEquatable<Coord> {
 
 	protected static List<Island<Coord>> islands = new List<Island<Coord>>();
 	protected static HashSet<Coord> testedPoints = new HashSet<Coord>();
-	protected static List<Coord> islandStartPointsToTest = new List<Coord>();
 
 	public IEnumerable<Coord> startPoints;
 	public Func<Coord, IEnumerable<Coord>> GetAdjacentPoints;
@@ -23,47 +22,40 @@ public class IslandDetector<Coord> where Coord : IEquatable<Coord> {
 	public List<Island<Coord>> FindIslands () {
 		islands.Clear();
 		testedPoints.Clear();
-		islandStartPointsToTest.Clear();
 
-		islandStartPointsToTest.AddRange(startPoints);
-		while(islandStartPointsToTest.Count > 0) {
-			Coord pointToTest = islandStartPointsToTest[0];
+		// Walk a fixed collection (startPoints) and flood-fill the valid region reachable from each
+		// not-yet-visited seed. `testedPoints` (a HashSet) marks everything already assigned to an
+		// island, so each point is visited once — O(n) overall, and termination is guaranteed.
+		foreach(Coord seed in startPoints) {
+			if(testedPoints.Contains(seed) || !GetPointIsValid(seed)) continue;
 			Island<Coord> island = new Island<Coord>();
-			TryConnectTile(island, pointToTest);
-			if(island.points.Any()) islands.Add(island);
+			FloodFill(seed, GetPointIsValid, island.points.Add);
+			islands.Add(island);
 		}
 		return islands;
 	}
-	
-	void ConnectAdjacentTiles (Island<Coord> island, Coord gridPoint) {
-		island.points.Add(gridPoint);
-		islandStartPointsToTest.Remove (gridPoint);
-		
-		testedPoints.Add (gridPoint);
 
-		var adjacentPoints = GetAdjacentPoints(gridPoint);
-		foreach(Coord adjacentPoint in adjacentPoints) {
-			TryConnectTile(island, adjacentPoint);
-		}
-	}
-
-	void TryConnectTile (Island<Coord> island, Coord gridPoint) {
-		if (testedPoints.Contains(gridPoint)) {
-			islandStartPointsToTest.Remove (gridPoint);
-			return;
-		}
-		if(!GetPointIsValid(gridPoint)) return;
-
-		bool alreadyCheckedInIsland = island.points.Contains(gridPoint);
-		if(!alreadyCheckedInIsland) {
-			ConnectAdjacentTiles(island, gridPoint);
-			return;
-		}
-
-		bool markedToCheck = islandStartPointsToTest.Contains(gridPoint);
-		if(!markedToCheck) {
-			islandStartPointsToTest.Add (gridPoint);
-			return;
+	// Iterative (non-recursive) flood fill from `seed`. Every point reachable through GetAdjacentPoints
+	// for which canJoin(point) is true is added to the island via addPoint and recorded in testedPoints
+	// so it is never visited twice. An explicit Stack replaces the old mutual recursion (no stack-overflow
+	// risk) and, combined with the HashSet membership test, keeps this O(n).
+	// onValidSkip (optional) receives points that are valid but rejected by canJoin (e.g. a neighbour that
+	// belongs to a different owner) so a caller can queue them as future seeds.
+	protected void FloodFill (Coord seed, Func<Coord, bool> canJoin, Action<Coord> addPoint, Action<Coord> onValidSkip = null) {
+		Stack<Coord> frontier = new Stack<Coord>();
+		frontier.Push(seed);
+		while(frontier.Count > 0) {
+			Coord point = frontier.Pop();
+			if(testedPoints.Contains(point)) continue;
+			if(!canJoin(point)) {
+				if(onValidSkip != null && GetPointIsValid(point)) onValidSkip(point);
+				continue;
+			}
+			testedPoints.Add(point);
+			addPoint(point);
+			foreach(Coord adjacentPoint in GetAdjacentPoints(point)) {
+				if(!testedPoints.Contains(adjacentPoint)) frontier.Push(adjacentPoint);
+			}
 		}
 	}
 }
