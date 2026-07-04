@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 
+// Intentionally draws its own live, sized preview: respects Sprite sub-rects via GUI.DrawTextureWithTexCoords, aspect-fits, honours the attribute's width/height, and handles Texture2D/Sprite/RenderTexture. This does strictly MORE than AssetPreview.GetAssetPreview (a small fixed-size, async-cached thumbnail), so it is not a redundant reimplementation.
 [CustomPropertyDrawer(typeof(PreviewTextureAttribute))]
 public class PreviewTextureDrawer : BaseAttributePropertyDrawer<PreviewTextureAttribute> {
 

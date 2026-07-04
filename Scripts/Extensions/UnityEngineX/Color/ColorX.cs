@@ -71,6 +71,7 @@ public static class ColorX {
 		}
 	}
 
+	// Convenience helper: a uniform random RGB (opaque). NOT equivalent to Random.ColorHSV, which samples in HSV space.
 	public static Color RandomRGB() {
         return new Color(Random.value, Random.value, Random.value);
     }
@@ -86,6 +87,7 @@ public static class ColorX {
 		return new Color(gray,gray,gray);
 	}
 
+	// Convenience helper: a named wrapper that returns Color.grayscale expanded back into a (gray,gray,gray) Color.
 	public static Color Grayscale (Color color) {
 		float gray = color.grayscale;
 		return new Color(gray,gray,gray);
@@ -197,10 +199,12 @@ public static class ColorX {
 		}
 	}
 	
+	// Convenience helper: a weighted add, NOT just color1 + color2 (the lerp param scales color2's contribution).
 	public static Color BlendAdditive(Color color1, Color color2, float lerp = 1f){
 		return new Color(color1.r + color2.r * lerp, color1.g + color2.g * lerp, color1.b + color2.b * lerp, color1.a + color2.a * lerp);
 	}
 
+	// Convenience helper: a weighted multiply, NOT just color1 * color2 (the lerp param scales the product per channel).
 	public static Color BlendMultiply(Color color1, Color color2, float lerp = 1f){
 		return new Color(color1.r * color2.r * lerp, color1.g * color2.g * lerp, color1.b * color2.b * lerp, color1.a * color2.a * lerp);
 	}

@@ -2,6 +2,9 @@
 using UnityEngine.UI;
 using System.Collections.Generic;
 
+// Equivalent to BoxOutline with halfSampleCountX/Y == 1 (the 8 neighbours of a 3x3 grid). Kept as a
+// distinct serialized public MonoBehaviour because it may be attached in external scenes; removing it
+// would break their serialization.
 public class Outline8 : ModifiedShadow
 {
     public override void ModifyVertices(List<UIVertex> verts)

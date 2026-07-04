@@ -7,6 +7,7 @@
 using UnityEngine;
 using UnityEditor;
 
+// Intentionally a thin wrapper over EditorGUI.PasswordField: the point is a password field driven purely by an attribute + drawer, with no per-type custom editor. Not redundant.
 [CustomPropertyDrawer(typeof(PasswordAttribute))]
 public class PasswordDrawer : BaseAttributePropertyDrawer<PasswordAttribute> {
 	

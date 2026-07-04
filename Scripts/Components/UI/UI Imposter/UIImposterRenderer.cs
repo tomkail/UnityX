@@ -236,6 +236,8 @@ public static class UIImposterRenderer {
         return destRect;
     }
 
+    // Intentionally a LOCAL AABB builder rather than a call into Extensions/BoundsX, so this UI sub-project
+    // stays independent of Extensions for portability. The per-axis if(<min) … else if(>max) scan is correct.
     static Bounds CreateEncapsulating (Vector3[] vectors) {
         if(vectors == null) return new Bounds(Vector3.zero, Vector3.zero);
         var count = vectors.Length;

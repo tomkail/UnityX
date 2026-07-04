@@ -9,6 +9,7 @@ public class HideInEditModeDrawer : PropertyDrawer {
     }
 
     public override float GetPropertyHeight (SerializedProperty property, GUIContent label) {
+		// Returning the negative standard spacing when hidden is the deliberate row-collapse idiom: it cancels the inter-property spacing so the hidden field leaves ~0 net height (no blank gap or overlap).
 		if(!Application.isPlaying) return -EditorGUIUtility.standardVerticalSpacing;
 		else return EditorGUI.GetPropertyHeight(property, label);
 	}

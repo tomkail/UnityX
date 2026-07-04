@@ -456,6 +456,8 @@ public static class RectTransformX {
 		trans.anchorMax = aVec;
 	}
 	
+	// Kept for symmetry with the non-trivial SetWidth/SetHeight below (Unity still has no RectTransform.rect setter),
+	// not because rect.size/rect.width/rect.height are unavailable as getters.
 	public static Vector2 GetSize(this RectTransform trans) {
 		return trans.rect.size;
 	}

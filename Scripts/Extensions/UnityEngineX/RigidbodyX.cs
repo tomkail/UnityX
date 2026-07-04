@@ -1,5 +1,8 @@
 ﻿using UnityEngine;
 
+// Intentional: the Set*/Translate/Rotate helpers below route through Rigidbody.MovePosition/MoveRotation/rigidbody.rotation
+// (physics-aware, interpolated) rather than mutating the transform directly. They are NOT thin Transform wrappers and are
+// deliberately not equivalent to the same-named methods in TransformX.
 public static class RigidbodyX {
 	public static void ResetForcesImmediate (this Rigidbody rigidbody) {
 		rigidbody.isKinematic = true;

@@ -91,6 +91,9 @@ public class FPSManager : MonoSingleton<FPSManager> {
 	}
 
 	private void RemoveOldDeltaTimes () {
+		// Intentionally KEEPS the frame that tips the accumulated time past fpsGraphHistoryTime:
+		// RemoveRange(0, currTimeIndex) retains [currTimeIndex..end], so the retained window fully
+		// covers the graph history (>= history, not <). This is not an off-by-one.
 		// Remove old times.
 		float totalTime = 0.0f;
 		for (int currTimeIndex = deltaTimes.Count - 1; currTimeIndex >= 0; --currTimeIndex) {

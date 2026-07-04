@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
+// ToList/First/Last/Contains/IndexOf overlap LINQ / List<T> members but are kept as widely-used public
+// helpers — removing them would break call sites across the library.
 public static class ListX {
 
 	public static List<T> ToList<T>(this IList<T> IList) {

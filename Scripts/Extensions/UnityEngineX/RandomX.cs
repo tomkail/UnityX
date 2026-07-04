@@ -22,8 +22,10 @@ public static class RandomX {
 	public static int sign => boolean ? -1 : 1;
 
 	/// <summary>
-	/// Returns a random Vector2 of a circle edge 
+	/// Returns a random Vector2 of a circle edge
 	/// </summary>
+	// Intentional: returns a point ON the unit circle's edge - deliberately different from Random.insideUnitCircle
+	// (a point inside the disk). Unity has no 2D built-in for the edge (only insideUnitCircle / onUnitSphere).
 	public static Vector2 onUnitCircle {
 		get {
 			float angle = eulerAngle;
@@ -34,6 +36,7 @@ public static class RandomX {
 	/// <summary>
 	/// Returns a random float between 0 and 360
 	/// </summary>
+	// Convenience helper: equivalent to Random.Range(0f, 360f), named for use as a random rotation angle in degrees.
 	public static float eulerAngle => Random.value*360;
 
 	/// <summary>

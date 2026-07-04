@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Collections.ObjectModel;
 
+// Overlaps Vector2Int but kept intentionally: Point is a pervasive public type used across the whole
+// library; replacing it with Vector2Int would be a massive breaking change.
 [System.Serializable]
 public struct Point : IEquatable<Point> {
 	public int x, y;

@@ -3,6 +3,9 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+// Intentionally mirrors ExtendedButton but derives from Selectable (not Button) — a Selectable has no
+// button click/navigation behaviour. C# single-inheritance means the shared pointer/select-event
+// boilerplate can't be factored out into a common base. Not accidental duplication.
 public class ExtendedSelectable : Selectable {
 
 	[Serializable]

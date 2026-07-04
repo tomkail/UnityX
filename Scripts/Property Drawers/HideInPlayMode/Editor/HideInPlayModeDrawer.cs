@@ -9,6 +9,7 @@ public class HideInPlayModeDrawer : PropertyDrawer {
     }
 
     public override float GetPropertyHeight (SerializedProperty property, GUIContent label) {
+		// When hidden, returning 0 collapses the row to ~nothing; the surrounding inter-property spacing is all that remains.
 		if(Application.isPlaying) return 0;
 		else return EditorGUI.GetPropertyHeight(property, label);
 	}

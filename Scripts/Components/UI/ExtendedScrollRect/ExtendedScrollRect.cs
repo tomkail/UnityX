@@ -82,6 +82,8 @@ namespace UnityEngine.UI {
 			}
 		}
         
+        // Deliberately re-implements ScrollRect's private CalculateOffset (Unity doesn't expose it publicly),
+        // so this subclass can reuse the exact clamping logic. Kept out of necessity, not accidental duplication.
         public Vector2 CalculateOffset() => InternalCalculateOffset(viewBounds, contentBounds);
         internal static Vector2 InternalCalculateOffset(Bounds viewBounds, Bounds contentBounds) {
 	        Vector2 offset = Vector2.zero;
@@ -190,6 +192,8 @@ namespace UnityEngine.UI {
 
 
         readonly Vector3[] m_Corners = new Vector3[4];
+		// Deliberately re-implements ScrollRect's private GetContentBounds (Unity doesn't expose it publicly).
+		// Kept out of necessity, not accidental duplication.
 		public Bounds GetContentBounds() {
             if (content == null) return new Bounds();
             content.GetWorldCorners(m_Corners);

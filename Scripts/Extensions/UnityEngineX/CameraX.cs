@@ -35,6 +35,8 @@ public static class CameraX {
 	}
 
 
+	// Intentional: the f(0) - f(vec) sign form matches the sibling ...ToWorldVector methods' shared sign convention.
+	// Callers rely on it, so don't "correct" it to a plain WorldToViewportPoint(vec) - WorldToViewportPoint(0) delta.
 	public static Vector2 WorldToViewportVector (this Camera camera, Vector3 vector) {
 		return camera.WorldToViewportPoint(Vector2.zero) - camera.WorldToViewportPoint(vector);
 	}

@@ -480,6 +480,8 @@ public struct Spring {
     
     
     // Moves a value towards a target using this spring.
+    // The (value, target, ref velocity, deltaTime) signature deliberately mirrors Mathf.SmoothDamp so a Spring is a
+    // drop-in alternative - this resemblance is by design, not accidental duplication.
     public float MoveTowards(float currentValue, float targetValue, ref float currentVelocity, float deltaTime) {
         Evaluate(currentValue, targetValue, currentVelocity, deltaTime, mass, stiffness, damping, out currentValue, out currentVelocity);
         return currentValue;

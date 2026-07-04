@@ -16,6 +16,8 @@ public class SquareGridAgent : MonoBehaviour {
 	}
 	void Update () {
 		var newChunkPoints = worldGrid.GetPointsInWorldBounds(transform.GetBounds());
+		// The enter/exit diffing below is intentionally near-identical to RadialGridAgent's, not shared: both are
+		// MonoBehaviours with no common base, so sharing it would need an invasive base-class/serialization change for little gain.
 		var entered = newChunkPoints.Except(chunkPoints).ToList();
 		var exited = chunkPoints.Except(newChunkPoints).ToList();
 		chunkPoints.Clear();

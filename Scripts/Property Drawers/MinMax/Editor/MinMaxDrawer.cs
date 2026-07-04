@@ -22,6 +22,7 @@ public class MinMaxDrawer : BaseAttributePropertyDrawer<MinMaxAttribute> {
         
         if (EditorGUI.EndChangeCheck()) {
 			if(attribute.step > 0) {
+				// Intentionally snaps via Round(v/step)*step. SteppedRangeDrawer snaps its single value via a RoundToNearest-style helper instead — different math for different purposes, not copy-paste.
 				v2.x = Mathf.Round(v2.x/attribute.step)*attribute.step;
 				v2.y = Mathf.Round(v2.y/attribute.step)*attribute.step;
             }

@@ -5,6 +5,8 @@ using System.Linq;
 /// <summary>
 /// Provides additional functionality to IEnumerables
 /// </summary>
+// ToHashSet/DistinctBy/Chunk/Filter/Map overlap the BCL but are kept — they're public helpers, and
+// DistinctBy/Chunk aren't available on Unity's netstandard2.1 profile.
 public static class IEnumerableX {
 	public static HashSet<T> ToHashSet<T>(
         this IEnumerable<T> source,

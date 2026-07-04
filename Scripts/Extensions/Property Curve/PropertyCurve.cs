@@ -9,6 +9,9 @@ using System.Collections.Generic;
 /// Acts like a Unity AnimationCurve, but with the ability to use any type.
 /// Could be used to record arbitrary data for a time rewinding system.
 /// </summary>
+// Intentional: this reimplements AnimationCurve/Keyframe/WrapMode rather than deferring to Unity's built-in because it
+// is generic over T (interpolating Color/Vector/quaternion/etc via its abstract GetSmoothedValue). AnimationCurve is float-only, so
+// there is no built-in equivalent to wrap.
 [System.Serializable]
 public abstract class PropertyCurve<T> {
 	

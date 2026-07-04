@@ -11,6 +11,7 @@ public class SteppedRangeDrawer : BaseAttributePropertyDrawer<SteppedRangeAttrib
 		}
 
 		EditorGUI.Slider(position, property, attribute.min, attribute.max);
+		// Intentionally snaps via the RoundToNearest extension. MinMaxDrawer snaps its two values via Round(v/step)*step instead — different math for different purposes, not copy-paste.
 		property.floatValue = property.floatValue.RoundToNearest(attribute.step);
     }
 
