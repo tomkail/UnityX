@@ -92,7 +92,7 @@ public static class ColorX {
 	}
 	
 	public static Color Average(this IList<Color> _colors){
-		if(_colors.Count == 0)Debug.LogError("Array length is 0!");
+		if(_colors.Count == 0) { Debug.LogError("Array length is 0!"); return Color.clear; } // else the divides below produce NaN
 		Color color = Color.clear;
 		for(int i = 0; i < _colors.Count; i++){
 			color += _colors[i];
@@ -211,13 +211,12 @@ public static class ColorX {
 	}
 
 	public static Color BlendOverlay(Color color1, Color color2){
-		/*if(heightmapPixel<0.5f){
-			grayscale = Mathf.Lerp(grayscale, grayscale * (heightmapPixel * 2), _heightmaps[i].strength);
-		} else {
-			grayscale = (heightmapPixel * ((1-grayscale)*2)) + (grayscale - (1-grayscale));
-		}*/
-		return new Color(color2.r, color2.g, color2.b, color2.a);
+		// Standard per-channel overlay: base < 0.5 → 2·base·blend, else → 1 − 2·(1−base)(1−blend).
+		// (Previously the implementation was commented out and it just returned color2 — a broken stub.)
+		return new Color(Overlay(color1.r, color2.r), Overlay(color1.g, color2.g), Overlay(color1.b, color2.b), Overlay(color1.a, color2.a));
 	}
+
+	static float Overlay(float b, float t) => b < 0.5f ? 2f * b * t : 1f - 2f * (1f - b) * (1f - t);
 
 	public static Color BlendLighten(Color color1, Color color2){
 		return new Color(Mathf.Max(color1.r, color2.r), Mathf.Max(color1.g, color2.g), Mathf.Max(color1.b, color2.b), Mathf.Max(color1.a, color2.a));

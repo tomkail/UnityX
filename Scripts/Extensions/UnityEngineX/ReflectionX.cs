@@ -187,48 +187,60 @@ public static object GetValueFromObject(object obj, string propertyPath, Type t)
 		return obj;
 	}
 	
-	// TODO - This doesn't work on structs that aren't in arrays. 
-	// There's some code below that does. fieldInfo.SetValue might be the answer, although not having it in the first setter doesn't make a difference. Must be related to the setter at the bottom?
-	// Weirdly
+	// Sets the value at a serialized-property path (e.g. "a.b", "myList.Array.data[2].c") on obj.
+	// Walks down the path and writes each value-type (struct) intermediate back up the chain: reflection
+	// returns a boxed *copy* of a struct, so without the write-back a set on a nested struct field is lost.
+	// (obj should be a reference type — a Unity component/asset, as with SerializedObject — so the leaf
+	//  and any struct intermediates propagate to it. A struct passed as obj is itself a boxed copy.)
 	public static void SetValueFromObject<T>(object obj, string propertyPath, T val) {
 		Debug.Assert(obj != null);
-//		Type type = obj.GetType();
-		FieldInfo fieldInfo = null;
-		string[] parts = propertyPath.Split('.');
-		object value = obj;
-		int partIndex = -1;
-		foreach (string part in parts) {
-			partIndex++;
-			
-			if(value is T) {
-//				value = val;
-				fieldInfo.SetValue(obj, val);
-				return;
-			}
-			fieldInfo = value.GetType().GetField(part, bindingAttr);
-			if(fieldInfo == null)continue;
-			object x = fieldInfo.GetValue(value);
-			
-			if (x is IList) {
-//				int indexStart = parts[partIndex+2].IndexOf("[")+1;
-//				string collectionPropertyName = parts[partIndex+2].Substring(0, indexStart-1);
-//				int collectionElementIndex = Int32.Parse(parts[partIndex+2].Substring(indexStart, parts[partIndex+2].Length-indexStart-1));
-//				type = value.GetType();
-				continue;
-			}
-			else {
-//				type = fieldInfo.GetType();
-			}
-			
-			value = fieldInfo.GetValue(value);
+		if(obj == null) return;
+		SetValueRecursive(obj, propertyPath.Split('.'), 0, val);
+	}
+
+	// Applies the set at parts[index..] within target and returns target (possibly a mutated boxed struct)
+	// so the caller can re-assign it into its own parent.
+	static object SetValueRecursive(object target, string[] parts, int index, object val) {
+		if(target == null || index >= parts.Length) return target;
+
+		MemberInfo member = target.GetType().GetMember(parts[index], bindingAttr).FirstOrDefault();
+		if(member == null) return target; // path doesn't resolve — nothing to set
+
+		object current = GetMemberValue(member, target);
+
+		// Array/List element: Unity serialized paths look like "<field>.Array.data[<i>]".
+		if(current is IList list && index + 2 < parts.Length && parts[index + 1] == "Array") {
+			int elementIndex = ParseArrayElementIndex(parts[index + 2]);
+			if(elementIndex < 0 || elementIndex >= list.Count) return target;
+			if(index + 2 == parts.Length - 1) list[elementIndex] = val;
+			else list[elementIndex] = SetValueRecursive(list[elementIndex], parts, index + 3, val);
+			return target; // the list is shared by reference with target's field, so no write-back needed
 		}
-		// NOTE: The actual write-back happens inside the loop via fieldInfo.SetValue(obj, val)
-		// when we reach the target member. There is deliberately no assignment here: `value` is a
-		// local reference, so assigning to it would achieve nothing.
-		// LIMITATION: This does not work for value-type (struct) intermediates that are not stored
-		// in an IList. Reflection returns a boxed *copy* of a struct, so writing a field on that copy
-		// never propagates back to the parent. Correctly supporting nested structs would require
-		// tracking the (parent, fieldInfo) chain and re-assigning each boxed struct back up the chain.
+
+		if(index == parts.Length - 1) {
+			SetMemberValue(member, target, val);
+		} else {
+			object child = SetValueRecursive(current, parts, index + 1, val);
+			SetMemberValue(member, target, child); // re-assign in case child is a boxed struct
+		}
+		return target;
+	}
+
+	static object GetMemberValue(MemberInfo member, object target) {
+		if(member is FieldInfo fi) return fi.GetValue(target);
+		if(member is PropertyInfo pi && pi.CanRead) return pi.GetValue(target, null);
+		return null;
+	}
+
+	static void SetMemberValue(MemberInfo member, object target, object value) {
+		if(member is FieldInfo fi) fi.SetValue(target, value);
+		else if(member is PropertyInfo pi && pi.CanWrite) pi.SetValue(target, value, null);
+	}
+
+	static int ParseArrayElementIndex(string dataPart) {
+		int start = dataPart.IndexOf("[", StringComparison.Ordinal) + 1;
+		if(start <= 0 || dataPart.Length - start - 1 <= 0) return -1;
+		return int.TryParse(dataPart.Substring(start, dataPart.Length - start - 1), out int i) ? i : -1;
 	}
 
 
