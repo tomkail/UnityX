@@ -106,89 +106,86 @@ public static class FlagsX {
 		return LinearToFlagValue((int)(object)flags);
 	}
 
+	public static bool Intersects (int flagsA, int flagsB) {
+		return Intersection(flagsA, flagsB) != 0;
+	}
+	
+	public static int Intersection (int flagsA, int flagsB) {
+		return flagsA & flagsB;
+	}
+	
+	public static int Union (int flagsA, int flagsB) {
+		return flagsA | flagsB;
+	}
 
+	public static int Invert<T>(int flags) where T : Enum {
+		return (int)(object)(CreateEverything<T>()) & ~(flags);
+	}
 
-    public static bool Intersects (int flagsA, int flagsB) {
-        return Intersection(flagsA, flagsB) != 0;
-    }
-    
-    public static int Intersection (int flagsA, int flagsB) {
-        return flagsA & flagsB;
-    }
-    
-    public static int Union (int flagsA, int flagsB) {
-        return flagsA | flagsB;
-    }
+	static Dictionary<Type, Enum[]> individualFlagsCache = new();
+	public static IEnumerable<Enum> GetIndividualFlags(this Enum value) {
+		var type = value.GetType();
+		Enum[] individualFlags = null;
+		if(!individualFlagsCache.TryGetValue(type, out individualFlags)) {
+			individualFlags = individualFlagsCache[type] = GetFlagValues(type).ToArray();
+		}
+		return GetFlags(value, individualFlags);
+	}
 
-    public static int Invert<T>(int flags) where T : Enum {
-        return (int)(object)(CreateEverything<T>()) & ~(flags);
-    }
+	static IEnumerable<Enum> GetFlags(Enum value, Enum[] values)
+	{
+		ulong bits = Convert.ToUInt64(value);
+		List<Enum> results = new List<Enum>();
+		for (int i = values.Length - 1; i >= 0; i--)
+		{
+			ulong mask = Convert.ToUInt64(values[i]);
+			if (i == 0 && mask == 0L)
+				break;
+			if ((bits & mask) == mask)
+			{
+				results.Add(values[i]);
+				bits -= mask;
+			}
+		}
+		if (bits != 0L)
+			return Enumerable.Empty<Enum>();
+		if (Convert.ToUInt64(value) != 0L)
+			return results.Reverse<Enum>();
+		if (bits == Convert.ToUInt64(value) && values.Length > 0 && Convert.ToUInt64(values[0]) == 0L)
+			return values.Take(1);
+		return Enumerable.Empty<Enum>();
+	}
 
-    static Dictionary<Type, Enum[]> individualFlagsCache = new();
-    public static IEnumerable<Enum> GetIndividualFlags(this Enum value) {
-        var type = value.GetType();
-        Enum[] individualFlags = null;
-        if(!individualFlagsCache.TryGetValue(type, out individualFlags)) {
-            individualFlags = individualFlagsCache[type] = GetFlagValues(type).ToArray();
-        }
-        return GetFlags(value, individualFlags);
-    }
+	static IEnumerable<Enum> GetFlagValues(Type enumType) {
+		ulong flag = 0x1;
+		foreach (var value in Enum.GetValues(enumType).Cast<Enum>())
+		{
+			ulong bits = Convert.ToUInt64(value);
+			if (bits == 0L)
+				continue; // skip the zero value
+			while (flag < bits) flag <<= 1;
+			if (flag == bits)
+				yield return value;
+		}
+	}
 
-    static IEnumerable<Enum> GetFlags(Enum value, Enum[] values)
-    {
-        ulong bits = Convert.ToUInt64(value);
-        List<Enum> results = new List<Enum>();
-        for (int i = values.Length - 1; i >= 0; i--)
-        {
-            ulong mask = Convert.ToUInt64(values[i]);
-            if (i == 0 && mask == 0L)
-                break;
-            if ((bits & mask) == mask)
-            {
-                results.Add(values[i]);
-                bits -= mask;
-            }
-        }
-        if (bits != 0L)
-            return Enumerable.Empty<Enum>();
-        if (Convert.ToUInt64(value) != 0L)
-            return results.Reverse<Enum>();
-        if (bits == Convert.ToUInt64(value) && values.Length > 0 && Convert.ToUInt64(values[0]) == 0L)
-            return values.Take(1);
-        return Enumerable.Empty<Enum>();
-    }
-
-    static IEnumerable<Enum> GetFlagValues(Type enumType) {
-        ulong flag = 0x1;
-        foreach (var value in Enum.GetValues(enumType).Cast<Enum>())
-        {
-            ulong bits = Convert.ToUInt64(value);
-            if (bits == 0L)
-                //yield return value;
-                continue; // skip the zero value
-            while (flag < bits) flag <<= 1;
-            if (flag == bits)
-                yield return value;
-        }
-    }
-
-    // Where flag values are:
-    // 0, 1, 2, 4, 8, 16
-    // Corresponding to the enum values:
-    // 0, 1, 2, 3, 4, 5
-    public static int FlagToEnumValue (int flagValue) {
-        if(flagValue == 0) return 0;
-        else if(flagValue < 0) return ~0;
-        else {
-            int numSteps = 1;
-            while(flagValue != 1) {
-                flagValue = flagValue >> 1;
-                numSteps++;
-            }
-            return numSteps;
-        }
-    }
-    public static int EnumToFlagValue (int enumValue) {
-        return enumValue == 0 ? 0 : 1 << (enumValue-1);
-    }
+	// Where flag values are:
+	// 0, 1, 2, 4, 8, 16
+	// Corresponding to the enum values:
+	// 0, 1, 2, 3, 4, 5
+	public static int FlagToEnumValue (int flagValue) {
+		if(flagValue == 0) return 0;
+		else if(flagValue < 0) return ~0;
+		else {
+			int numSteps = 1;
+			while(flagValue != 1) {
+				flagValue = flagValue >> 1;
+				numSteps++;
+			}
+			return numSteps;
+		}
+	}
+	public static int EnumToFlagValue (int enumValue) {
+		return enumValue == 0 ? 0 : 1 << (enumValue-1);
+	}
 }
