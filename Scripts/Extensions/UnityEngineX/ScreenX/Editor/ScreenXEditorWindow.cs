@@ -9,7 +9,7 @@ public class ScreenXEditorWindow : EditorWindow {
 	
 
 	[MenuItem("Window/ScreenX")]
-	static void OpenSpriteEditorWindow() {
+	static void OpenScreenXEditorWindow() {
 		GetWindow(typeof(ScreenXEditorWindow), false, "Screen X", true);
 	}
 	

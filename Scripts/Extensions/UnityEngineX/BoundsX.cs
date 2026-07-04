@@ -18,23 +18,21 @@ public static class BoundsX {
 	/// Creates new bounds that encapsulates a list of vectors.
 	/// </summary>
 	/// <param name="vectors">Vectors.</param>
+	// Expands min/max to include v, using the same per-axis min-else-max comparison used by CreateEncapsulating.
+	static void Encapsulate (ref Vector3 min, ref Vector3 max, Vector3 v) {
+		if(v.x < min.x) min.x = v.x;
+		else if(v.x > max.x) max.x = v.x;
+
+		if(v.y < min.y) min.y = v.y;
+		else if(v.y > max.y) max.y = v.y;
+
+		if(v.z < min.z) min.z = v.z;
+		else if(v.z > max.z) max.z = v.z;
+	}
+
 	public static Bounds CreateEncapsulating (params Vector3[] vectors) {
-		if(vectors == null) return new Bounds(Vector3.zero, Vector3.zero);
-		var count = vectors.Length;
-        if(count == 0) return new Bounds(Vector3.zero, Vector3.zero);
-        Vector3 min = vectors[0];
-        Vector3 max = vectors[0];
-		foreach(var vector in vectors) {
-            if(vector.x < min.x) min.x = vector.x;
-            else if(vector.x > max.x) max.x = vector.x;
-
-            if(vector.y < min.y) min.y = vector.y;
-            else if(vector.y > max.y) max.y = vector.y;
-
-            if(vector.z < min.z) min.z = vector.z;
-            else if(vector.z > max.z) max.z = vector.z;
-        }
-        return CreateMinMax(min, max);
+		// Arrays implement IList<Vector3>, so delegate to the IList overload (behaviour-identical).
+		return CreateEncapsulating((IList<Vector3>)vectors);
 	}
 
     public static Bounds CreateEncapsulating (IList<Vector3> vectors) {
@@ -44,15 +42,7 @@ public static class BoundsX {
         Vector3 min = vectors[0];
         Vector3 max = vectors[0];
         for (int i = 1; i < count; i++) {
-            Vector3 vector = vectors[i];
-            if (vector.x < min.x) min.x = vector.x;
-            else if(vector.x > max.x) max.x = vector.x;
-
-            if(vector.y < min.y) min.y = vector.y;
-            else if(vector.y > max.y) max.y = vector.y;
-
-            if(vector.z < min.z) min.z = vector.z;
-            else if(vector.z > max.z) max.z = vector.z;
+            Encapsulate(ref min, ref max, vectors[i]);
         }
         return CreateMinMax(min, max);
 	}
@@ -63,14 +53,7 @@ public static class BoundsX {
         Vector3 min = bounds.min;
         Vector3 max = bounds.max;
 		foreach(var vector in vectors) {
-            if(vector.x < min.x) min.x = vector.x;
-            else if(vector.x > max.x) max.x = vector.x;
-
-            if(vector.y < min.y) min.y = vector.y;
-            else if(vector.y > max.y) max.y = vector.y;
-
-            if(vector.z < min.z) min.z = vector.z;
-            else if(vector.z > max.z) max.z = vector.z;
+            Encapsulate(ref min, ref max, vector);
         }
         return CreateMinMax(min, max);
 	}
@@ -123,47 +106,21 @@ public static class BoundsX {
         Vector3 closestPoint = Vector3.zero;
         float minDistance = float.MaxValue;
 
-        var leftPoint = leftFace.ClosestPoint(point);
-        var leftDistance = Vector3.Distance(point, leftPoint);
-        if(leftDistance < minDistance) {
-            minDistance = leftDistance;
-            closestPoint = leftPoint;
-        }
-        
-        var rightPoint = rightFace.ClosestPoint(point);
-        var rightDistance = Vector3.Distance(point, rightPoint);
-        if(rightDistance < minDistance) {
-            minDistance = rightDistance;
-            closestPoint = rightPoint;
+        void Consider (Bounds face) {
+            var facePoint = face.ClosestPoint(point);
+            var faceDistance = Vector3.Distance(point, facePoint);
+            if(faceDistance < minDistance) {
+                minDistance = faceDistance;
+                closestPoint = facePoint;
+            }
         }
 
-        var bottomPoint = bottomFace.ClosestPoint(point);
-        var bottomDistance = Vector3.Distance(point, bottomPoint);
-        if(bottomDistance < minDistance) {
-            minDistance = bottomDistance;
-            closestPoint = bottomPoint;
-        }
-        
-        var topPoint = topFace.ClosestPoint(point);
-        var topDistance = Vector3.Distance(point, topPoint);
-        if(topDistance < minDistance) {
-            minDistance = topDistance;
-            closestPoint = topPoint;
-        }
-
-        var frontPoint = frontFace.ClosestPoint(point);
-        var frontDistance = Vector3.Distance(point, frontPoint);
-        if(frontDistance < minDistance) {
-            minDistance = frontDistance;
-            closestPoint = frontPoint;
-        }
-        
-        var backPoint = backFace.ClosestPoint(point);
-        var backDistance = Vector3.Distance(point, backPoint);
-        if(backDistance < minDistance) {
-            minDistance = backDistance;
-            closestPoint = backPoint;
-        }
+        Consider(leftFace);
+        Consider(rightFace);
+        Consider(bottomFace);
+        Consider(topFace);
+        Consider(frontFace);
+        Consider(backFace);
 
         return closestPoint;
     }

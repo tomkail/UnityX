@@ -17,7 +17,7 @@ public static class ImageX
 	{
 		if (fourCornersArray == null || fourCornersArray.Length < 4)
 		{
-			Debug.LogError("Calling GetLocalCorners with an array that is null or has less than 4 elements.");
+			Debug.LogError("Calling GetTightLocalCorners with an array that is null or has less than 4 elements.");
 			return;
 		}
 
@@ -37,7 +37,7 @@ public static class ImageX
 	{
 		if (fourCornersArray == null || fourCornersArray.Length < 4)
 		{
-			Debug.LogError("Calling GetWorldCorners with an array that is null or has less than 4 elements.");
+			Debug.LogError("Calling GetTightWorldCorners with an array that is null or has less than 4 elements.");
 			return;
 		}
 

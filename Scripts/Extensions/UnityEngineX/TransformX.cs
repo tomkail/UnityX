@@ -218,17 +218,17 @@ public static class TransformX {
 	    return ancestors;
 	}
 
-	public static List<Transform> GetAllDescendents(this Transform current) {
+	public static List<Transform> GetAllDescendants(this Transform current) {
 		List<Transform> transforms = new List<Transform>();
-		GetAllDescendents(current, transforms);
+		GetAllDescendants(current, transforms);
 		return transforms;
 	}
 
-	static List<Transform> GetAllDescendents(Transform current, List<Transform> transforms = null) {
+	static List<Transform> GetAllDescendants(Transform current, List<Transform> transforms = null) {
 		if(transforms == null) transforms = new List<Transform>();
 		transforms.Add(current);
 		for (int i = 0; i < current.childCount; ++i) {
-			GetAllDescendents(current.GetChild(i), transforms);
+			GetAllDescendants(current.GetChild(i), transforms);
 		}
 		return transforms;
 	}
@@ -333,17 +333,17 @@ public static class TransformX {
 		return transforms;
 	}
 
-	public static bool IsDescendentOf(this Transform current, Transform ancestor) {
+	public static bool IsDescendantOf(this Transform current, Transform ancestor) {
 		if(current != null) {
 			if(current == ancestor) return true;
-			return IsDescendentOf(current.parent, ancestor);
+			return IsDescendantOf(current.parent, ancestor);
 		} else {
 			return false;
 		}
 	}
 
 	// Gets the index of the object in the global heirarchy, traversing depth if a given transform has children.
-	public static int GetHeirarchyIndex(this Transform current) {
+	public static int GetHierarchyIndex(this Transform current) {
 		var index = 0;
 		foreach(var ancestor in current.GetAllAncestors()) index += ancestor.transform.GetSiblingIndex()+1;
 		index += current.GetSiblingIndex();

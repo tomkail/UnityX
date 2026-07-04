@@ -4,18 +4,18 @@ using UnityEngine;
 
 public class OnGUIX : MonoBehaviour {
 
-	public static Stack<Matrix4x4> matricies = new();
+	public static Stack<Matrix4x4> matrices = new();
 	public static Stack<Color> colors = new();
 	public static Stack<Color> contentColors = new();
 	public static Stack<Color> backgroundColors = new();
 
 	public static void BeginMatrix (Matrix4x4 matrix) {
-		matricies.Push(GUI.matrix);
+		matrices.Push(GUI.matrix);
 		GUI.matrix = matrix;
 	}
 
 	public static void EndMatrix () {
-		GUI.matrix = matricies.Pop();	
+		GUI.matrix = matrices.Pop();	
 	}
 
 	public static void BeginColor (Color color) {

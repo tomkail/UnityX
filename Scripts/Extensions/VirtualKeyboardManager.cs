@@ -73,7 +73,7 @@ public class VirtualKeyboardManager : MonoSingleton<VirtualKeyboardManager> {
     }
     public static float GetScreenOffsetToShowSelectedInputField (SLayout layout) {
         var selectedInputFieldRT = GetSelectedInputField()?.gameObject.GetComponent<RectTransform>();
-        if(selectedInputFieldRT != null && selectedInputFieldRT.IsDescendentOf(layout.transform)) {
+        if(selectedInputFieldRT != null && selectedInputFieldRT.IsDescendantOf(layout.transform)) {
             var screenCenter = selectedInputFieldRT.GetScreenRect().center;
             var targetScreenCenter = VirtualKeyboardManager.Instance.nonAnimatedRemainingScreenRect.center;
             return targetScreenCenter.y-screenCenter.y;

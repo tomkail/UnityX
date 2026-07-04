@@ -8,7 +8,7 @@ using UnityEditor;
 public static class GizmosX {
 	// This is for mesh management. 
 	// You destroying meshes during any OnDrawGizmos call crashes Unity, 
-	// and reassinging the variable prevents the last mesh actually being drawn.
+	// and reassigning the variable prevents the last mesh actually being drawn.
 	// Instead we store a list of all the meshes used, and clear it when the scene is drawn.
 	// Note that OnSceneGUI seems to run more frequently than meshes are added to the list, but this doesn't seem to matter.
 	#if UNITY_EDITOR
@@ -58,14 +58,14 @@ public static class GizmosX {
 		Gizmos.color = colors.Pop();	
 	}
 
-	static Stack<Matrix4x4> matricies = new();
+	static Stack<Matrix4x4> matrices = new();
 	public static void BeginMatrix (Matrix4x4 matrix) {
-		matricies.Push(Gizmos.matrix);
+		matrices.Push(Gizmos.matrix);
 		Gizmos.matrix = matrix;
 	}
 
 	public static void EndMatrix () {
-		Gizmos.matrix = matricies.Pop();	
+		Gizmos.matrix = matrices.Pop();	
 	}
 
 	public static void DrawLine (IList<Vector3> positions) {

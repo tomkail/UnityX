@@ -517,7 +517,7 @@ namespace SplineSystem {
 	    }
 
 		// Transforms a spline into another space. A typical use for this is creating world space splines from local ones, or the reverse.
-		// This approach handles matricies with non-uniform scale
+		// This approach handles matrices with non-uniform scale
 		public static Spline Transform (Spline spline, Matrix4x4 matrix) {
 			SplineBezierPoint[] newBezierPoints = new SplineBezierPoint[spline.bezierPoints.Length];
 			for(int i = 0; i < spline.bezierPoints.Length; i++) {

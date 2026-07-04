@@ -58,133 +58,74 @@ public static class ReflectionX {
 	}
 
 	// If this goes wrong again, try some of the suggestions here - http://stackoverflow.com/questions/23181307/parse-field-property-path
-	public static T GetValueFromObject<T>(object obj, string propertyPath) {
-		Debug.Assert(obj != null);
-        MemberInfo memberInfo = null;
-//		PropertyInfo propertyInfo = null;
+
+	// Shared path walk for the GetValueFromObject overloads below. Splits propertyPath on '.' and walks
+	// fields/properties (indexing into IList parts via Unity's "...[i]" element syntax) via reflection.
+	// If earlyOut is non-null and returns true for the current object at the start of any step, the walk stops
+	// and returns that object with aborted=false (a successful early match). If the path is malformed/short or
+	// a collection index is out of range, the walk stops and sets aborted=true (the caller returns its own
+	// not-found value). Callers apply their own type-specific final handling to the returned object.
+	static object WalkPath(object obj, string propertyPath, Func<object, bool> earlyOut, out bool aborted) {
+		aborted = false;
+		MemberInfo memberInfo = null;
 		string[] parts = propertyPath.Split('.');
 		int partIndex = -1;
 		foreach (string part in parts) {
 			partIndex++;
-			if(obj is T) return (T)obj;
+			if(earlyOut != null && earlyOut(obj)) return obj;
 			memberInfo = obj.GetType().GetMember(part, bindingAttr).FirstOrDefault();
 			if(memberInfo == null)continue;
 
-//			propertyInfo = obj.GetType().GetProperty(part, bindingAttr);
-//			if(propertyInfo == null)continue;
 			object x = null;
 			if(memberInfo is FieldInfo) x = ((FieldInfo)memberInfo).GetValue(obj);
 			if(memberInfo is PropertyInfo) x = ((PropertyInfo)memberInfo).GetValue(obj, null);
-//			((PropertyInfo)fieldInfo).
-			
+
 			if (x is IList) {
-				if(partIndex+2 >= parts.Length) return default; // Malformed/short path: no collection element part to parse.
+				if(partIndex+2 >= parts.Length) { aborted = true; return null; } // Malformed/short path: no collection element part to parse.
 				int indexStart = parts[partIndex+2].IndexOf("[", StringComparison.Ordinal)+1;
 				int collectionElementIndex = Int32.Parse(parts[partIndex+2].Substring(indexStart, parts[partIndex+2].Length-indexStart-1));
 				IList list = x as IList;
 				if(MathX.IsBetweenInclusive(collectionElementIndex, 0, list.Count-1)) {
-					obj = (x as IList)[collectionElementIndex];
-//					type = obj.GetType();
+					obj = list[collectionElementIndex];
 				} else {
 					DebugX.LogWarning ("Index: "+collectionElementIndex+", List Count: "+list.Count+", Current Path Part: "+part+", Full Path: "+propertyPath);
-					return default;
+					aborted = true;
+					return null;
 				}
 				continue;
-			} else {
-//				type = fieldInfo.GetType();
 			}
 
 			if(memberInfo is FieldInfo) obj = ((FieldInfo)memberInfo).GetValue(obj);
 			if(memberInfo is PropertyInfo) obj = ((PropertyInfo)memberInfo).GetValue(obj, null);
-//			obj = fieldInfo.GetValue(obj);
 		}
-			
-		if(!(obj is T)) return default;
-		return (T)obj;
+
+		return obj;
+	}
+
+	public static T GetValueFromObject<T>(object obj, string propertyPath) {
+		Debug.Assert(obj != null);
+		object result = WalkPath(obj, propertyPath, o => o is T, out bool aborted);
+		if(aborted) return default;
+		if(!(result is T)) return default;
+		return (T)result;
 	}
 
 
 
 public static object GetValueFromObject(object obj, string propertyPath, Type t) {
 		Debug.Assert(obj != null);
-		MemberInfo memberInfo = null;
-//		PropertyInfo propertyInfo = null;
-		string[] parts = propertyPath.Split('.');
-		int partIndex = -1;
-		foreach (string part in parts) {
-			partIndex++;
-			if(obj.GetType() == t) return obj;
-			memberInfo = obj.GetType().GetMember(part, bindingAttr).FirstOrDefault();
-			if(memberInfo == null)continue;
-
-//			propertyInfo = obj.GetType().GetProperty(part, bindingAttr);
-//			if(propertyInfo == null)continue;
-			object x = null;
-			if(memberInfo is FieldInfo fieldInfo) x = fieldInfo.GetValue(obj);
-			if(memberInfo is PropertyInfo propertyInfo) x = propertyInfo.GetValue(obj, null);
-//			((PropertyInfo)fieldInfo).
-			
-			if (x is IList list) {
-				if(partIndex+2 >= parts.Length) return null; // Malformed/short path: no collection element part to parse.
-				int indexStart = parts[partIndex+2].IndexOf("[", StringComparison.Ordinal)+1;
-				int collectionElementIndex = Int32.Parse(parts[partIndex+2].Substring(indexStart, parts[partIndex+2].Length-indexStart-1));
-				if(MathX.IsBetweenInclusive(collectionElementIndex, 0, list.Count-1)) {
-					obj = list[collectionElementIndex];
-//					type = obj.GetType();
-				} else {
-					DebugX.LogWarning ("Index: "+collectionElementIndex+", List Count: "+list.Count+", Current Path Part: "+part+", Full Path: "+propertyPath);
-					return null;
-				}
-				continue;
-			} else {
-//				type = fieldInfo.GetType();
-			}
-
-			if(memberInfo is FieldInfo) obj = ((FieldInfo)memberInfo).GetValue(obj);
-			if(memberInfo is PropertyInfo) obj = ((PropertyInfo)memberInfo).GetValue(obj, null);
-//			obj = fieldInfo.GetValue(obj);
-		}
-			
-		if(obj.GetType() != t) return null;
-		return obj;
+		object result = WalkPath(obj, propertyPath, o => o.GetType() == t, out bool aborted);
+		if(aborted) return null;
+		if(result.GetType() != t) return null;
+		return result;
 	}
 
 
 	public static Object GetValueFromObject(object obj, string propertyPath) {
 		Debug.Assert(obj != null);
-		MemberInfo fieldInfo = null;
-//		PropertyInfo propertyInfo = null;
-		string[] parts = propertyPath.Split('.');
-		int partIndex = -1;
-		foreach (string part in parts) {
-			partIndex++;
-			fieldInfo = obj.GetType().GetMember(part, bindingAttr).FirstOrDefault();
-			if(fieldInfo == null)continue;
-			object x = null;
-			if(fieldInfo is FieldInfo) x = ((FieldInfo)fieldInfo).GetValue(obj);
-			if(fieldInfo is PropertyInfo) x = ((PropertyInfo)fieldInfo).GetValue(obj, null);
-			if (x is IList) {
-				if(partIndex+2 >= parts.Length) return null; // Malformed/short path: no collection element part to parse.
-				int indexStart = parts[partIndex+2].IndexOf("[", StringComparison.Ordinal)+1;
-				int collectionElementIndex = Int32.Parse(parts[partIndex+2].Substring(indexStart, parts[partIndex+2].Length-indexStart-1));
-				IList list = x as IList;
-				if(MathX.IsBetweenInclusive(collectionElementIndex, 0, list.Count-1)) {
-					obj = (x as IList)[collectionElementIndex];
-//					type = obj.GetType();
-				} else {
-					DebugX.LogWarning ("Index: "+collectionElementIndex+", List Count: "+list.Count+", Current Path Part: "+part+", Full Path: "+propertyPath);
-					return null;
-				}
-				continue;
-			} else {
-				// obj = x;
-			}
-
-			if(fieldInfo is FieldInfo) obj = ((FieldInfo)fieldInfo).GetValue(obj);
-			if(fieldInfo is PropertyInfo) obj = ((PropertyInfo)fieldInfo).GetValue(obj, null);
-		}
-			
-		return obj;
+		object result = WalkPath(obj, propertyPath, null, out bool aborted);
+		if(aborted) return null;
+		return result;
 	}
 	
 	// Sets the value at a serialized-property path (e.g. "a.b", "myList.Array.data[2].c") on obj.

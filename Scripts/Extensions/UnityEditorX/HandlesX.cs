@@ -45,14 +45,14 @@ public static class HandlesX {
 		Handles.color = colors.Pop();	
 	}
 
-	static Stack<Matrix4x4> matricies = new Stack<Matrix4x4>();
+	static Stack<Matrix4x4> matrices = new Stack<Matrix4x4>();
 	public static void BeginMatrix (Matrix4x4 matrix) {
-		matricies.Push(Handles.matrix);
+		matrices.Push(Handles.matrix);
 		Handles.matrix = matrix;
 	}
 
 	public static void EndMatrix () {
-		Handles.matrix = matricies.Pop();	
+		Handles.matrix = matrices.Pop();	
 	}
 
 	public static Vector3 ScaledPostionHandle (Vector3 position, Quaternion rotation, float scale) {
