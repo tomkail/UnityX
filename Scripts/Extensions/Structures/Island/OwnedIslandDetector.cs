@@ -4,9 +4,6 @@ using System.Collections.Generic;
 
 // Finds islands "owned" by a specific property of the coord, such as the land type
 public class OwnedIslandDetector<Coord, Owner> : IslandDetector<Coord> where Coord : IEquatable<Coord> {
-	// Instance (not static) — shadows the base 'islands' with the owned type; per-instance so re-entrant/parallel detectors don't clash.
-	new List<OwnedIsland<Coord, Owner>> islands = new List<OwnedIsland<Coord, Owner>>();
-
 	public Func<Coord, Owner> GetPointOwner;
 
 	public OwnedIslandDetector (IEnumerable<Coord> startPoints, Func<Coord, IEnumerable<Coord>> GetAdjacentPoints, Func<Coord, bool> GetPointIsValid, Func<Coord, Owner> GetPointOwner) : base (startPoints, GetAdjacentPoints, GetPointIsValid) {
@@ -16,7 +13,7 @@ public class OwnedIslandDetector<Coord, Owner> : IslandDetector<Coord> where Coo
 	}
 
 	public new List<OwnedIsland<Coord, Owner>> FindIslands () {
-		islands.Clear();
+		List<OwnedIsland<Coord, Owner>> islands = new List<OwnedIsland<Coord, Owner>>();
 		testedPoints.Clear();
 
 		// Seeds are processed from a queue (Dequeue = pop, never peek → cannot hang). Flood-filling a

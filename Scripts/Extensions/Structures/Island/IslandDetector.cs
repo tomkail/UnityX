@@ -7,7 +7,8 @@ using System.Linq;
 public class IslandDetector<Coord> where Coord : IEquatable<Coord> {
 
 	// Instance (not static) so two detectors — or a re-entrant call — don't clobber each other's shared state.
-	protected List<Island<Coord>> islands = new List<Island<Coord>>();
+	// testedPoints is a field because FloodFill (a separate method) shares it; the result list is a local in
+	// FindIslands so each call returns a fresh, caller-owned list (no aliasing of a previously-returned result).
 	protected HashSet<Coord> testedPoints = new HashSet<Coord>();
 
 	public IEnumerable<Coord> startPoints;
@@ -21,7 +22,7 @@ public class IslandDetector<Coord> where Coord : IEquatable<Coord> {
 	}
 
 	public List<Island<Coord>> FindIslands () {
-		islands.Clear();
+		List<Island<Coord>> islands = new List<Island<Coord>>();
 		testedPoints.Clear();
 
 		// Walk a fixed collection (startPoints) and flood-fill the valid region reachable from each
