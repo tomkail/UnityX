@@ -36,10 +36,10 @@ public class SpringHandlerPropertyDrawer : PropertyDrawer {
 		EditorGUI.BeginDisabledGroup(true);
 		EditorGUIUtility.labelWidth = 36;
 		var springValue = Spring.Value(startValue.floatValue, endValue.floatValue, initialVelocity.floatValue, time.floatValue, springMass.floatValue, springStiffness.floatValue, springDamping.floatValue);
-		EditorGUI.FloatField(valueRect, new GUIContent(new GUIContent("Value")), springValue);
+		EditorGUI.FloatField(valueRect, new GUIContent("Value"), springValue);
 		var springVelocity = Spring.Velocity(startValue.floatValue, endValue.floatValue, initialVelocity.floatValue, time.floatValue, springMass.floatValue, springStiffness.floatValue, springDamping.floatValue);
 		EditorGUIUtility.labelWidth = 50;
-		EditorGUI.FloatField(velocityRect, new GUIContent(new GUIContent("Velocity")), springVelocity);
+		EditorGUI.FloatField(velocityRect, new GUIContent("Velocity"), springVelocity);
 		EditorGUI.EndDisabledGroup();
 		EditorGUIUtility.labelWidth = cachedLabelWidth;
 		
@@ -61,10 +61,10 @@ public class SpringHandlerPropertyDrawer : PropertyDrawer {
 			Rect initialVelocityRect = new Rect(position.x, position.y + (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) * 4, position.width, EditorGUIUtility.singleLineHeight);
 			
 			
-			EditorGUI.PropertyField(timeRect, time, new GUIContent(new GUIContent("Time")));
-			EditorGUI.PropertyField(startValueRect, startValue, new GUIContent(new GUIContent("Start Value")));
-			EditorGUI.PropertyField(endValueRect, endValue, new GUIContent(new GUIContent("End Value")));
-			EditorGUI.PropertyField(initialVelocityRect, initialVelocity, new GUIContent(new GUIContent("Initial Velocity")));
+			EditorGUI.PropertyField(timeRect, time, new GUIContent("Time"));
+			EditorGUI.PropertyField(startValueRect, startValue, new GUIContent("Start Value"));
+			EditorGUI.PropertyField(endValueRect, endValue, new GUIContent("End Value"));
+			EditorGUI.PropertyField(initialVelocityRect, initialVelocity, new GUIContent("Initial Velocity"));
 				
 			var springPropertyDrawer = new SpringPropertyDrawer();
 			springPropertyDrawer.Draw(new Rect(position.x, initialVelocityRect.yMax+EditorGUIUtility.standardVerticalSpacing, position.width, position.height), property.FindPropertyRelative("_spring"), label, startValue.floatValue, endValue.floatValue, initialVelocity.floatValue, time.floatValue);

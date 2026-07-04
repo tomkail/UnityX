@@ -4,7 +4,8 @@ using System.Collections.Generic;
 
 // Finds islands "owned" by a specific property of the coord, such as the land type
 public class OwnedIslandDetector<Coord, Owner> : IslandDetector<Coord> where Coord : IEquatable<Coord> {
-	static new List<OwnedIsland<Coord, Owner>> islands = new List<OwnedIsland<Coord, Owner>>();
+	// Instance (not static) — shadows the base 'islands' with the owned type; per-instance so re-entrant/parallel detectors don't clash.
+	new List<OwnedIsland<Coord, Owner>> islands = new List<OwnedIsland<Coord, Owner>>();
 
 	public Func<Coord, Owner> GetPointOwner;
 

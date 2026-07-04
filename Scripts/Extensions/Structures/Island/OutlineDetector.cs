@@ -11,8 +11,8 @@ public static class OutlineDetector {
 		// Get start coord/corner
 		bool found = true;
 		foreach(var testCoord in points) {
-			found = true;
 			for(int i = 0; i < numCorners; i++) {
+				// (re)initialise per corner: 'found' means "this corner touches no other coord"
 				found = true;
 				foreach(var otherCoord in points) {
 					if(testCoord.Equals(otherCoord)) continue;

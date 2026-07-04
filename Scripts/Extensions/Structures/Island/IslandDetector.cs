@@ -6,8 +6,9 @@ using System.Linq;
 // Finds contiguous "islands" from a point cloud
 public class IslandDetector<Coord> where Coord : IEquatable<Coord> {
 
-	protected static List<Island<Coord>> islands = new List<Island<Coord>>();
-	protected static HashSet<Coord> testedPoints = new HashSet<Coord>();
+	// Instance (not static) so two detectors — or a re-entrant call — don't clobber each other's shared state.
+	protected List<Island<Coord>> islands = new List<Island<Coord>>();
+	protected HashSet<Coord> testedPoints = new HashSet<Coord>();
 
 	public IEnumerable<Coord> startPoints;
 	public Func<Coord, IEnumerable<Coord>> GetAdjacentPoints;
