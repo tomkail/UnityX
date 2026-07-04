@@ -94,6 +94,7 @@ public class OnGUIX : MonoBehaviour {
     }
 
 	public static void DrawCircle (Vector2 center, float radius, Color color, float width, int numPoints = 20) {
+		if(numPoints < 2) return;
 		var step = Mathf.PI * 2f / (numPoints-1);
 		int i = 0;
 		Vector2 lastOffset = MathX.RadiansToVector2(i * step) * radius;

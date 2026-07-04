@@ -21,29 +21,34 @@ public class KeyboardInput {
 
 	}
 	
+	// Shared helper: a direction is held if its arrow key is down, or (optionally) its WASD equivalent.
+	static bool IsDirectionKeyHeld (KeyCode arrowKey, KeyCode wasdKey, bool alsoUseWASD) {
+		return Input.GetKey(arrowKey) || (alsoUseWASD && Input.GetKey(wasdKey));
+	}
+
 	public static Vector2 GetCardinalDirectionFromArrowKeys (bool alsoUseWASD = true) {
-		if(Input.GetKey(KeyCode.UpArrow) || (alsoUseWASD && Input.GetKey(KeyCode.W))) {
+		if(IsDirectionKeyHeld(KeyCode.UpArrow, KeyCode.W, alsoUseWASD)) {
 			return Vector2.up;
-		} else if(Input.GetKey(KeyCode.DownArrow) || (alsoUseWASD && Input.GetKey(KeyCode.S))) {
+		} else if(IsDirectionKeyHeld(KeyCode.DownArrow, KeyCode.S, alsoUseWASD)) {
 			return Vector2.down;
-		} else if(Input.GetKey(KeyCode.LeftArrow) || (alsoUseWASD && Input.GetKey(KeyCode.A))) {
+		} else if(IsDirectionKeyHeld(KeyCode.LeftArrow, KeyCode.A, alsoUseWASD)) {
 			return Vector2.left;
-		} else if(Input.GetKey(KeyCode.RightArrow) || (alsoUseWASD && Input.GetKey(KeyCode.D))) {
+		} else if(IsDirectionKeyHeld(KeyCode.RightArrow, KeyCode.D, alsoUseWASD)) {
 			return Vector2.right;
 		}
 		return Vector2.zero;
 	}
-	
+
 	public static Vector2 GetCombinedDirectionFromArrowKeys (bool alsoUseWASD = true) {
 		Vector2 direction = Vector2.zero;
-		if(Input.GetKey(KeyCode.UpArrow) || (alsoUseWASD && Input.GetKey(KeyCode.W))) {
+		if(IsDirectionKeyHeld(KeyCode.UpArrow, KeyCode.W, alsoUseWASD)) {
 			direction += Vector2.up;
-		} else if(Input.GetKey(KeyCode.DownArrow) || (alsoUseWASD && Input.GetKey(KeyCode.S))) {
+		} else if(IsDirectionKeyHeld(KeyCode.DownArrow, KeyCode.S, alsoUseWASD)) {
 			direction += Vector2.down;
 		}
-		if(Input.GetKey(KeyCode.LeftArrow) || (alsoUseWASD && Input.GetKey(KeyCode.A))) {
+		if(IsDirectionKeyHeld(KeyCode.LeftArrow, KeyCode.A, alsoUseWASD)) {
 			direction += Vector2.left;
-		} else if(Input.GetKey(KeyCode.RightArrow) || (alsoUseWASD && Input.GetKey(KeyCode.D))) {
+		} else if(IsDirectionKeyHeld(KeyCode.RightArrow, KeyCode.D, alsoUseWASD)) {
 			direction += Vector2.right;
 		}
 		return direction.normalized;

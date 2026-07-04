@@ -280,8 +280,7 @@ public class ScreenX {
 		get {
 #if UNITY_EDITOR
 			var res = UnityStats.screenRes.Split('x');
-			var width = int.Parse(res[0]);
-			if (width != 0) return width;
+			if (res.Length >= 2 && int.TryParse(res[0], out var width) && width != 0) return width;
 #endif
 			// Consider adding target displays, then replace with this.
 			// Display.displays[0].renderingWidth
@@ -292,8 +291,7 @@ public class ScreenX {
 		get {
 #if UNITY_EDITOR
 			var res = UnityStats.screenRes.Split('x');
-			var height = int.Parse(res[1]);
-			if (height != 0) return height;
+			if (res.Length >= 2 && int.TryParse(res[1], out var height) && height != 0) return height;
 #endif
 			// Consider adding target displays, then replace with this.
 			// Display.displays[0].renderingHeight

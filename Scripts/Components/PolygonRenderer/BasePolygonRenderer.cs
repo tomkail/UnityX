@@ -135,6 +135,8 @@ public abstract class BasePolygonRenderer : MonoBehaviour {
     public abstract void RebuildMesh ();
     public abstract void RefreshMaterialPropertyBlock ();
     
+    // Per-point colour helper. NOT used by the live path (which uses the batch RecalculateColors below);
+    // kept as protected API for external subclasses that colour points individually. Don't remove.
     protected Color GetColor (Rect polygonRect, Vector2[] points, Vector2 point) {
         if(colorMode == ColorMode.Rect || colorMode == ColorMode.Shape) {
             Vector2 colorDirection = MathX.DegreesToVector2(colorAngle+90);

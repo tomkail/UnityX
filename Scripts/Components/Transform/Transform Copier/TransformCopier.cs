@@ -13,24 +13,26 @@ public class TransformCopier : MonoBehaviour {
 	public bool playMode = true;
 	public bool editMode = true;
 	
+	// Shared guard: no target, or the current play/edit mode is disabled, means we must not copy.
+	bool ShouldCopy () {
+		if(target == null) return false;
+		if(Application.isPlaying && !playMode) return false;
+		if(!Application.isPlaying && !editMode) return false;
+		return true;
+	}
+
 	void OnEnable () {
-		if(target == null) return;
-		if(Application.isPlaying && !playMode) return;
-		if(!Application.isPlaying && !editMode) return;
+		if(!ShouldCopy()) return;
 		Apply();
 	}
 	void Update () {
-		if(target == null) return;
-		if(Application.isPlaying && !playMode) return;
-		if(!Application.isPlaying && !editMode) return;
+		if(!ShouldCopy()) return;
 		if(useFixedUpdate && Application.isPlaying) return;
 		Apply();
 	}
 
 	void FixedUpdate () {
-		if(target == null) return;
-		if(Application.isPlaying && !playMode) return;
-		if(!Application.isPlaying && !editMode) return;
+		if(!ShouldCopy()) return;
 		if(!useFixedUpdate) return;
 		Apply();
 	}

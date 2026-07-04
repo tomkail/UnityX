@@ -93,24 +93,22 @@ public class ViewAnimator : MonoBehaviour {
     }
 
     public void CancelCurrentAndFutureEvents (bool completeEvents) {
-        for(int i = animationEvents.Count-1; i >= 0; i--) {
-            var currentEvent = animationEvents[i];
-            CancelEvent(currentEvent, completeEvents);
-        }
+        CancelEventsWhere(null, completeEvents);
     }
-    
+
     public void CancelFutureEvents (bool completeEvents) {
-        for(int i = animationEvents.Count-1; i >= 0; i--) {
-            var currentEvent = animationEvents[i];
-            if(animationTime < currentEvent.startTime) {
-                CancelEvent(currentEvent, completeEvents);
-            }
-        }
+        CancelEventsWhere(currentEvent => animationTime < currentEvent.startTime, completeEvents);
     }
     public void CancelCurrentlyPlayingEvents (bool completeEvents) {
+        CancelEventsWhere(currentEvent => currentEvent.IsPlayingAtTime(animationTime), completeEvents);
+    }
+
+    // Shared backward-iterating cancel loop: iterate in reverse (safe against removal) and cancel every
+    // event matching the predicate. A null predicate cancels every event.
+    void CancelEventsWhere (System.Func<ViewAnimationEvent, bool> predicate, bool completeEvents) {
         for(int i = animationEvents.Count-1; i >= 0; i--) {
             var currentEvent = animationEvents[i];
-            if(currentEvent.IsPlayingAtTime(animationTime)) {
+            if(predicate == null || predicate(currentEvent)) {
                 CancelEvent(currentEvent, completeEvents);
             }
         }

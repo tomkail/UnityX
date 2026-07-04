@@ -114,6 +114,8 @@ public class RegionEditor : Editor {
 	}
 
 
+	// Builds a FLAT polygon mesh for gizmo preview. Deliberately separate from Region.CreatePolygonMesh, which
+	// builds the EXTRUDED runtime mesh (tied to the Region's polygon/height); only the back-face tri-doubling overlaps.
 	static Mesh CreatePolygonMesh (Vector2[] points, bool doubleSided = false) {
 		var mesh = CreateMesh();
 

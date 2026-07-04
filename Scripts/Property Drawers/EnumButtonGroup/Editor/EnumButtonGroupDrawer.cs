@@ -7,7 +7,9 @@ using System.Reflection;
 [CustomPropertyDrawer(typeof (EnumButtonGroupAttribute))]
 class EnumButtonGroupDrawer : PropertyDrawer {
     public override void OnGUI (Rect position, SerializedProperty property, GUIContent label) {
-		if (_properties == null)
+		// A single PropertyDrawer instance is reused for every element of a list/array, so caching by null-check alone
+		// leaks element 0's properties onto every other element. Re-initialize whenever the property path changes.
+		if (_properties == null || _propertyPath != property.propertyPath)
             Initialize(property);
 		
 		EditorGUI.BeginProperty (position, label, property);
@@ -143,9 +145,11 @@ class EnumButtonGroupDrawer : PropertyDrawer {
 
     List<SerializedProperty> _properties;
     List<Entry> _entries;
+    string _propertyPath;
     int _rowCount;
     int _columnCount;
 	void Initialize(SerializedProperty property) {
+        _propertyPath = property.propertyPath;
         var allTargetObjects = property.serializedObject.targetObjects;
         _properties = new List<SerializedProperty>(allTargetObjects.Length);
         foreach (var targetObject in allTargetObjects) {

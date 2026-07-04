@@ -274,7 +274,7 @@ public static class GizmosX {
 		Debug.Assert(numLines > 1);
 		if(startAngle == endAngle) return;
 		float deltaAngle = Mathf.DeltaAngle(startAngle, endAngle);
-		if(deltaAngle == 0) DrawWireCircle(position, rotation, radius, numLines);
+		if(deltaAngle == 0) { DrawWireCircle(position, rotation, radius, numLines); return; }
 
 		var startRadians = startAngle * Mathf.Deg2Rad;
 		var endRadians = endAngle * Mathf.Deg2Rad;
@@ -298,7 +298,7 @@ public static class GizmosX {
 		Debug.Assert(numLines > 1);
 		if(startAngle == endAngle) return;
 		float deltaAngle = Mathf.DeltaAngle(startAngle, endAngle);
-		if(deltaAngle == 0) DrawWireCircle(position, rotation, radius, numLines);
+		if(deltaAngle == 0) { DrawWireCircle(position, rotation, radius, numLines); return; }
 
 		var startRadians = startAngle * Mathf.Deg2Rad;
 		var endRadians = endAngle * Mathf.Deg2Rad;

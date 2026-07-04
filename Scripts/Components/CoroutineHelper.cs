@@ -46,21 +46,15 @@ public class CoroutineHelper : MonoSingleton<CoroutineHelper> {
 	//	}, 1.0f);
 	// or
 	//	CoroutineHelper.Delay(Method, 1.0f);
-	public static IEnumerator Delay(Action action, float delay) {
-		IEnumerator routine = DelayCR(action, delay);
-		Execute(routine);
-		return routine;
-	}
+	public static IEnumerator Delay(Action action, float delay) => ExecuteAndReturn(DelayCR(action, delay));
 
+	public static IEnumerator DelayRealtime(Action action, float delay) => ExecuteAndReturn(DelayRealtimeCR(action, delay));
 
-	public static IEnumerator DelayRealtime(Action action, float delay) {
-		IEnumerator routine = DelayRealtimeCR(action, delay);
-		Execute(routine);
-		return routine;
-	}
+	public static IEnumerator DelayFrame(Action action, int numFrames = 1) => ExecuteAndReturn(DelayFramesCR(action, numFrames));
 
-	public static IEnumerator DelayFrame(Action action, int numFrames = 1) {
-		IEnumerator routine = DelayFramesCR(action, numFrames);
+	// Starts the routine and returns it. NOTE: the returned IEnumerator is ALREADY running — it's handed back
+	// only so callers can StopCoroutine() it; don't StartCoroutine() it again or it'll run twice.
+	static IEnumerator ExecuteAndReturn(IEnumerator routine) {
 		Execute(routine);
 		return routine;
 	}
