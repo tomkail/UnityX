@@ -23,9 +23,16 @@ public class CameraInfoWindow : EditorWindow
 
 	void PrefabViewGUI()
 	{
-		var style = new GUIStyle(EditorStyles.miniButton);
-		var labelStyle = new GUIStyle(EditorStyles.boldLabel);
-		labelStyle.alignment = TextAnchor.MiddleCenter;
+		// GUIStyle construction is only valid during OnGUI, so cache lazily here
+		// (never in a field initializer or constructor).
+		if (_buttonStyle == null) _buttonStyle = new GUIStyle(EditorStyles.miniButton);
+		if (_labelStyle == null)
+		{
+			_labelStyle = new GUIStyle(EditorStyles.boldLabel);
+			_labelStyle.alignment = TextAnchor.MiddleCenter;
+		}
+		var style = _buttonStyle;
+		var labelStyle = _labelStyle;
 		var colour = GUI.color;
 
 		var enabled = new Color(0.5f, 1.0f, 0.65f, 1);
@@ -85,4 +92,6 @@ public class CameraInfoWindow : EditorWindow
 	}
 
 	Vector2 _scrollPos;
+	static GUIStyle _buttonStyle;
+	static GUIStyle _labelStyle;
 }

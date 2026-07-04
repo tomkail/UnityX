@@ -51,7 +51,9 @@ public class CommentComponentEditor : BaseEditor<CommentComponent> {
 	}
 	
 	private void Save () {
+		Undo.RecordObject(data, "Edit Comment");
 		data.text = unsavedText;
+		UnityEditor.EditorUtility.SetDirty(data);
 		CompleteEdit();
 	}
 	

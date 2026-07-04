@@ -11,7 +11,12 @@ public enum ScreenshotExportFormat {
 /// Screenshot exporter.
 /// </summary>
 public static class ScreenshotExporter {
-	
+
+	/// <summary>Default "{productName}_{yyyy-MM-dd_HH-mm-ss}" file name, shared by the component and the editor window.</summary>
+	public static string DefaultFileName () {
+		return string.Format("{0}_{1}", Application.productName, System.DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"));
+	}
+
 	/// <summary>
 	/// Export the specified exportSettings.
 	/// </summary>

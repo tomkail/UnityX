@@ -15,13 +15,16 @@ public abstract class BaseVectorToggleDrawer<TAttribute> : BaseAttributeProperty
 			return;
 		}
 
+		EditorGUI.BeginProperty(position, label, property);
 		position = EditorGUI.PrefixLabel(position, label);
 		var axes = GetAxes(property);
 		var oneThird = Mathf.FloorToInt(position.width / 3);
+		EditorGUI.BeginChangeCheck();
 		for (int i = 0; i < axes.Length; i++) {
 			var rect = new Rect(position.x + i * oneThird, position.y, oneThird, position.height);
-			axes[i] = EditorGUI.ToggleLeft(rect, AxisLabels[i], axes[i] == 1) ? 1 : 0;
+			axes[i] = EditorGUI.ToggleLeft(rect, AxisLabels[i], axes[i] != 0) ? 1 : 0;
 		}
-		SetAxes(property, axes);
+		if (EditorGUI.EndChangeCheck()) SetAxes(property, axes);
+		EditorGUI.EndProperty();
 	}
 }

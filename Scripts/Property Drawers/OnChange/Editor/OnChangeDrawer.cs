@@ -8,6 +8,8 @@ public class OnChangeDrawer : BaseAttributePropertyDrawer<OnChangeAttribute> {
 		EditorGUI.PropertyField(position, property, label);
 		if (EditorGUI.EndChangeCheck()) {
 			if (IsMonoBehaviour(property)) {
+				// Apply the edit BEFORE invoking the callbacks so they observe the new value rather than the pre-change one.
+				property.serializedObject.ApplyModifiedProperties();
 				MonoBehaviour mono = (MonoBehaviour)property.serializedObject.targetObject;
 				foreach (var callbackName in attribute.callbackNames) {
 					mono.Invoke(callbackName, 0);

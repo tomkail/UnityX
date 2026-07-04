@@ -46,10 +46,43 @@ public class RegexDrawer : BaseAttributePropertyDrawer<RegexAttribute> {
 		EditorGUI.HelpBox (helpPosition, attribute.helpMessage, MessageType.Error);
     }
 
+    // Cache the compiled pattern (keyed by the pattern string) so we don't recompile every repaint,
+    // and so an invalid pattern is reported at most once rather than throwing on every OnGUI.
+    private Regex cachedRegex;
+    private string cachedPattern;
+
+    private Regex GetPatternRegex () {
+        if (string.IsNullOrEmpty (attribute.pattern)) return null;
+        if (cachedPattern != attribute.pattern) {
+            cachedPattern = attribute.pattern;
+            try {
+                cachedRegex = new Regex (attribute.pattern);
+            } catch (System.Exception e) {
+                cachedRegex = null;
+                Debug.LogWarning ("[Regex] Invalid pattern: " + attribute.pattern + "\n" + e.Message);
+            }
+        }
+        return cachedRegex;
+    }
+
     // Test if the propertys string value matches the regex pattern.
     private bool IsValid (SerializedProperty prop) {
-        if(attribute.regex != null) return attribute.regex.IsMatch(prop.stringValue);
-        else return Regex.IsMatch (prop.stringValue, attribute.pattern) == attribute.showErrorWhenValid;
+        if (attribute.regex != null) {
+            try {
+                return attribute.regex.IsMatch (prop.stringValue);
+            } catch (System.Exception) {
+                // Fall through and treat as valid so we draw the field normally instead of spamming exceptions.
+                return true;
+            }
+        }
+        Regex regex = GetPatternRegex ();
+        // No pattern (or an invalid one that failed to compile): treat as valid and draw the field normally.
+        if (regex == null) return true;
+        try {
+            return regex.IsMatch (prop.stringValue) == attribute.showErrorWhenValid;
+        } catch (System.Exception) {
+            return true;
+        }
     }
 
 	protected override bool IsSupported (SerializedProperty property) {

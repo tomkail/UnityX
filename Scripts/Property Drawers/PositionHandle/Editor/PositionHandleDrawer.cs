@@ -51,11 +51,9 @@ public class PositionHandleDrawer : BaseAttributePropertyDrawer<PositionHandleAt
 					}
 					Handles.EndGUI ();
 				}
-			} catch {}
-			// This can not work for a few reasons. Use this for debugging
-			// catch (System.Exception e) {
-				//Debug.LogWarning(e);
-			// }
+			} catch (System.Exception e) {
+				Debug.LogException(e);
+			}
 		});
 		
 		EditorGUI.EndProperty();

@@ -225,7 +225,7 @@ public class ScreenshotSaverWindow : EditorWindow {
 	void OnCaptureScreenshot (Texture2D screenshot) {
 		ScreenshotExportSettings exportSettings = null;
 		string fileName = "";
-		fileName = string.Format("{0}_{1}", Application.productName, System.DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"));
+		fileName = ScreenshotExporter.DefaultFileName();
 		
 		if(exportFormat == ScreenshotExportFormat.JPEG) {
 			exportSettings = new ScreenshotExportSettings(screenshot, defaultPath, fileName, exportFormat, jpegQuality, openSavePrompt);
@@ -248,8 +248,6 @@ public class ScreenshotSaverWindow : EditorWindow {
     }
 	
 	void OnGUI () {
-		Repaint();
-		
 		TryLoadProperties();
 		
 		EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);

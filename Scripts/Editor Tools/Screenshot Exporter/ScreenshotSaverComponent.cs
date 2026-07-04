@@ -14,7 +14,7 @@ public class ScreenshotSaverComponent : MonoBehaviour {
 	
 	private void OnCaptureScreenshot (Texture2D screenshot) {
 		ScreenshotExportSettings exportSettings = null;
-		string fileName = string.Format("{0}_{1}", Application.productName, System.DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"));
+		string fileName = ScreenshotExporter.DefaultFileName();
 		exportSettings = new ScreenshotExportSettings(screenshot, Environment.GetFolderPath(Environment.SpecialFolder.Desktop)+"/Screenshots", fileName, exportFormat, 0);
 		ScreenshotExporter.Export(exportSettings);
 	}

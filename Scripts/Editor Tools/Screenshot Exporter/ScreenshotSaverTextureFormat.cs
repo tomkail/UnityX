@@ -31,16 +31,4 @@ public class ScreenshotSaverTextureFormatUtils {
 			return "Unrecognized format.";
 		}
 	}
-	
-	// This is currently unused, as I'm not sure how the Depth channel in a rendertexture is really supposed to work, or even if this is connected to it!
-	public static int FormatToDepth (ScreenshotSaverTextureFormat format) {
-		switch (format) {
-		case ScreenshotSaverTextureFormat.ARGB32:
-			return 32;
-		case ScreenshotSaverTextureFormat.RGB24:
-			return 24;
-		default:
-			return 24;
-		}
-	}
 }

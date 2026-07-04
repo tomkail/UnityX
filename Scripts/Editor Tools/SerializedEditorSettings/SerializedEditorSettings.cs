@@ -12,7 +12,7 @@ public class SerializedEditorSettings<T> where T : class, new() {
 	static string settingsEditorPrefsKey {
 		get {
 			if(_settingsEditorPrefsKey == null)
-				_settingsEditorPrefsKey = string.Format("{0} Settings ({1})", typeof(T).Name, Application.productName);
+				_settingsEditorPrefsKey = string.Format("{0} Settings ({1})", typeof(T).FullName, Application.productName);
 			return _settingsEditorPrefsKey;
 		}
 	}

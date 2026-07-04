@@ -26,7 +26,7 @@ public static class GameLayersClassGenerator {
             if(layerN.Length > 0) {
                 stringBuilder.AppendLine();
                 stringBuilder.Append("\tpublic static Layer ");
-                var name = ScriptAssetCreator.ToCamelCase(layerN);
+                var name = SanitizeIdentifier(ScriptAssetCreator.ToCamelCase(layerN));
                 if(name == "default") stringBuilder.Append("@");
                 stringBuilder.Append(name);
                 stringBuilder.Append(" = new Layer(\"");
@@ -50,5 +50,19 @@ public static class GameLayersClassGenerator {
         }
         
         if(requiresBuild) ScriptAssetCreator.CreateNewFile(filePath, text);
+    }
+
+    // Ensures the generated member name is a valid C# identifier: strips any
+    // characters that aren't letters/digits/underscore, and prefixes an
+    // underscore if the result is empty or starts with a digit (e.g. a layer
+    // named "2D Collider" -> "2dCollider" -> "_2dCollider").
+    static string SanitizeIdentifier (string name) {
+        if(string.IsNullOrEmpty(name)) return "_";
+        StringBuilder sb = new StringBuilder(name.Length);
+        foreach(char c in name) {
+            if(char.IsLetterOrDigit(c) || c == '_') sb.Append(c);
+        }
+        if(sb.Length == 0 || char.IsDigit(sb[0])) sb.Insert(0, '_');
+        return sb.ToString();
     }
 }

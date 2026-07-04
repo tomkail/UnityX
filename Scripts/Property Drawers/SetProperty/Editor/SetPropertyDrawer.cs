@@ -31,25 +31,44 @@ public class SetPropertyDrawer : BaseAttributePropertyDrawer<SetPropertyAttribut
 			attribute.IsDirty = true;
 		} 
 		if (attribute.IsDirty) {
+			// Apply the modified serialized value BEFORE invoking the property setter. Until ApplyModifiedProperties runs,
+			// FieldInfo.GetValue() still returns the prior value, so the setter would otherwise observe the pre-change value.
+			property.serializedObject.ApplyModifiedProperties();
+
 			// The propertyPath may reference something that is a child field of a field on this Object, so it is necessary
 			// to find which object is the actual parent before attempting to set the property with the current value.
 			object parent = GetParentObjectOfProperty(property.propertyPath, property.serializedObject.targetObject);
 			Type type = parent.GetType();
-			PropertyInfo pi = type.GetProperty(attribute.Name);
+			PropertyInfo pi = GetProperty(type);
 			if (pi == null)
 			{
 				Debug.LogError("Invalid property name: " + attribute.Name + "\nCheck your [SetProperty] attribute");
 			}
 			else
 			{
-				// Use FieldInfo instead of the SerializedProperty accessors as we'd have to deal with every 
+				// Use FieldInfo instead of the SerializedProperty accessors as we'd have to deal with every
 				// SerializedPropertyType and use the correct accessor
 				pi.SetValue(parent, fieldInfo.GetValue(parent), null);
 			}
 			attribute.IsDirty = false;
-		}		
+		}
 	}
-	
+
+	// Cache the resolved PropertyInfo so we don't re-fetch it (via reflection) on every dirty frame.
+	// Key on both the type AND attribute.Name, since a drawer instance can be reused across fields.
+	private PropertyInfo cachedPropertyInfo;
+	private Type cachedPropertyInfoType;
+	private string cachedPropertyName;
+	private PropertyInfo GetProperty(Type type) {
+		if (cachedPropertyInfoType != type || cachedPropertyName != attribute.Name) {
+			// Include NonPublic so a private/protected property backing a [SetProperty] field is found.
+			cachedPropertyInfo = type.GetProperty(attribute.Name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+			cachedPropertyInfoType = type;
+			cachedPropertyName = attribute.Name;
+		}
+		return cachedPropertyInfo;
+	}
+
 	private object GetParentObjectOfProperty(string path, object obj) {
 		string[] fields = path.Split('.');
 		// We've finally arrived at the final object that contains the property
