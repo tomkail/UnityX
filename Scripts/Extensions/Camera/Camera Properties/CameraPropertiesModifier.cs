@@ -12,7 +12,8 @@ public class CameraPropertiesModifier {
 		Override
 	}
 
-	[EnumFlagAttribute]
+	// CameraPropertiesAxis is [Flags], so Unity's default inspector renders this as a multi-select mask
+	// field automatically (no attribute needed — the old [EnumFlag] drawer was a redundant wrapper).
 	public CameraProperties.CameraPropertiesAxis modifiers = CameraProperties.CameraPropertiesAxis.WorldYaw;
 	public Mode mode = Mode.Override;
 

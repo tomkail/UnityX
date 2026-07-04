@@ -25,6 +25,13 @@ class EnumFlagsButtonGroupDrawer : PropertyDrawer {
 		foreach (var prop in _properties)
             prop.serializedObject.Update();
 
+        // _entries holds only the single-bit flags of this enum (Initialize filters out 0/composite values),
+        // so OR-ing their masks yields a mask of exactly the enum's DEFINED bits. AND writes with this so that
+        // undefined high bits never linger and an "Everything"/~0 value collapses to the defined set consistently.
+        int definedMask = 0;
+        foreach (var e in _entries)
+            definedMask |= e.mask;
+
 		for(int i = 0; i < _entries.Count; i++) {
             var entry = _entries[i];
 			var rect = new Rect(containerRect.x + width * i, containerRect.y, width, containerRect.height);
@@ -34,11 +41,11 @@ class EnumFlagsButtonGroupDrawer : PropertyDrawer {
             if (EditorGUI.EndChangeCheck()) {
                 if (pressed) {
                     foreach (var prop in _properties)
-                        prop.intValue |= entry.mask;
+                        prop.intValue = (prop.intValue | entry.mask) & definedMask;
                     entry.currentValue = TriBool.True;
                 } else {
                     foreach (var prop in _properties)
-                        prop.intValue &= ~entry.mask;
+                        prop.intValue = (prop.intValue & ~entry.mask) & definedMask;
                     entry.currentValue = TriBool.False;
                 }
                 _entries[i] = entry;

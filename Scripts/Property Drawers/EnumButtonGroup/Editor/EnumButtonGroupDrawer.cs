@@ -75,6 +75,9 @@ class EnumButtonGroupDrawer : PropertyDrawer {
 
 		for(int i = 0; i < names.Length; i++) {
             int sortedIndex = System.Array.IndexOf(trueNames, names[i]);
+            // A stale/removed serialized enum name won't be found in the current enum's names; skip it
+            // rather than indexing typedValues[-1] (which throws IndexOutOfRange).
+            if (sortedIndex < 0) continue;
             int value = typedValues[sortedIndex];
 
             var entry = names[i];

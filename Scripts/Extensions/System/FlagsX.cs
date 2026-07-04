@@ -72,11 +72,13 @@ public static class FlagsX {
 	/// <param name="flags">Flags.</param>
 	/// <typeparam name="T">The 1st type parameter.</typeparam>
 	public static T Create<T>(params T[] flags) where T : Enum {
-		int[] flagValues = new int[flags.Length];
-		for(int i = 0; i < flagValues.Length; i++) {
-			flagValues[i] = (int)(object)(flags[i]);
-		}
-		return (T)(object) Create(flagValues);
+		// OR the flags in signed-long space: Convert.ToInt64 reads the real underlying value (handling
+		// negative/high-bit members like `All = ~0` that a checked ulong cast would overflow on), and
+		// Enum.ToObject rebuilds for any backing type. (The old `(int)(object)flags[i]` unbox crashed for
+		// non-int-backed enums; a checked Caster<T,ulong> cast crashes on negative members.)
+		long result = 0;
+		for(int i = 0; i < flags.Length; i++) result |= Convert.ToInt64(flags[i]);
+		return (T)Enum.ToObject(typeof(T), result);
 	}
 
 	static int Create(params int[] flags) {
@@ -95,11 +97,15 @@ public static class FlagsX {
 	/// <returns>The everything.</returns>
 	/// <typeparam name="T">The 1st type parameter.</typeparam>
 	public static T CreateEverything<T>() where T : Enum {
-		return (T)(object)~0;
+		// All bits set for the enum's underlying type. Enum.ToObject converts -1 unchecked to the backing
+		// type (0xFF for byte, ~0 for int, 0xFFFF…F for ulong, …), so this works for any backing type —
+		// unlike the old `(T)(object)~0` (InvalidCastException for non-int enums) or a checked ulong cast
+		// (OverflowException on members whose bit pattern is negative, e.g. an `All = ~0` entry).
+		return (T)Enum.ToObject(typeof(T), -1L);
 	}
 
 	public static int LinearToFlagValue(int indexValue) {
-		return (int)Math.Pow(2, indexValue);
+		return 1 << indexValue;
 	}
 	
 	public static int LinearToFlagValue<T>(T flags) where T : Enum {
@@ -119,7 +125,10 @@ public static class FlagsX {
 	}
 
 	public static int Invert<T>(int flags) where T : Enum {
-		return (int)(object)(CreateEverything<T>()) & ~(flags);
+		// Convert.ToInt32 respects the enum's real underlying type; the old (int)(object)
+		// unbox threw InvalidCastException for non-int-backed enums. (Return type is int,
+		// so this remains an int-domain helper for enums whose "everything" fits in int.)
+		return Convert.ToInt32(CreateEverything<T>()) & ~(flags);
 	}
 
 	static Dictionary<Type, Enum[]> individualFlagsCache = new();
@@ -135,6 +144,17 @@ public static class FlagsX {
 	static IEnumerable<Enum> GetFlags(Enum value, Enum[] values)
 	{
 		ulong bits = Convert.ToUInt64(value);
+		// A value of zero decomposes to the enum's zero-named member (e.g. None = 0),
+		// if one is defined. `values` only ever contains the individual non-zero flag
+		// bits (GetFlagValues skips zero), so the old tail check `values[0] == 0` was
+		// unreachable; look the zero member up from the enum type directly instead.
+		if (bits == 0L)
+		{
+			foreach (var member in Enum.GetValues(value.GetType()).Cast<Enum>())
+				if (Convert.ToUInt64(member) == 0L)
+					return new[] { member };
+			return Enumerable.Empty<Enum>();
+		}
 		List<Enum> results = new List<Enum>();
 		for (int i = values.Length - 1; i >= 0; i--)
 		{
@@ -149,11 +169,7 @@ public static class FlagsX {
 		}
 		if (bits != 0L)
 			return Enumerable.Empty<Enum>();
-		if (Convert.ToUInt64(value) != 0L)
-			return results.Reverse<Enum>();
-		if (bits == Convert.ToUInt64(value) && values.Length > 0 && Convert.ToUInt64(values[0]) == 0L)
-			return values.Take(1);
-		return Enumerable.Empty<Enum>();
+		return results.Reverse<Enum>();
 	}
 
 	static IEnumerable<Enum> GetFlagValues(Type enumType) {
