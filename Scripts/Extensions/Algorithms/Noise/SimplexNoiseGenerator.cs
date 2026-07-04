@@ -2,18 +2,24 @@
 
 public class SimplexNoiseGenerator {
 	
-	public static float[] Generate (Vector2Int size, Vector3 position, float scale, float offset, float contrast, float height, bool clamp = false) {
-		int mapArrayLength = size.x*size.y;
-		float[] map = new float[mapArrayLength];
-		float xCoord, yCoord, sample;
-		float _contrast = (contrast-0.5f) * 2;
+	// Shared setup for Generate/GenerateRepeating. Computes the loop-invariant constants that are
+	// identical between the two methods (only the per-sample noise coordinate math differs).
+	static void GetSetup (Vector2Int size, float scale, float contrast, float height, out int mapArrayLength, out float _contrast, out float oneMinusContrastReciprocal, out float halfContrast, out float contrastRelativeHeightModifier, out Vector2 scaledSizeReciprocal, out float sizeXReciprocal) {
+		mapArrayLength = size.x*size.y;
+		_contrast = (contrast-0.5f) * 2;
 		// Local fix: guard against contrast == 1 (oneMinusContrast == 0) causing a divide-by-zero.
 		float oneMinusContrast = Mathf.Max(1f - _contrast, 1e-6f);
-		float oneMinusContrastReciprocal = 1f / oneMinusContrast;
-		float halfContrast = _contrast * 0.5f;
-		float contrastRelativeHeightModifier = height / oneMinusContrast;
-		Vector2 scaledSizeReciprocal = new Vector2(1f/(size.x * scale), 1f/(size.y * scale));
-		float sizeXReciprocal = 1f/size.x;
+		oneMinusContrastReciprocal = 1f / oneMinusContrast;
+		halfContrast = _contrast * 0.5f;
+		contrastRelativeHeightModifier = height / oneMinusContrast;
+		scaledSizeReciprocal = new Vector2(1f/(size.x * scale), 1f/(size.y * scale));
+		sizeXReciprocal = 1f/size.x;
+	}
+
+	public static float[] Generate (Vector2Int size, Vector3 position, float scale, float offset, float contrast, float height, bool clamp = false) {
+		GetSetup(size, scale, contrast, height, out int mapArrayLength, out float _contrast, out float oneMinusContrastReciprocal, out float halfContrast, out float contrastRelativeHeightModifier, out Vector2 scaledSizeReciprocal, out float sizeXReciprocal);
+		float[] map = new float[mapArrayLength];
+		float xCoord, yCoord, sample;
 
 		for(int i = 0; i < mapArrayLength; i++){
 			xCoord = (-position.x + i%size.x) * scaledSizeReciprocal.x;
@@ -38,17 +44,9 @@ public class SimplexNoiseGenerator {
 	}
 	
 	public static float[] GenerateRepeating (Vector2Int size, Vector3 position, float scale, float offset, float contrast, float height, bool clamp = false) {
-		int mapArrayLength = size.x*size.y;
+		GetSetup(size, scale, contrast, height, out int mapArrayLength, out float _contrast, out float oneMinusContrastReciprocal, out float halfContrast, out float contrastRelativeHeightModifier, out Vector2 scaledSizeReciprocal, out float sizeXReciprocal);
 		float[] map = new float[mapArrayLength];
 		float xCoord, yCoord, sample;
-		float _contrast = (contrast-0.5f) * 2;
-		// Local fix: guard against contrast == 1 (oneMinusContrast == 0) causing a divide-by-zero.
-		float oneMinusContrast = Mathf.Max(1f - _contrast, 1e-6f);
-		float oneMinusContrastReciprocal = 1f / oneMinusContrast;
-		float halfContrast = _contrast * 0.5f;
-		float contrastRelativeHeightModifier = height / oneMinusContrast;
-		Vector2 scaledSizeReciprocal = new Vector2(1f/(size.x * scale), 1f/(size.y * scale));
-		float sizeXReciprocal = 1f/size.x;
 
 		float radius = Mathf.Min(size.x, size.y);
 		for(int i = 0; i < mapArrayLength; i++){

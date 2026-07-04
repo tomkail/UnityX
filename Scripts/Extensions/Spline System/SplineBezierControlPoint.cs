@@ -28,7 +28,8 @@ namespace SplineSystem {
         public Quaternion GetRotation(SplineBezierPoint bezierPoint) => Quaternion.LookRotation(GetDirection(bezierPoint), bezierPoint.normal);
         
         public static float GetAutoDistanceIn(Vector3 position, Vector3 otherPosition, float normalizedControlPointDistance) => (position - otherPosition).magnitude * normalizedControlPointDistance;
-        public static float GetAutoDistanceOut(Vector3 position, Vector3 otherPosition, float normalizedControlPointDistance) => (otherPosition - position).magnitude * normalizedControlPointDistance;
+        // Distance is symmetric ((position - otherPosition).magnitude == (otherPosition - position).magnitude), so Out delegates to In.
+        public static float GetAutoDistanceOut(Vector3 position, Vector3 otherPosition, float normalizedControlPointDistance) => GetAutoDistanceIn(position, otherPosition, normalizedControlPointDistance);
         
         public static float GetAutoDistance(DirectionSign directionSign, Vector3 position, Vector3 otherPosition, float normalizedControlPointDistance) {
             return directionSign switch {

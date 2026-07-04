@@ -3,9 +3,9 @@ using UnityEngine;
 
 public static class MeshRendererX {
 
+	// Convenience wrapper over Array.IndexOf on the renderer's sharedMaterials.
 	public static bool SharedMaterialsContains (this MeshRenderer meshRenderer, Material material) {
-		int materialIndex = meshRenderer.sharedMaterials.IndexOf(material);
-		return materialIndex != -1;
+		return System.Array.IndexOf(meshRenderer.sharedMaterials, material) != -1;
 	}
 
 	/// <summary>

@@ -266,10 +266,7 @@ public class Region : MonoBehaviour {
 		}
 	}
 	bool ContainsPolygonSpacePoint3D (Vector3 polygonSpace) {
-		float SqrDistance (Vector3 a, Vector3 b) {
-			return (a.x-b.x) * (a.x-b.x) + (a.y-b.y) * (a.y-b.y) + (a.z-b.z) * (a.z-b.z);
-		}
-		if(SqrDistance(localBounds.center, polygonSpace) > localBoundsSqrRadius) return false;
+		if((localBounds.center - polygonSpace).sqrMagnitude > localBoundsSqrRadius) return false;
 		if(!localBounds.Contains(polygonSpace)) return false;
 		if(polygonSpace.z > height * 0.5f) return false;
 		return polygon.ContainsPoint(polygonSpace);
@@ -428,7 +425,7 @@ public class Region : MonoBehaviour {
     }
 
 	static bool PlaneLineIntersectionPoint (Plane plane, Line3D line, out float intersectionLineDistance) {
-		var u = Vector3.Normalize(line.end - line.start);
+		var u = (line.end - line.start).normalized;
 		var dot = Vector3.Dot(plane.normal, u);
 		if(Mathf.Abs(dot) > Mathf.Epsilon) {
 			var planePoint = -plane.normal * plane.distance;
