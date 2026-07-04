@@ -18,7 +18,9 @@ public static class HierarchyX {
 				var scene = SceneManager.GetSceneAt(i);
 				if (!scene.isLoaded) continue;
 				foreach (var root in scene.GetRootGameObjects()) {
-					setExpandedRecursiveMethod.Invoke(hierarchy, new object[] { root.GetInstanceID(), false });
+					// SetExpandedRecursive takes an int id; GetInstanceID() is deprecated, and EntityId
+					// won't auto-convert through reflection's boxed object[], so cast it to int explicitly.
+					setExpandedRecursiveMethod.Invoke(hierarchy, new object[] { (int)root.GetEntityId(), false });
 				}
 			}
 		}
