@@ -1,7 +1,9 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 #if UNITY_EDITOR
 #endif
 
+[AttributeUsage(AttributeTargets.Field)]
 public class InfoAttribute : PropertyAttribute {
 	public string info;
 	

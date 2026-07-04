@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
+[AttributeUsage(AttributeTargets.Field)]
 public class AssetPathAttribute : PropertyAttribute {
 
 	public Type assetType;

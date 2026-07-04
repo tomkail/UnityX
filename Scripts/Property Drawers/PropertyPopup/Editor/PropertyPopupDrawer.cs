@@ -6,17 +6,17 @@ using System.Reflection;
 [CustomPropertyDrawer(typeof(PropertyPopupAttribute))]
 public class PropertyPopupDrawer : BaseAttributePropertyDrawer<PropertyPopupAttribute> {
 
-    private Action<int> setValue;
+	private Action<int> setValue;
 	private Func<string> getValue;
-    private Func<int, int> validateValue;
+	private Func<int, int> validateValue;
 
-    private string[] list = null;
+	private string[] list = null;
 
 	protected override bool IsSupported (SerializedProperty property) {
 		return property.propertyType == SerializedPropertyType.String || property.propertyType == SerializedPropertyType.Integer || property.propertyType == SerializedPropertyType.Float;
 	}
 
-    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
+	public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
 		if (!IsSupported(property)) {
 			DrawNotSupportedGUI(position, property, label);
 			return;
@@ -108,8 +108,8 @@ public class PropertyPopupDrawer : BaseAttributePropertyDrawer<PropertyPopupAttr
 			getValue = () => {
 				return property.floatValue.ToString();
 			};
-        }
-    }
+		}
+	}
     /*
 	private object GetParentObjectOfProperty(string path, object obj) {
 		string[] fields = path.Split('.');

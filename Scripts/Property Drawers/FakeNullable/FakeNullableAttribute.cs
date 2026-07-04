@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 // Emulates an inspectable nullable value using a companion serializable bool that marks whether the value is "null".
@@ -8,6 +9,7 @@ bool _distanceFromFloorSet;
 [FakeNullable("_distanceFromFloorSet")]
 public float _distanceFromFloor;
 */
+[AttributeUsage(AttributeTargets.Field)]
 public class FakeNullableAttribute : PropertyAttribute {
     public string boolBackingName;
 

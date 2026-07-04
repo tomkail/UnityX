@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 
+[AttributeUsage(AttributeTargets.Field)]
 public class ClampAttribute : PropertyAttribute {		
 	public int minInt = 0;
 	public int maxInt = 0;

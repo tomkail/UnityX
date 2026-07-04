@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 // Creates a popup GUI field out of a list of elements for String, Float and Int types.
@@ -6,6 +7,7 @@ using UnityEngine;
 
 // [Popup("one","two","three","wolf")]
 // public string item;
+[AttributeUsage(AttributeTargets.Field)]
 public class PopupAttribute : PropertyAttribute {
     public object[] list;
     

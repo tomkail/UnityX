@@ -6,6 +6,7 @@ using System;
 will stop the the user entering a value below (or equal to) this bound
 
 */
+[AttributeUsage(AttributeTargets.Field)]
 public class ClampMinAttribute : PropertyAttribute {
 	
 	// record what type was set, so we can cry if someone mismatches a bound and a property

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 /// <summary>
 /// Use attribute on a field that you use in a custom ILayoutController to drive the layout, so that
@@ -12,6 +13,7 @@
 ///     }
 /// 
 /// </summary>
+[AttributeUsage(AttributeTargets.Field)]
 public class LayoutChangeTriggerAttribute : PropertyAttribute {
 	public LayoutChangeTriggerAttribute() { }
 }

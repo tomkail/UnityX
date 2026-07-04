@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 // Shows a popup with values from another property.
@@ -9,6 +10,7 @@ using UnityEngine;
 // [ArrayPropertyRange("list")]
 // public string popupItem;
 
+[AttributeUsage(AttributeTargets.Field)]
 public class ArrayIndexSliderAttribute : PropertyAttribute {
     public string relativePropertyPath;
 

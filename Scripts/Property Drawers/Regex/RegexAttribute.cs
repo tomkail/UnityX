@@ -1,7 +1,9 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
+[AttributeUsage(AttributeTargets.Field)]
 public class RegexAttribute : PropertyAttribute {
 	
     public readonly Regex regex;

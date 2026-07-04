@@ -1,5 +1,7 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
+[AttributeUsage(AttributeTargets.Field)]
 public class OnChangeAttribute : PropertyAttribute {
 	public string[] callbackNames;
 

@@ -1,9 +1,11 @@
-﻿#if UNITY_EDITOR
+﻿using System;
+#if UNITY_EDITOR
 using UnityEditor;
 #endif
 using UnityEngine;
 using System.Reflection;
 
+[AttributeUsage(AttributeTargets.Field)]
 public class ButtonAttribute : PropertyAttribute {
 	public string methodName;
 	public string buttonName;

@@ -1,5 +1,7 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
+[AttributeUsage(AttributeTargets.Field)]
 public class CompactMatrix4x4Attribute : PropertyAttribute {
     public readonly bool IsAffine = false;
 

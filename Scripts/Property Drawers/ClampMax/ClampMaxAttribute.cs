@@ -6,6 +6,7 @@ using System;
 will stop the the user entering a value above this bound
 
 */
+[AttributeUsage(AttributeTargets.Field)]
 public class ClampMaxAttribute : PropertyAttribute
 {
 	

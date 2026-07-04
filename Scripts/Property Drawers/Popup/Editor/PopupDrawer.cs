@@ -5,12 +5,12 @@ using System;
 [CustomPropertyDrawer(typeof(PopupAttribute))]
 public class PopupDrawer : BaseAttributePropertyDrawer<PopupAttribute> {
 
-    private Action<int> setValue;
+	private Action<int> setValue;
 	private Func<string> getValue;
-    private Func<int, int> validateValue;
+	private Func<int, int> validateValue;
 
-    private string[] _list = null;
-    private string[] list {
+	private string[] _list = null;
+	private string[] list {
 		get {
 			if (_list == null) {
 				_list = new string[attribute.list.Length];
@@ -26,7 +26,7 @@ public class PopupDrawer : BaseAttributePropertyDrawer<PopupAttribute> {
 		return property.propertyType == SerializedPropertyType.String || property.propertyType == SerializedPropertyType.Float || property.propertyType == SerializedPropertyType.Integer;
 	}
 
-    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
+	public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
 		if (!IsSupported(property)) {
 			DrawNotSupportedGUI(position, property, label);
 			return;
@@ -38,20 +38,20 @@ public class PopupDrawer : BaseAttributePropertyDrawer<PopupAttribute> {
 
 		if (validateValue == null && setValue == null && getValue == null) {
 			EditorGUI.HelpBox(position, "Popup drawer error.", MessageType.Error);
-            return;
-        }
+			return;
+		}
 
-        int selectedIndex = list.IndexOf(getValue());
-        if(selectedIndex == -1) {
-            selectedIndex = 0;
-            setValue(selectedIndex);
-        }
+		int selectedIndex = list.IndexOf(getValue());
+		if(selectedIndex == -1) {
+			selectedIndex = 0;
+			setValue(selectedIndex);
+		}
 
-        for (int i = 0; i < list.Length; i++) {
-            selectedIndex = validateValue(i);
-            if (selectedIndex != 0)
-                break;
-        }
+		for (int i = 0; i < list.Length; i++) {
+			selectedIndex = validateValue(i);
+			if (selectedIndex != 0)
+				break;
+		}
 
 		EditorGUI.BeginChangeCheck();
 		selectedIndex = EditorGUI.Popup(position, label.text, selectedIndex, list);
@@ -91,12 +91,12 @@ public class PopupDrawer : BaseAttributePropertyDrawer<PopupAttribute> {
 			getValue = () => {
 				return property.floatValue.ToString();
 			};
-        }
-    }
+		}
+	}
 
-    private Type variableType {
-        get {
-            return attribute.list[0].GetType();
-        }
-    }
+	private Type variableType {
+		get {
+			return attribute.list[0].GetType();
+		}
+	}
 }

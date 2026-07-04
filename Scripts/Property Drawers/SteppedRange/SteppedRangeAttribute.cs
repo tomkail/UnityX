@@ -1,5 +1,7 @@
+using System;
 using UnityEngine;
 
+[AttributeUsage(AttributeTargets.Field)]
 public class SteppedRangeAttribute : PropertyAttribute {
 
 	public float min;

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 // Allows you to create inspectable nullable types, when given the path to a serializable bool storing if the variable is null.
@@ -8,6 +9,7 @@ bool _distanceFromFloorSet;
 public float _distanceFromFloor;
 */
 // TODO - Add option to use multiple paths and simple boolean logic for if both/if either
+[AttributeUsage(AttributeTargets.Field)]
 public abstract class BaseIfAttribute : PropertyAttribute {
 	public enum Options {
 		PlayMode,
