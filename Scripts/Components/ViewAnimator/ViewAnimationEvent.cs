@@ -28,7 +28,7 @@ public class ViewAnimationEvent {
         viewEvent.name = name;
         viewEvent.startTime = startTime;
         viewEvent.endTime = endTime;
-        if(viewEvent.startTime > viewEvent.endTime) UnityEngine.Debug.LogWarning("Event starts after ending!");
+        if(viewEvent.startTime > viewEvent.endTime) UnityEngine.Debug.LogWarning($"ViewAnimationEvent '{name}' starts after it ends (startTime {startTime} > endTime {endTime}).");
         viewEvent.onChangeProgress = onChangeProgress;
         return viewEvent;
     }

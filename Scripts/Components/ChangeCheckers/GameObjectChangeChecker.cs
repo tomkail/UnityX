@@ -19,11 +19,16 @@ public class GameObjectChangeChecker : MonoBehaviour {
 	public event System.Action<GameObject> OnNameChanged;
 	public event System.Action<GameObject> OnDestroyed;
 
-	void Update () {
-		if(Application.isPlaying && !useInPlayMode) return;
+	bool ShouldRun () {
+		if(Application.isPlaying && !useInPlayMode) return false;
 		#if UNITY_EDITOR
-		if(!Application.isPlaying && !useInEditMode) return;
+		if(!Application.isPlaying && !useInEditMode) return false;
 		#endif
+		return true;
+	}
+
+	void Update () {
+		if(!ShouldRun()) return;
 
 		if(gameObject.name != lastName) {
 			lastName = gameObject.name;
@@ -35,10 +40,7 @@ public class GameObjectChangeChecker : MonoBehaviour {
 	}
 
 	void OnDestroy () {
-		if(Application.isPlaying && !useInPlayMode) return;
-		#if UNITY_EDITOR
-		if(!Application.isPlaying && !useInEditMode) return;
-		#endif
+		if(!ShouldRun()) return;
 
 		if(OnDestroyed != null) OnDestroyed(gameObject);
 		if(OnGameObjectChanged != null) OnGameObjectChanged(gameObject);

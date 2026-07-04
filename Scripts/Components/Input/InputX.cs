@@ -332,14 +332,10 @@ public class InputX : MonoSingleton<InputX> {
 	}
     
     public bool TryGetTouchByID(int _id, out Touch touch){
-		for (int i = 0; i < Input.touches.Length; i++) {
-			if(Input.touches[i].fingerId == _id){
-				touch = Input.touches[i];
-                return true;
-            }
-		}
-        touch = default(Touch);
-        return false;
+		var index = GetTouchIndexByID(_id);
+		if(index.HasValue) { touch = Input.touches[index.Value]; return true; }
+		touch = default(Touch);
+		return false;
 	}
 
 	public int? GetTouchIndexByID(int _id){
@@ -352,12 +348,8 @@ public class InputX : MonoSingleton<InputX> {
 	}
 
 	public Finger GetFingerByID(int _id){
-		for (int i = 0; i < fingers.Count; i++) {
-			if(fingers[i].fingerId == _id){
-				return fingers[i];
-			}
-		}
-		return null;
+		var index = GetFingerIndexByID(_id);
+		return index.HasValue ? fingers[index.Value] : null;
 	}
 
 	public int? GetFingerIndexByID(int _id){

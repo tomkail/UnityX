@@ -168,10 +168,10 @@ public class AudioSourceManager : MonoBehaviour {
 				const float toleranceSeconds = 0.05f;
 				var clip = audioSource.clip;
 				int toleranceSamples = clip == null ? 0 : Mathf.CeilToInt(toleranceSeconds * clip.frequency * clip.channels);
-				if(clip == null || audioSource.timeSamples == 0 || audioSource.timeSamples >= audioSource.clip.samples-toleranceSamples) {
+				if(clip == null || audioSource.timeSamples == 0 || audioSource.timeSamples >= clip.samples-toleranceSamples) {
 					if(OnStopOrFinish != null) OnStopOrFinish(this);
 				} else {
-					if(OnPause!= null) OnPause(this);
+					if(OnPause != null) OnPause(this);
 				}
 			}
 		}
