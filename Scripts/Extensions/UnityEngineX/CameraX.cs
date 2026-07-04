@@ -130,7 +130,7 @@ public static class CameraX {
 	/// <summary>
 	/// Focuses on bounds
 	/// </summary>
-	/// <param name="camera">Cmera.</param>
+	/// <param name="camera">Camera.</param>
 	/// <param name="go">Go.</param>
 	public static void FocusOnBounds(this Camera camera, Bounds bounds) {
 		// Get the radius of a sphere circumscribing the bounds
@@ -157,43 +157,43 @@ public static class CameraX {
 	}
 
 	/// <summary>
-	/// Gets the frustrum height at a distance.
+	/// Gets the frustum height at a distance.
 	/// </summary>
-	/// <returns>The frustrum height at a distance.</returns>
+	/// <returns>The frustum height at a distance.</returns>
 	/// <param name="camera">Camera.</param>
 	/// <param name="distance">Distance.</param>
-	public static float GetFrustrumHeightAtDistance (this Camera camera, float distance) {
-		return GetFrustrumHeightAtDistance(distance, camera.fieldOfView);
+	public static float GetFrustumHeightAtDistance (this Camera camera, float distance) {
+		return GetFrustumHeightAtDistance(distance, camera.fieldOfView);
 	}
 
 	/// <summary>
-	/// Gets the frustrum width at a distance.
+	/// Gets the frustum width at a distance.
 	/// </summary>
-	/// <returns>The frustrum width at a distance.</returns>
+	/// <returns>The frustum width at a distance.</returns>
 	/// <param name="camera">Camera.</param>
 	/// <param name="distance">Distance.</param>
-	public static float GetFrustrumWidthAtDistance (this Camera camera, float distance) {
-		return GetFrustrumWidthAtDistance(distance, camera.fieldOfView, camera.aspect);
+	public static float GetFrustumWidthAtDistance (this Camera camera, float distance) {
+		return GetFrustumWidthAtDistance(distance, camera.fieldOfView, camera.aspect);
 	}
 
 	/// <summary>
-	/// Gets the distance from the camera where frustrum height equals the input value.
+	/// Gets the distance from the camera where frustum height equals the input value.
 	/// </summary>
-	/// <returns>The distance at frustrum height.</returns>
+	/// <returns>The distance at frustum height.</returns>
 	/// <param name="camera">Camera.</param>
 	/// <param name="frustumHeight">Frustum height.</param>
-	public static float GetDistanceAtFrustrumHeight (this Camera camera, float frustumHeight) {
-		return GetDistanceAtFrustrumHeight(frustumHeight, camera.fieldOfView);
+	public static float GetDistanceAtFrustumHeight (this Camera camera, float frustumHeight) {
+		return GetDistanceAtFrustumHeight(frustumHeight, camera.fieldOfView);
 	}
 
 	/// <summary>
-	/// Gets the distance from the camera where frustrum width equals the input value.
+	/// Gets the distance from the camera where frustum width equals the input value.
 	/// </summary>
-	/// <returns>The distance at frustrum width.</returns>
+	/// <returns>The distance at frustum width.</returns>
 	/// <param name="camera">Camera.</param>
 	/// <param name="frustumWidth">Frustum width.</param>
-	public static float GetDistanceAtFrustrumWidth (this Camera camera, float frustumWidth) {
-		return GetDistanceAtFrustrumWidth(frustumWidth, camera.fieldOfView, camera.aspect);
+	public static float GetDistanceAtFrustumWidth (this Camera camera, float frustumWidth) {
+		return GetDistanceAtFrustumWidth(frustumWidth, camera.fieldOfView, camera.aspect);
 	}
 
 	/// <summary>
@@ -208,7 +208,7 @@ public static class CameraX {
 	}
 
 	/// <summary>
-	/// Get the frustrum height from a given width using the camera aspect ratio.
+	/// Get the frustum height from a given width using the camera aspect ratio.
 	/// </summary>
 	/// <returns>The frustum width to frustum height.</returns>
 	/// <param name="camera">Camera.</param>
@@ -218,7 +218,7 @@ public static class CameraX {
 	}
 
 	/// <summary>
-	/// Get the frustrum width from a given height using the camera aspect ratio.
+	/// Get the frustum width from a given height using the camera aspect ratio.
 	/// </summary>
 	/// <returns>The frustum height to frustum width.</returns>
 	/// <param name="camera">Camera.</param>
@@ -246,32 +246,32 @@ public static class CameraX {
 
 
 	/// <summary>
-	/// Gets the frustrum height at a distance.
+	/// Gets the frustum height at a distance.
 	/// </summary>
-	/// <returns>The frustrum height at a distance.</returns>
+	/// <returns>The frustum height at a distance.</returns>
 	/// <param name="camera">Camera.</param>
 	/// <param name="distance">Distance.</param>
-	public static float GetFrustrumHeightAtDistance (float distance, float fieldOfView) {
+	public static float GetFrustumHeightAtDistance (float distance, float fieldOfView) {
 		return 2f * distance * Mathf.Tan(fieldOfView * 0.5f * Mathf.Deg2Rad);
 	}
 
 	/// <summary>
-	/// Gets the frustrum width at a distance.
+	/// Gets the frustum width at a distance.
 	/// </summary>
-	/// <returns>The frustrum width at a distance.</returns>
+	/// <returns>The frustum width at a distance.</returns>
 	/// <param name="camera">Camera.</param>
 	/// <param name="distance">Distance.</param>
-	public static float GetFrustrumWidthAtDistance (float distance, float fieldOfView, float aspectRatio) {
-		return ConvertFrustumHeightToFrustumWidth(GetFrustrumHeightAtDistance(distance, fieldOfView), aspectRatio);
+	public static float GetFrustumWidthAtDistance (float distance, float fieldOfView, float aspectRatio) {
+		return ConvertFrustumHeightToFrustumWidth(GetFrustumHeightAtDistance(distance, fieldOfView), aspectRatio);
 	}
 
 	
-	public static float GetDistanceAtFrustrumHeight (float frustumHeight, float fieldOfView) {
+	public static float GetDistanceAtFrustumHeight (float frustumHeight, float fieldOfView) {
 		return frustumHeight * 0.5f / Mathf.Tan(fieldOfView * 0.5f * Mathf.Deg2Rad);
 	}
 	
-	public static float GetDistanceAtFrustrumWidth (float frustumWidth, float fieldOfView, float aspectRatio) {
-		return GetDistanceAtFrustrumHeight(ConvertFrustumWidthToFrustumHeight(frustumWidth, aspectRatio), fieldOfView);
+	public static float GetDistanceAtFrustumWidth (float frustumWidth, float fieldOfView, float aspectRatio) {
+		return GetDistanceAtFrustumHeight(ConvertFrustumWidthToFrustumHeight(frustumWidth, aspectRatio), fieldOfView);
 	}
 	
 	

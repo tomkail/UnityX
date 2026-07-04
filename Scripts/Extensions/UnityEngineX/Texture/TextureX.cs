@@ -64,10 +64,6 @@ public static class TextureX {
     }
     
     static RenderTexture GPUScale(Texture src, int width, int height, int depth = 0) {
-	    //We need the source texture in VRAM because we render with it
-	    // src.filterMode = fmode;
-	    // src.Apply(true);
-
 	    //Using RTT for best quality and performance
 	    RenderTexture rtt = RenderTexture.GetTemporary(width, height, depth);
 
@@ -112,7 +108,7 @@ public static class TextureX {
 	
     public static Texture2D Create(int width, int height, Color[] _array, FilterMode filterMode = FilterMode.Point, TextureFormat textureFormat = TextureFormat.ARGB32){
 	    if(width * height != _array.Length) {
-		    MonoBehaviour.print("Cannot create color texture from color array because Size is ("+width+", "+height+") with area "+(width * height)+" and array size is "+_array.Length);
+		    Debug.LogWarning("Cannot create color texture from color array because Size is ("+width+", "+height+") with area "+(width * height)+" and array size is "+_array.Length);
 		    return null;
 	    }
 	    Texture2D tmpTexture = new Texture2D(width, height, textureFormat, false);

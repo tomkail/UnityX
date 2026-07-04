@@ -101,24 +101,9 @@ public class ScreenX {
 	/// <summary>
 	/// The DPI of the screen
 	/// </summary>
-	// static bool gameViewDpiMultiplierDirty = true;
 	public static float dpi {
 		get {
 			float dpiMultiplier = 1f;
-			// #if UNITY_EDITOR
-			// if(gameViewDpiMultiplierDirty) {
-			// 	// When using a fixed game view resolution, Screen.width/height returns the size of the fixed resolution. If the fixed resolution is more than the actual game view window's size, it's scaled down.
-			// 	// Screen.dpi continues to return the dpi of the screen in this case, without taking the shrinkage into account. 
-			// 	// DPI should return the density of the game view resolution, rather than of the game view window, and so we take this into account here.
-			// 	System.Type T = System.Type.GetType("UnityEditor.PlayModeView,UnityEditor");
-			// 	System.Reflection.MethodInfo GetMainGameView = T.GetMethod("GetMainPlayModeView", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-			// 	var gameView = (UnityEditor.EditorWindow)GetMainGameView.Invoke(null, null);
-			// 	dpiMultiplier = Mathf.Max(1, screenWidth/gameView.position.width, screenHeight/gameView.position.height);
-			// 	Debug.Log("SET M "+dpiMultiplier);
-			// 	gameViewDpiMultiplierDirty = false;
-			// }
-			// #endif
-
 			if(usingCustomDPI){
 				return customDPI * dpiMultiplier;
 			} else if(usingDefaultDPI){
@@ -168,7 +153,6 @@ public class ScreenX {
 		
 
 		PlayerLoopSystem playerLoop = PlayerLoop.GetDefaultPlayerLoop();
-		// Debug.Assert(PlayerLoopUtils.AddToPlayerLoop(EndOfFrameUpdate, typeof(LightgunInput), ref playerLoop, typeof(PreUpdate.NewInputUpdate), PlayerLoopUtils.AddMode.End));
 		Debug.Assert(PlayerLoopUtils.AddToPlayerLoop(Update, typeof(ScreenX), ref playerLoop, typeof(PreUpdate.NewInputUpdate), PlayerLoopUtils.AddMode.End));
 		PlayerLoop.SetPlayerLoop(playerLoop);
 	}
@@ -405,7 +389,6 @@ public class ScreenRectProperties {
 	}
 	
 	public void CalculateScreenSizeProperties (float width, float height){
-//		if(this.width == width && this.height == height) return;
 		this.width = width;
 		this.height = height;
 		CalculateDiagonal();

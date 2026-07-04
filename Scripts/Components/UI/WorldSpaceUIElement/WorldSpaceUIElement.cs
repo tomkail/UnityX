@@ -138,8 +138,8 @@ public class WorldSpaceUIElement : UIBehaviour {
 		} else {
 			distanceFromCamera = Vector3.Distance(targetPoint, camera.transform.position);
 		}
-		float frustrumHeight = camera.ViewportToWorldPoint(new Vector3(0,1,distanceFromCamera)).y-camera.ViewportToWorldPoint(new Vector3(1,0,distanceFromCamera)).y;
-		var scale = (1f/frustrumHeight);
+		float frustumHeight = camera.ViewportToWorldPoint(new Vector3(0,1,distanceFromCamera)).y-camera.ViewportToWorldPoint(new Vector3(1,0,distanceFromCamera)).y;
+		var scale = (1f/frustumHeight);
 		scale *= targetScale;
 		return Mathf.Clamp(scale, minViewportScale, maxViewportScale);
 	}

@@ -135,7 +135,7 @@ public static class DebugX {
 	/// <summary>Logs an error with the target string, along with the current time and the log source.</summary>
 	/// <param name="a">The log source.</param>
 	public static void LogError (Object a) {
-		if(!debug) return;
+		// Errors always log — never gated by the `debug` flag.
 		Debug.LogError(LogString(a));
 	}
 	
@@ -143,7 +143,7 @@ public static class DebugX {
 	/// <param name="obj">The log source.</param>
 	/// <param name="a">The log item.</param>
 	public static void LogError (Object obj, Object a) {
-		if(!debug) return;
+		// Errors always log — never gated by the `debug` flag.
 		var logString = LogString(obj, a);
 		if(obj is UnityEngine.Object o) Debug.LogError(logString, o);
 		else Debug.LogError(logString);
@@ -194,7 +194,7 @@ public static class DebugX {
 	/// <summary>LogErrorMany</summary>
 	/// <param name="list">The objects to log error.</param>
 	public static void LogErrorMany (params object[] list) {
-		if(!debug) return;
+		// Errors always log — never gated by the `debug` flag.
 		Debug.LogError(ListAsString(list));
 	}
 	

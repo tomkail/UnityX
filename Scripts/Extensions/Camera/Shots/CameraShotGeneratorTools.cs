@@ -238,13 +238,13 @@ public static class CameraShotGeneratorTools {
 		float distanceFromWidth = 0;
 		if(shotGeneratorProperties.scalingMode is CameraX.ScalingMode.AspectFit or CameraX.ScalingMode.AspectFitWidthOnly) {
 			if(camera.orthographic) distanceFromWidth = targetRectSize.x;
-			else distanceFromWidth = camera.GetDistanceAtFrustrumWidth(targetRectSize.x * (1f/shotGeneratorProperties.zoom));
+			else distanceFromWidth = camera.GetDistanceAtFrustumWidth(targetRectSize.x * (1f/shotGeneratorProperties.zoom));
 		}
 		
 		float distanceFromHeight = 0;
 		if(shotGeneratorProperties.scalingMode is CameraX.ScalingMode.AspectFit or CameraX.ScalingMode.AspectFitHeightOnly) {
 			if(camera.orthographic) distanceFromHeight = targetRectSize.y;
-			else distanceFromHeight = camera.GetDistanceAtFrustrumHeight(targetRectSize.y * (1f/shotGeneratorProperties.zoom));
+			else distanceFromHeight = camera.GetDistanceAtFrustumHeight(targetRectSize.y * (1f/shotGeneratorProperties.zoom));
 		}
 		Debug.LogWarning("This function has not been upgraded to support fit modes fully.");
 		return Mathf.Max(distanceFromWidth, distanceFromHeight);

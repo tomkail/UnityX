@@ -270,40 +270,6 @@ public struct Line {
 
 	
 
-	// public static List<Vector2Int> PointsOnLine(float x0, float y0, float x1, float y1) {
-		
-	// 	int cx = Mathf.FloorToInt(x0); // Begin/current cell coords
-	// 	int cy = Mathf.FloorToInt(y0);
-	// 	int ex = Mathf.FloorToInt(x1); // End cell coords
-	// 	int ey = Mathf.FloorToInt(y1);
-
-	// 	// Delta or direction
-	// 	float dx = x1-x0;
-	// 	float dy = y1-y0;
-
-	// 	while (cx < ex && cy < ey)
-	// 	{
-	// 	// find intersection "time" in x dir
-	// 	float t0 = (Mathf.Ceil(x0)-x0)/dx;
-	// 	float t1 = (Mathf.Ceil(y0)-y0)/dy;
-
-	// 	visit_cell(cx, cy);
-
-	// 	if (t0 < t1) // cross x boundary first=?
-	// 	{
-	// 		++cx;
-	// 		x0 += t0*dx;
-	// 		y0 += t0*dy;
-	// 	}
-	// 	else
-	// 	{
-	// 		++cy;
-	// 		x0 += t1*dx;
-	// 		y0 += t1*dy;
-	// 	}
-	// 	}
-	// }
-
 	//https://stackoverflow.com/questions/27410280/fast-voxel-traversal-algorithm-with-negative-direction
 	public static IEnumerable<Vector2Int> GetCrossedCells(Vector2 pPoint1, Vector2 pPoint2) {
 		if (pPoint1 != pPoint2) {
@@ -371,159 +337,7 @@ public struct Line {
 			}
 		}
 	}
-	
-// 		function getHelpers(cellSize, pos, dir)
-// 			local tile = mathf.floor(pos / cellSize) + 1
 
-// 			local dTile, dt
-// 			if dir > 0 then
-// 				dTile = 1
-// 				dt = ((tile+0)*cellSize - pos) / dir
-// 			else
-// 				dTile = -1
-// 				dt = ((tile-1)*cellSize - pos) / dir
-// 			end
-
-// 			return tile, dTile, dt, dTile * cellSize / dir
-// 		end
-
-
-// 		public static List<Vector2Int> Traverse(int x, int y, int dx, int dy) {
-// 			List<Vector2Int> points = new List<Vector2Int>();
-// 		// function castRay_clearer_alldirs_improved_transformed(grid, ray)
-// 			// local x, dx, dtX, ddtX = getHelpers(grid.cellSize, ray.startX, ray.dirX)
-// 			// local y, dy, dtY, ddtY = getHelpers(grid.cellSize, ray.startY, ray.dirY)
-// 			float t = 0;
-
-// 			// if (ray.dirX*ray.dirX + ray.dirY*ray.dirY > 0) {
-// 				while (x > 0 && x <= 64 && y > 0 && y <= 64) {
-// 					points.Add(new Vector2Int(x, y));
-// 					// mark(ray.startX + ray.dirX * t, ray.startY + ray.dirY * t)
-
-// 					if (dtX < dtY) {
-// 						x = x + dx
-// 						local dt = dtX
-// 						t = t + dt
-// 						dtX = dtX + ddtX - dt
-// 						dtY = dtY - dt
-// 					}
-// 					else {
-// 						y = y + dy
-// 						local dt = dtY
-// 						t = t + dt
-// 						dtX = dtX - dt
-// 						dtY = dtY + ddtY - dt
-// 					}
-// 				}
-// 			// } //then -- start and end should not be at the same point
-// 			else {
-// 				points.Add(new Vector2Int(x, y));
-// 			}
-// 		}
-
-// 		public static List<Vector2Int> Traverse(int x, int y, int dx, int dy) {
-// 			int z;
-// 			int dz;
-
-// 			z = 0;
-
-// 			dz = 0;
-
-// 			int n, sx, sy, sz, ax, ay, az, bx, by, bz;
-// 			int exy, exz, ezy;
-
-// 			sx = (int)Mathf.Sign(dx);
-// 			sy = (int)Mathf.Sign(dy);
-// 			sz = (int)Mathf.Sign(dz);
-
-// 			ax = Mathf.Abs(dx);
-// 			ay = Mathf.Abs(dy);
-// 			az = Mathf.Abs(dz);
-
-// 			bx = 2 * ax;
-// 			by = 2 * ay;
-// 			bz = 2 * az;
-
-// 			exy = ay - ax;
-// 			exz = az - ax;
-// 			ezy = ay - az;
-
-// 			List<Vector2Int> points = new List<Vector2Int>();
-// 			n = ax + ay + az;
-// DebugX.Log(n +" "+x+" "+y+" "+z);
-// 			while (
-// 				n-- >= 0 &&
-// 				0 <= x && x < 63 && 
-// 				0 <= y && y < 63 && 
-// 				0 <= z && z < 63
-// 			)
-// 			{
-// 				points.Add(new Vector2Int(x,y));
-// 				DebugX.LogList(points);
-// 				if (exy < 0)
-// 				{
-// 					if (exz < 0)
-// 					{
-// 						x += sx;
-// 						exy += by; exz += bz;
-// 					}
-// 					else
-// 					{
-// 						z += sz;
-// 						exz -= bx; ezy += by;
-// 					}
-// 				}
-// 				else
-// 				{
-// 					if (ezy < 0)
-// 					{
-// 						z += sz;
-// 						exz -= bx; ezy += by;
-// 					}
-// 					else
-// 					{
-// 						y += sy;
-// 						exy -= bx; ezy -= bz;
-// 					}
-// 				}
-// 			}
-// 			return points;
-// 		}
-
-	// public static List<Vector2Int> DrawLineNoDiagonalSteps(int x0, int y0, int x1, int y1) {
-		// while(true) {
-		// 	if(tMaxX < tMaxY) {
-		// 		tMaxX= tMaxX + tDeltaX;
-		// 		X= X + stepX;
-		// 	} else {
-		// 		tMaxY= tMaxY + tDeltaY;
-		// 		Y= Y + stepY;
-		// 	}
-		// 	// NextVoxel(X,Y);
-		// }
-		// List<Vector2Int> points = new List<Vector2Int>();
-		// int dx =  Mathf.Abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
-		// int dy = -Mathf.Abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
-		// int err = dx + dy, e2;
-
-		// for (;;) {
-		// 	points.Add(new Vector2Int(x0, y0));
-
-		// 	if (x0 == x1 && y0 == y1) break;
-
-		// 	e2 = 2 * err;
-
-		// 	// EITHER horizontal OR vertical step (but not both!)
-		// 	if (e2 > dy) { 
-		// 		err += dy;
-		// 		x0 += sx;
-		// 	} else if (e2 < dx) { // <--- this "else" makes the difference
-		// 		err += dx;
-		// 		y0 += sy;
-		// 	}
-		// }
-		// return points;
-	// }
 	public static List<Vector2Int> PointsOnLine(int x0, int y0, int x1, int y1) {
 		List<Vector2Int> points = new List<Vector2Int>();
 		int dx = Mathf.Abs(x1 - x0);
@@ -567,7 +381,7 @@ public struct Line {
 	public delegate bool PlotFunction(int x, int y);
 
 	/// <summary>
-	/// Plot the line from (x0, y0) to (x1, y10
+	/// Plot the line from (x0, y0) to (x1, y1)
 	/// </summary>
 	/// <param name="x0">The start x</param>
 	/// <param name="y0">The start y</param>

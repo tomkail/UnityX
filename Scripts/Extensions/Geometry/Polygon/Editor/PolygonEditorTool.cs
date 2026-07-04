@@ -298,7 +298,7 @@ class PolygonEditorTool : EditorTool {
 		    
             if(instance.drawEdgeNormals) {
 				var isClockwise = instance.polygon.GetIsClockwise();
-				var centerPos = Vector2.Lerp(instance.polygon.vertices[i], instance.polygon.vertices[(i+1)%(instance.polygon.vertices.Length-1)], 0.5f);
+				var centerPos = Vector2.Lerp(instance.polygon.vertices[i], instance.polygon.vertices[(i+1)%instance.polygon.vertices.Length], 0.5f);
 				var tangent = instance.polygon.GetEdgeTangentAtEdgeIndex(i);
 				var edgeNormal = Polygon.GetEdgeNormalAtEdgeIndex(tangent, isClockwise);
 				Handles.DrawPolyLine(instance.PolygonToWorldPoint(centerPos), instance.PolygonToWorldPoint(centerPos+edgeNormal * 0.25f));

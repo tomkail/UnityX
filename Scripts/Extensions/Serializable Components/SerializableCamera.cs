@@ -525,24 +525,24 @@ public struct SerializableCamera  {
 		return CameraX.GetHorizontalFieldOfView(fieldOfView, aspect);
 	}
 	
-	public float GetFrustrumHeightAtDistance (float distance) {
+	public float GetFrustumHeightAtDistance (float distance) {
 		if(orthographic) return orthographicSize;
-		return CameraX.GetFrustrumHeightAtDistance(distance, fieldOfView);
+		return CameraX.GetFrustumHeightAtDistance(distance, fieldOfView);
 	}
 	
-	public float GetFrustrumWidthAtDistance (float distance) {
+	public float GetFrustumWidthAtDistance (float distance) {
 		if(orthographic) return aspect * orthographicSize;
-		return CameraX.GetFrustrumWidthAtDistance(distance, fieldOfView, aspect);
+		return CameraX.GetFrustumWidthAtDistance(distance, fieldOfView, aspect);
 	}
 	
-	public float GetDistanceAtFrustrumHeight (float frustumHeight) {
+	public float GetDistanceAtFrustumHeight (float frustumHeight) {
 		Debug.Assert(!orthographic);
-		return CameraX.GetDistanceAtFrustrumHeight(frustumHeight, fieldOfView);
+		return CameraX.GetDistanceAtFrustumHeight(frustumHeight, fieldOfView);
 	}
 	
-	public float GetDistanceAtFrustrumWidth (float frustumWidth) {
+	public float GetDistanceAtFrustumWidth (float frustumWidth) {
 
-		return CameraX.GetDistanceAtFrustrumWidth(frustumWidth, fieldOfView, aspect);
+		return CameraX.GetDistanceAtFrustumWidth(frustumWidth, fieldOfView, aspect);
 	}
 	
 	public float GetFOVAngleAtWidthAndDistance (float frustumWidth, float distance) {

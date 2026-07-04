@@ -216,13 +216,7 @@ public static class RectTransformX {
 		rectTransform.SetSizeInCanvasSpace(rect.size);
 	}
 
-//	public static void SetRectInWorldSpace(this RectTransform rectTransform, Rect rect) {
-//		rectTransform.localPosition = rect.position + Vector2.Scale(rect.size, rectTransform.pivot);
-//		rectTransform.SetSizeInCanvasSpace(rect.size);
-//		Debug.Log(rect+" "+rectTransform.localPosition+" "+rectTransform.anchoredPosition+" "+rectTransform.rect);
-//	}
-
-	// Set the size of the rect transform. 
+	// Set the size of the rect transform.
 	public static void SetSizeWithCurrentAnchors(this RectTransform rectTransform, Vector2 size) {
 		RectTransform parent = (RectTransform)rectTransform.parent;
 		var parentSize = !(bool) (Object) parent ? Vector2.zero : parent.rect.size;
@@ -390,9 +384,7 @@ public static class RectTransformX {
 	
 	
 
-	// ------ OLD STUFF
-	// Everything under here was built for 80 Days, and may either not work or be unhelpful. If you find something good, comment it up and add it above this line.
-
+	// ------ Anchor / pivot / size / edge-position helpers
 
 	/// <summary>
 	/// Find the size of the parent required to fit the child at a new size, given current anchoring.

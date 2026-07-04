@@ -35,11 +35,9 @@ public static class GizmosX {
 	static List<Mesh> meshes = new();
 	#endif
 
-	// static Mesh mesh;
 	static Mesh CreateMesh () {
 		// Don't even try making meshes outside the editor, since we won't be able to clear them and we'll leak memory.
 		#if UNITY_EDITOR
-		// if(mesh != null) DestroyAutomatic(mesh);
 		var mesh = new Mesh();
 		mesh.name = "Gizmos Temp Mesh";
 		meshes.Add(mesh);

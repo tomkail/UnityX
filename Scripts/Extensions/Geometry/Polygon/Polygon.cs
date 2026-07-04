@@ -203,8 +203,6 @@ public class Polygon {
 	/// <param name="_scaleModifier">_scale modifier.</param>
 	public static Polygon Scale (Polygon _polygonDefinition, Polygon _scaleModifier) {
 		Polygon newPolygonDefinition = new Polygon(_polygonDefinition);
-		if(newPolygonDefinition.vertices.Length > _scaleModifier.vertices.Length) 
-			Debug.Log("Cannot Scale PolygonDefinition because the input modifier does not have enough vertices. It has "+_scaleModifier.vertices.Length+". It requires at least "+_polygonDefinition.vertices.Length+".");
 		for(int i = 0; i < _polygonDefinition.vertices.Length; i++) {
 			newPolygonDefinition.vertices[i] = Vector2.Scale(newPolygonDefinition.vertices[i], _scaleModifier.vertices[i]);
 		}
@@ -1050,30 +1048,7 @@ public class Polygon {
 		return CombinePolygons (initialPoly, additionPoly, true);
 	}
 
-	/// <summary>
-	///  Does this polygon intersect with another polygon?
-	/// </summary>
-	/// <returns><c>true</c>, if with polygon was intersectsed, <c>false</c> otherwise.</returns>
-	/// <param name="otherPolygon">Other polygon.</param>
-	public bool intersectsWithPolygon(Polygon otherPolygon) {
-		var intersections = AddIntersectionPointsOfPoly (this, otherPolygon); 
-		return (intersections.indexList.Count > 0);
-	}
-
-	/// <summary>
-	///  Does this polygon contain another polygon entirely?
-	/// </summary>
-	/// <returns><c>true</c>, if contains other polygon entirely, <c>false</c> otherwise.</returns>
-	/// <param name="otherPolygon">Other polygon.</param>
-	public bool whollyContainsOtherPolygon(Polygon otherPolygon) {
-		if (!intersectsWithPolygon(otherPolygon)) {
-			return (ContainsPoint(otherPolygon.vertices[0]));
-		}
-		return false;
-	}
-
-
-	public static Polygon CombinePolygons(Polygon initialPoly, Polygon secondPoly, bool doingAddition) {	
+	public static Polygon CombinePolygons(Polygon initialPoly, Polygon secondPoly, bool doingAddition) {
 		// Add intersection points as verts to the second poly *in the right places*
 		// Also add to the indexesOfSubtractionPolyPointsToAdd array
 		var subPolyAndPoints = AddIntersectionPointsOfPoly(secondPoly, initialPoly);
@@ -1088,9 +1063,9 @@ public class Polygon {
 			
 		if (intersectionIndiciesOnInitialPolygon.Count == 0) {
 			if (doingAddition) {
-				if (initialPoly.whollyContainsOtherPolygon (secondPoly)) {
-					return new Polygon(initialPoly); // Set + subset = set 
-				} else if (secondPoly.whollyContainsOtherPolygon (initialPoly)) {
+				if (initialPoly.WhollyContainsOtherPolygon (secondPoly)) {
+					return new Polygon(initialPoly); // Set + subset = set
+				} else if (secondPoly.WhollyContainsOtherPolygon (initialPoly)) {
 					return new Polygon(secondPoly); // Subset + Set = Set
 				} else {
 					return BridgePolys (initialPoly, secondPoly);
@@ -1098,9 +1073,9 @@ public class Polygon {
 				}
 			} else {
 				// Subtracting: can do A - B = A ; Subset - set = 0; all other cases result in holes
-				if (!initialPoly.whollyContainsOtherPolygon (secondPoly)) {
-					return new Polygon(initialPoly); 
-				} else if (secondPoly.whollyContainsOtherPolygon (initialPoly)) {
+				if (!initialPoly.WhollyContainsOtherPolygon (secondPoly)) {
+					return new Polygon(initialPoly);
+				} else if (secondPoly.WhollyContainsOtherPolygon (initialPoly)) {
 					return new Polygon (); // the empty Polygon
 				} else {
 					Debug.LogError ("Tried to subtract a polygon and leave a hole. We can't support this.");
@@ -1137,7 +1112,7 @@ public class Polygon {
 					addingFromIndex = secondPoly.IndexOfIndexInOtherPoly(indexInInitialPolyToAddNext, initialPoly);
 					outsideSubtractionPoly = false;
 
-					// calcuate teh direction of wind based on where we started
+					// calculate the direction of wind based on where we started
 					if (windingDirection == 0) {
 						// you might have two points in sequence which are both intersections, but not in both directions!!
 						if (initialPoly.ContainsPoint ((secondPoly[(addingFromIndex + 1) % secondPoly.vertices.Length] - secondPoly[addingFromIndex]).normalized * epsilon + secondPoly[addingFromIndex]))
@@ -1435,11 +1410,11 @@ public class Polygon {
 	/// Gets a random point inside a polygon.
 	/// </summary>
 	/// <returns>The random point in polygon.</returns>
-	static List<int> tris = new List<int>();
 	public Vector2 GetRandomPointInPolygon () {
 		if(vertices.Length < 3 || GetArea() == 0) return Vector2.zero;
 
-		tris.Clear();
+		// Local list (allocated per call) so the method is thread-safe and re-entrancy-safe.
+		var tris = new List<int>();
 		Triangulator.GenerateIndices(vertices, tris);
 		var totalArea = 0f;
 		for(int i = 0; i < tris.Count; i += 3) {
@@ -1501,6 +1476,7 @@ public class Polygon {
 	}
 
 	// get squared distance from a point to a segment
+	// Allocation-free squared point-to-segment distance, kept inline (not deferring to Line.GetClosestPointOnLine) because MinSignedDistanceFromPointToPolygon calls this per-edge in a hot loop and wants the squared value with no Vector2/Lerp allocation.
 	float PointToLineSegmentSquaredDistance(Vector2 point, Vector2 a, Vector2 b) {
 
 		var x = a.x;
@@ -1636,8 +1612,6 @@ public class Polygon {
 	// This method leaves the points list unchanged.
 	static List<Vector2> MakeConvexHullPoints(List<Vector2> points) {
 		if(points.Count == 0) return points;
-		// Cull. I was finding occasional minor errors with the result with this enabled.
-		//points = HullCull(points);
 
 		// Find the remaining point with the smallest Y value.
 		// if (there's a tie, take the one with the smaller X value.
@@ -1733,73 +1707,6 @@ public class Polygon {
 			}
 			return t * 90;
 		}
-		/*
-		// Cull points out of the convex hull that lie inside the
-		// trapezoid defined by the vertices with smallest and
-		// largest X and Y coordinates.
-		// Return the points that are not culled.
-		List<Vector2> HullCull(List<Vector2> _points)
-		{
-			// Find a culling box.
-			Rect culling_box = GetMinMaxBox(_points);
-
-			// Cull the _points.
-			List<Vector2> results = new List<Vector2>();
-			foreach (Vector2 pt in _points)
-			{
-				// See if (this point lies outside of the culling box.
-				if (!culling_box.Contains(pt))
-				{
-					// This point cannot be culled.
-					// Add it to the results.
-					results.Add(pt);
-				}
-			}
-			return results;
-		}
-
-		// Find a box that fits inside the MinMax quadrilateral.
-		Rect GetMinMaxBox(List<Vector2> _points) {
-			// Find the MinMax quadrilateral.
-			Vector2 ul = new Vector2(0, 0), ur = ul, ll = ul, lr = ul;
-			GetMinMaxCorners(_points, ref ul, ref ur, ref ll, ref lr);
-
-			// Get the coordinates of a box that lies inside this quadrilateral.
-			float xmin, xmax, ymin, ymax;
-			xmin = ul.x;
-			ymin = ul.y;
-
-			xmax = ur.x;
-			if (ymin < ur.y) ymin = ur.y;
-
-			if (xmax > lr.x) xmax = lr.x;
-			ymax = lr.y;
-
-			if (xmin < ll.x) xmin = ll.x;
-			if (ymax > ll.y) ymax = ll.y;
-
-			Rect result = new Rect(xmin, ymin, xmax - xmin, ymax - ymin);
-			return result;
-		}
-
-		// Find the points nearest the upper left, upper right,
-		// lower left, and lower right corners.
-		void GetMinMaxCorners(List<Vector2> _points, ref Vector2 ul, ref Vector2 ur, ref Vector2 ll, ref Vector2 lr) {
-			// Start with the first point as the solution.
-			ul = _points[0];
-			ur = ul;
-			ll = ul;
-			lr = ul;
-
-			// Search the other _points.
-			foreach (Point pt in _points) {
-				if (-pt.x - pt.y > -ul.x - ul.y) ul = pt;
-				if (pt.x - pt.y > ur.x - ur.y) ur = pt;
-				if (-pt.x + pt.y > -ll.x + ll.y) ll = pt;
-				if (pt.x + pt.y > lr.x + lr.y) lr = pt;
-			}
-		}
-		*/
 	}
 
 
@@ -1836,7 +1743,7 @@ public class Polygon {
 			bool removeFirst = points.Count > 0 && points[points.Count-1] == roundedCorner[0];
 			points.AddRange(roundedCorner);
 			if(removeFirst) {
-				// Remove the first point sinze it's the same as the first in the next corner
+				// Remove the first point since it's the same as the first in the next corner
 				points.RemoveAt(points.Count-roundedCorner.Length);
 			}
 		}
@@ -1921,7 +1828,6 @@ public class Polygon {
 		}
 	}
 
-	/*
 	// Removes points on a polygon that don't contribute to its shape (points lying on the line between neighbours)
 	public static List<Vector2> GetSimplifiedVerts(IList<Vector2> verts) {
 		List<Vector2> points = new List<Vector2>();
@@ -1942,36 +1848,6 @@ public class Polygon {
 		}
 		return points;
 	}
-	public static List<Vector2> GetSimplifiedVerts(IList<Vector2> verts, float minDot = 0.1f) {
-		List<Vector2> points = new List<Vector2>();
-		var point = verts[0];
-		Line line = default(Line);
-		line.start = verts.GetRepeating(-1);
-		for (int i = 0; i < verts.Count; i++) {
-			line.end = verts.GetRepeating(i+1);
-			var skipPoint = false;
-			if(line.start == line.end || point == line.start || point == line.end) skipPoint = true;
-			if(!skipPoint) {
-				var closestPointOnLine = line.GetClosestPointOnLine(point);
-				var sqrDistance = (point.x-closestPointOnLine.x) * (point.x-closestPointOnLine.x) + (point.y-closestPointOnLine.y) * (point.y-closestPointOnLine.y);
-				if(sqrDistance < 0.0001f) skipPoint = true;
-			}
-			// if(!skipPoint) {
-				// var lineVector = line.end-line.start;
-				// var startCenterVector = point-line.start;
-				// if(Vector2.Dot(lineVector, startCenterVector)) {
-				// 	skipPoint = true;
-				// }
-			// }
-			if(!skipPoint) {
-				points.Add(point);
-				line.start = point;
-			}
-			point = line.end;
-		}
-		return points;
-	}
-	*/
 
 
 

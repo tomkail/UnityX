@@ -63,18 +63,6 @@ public class OnGUIX : MonoBehaviour {
         // Save the current GUI matrix, since we're going to make changes to it.
         Matrix4x4 matrix = GUI.matrix;
 
-		// GUI.matrix = Matrix4x4.identity;
-       
-		/*
-		float angle = Mathf.Atan2 (pointB.y - pointA.y, pointB.x - pointA.x) * 180f / Mathf.PI;
-		float length = Vector2.Distance(pointA, pointB);
-
-		GUIUtility.RotateAroundPivot (angle, pointA);
-		GUI.DrawTexture (new Rect (pointA.x, pointA.y, length, width), lineTex);
-		GUI.matrix = matrix;
-		return;
-		*/
- 
         // Store current GUI color, so we can switch it back later,
         // and set the GUI color to the color parameter
         Color savedColor = GUI.color;

@@ -198,69 +198,19 @@ namespace UnityX.Geometry {
 			return false;
 		}
 		
-		// /// <summary>
-		// /// Tests if the ray intersects with this sphere.
-		// /// </summary>
-		// /// <param name="ray">Ray to test</param>
-		// /// <returns>True if the ray intersects the sphere</returns>
-		// public bool Intersects(Ray ray) {
-		// 	//Test if the origin is inside the sphere
-		// 	Vector3 rOrigin = ray.origin;
-		// 	Vector3 diff;
-		// 	Vector3.Subtract(ref rOrigin, ref center, out diff);
-		// 	float radSquared = radius * radius;
-			
-		// 	float dot;
-		// 	Vector3.Dot(ref diff, ref diff, out dot);
-		// 	float a = dot - radSquared;
-			
-		// 	if(a <= 0.0f) {
-		// 		return true;
-		// 	}
-			
-		// 	//Outside sphere
-		// 	Vector3 rDir = ray.direction;
-		// 	float b;
-		// 	Vector3.Dot(ref rDir, ref diff, out b);
-		// 	if(b >= 0.0f) {
-		// 		return false;
-		// 	}
-			
-		// 	return b * b >= a;
-		// }
-		
-		// /// <summary>
-		// /// Tests if the ray intersects with this sphere.
-		// /// </summary>
-		// /// <param name="ray">Ray to test</param>
-		// /// <param name="result">Bool to hold the result, true if they intersect</param>
-		// public void Intersects(ref Ray ray, out bool result) {
-		// 	//Test if the origin is inside the sphere
-		// 	Vector3 rOrigin = ray.origin;
-		// 	Vector3 diff;
-		// 	Vector3.Subtract(ref rOrigin, ref center, out diff);
-		// 	float radSquared = radius * radius;
-			
-		// 	float dot;
-		// 	Vector3.Dot(ref diff, ref diff, out dot);
-		// 	float a = dot - radSquared;
-			
-		// 	if(a <= 0.0f) {
-		// 		result = true;
-		// 		return;
-		// 	}
-			
-		// 	//Outside sphere
-		// 	Vector3 rDir = ray.direction;
-		// 	float b;
-		// 	Vector3.Dot(ref rDir, ref diff, out b);
-		// 	if(b >= 0.0f) {
-		// 		result = false;
-		// 		return;
-		// 	}
-			
-		// 	result = b * b >= a;
-		// }
+		/// <summary>
+		/// Tests if the ray intersects with this sphere.
+		/// </summary>
+		/// <param name="ray">Ray to test</param>
+		/// <returns>True if the ray intersects the sphere</returns>
+		public bool Intersects (Ray ray) {
+			var diff = ray.origin - center;
+			float a = Vector3.Dot(diff, diff) - radius * radius;
+			if (a <= 0) return true; // origin inside sphere
+			float b = Vector3.Dot(ray.direction, diff);
+			if (b >= 0) return false; // pointing away
+			return b * b >= a;
+		}
 
 		static float SqrDistance (Vector3 a, Vector3 b) {
 			return (a.x-b.x) * (a.x-b.x) + (a.y-b.y) * (a.y-b.y) + (a.z-b.z) * (a.z-b.z);

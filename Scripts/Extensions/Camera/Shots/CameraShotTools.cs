@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public static class CameraShotTools {
 	
 	/// <summary>
-	/// Checks to see if gameobjects are in the camera frustrum. Expensive - mostly for use in editor.
+	/// Checks to see if gameobjects are in the camera frustum. Expensive - mostly for use in editor.
 	/// </summary>
 	/// <returns>The cast.</returns>
 	/// <param name="camera">Camera.</param>
