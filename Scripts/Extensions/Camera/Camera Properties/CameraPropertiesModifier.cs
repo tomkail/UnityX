@@ -45,7 +45,9 @@ public class CameraPropertiesModifier {
 			if(mode == Mode.Additive) {
 				propertiesToModify.axis = propertiesToModify.axis * Quaternion.Euler(properties.axis.eulerAngles * strength);
 			} else if(mode == Mode.Multiply) {
-
+				// TODO: unimplemented no-op. axis is a Quaternion, and unlike the scalar euler-angle fields
+				// (which multiply component-wise) there's no obvious "multiply" semantics for a rotation
+				// (composition is already covered by the Additive branch). Left as a no-op until intent is defined.
 			} else if(mode == Mode.Override) {
 				propertiesToModify.axis = Quaternion.Slerp(propertiesToModify.axis, properties.axis, strength);
 			}

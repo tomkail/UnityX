@@ -263,13 +263,11 @@ public static class UpscaleTools {
         }
     }
     static void SetMapValues(Color[] map, int maxWidth, RectInt pointRect, Color val) {
-        int i = 0;
         for(int y = 0; y < pointRect.height; y++) {
             for(int x = 0; x < pointRect.width; x++) {
                 Vector2Int gridPoint = new Vector2Int(pointRect.x+x, pointRect.y+y);
                 var index = GridPointToArrayIndex(gridPoint.x, gridPoint.y, maxWidth);
                 map[index] = val;
-                i++;
             }
         }
     }

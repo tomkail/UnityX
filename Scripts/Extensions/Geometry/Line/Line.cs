@@ -82,27 +82,11 @@ public struct Line {
 	}
 
 	public override bool Equals(System.Object obj) {
-		// If parameter is null return false.
-		if (obj == null) {
-			return false;
-		}
-
-		// If parameter cannot be cast to Line return false.
-		Line l = (Line)obj;
-		if ((System.Object)l == null) {
-			return false;
-		}
-
-		// Return true if the fields match:
-		return Equals(l);
+		// obj may be null or a different type; the pattern handles both.
+		return obj is Line other && Equals(other);
 	}
 
 	public bool Equals(Line l) {
-		// If parameter is null return false:
-		if ((object)l == null) {
-			return false;
-		}
-
 		// Return true if the fields match:
 		return start == l.start && end == l.end;
 	}
@@ -118,17 +102,6 @@ public struct Line {
 	}
 
 	public static bool operator == (Line left, Line right) {
-		if (System.Object.ReferenceEquals(left, right))
-		{
-			return true;
-		}
-
-		// If one is null, but not both, return false.
-		if (((object)left == null) || ((object)right == null))
-		{
-			return false;
-		}
-		
 		return left.Equals(right);
 	}
 

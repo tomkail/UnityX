@@ -116,6 +116,9 @@ public class CameraPropertiesTween : TypeTween<CameraProperties> {
 			properties.targetPoint = Vector3.Lerp(start.targetPoint, end.targetPoint, targetPointEasingCurve.Evaluate(lerp));
 			properties.distance = Mathf.Lerp(start.distance, end.distance, distanceEasingCurve.Evaluate(lerp));
 
+			// axis is a Quaternion (continuous rotation), so it slerps, matching CameraProperties.LerpUnclamped.
+			properties.axis = Quaternion.Slerp(start.axis, end.axis, easingCurve.Evaluate(lerp));
+
 			properties.worldEulerAngles.x = Mathf.LerpAngle(start.worldEulerAngles.x, end.worldEulerAngles.x, worldPitchEasingCurve.Evaluate(lerp));
 			properties.worldEulerAngles.y = Mathf.LerpAngle(start.worldEulerAngles.y, end.worldEulerAngles.y, worldYawEasingCurve.Evaluate(lerp));
 
@@ -127,6 +130,11 @@ public class CameraPropertiesTween : TypeTween<CameraProperties> {
 			properties.viewportOffset.y = Mathf.Lerp(start.viewportOffset.y, end.viewportOffset.y, viewportOffsetYEasingCurve.Evaluate(lerp));
 
 			properties.fieldOfView = Mathf.Lerp(start.fieldOfView, end.fieldOfView, fieldOfViewEasingCurve.Evaluate(lerp));
+
+			properties.orthographicSize = Mathf.Lerp(start.orthographicSize, end.orthographicSize, easingCurve.Evaluate(lerp));
+			// orthographic is a discrete bool with no meaningful in-between; snap at the tween midpoint,
+			// matching the discrete-field handling in CameraProperties.LerpUnclamped.
+			properties.orthographic = lerp < 0.5f ? start.orthographic : end.orthographic;
 			return properties;
 		};
 	}

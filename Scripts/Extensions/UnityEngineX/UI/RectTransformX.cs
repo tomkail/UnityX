@@ -4,11 +4,13 @@ public static class RectTransformX {
 	static Vector3[] corners = new Vector3[4];
 
 	public static Canvas GetRootCanvas(this RectTransform rectTransform) {
-		return rectTransform.GetComponentInParent<Canvas>(true).rootCanvas;
+		var canvas = rectTransform.GetComponentInParent<Canvas>(true);
+		return canvas != null ? canvas.rootCanvas : null;
 	}
 
 	public static Camera GetCanvasEventCamera(this RectTransform rectTransform) {
 		var canvas = rectTransform.GetRootCanvas();
+		if (canvas == null) return null;
 		var renderMode = canvas.renderMode;
 		if (renderMode == RenderMode.ScreenSpaceOverlay || (renderMode == RenderMode.ScreenSpaceCamera && canvas.worldCamera == null))
 			return null;
@@ -351,6 +353,8 @@ public static class RectTransformX {
 	
 	
 	static Camera GetCanvasRenderCamera(Canvas canvas) {
+		// canvas can arrive null: it is sourced from GetRootCanvas(), which now returns null when there is no Canvas ancestor.
+		if(canvas == null) return null;
 		if(canvas.rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay) return null;
 		return canvas.rootCanvas.worldCamera;
 	}

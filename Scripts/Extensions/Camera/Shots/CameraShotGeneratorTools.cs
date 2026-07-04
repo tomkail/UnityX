@@ -246,7 +246,10 @@ public static class CameraShotGeneratorTools {
 			if(camera.orthographic) distanceFromHeight = targetRectSize.y;
 			else distanceFromHeight = camera.GetDistanceAtFrustumHeight(targetRectSize.y * (1f/shotGeneratorProperties.zoom));
 		}
-		Debug.LogWarning("This function has not been upgraded to support fit modes fully.");
+		// Only AspectFitWidthOnly/AspectFitHeightOnly/AspectFit are handled above; other modes (e.g. AspectFill)
+		// fall through with a distance of 0. Warn only in that genuinely-unsupported case rather than on every call.
+		if(shotGeneratorProperties.scalingMode is not (CameraX.ScalingMode.AspectFit or CameraX.ScalingMode.AspectFitWidthOnly or CameraX.ScalingMode.AspectFitHeightOnly))
+			Debug.LogWarning($"GetDistanceFromTarget does not support scaling mode {shotGeneratorProperties.scalingMode}; returning a distance of 0.");
 		return Mathf.Max(distanceFromWidth, distanceFromHeight);
 	}
 

@@ -33,6 +33,7 @@ public class CameraPropertiesBuilderQueue {
 
 	public void Add (UpdateCameraPropertiesDelegate updateCameraPropertiesDelegate, ModifyCameraPropertiesDelegate setCameraPropertiesDelegate) {
 		modifiers.Add(new SetCameraPropertiesDelegateQueueItem(modifiers.Count, updateCameraPropertiesDelegate, setCameraPropertiesDelegate));
+		modifiers.Sort((x, y) => x.sortIndex.CompareTo(y.sortIndex));
 	}
 	public void Add (UpdateCameraPropertiesDelegate updateCameraPropertiesDelegate, ModifyCameraPropertiesDelegate setCameraPropertiesDelegate, int sortIndex) {
 		modifiers.Add(new SetCameraPropertiesDelegateQueueItem(sortIndex, updateCameraPropertiesDelegate, setCameraPropertiesDelegate));
@@ -59,7 +60,7 @@ public class CameraPropertiesBuilderQueue {
 	
 	public void Update (float deltaTime) {
 		foreach(var modifier in modifiers) {
-			modifier.updateCameraPropertiesDelegate(deltaTime);
+			modifier.updateCameraPropertiesDelegate?.Invoke(deltaTime);
 		}
 	}
 	public void Generate (ref CameraProperties properties) {

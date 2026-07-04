@@ -105,12 +105,6 @@ namespace SplineSystem {
 			if (u <= 0) return 0;
 			if (u >= 1) return 1;
 
-//			int index = System.Array.BinarySearch(_arcLengths, u);
-//			if (index >= _arcLengths.Length - 1) return 1;
-//			float target = u * length;
-//			if (_arcLengths[index] > target) index--;
-//			if (index < 0) return 0;
-
 			int index = 0;
 	        int low = 0;
 	        int high = _arcLengths.Length - 1;
@@ -118,7 +112,6 @@ namespace SplineSystem {
 	        float found = -1;
 
 	        while (low < high) {
-	//            index = (low + high) / 2;
 				index = (int)((uint)(low + high) >> 1);
 	            found = _arcLengths[index];
 	            if (found < target) {

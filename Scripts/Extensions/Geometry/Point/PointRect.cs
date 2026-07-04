@@ -240,27 +240,11 @@ using System.Collections.Generic;
 			}
 
 			public override bool Equals(System.Object obj) {
-				// If parameter is null return false.
-				if (obj == null) {
-					return false;
-				}
-		
-				// If parameter cannot be cast to PointRect return false.
-				PointRect p = (PointRect)obj;
-				if ((System.Object)p == null) {
-					return false;
-				}
-		
-				// Return true if the fields match:
-				return (x == p.x) && (y == p.y) && (width == p.width) && (height == p.height);
+				// obj may be null or a different type; the pattern handles both.
+				return obj is PointRect other && Equals(other);
 			}
-		
+
 			public bool Equals(PointRect p) {
-				// If parameter is null return false:
-				if ((object)p == null) {
-					return false;
-				}
-		
 				// Return true if the fields match:
 				return (x == p.x) && (y == p.y) && (width == p.width) && (height == p.height);
 			}
@@ -278,18 +262,7 @@ using System.Collections.Generic;
 			}
 		
 			public static bool operator == (PointRect left, PointRect right) {
-				if (System.Object.ReferenceEquals(left, right))
-				{
-					return true;
-				}
-		
-				// If one is null, but not both, return false.
-				if (((object)left == null) || ((object)right == null))
-				{
-					return false;
-				}
-				if(left.x == right.x && left.y == right.y && left.width == right.width && left.height == right.height)return true;
-				return false;
+				return left.x == right.x && left.y == right.y && left.width == right.width && left.height == right.height;
 			}
 		
 			public static bool operator != (PointRect left, PointRect right) {

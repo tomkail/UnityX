@@ -31,8 +31,7 @@ public class CameraModifierZone : MonoBehaviour {
     protected virtual void LateUpdate () {
         if(target == null) return;
         inRange = active && Vector3.Distance(target.position, transform.position) < radius;
-        if(!Application.isPlaying) {
-        } else {
+        if(Application.isPlaying) {
             inRangeStrength = Mathf.MoveTowards(inRangeStrength, inRange ? 1 : 0, inRangeSmoothSpeed * Time.deltaTime);
         }
 

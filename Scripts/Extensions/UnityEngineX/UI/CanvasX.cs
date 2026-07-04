@@ -16,6 +16,7 @@ public static class CanvasX {
 	}
 
 	public static Camera GetRenderCamera(this Canvas canvas) {
+		if(canvas == null) return null;
 		if(canvas.rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay) return null;
 		return canvas.rootCanvas.worldCamera;
 	}

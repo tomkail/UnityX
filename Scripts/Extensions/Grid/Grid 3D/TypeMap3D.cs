@@ -183,7 +183,7 @@ public class TypeMap3D<T> : Grid3D, IEnumerable<TypeMap3DCellInfo<T>> {
 	}
 
 	/// <summary>
-	/// Resize the grid to specified size, optionally offsetting the existing contents simultaniously in order to control the expansion pivot.
+	/// Resize the grid to specified size, optionally offsetting the existing contents simultaneously in order to control the expansion pivot.
 	/// Operates silently (does not raise OnChangeGridPoint callbacks).
 	/// For example, Resize(size + Point.one * 2, Point.one * 2) resizes from the top right, whereas Resize(size + Point.one, Point.zero) resizes from the bottom right.
 	/// </summary>

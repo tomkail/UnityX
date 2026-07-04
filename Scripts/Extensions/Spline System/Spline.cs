@@ -203,7 +203,6 @@ namespace SplineSystem {
 		}
 
 		public int GetCurveIndexAtArcLength (float targetDistance) {
-//			int index = System.Array.BinarySearch(curves, targetDistance);
 			int low = 0;
 			int high = curves.Length - 1;
 			if (high < 0) Debug.LogError("The array cannot be empty");

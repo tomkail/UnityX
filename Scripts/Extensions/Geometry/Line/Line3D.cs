@@ -57,27 +57,11 @@ public struct Line3D {
 	}
 
 	public override bool Equals(System.Object obj) {
-		// If parameter is null return false.
-		if (obj == null) {
-			return false;
-		}
-
-		// If parameter cannot be cast to Line return false.
-		Line3D l = (Line3D)obj;
-		if ((System.Object)l == null) {
-			return false;
-		}
-
-		// Return true if the fields match:
-		return (start == l.start && end == l.end) || (start == l.end && end == l.start);
+		// obj may be null or a different type; the pattern handles both.
+		return obj is Line3D other && Equals(other);
 	}
 
 	public bool Equals(Line3D l) {
-		// If parameter is null return false:
-		if ((object)l == null) {
-			return false;
-		}
-
 		// Return true if the fields match:
 		return (start == l.start && end == l.end) || (start == l.end && end == l.start);
 	}
@@ -93,17 +77,6 @@ public struct Line3D {
 	}
 
 	public static bool operator == (Line3D left, Line3D right) {
-		if (System.Object.ReferenceEquals(left, right))
-		{
-			return true;
-		}
-
-		// If one is null, but not both, return false.
-		if (((object)left == null) || ((object)right == null))
-		{
-			return false;
-		}
-		
 		return (left.start == right.start && left.end == right.end) || (left.start == right.end && left.end == right.start);
 	}
 
