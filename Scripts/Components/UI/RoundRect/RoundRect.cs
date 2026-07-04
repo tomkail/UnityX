@@ -175,19 +175,10 @@ public class RoundRect : MaskableGraphic
     }
     RoundRectOuterGeom CalcOuterGeom(float radius, float sizeAdjust)
     {
-        Vector2 corner1 = Vector2.zero;
-        Vector2 corner2 = Vector2.zero;
-
         var rect = rectTransform.rect;
         var sizeAdjustVec = sizeAdjust*Vector2.one;
         rect.min -= sizeAdjustVec;
         rect.max += sizeAdjustVec;
-
-        var pivot = rectTransform.pivot;
-        corner1.x = -rect.width * pivot.x;
-        corner1.y = -rect.height * pivot.y;
-        corner2.x = rect.width * (1.0f - pivot.x);
-        corner2.y = rect.height * (1.0f - pivot.y);
 
         float renderedRadius = RenderedRadius(radius, rect.size);
 
@@ -196,8 +187,6 @@ public class RoundRect : MaskableGraphic
             radius = renderedRadius
         };
     }
-
-    [SerializeField] bool _debugBool;
 
     protected override void OnPopulateMesh(VertexHelper vh)
     {
@@ -360,16 +349,16 @@ public class RoundRect : MaskableGraphic
         if( geom.radius > 0 ) {
 
             // Bottom left
-            AddCorner(vertexBuffer, indexBuffer, geom.rect.min, new Vector2(geom.radius, geom.radius), roundRectParams, color, false);
+            AddCorner(vertices, indices, geom.rect.min, new Vector2(geom.radius, geom.radius), roundRectParams, color, false);
 
             // Bottom right
-            AddCorner(vertexBuffer, indexBuffer, new Vector2(geom.rect.xMax, geom.rect.yMin), new Vector2(-geom.radius, geom.radius), roundRectParams, color, true);
+            AddCorner(vertices, indices, new Vector2(geom.rect.xMax, geom.rect.yMin), new Vector2(-geom.radius, geom.radius), roundRectParams, color, true);
 
             // Top left
-            AddCorner(vertexBuffer, indexBuffer, new Vector2(geom.rect.xMin, geom.rect.yMax), new Vector2(geom.radius, -geom.radius), roundRectParams, color, true);
+            AddCorner(vertices, indices, new Vector2(geom.rect.xMin, geom.rect.yMax), new Vector2(geom.radius, -geom.radius), roundRectParams, color, true);
 
             // Top right
-            AddCorner(vertexBuffer, indexBuffer, new Vector2(geom.rect.xMax, geom.rect.yMax), new Vector2(-geom.radius, -geom.radius), roundRectParams, color, false);
+            AddCorner(vertices, indices, new Vector2(geom.rect.xMax, geom.rect.yMax), new Vector2(-geom.radius, -geom.radius), roundRectParams, color, false);
         }
 
         // Edges
@@ -377,16 +366,16 @@ public class RoundRect : MaskableGraphic
         if( edgeWidth > 0 ) {
 
             // Top edge
-            AddEdge(vertexBuffer, indexBuffer,
-                new Vector2(geom.rect.xMin + geom.radius, geom.rect.yMax), 
+            AddEdge(vertices, indices,
+                new Vector2(geom.rect.xMin + geom.radius, geom.rect.yMax),
                 new Vector2(edgeWidth, -geom.radius),
                 roundRectParams,
                 color,
                 false);
 
             // Bottom edge
-            AddEdge(vertexBuffer, indexBuffer,
-                new Vector2(geom.rect.xMin + geom.radius + edgeWidth,  geom.rect.yMin), 
+            AddEdge(vertices, indices,
+                new Vector2(geom.rect.xMin + geom.radius + edgeWidth,  geom.rect.yMin),
                 new Vector2(-edgeWidth, geom.radius),
                 roundRectParams,
                 color,
@@ -397,16 +386,16 @@ public class RoundRect : MaskableGraphic
         if( edgeHeight > 0 ) {
 
             // Left edge
-            AddEdge(vertexBuffer, indexBuffer,
-                new Vector2(geom.rect.xMin, geom.rect.yMin + geom.radius), 
+            AddEdge(vertices, indices,
+                new Vector2(geom.rect.xMin, geom.rect.yMin + geom.radius),
                 new Vector2(geom.radius, edgeHeight),
                 roundRectParams,
                 color,
                 true);
 
             // Right
-            AddEdge(vertexBuffer, indexBuffer,
-                new Vector2(geom.rect.xMax, geom.rect.yMax - geom.radius), 
+            AddEdge(vertices, indices,
+                new Vector2(geom.rect.xMax, geom.rect.yMax - geom.radius),
                 new Vector2(-geom.radius, -edgeHeight),
                 roundRectParams,
                 color,
@@ -497,42 +486,6 @@ public class RoundRect : MaskableGraphic
         vertices.AddRange(verts);
         indices.AddRange(inds);
     }
-
-    // TODO: Add a bunch of quads in case outline thickness > corner radius?
-    // Or be clever about texture coordinates??
-    void AddMiddle(List<UIVertex> vertices, List<int> indices, Vector2 corner1, Vector2 corner2, RoundRectParams roundRectParams, Color32 color, float renderedRadius)
-    {
-        var vert = UIVertex.simpleVert;
-        vert.color = color;
-        int baseIdx = vertices.Count;
-
-        vert.position = new Vector3(corner1.x+renderedRadius, corner1.y+renderedRadius);
-        vert.uv0 = RoundRectUV0(0, 0, roundRectParams);
-        verts[0] = vert;
-
-        vert.position = new Vector3(corner1.x+renderedRadius, corner2.y-renderedRadius);
-        vert.uv0 = RoundRectUV0(0, 0, roundRectParams);
-        verts[1] = vert;
-
-        vert.position = new Vector3(corner2.x-renderedRadius, corner2.y-renderedRadius);
-        vert.uv0 = RoundRectUV0(0, 0, roundRectParams);
-        verts[2] = vert;
-
-        vert.position = new Vector3(corner2.x-renderedRadius, corner1.y+renderedRadius);
-        vert.uv0 = RoundRectUV0(0, 0, roundRectParams);
-        verts[3] = vert;
-
-        inds[0] = baseIdx+2;
-        inds[1] = baseIdx+1;
-        inds[2] = baseIdx+0;
-        inds[3] = baseIdx+0;
-        inds[4] = baseIdx+3;
-        inds[5] = baseIdx+2;
-
-        vertices.AddRange(verts);
-        indices.AddRange(inds);
-    }
-
 
     void MakeHardQuad(List<UIVertex> vertices, List<int> indices, Rect rect, RoundRectParams fillRoundRectParams, Color32 color)
     {

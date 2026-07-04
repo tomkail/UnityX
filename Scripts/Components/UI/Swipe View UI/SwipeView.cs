@@ -152,6 +152,7 @@ namespace UnityEngine.UI {
 		Vector2 springVelocity;
 
 		protected override void OnEnable() {
+			base.OnEnable();
 			if (pages.IsNullOrEmpty() && targetPage != null) targetPage = null;
 			if (!pages.IsNullOrEmpty() && (targetPage == null || !pages.Contains(targetPage))) GoToPageImmediate(pages.IndexOf(closestPage));
 		}

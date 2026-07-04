@@ -8,7 +8,8 @@ public class BackgroundBlurUI : UIBehaviour {
     static readonly int WeightTextureProperty = Shader.PropertyToID("_WeightTexture");
     static readonly int StrengthProperty = Shader.PropertyToID("_Strength");
     static readonly int StepSizeProperty = Shader.PropertyToID("_StepSize");
-    static Shader shader => Shader.Find("Hidden/BackgroundBlurUI");
+    static Shader _shader;
+    static Shader shader => _shader != null ? _shader : (_shader = Shader.Find("Hidden/BackgroundBlurUI"));
 
     public Graphic graphic => GetComponent<Graphic>();
 
@@ -126,7 +127,7 @@ public class BackgroundBlurUI : UIBehaviour {
         graphic.materialForRendering.SetFloat(StrengthProperty, finalStrength);
         graphic.materialForRendering.SetInt(KernelSizeProperty, blurRadius);
         graphic.materialForRendering.SetTexture(WeightTextureProperty, weightTexture);
-        graphic.materialForRendering.SetInt(StepSizeProperty, Mathf.Clamp(stepSize, 2,blurRadius));
+        graphic.materialForRendering.SetInt(StepSizeProperty, stepSize);
         graphic.SetMaterialDirty();
         graphic.enabled = finalSigma > 0; 
         _isDirty = false;

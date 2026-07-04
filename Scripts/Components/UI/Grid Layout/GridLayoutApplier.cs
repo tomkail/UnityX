@@ -45,43 +45,26 @@ namespace UnityEngine.UI {
 					validChildren.Add(childRT);
 
 			var numValidChildren = validChildren.Count;
+			// With no children ArrayIndexToGridCoord(-1, ...) would give a negative cell count.
 			if (autoFillMode == AutoFillMode.XAxis) {
-				// With no children ArrayIndexToGridCoord(-1, ...) would give a negative cell count.
 				gridLayout.xAxis.SetTargetCellCount(numValidChildren > 0 ? GridLayout.ArrayIndexToGridCoord(numValidChildren - 1, gridLayout.yAxis.GetCellCount()).y + 1 : 0);
-			} else if (autoFillMode == AutoFillMode.YAxis) {
-				gridLayout.yAxis.SetTargetCellCount(numValidChildren > 0 ? GridLayout.ArrayIndexToGridCoord(numValidChildren - 1, gridLayout.xAxis.GetCellCount()).y + 1 : 0);
-			}
-			// else if(autoFillMode == AutoFillMode.Auto) {
-			//     if(gridLayout.xAxis.fillMode == GridLayout.CellCountMode.Defined) {
-
-			//     }
-			// }
-
-			if (autoFillMode == AutoFillMode.XAxis) {
 				if (gridLayout.xAxis.sizeMode != GridLayout.CellSizeMode.FillContainer) {
 					gridLayout.xAxis.ApplySizeToRectTransform();
 					drivenRectTransformTracker.Add(this, rectTransform, DrivenTransformProperties.SizeDeltaX);
 				}
 			} else if (autoFillMode == AutoFillMode.YAxis) {
+				gridLayout.yAxis.SetTargetCellCount(numValidChildren > 0 ? GridLayout.ArrayIndexToGridCoord(numValidChildren - 1, gridLayout.xAxis.GetCellCount()).y + 1 : 0);
 				if (gridLayout.yAxis.sizeMode != GridLayout.CellSizeMode.FillContainer) {
 					gridLayout.yAxis.ApplySizeToRectTransform();
 					drivenRectTransformTracker.Add(this, rectTransform, DrivenTransformProperties.SizeDeltaY);
 				}
 			}
 
-			var size = gridLayout.GetItemSize();
 			var cellCountX = gridLayout.xAxis.GetCellCount();
 			int i = 0;
 			foreach (var child in validChildren) {
 				var gridCoordinate = GridLayout.ArrayIndexToGridCoord(i, cellCountX);
-
-				child.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size.x);
-				child.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size.y);
-
-				child.position = gridLayout.GetWorldPositionForGridCoord(gridCoordinate);
-				var pivot = child.pivot;
-				child.anchoredPosition += new Vector2(size.x * (pivot.x), size.y * (pivot.y));
-
+				gridLayout.ApplyToRectTransform(child, gridCoordinate);
 				i++;
 			}
 		}

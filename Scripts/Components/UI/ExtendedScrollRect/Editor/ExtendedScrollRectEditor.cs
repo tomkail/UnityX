@@ -72,7 +72,7 @@ namespace UnityEditor.UI {
 		
 		static void DrawButtonGroupPreset(int index, int numButtons, KeyValuePair<GUIContent, RectTransform.Edge> preset, SerializedProperty property) {
 			EditorGUI.BeginChangeCheck();
-			var edgeFlagValue = EnumToFlagValue((int)preset.Value+1);
+			var edgeFlagValue = ExtendedScrollRect.EnumToFlagValue((int)preset.Value+1);
 			bool pressed = (property.intValue & edgeFlagValue) != 0;
 			pressed = GUILayout.Toggle(pressed, preset.Key, GetButtonGroupGUIStyle(index, numButtons));
 			if (EditorGUI.EndChangeCheck()) {
@@ -89,10 +89,6 @@ namespace UnityEditor.UI {
 				else style = EditorStyles.miniButtonMid;
 			}
 			return style;
-		}
-		
-		static int EnumToFlagValue (int enumValue) {
-			return enumValue == 0 ? 0 : 1 << (enumValue-1);
 		}
 	}
 }

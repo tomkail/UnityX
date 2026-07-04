@@ -224,10 +224,10 @@ namespace UnityEngine.UI.Extensions
                         for (int i = 0; i < helper.currentVertCount; i++) {
                             helper.PopulateUIVertex(ref vertex, i);
 
+                            float dx = (vertex.position.x - bounds.center.x) * width;
+                            float dy = (vertex.position.y - bounds.center.y) * height;
                             vertex.color = BlendColor(vertex.color, EffectGradient.Evaluate(
-                                Mathf.Sqrt(
-                                    Mathf.Pow(Mathf.Abs(vertex.position.x - bounds.center.x) * width, 2f) +
-                                    Mathf.Pow(Mathf.Abs(vertex.position.y - bounds.center.y) * height, 2f)) * 2f - Offset));
+                                Mathf.Sqrt(dx * dx + dy * dy) * 2f - Offset));
 
                             helper.SetUIVertex(vertex, i);
                         }

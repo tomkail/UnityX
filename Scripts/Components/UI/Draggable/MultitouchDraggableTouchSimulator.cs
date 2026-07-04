@@ -47,54 +47,20 @@ public class MultitouchDraggableTouchSimulator : MonoBehaviour {
         }
     }
 
+    // Scale helpers live on MultitouchDraggable (same folder); forward to avoid a verbatim copy.
     /// <summary>
-    /// Scales the target around an arbitrary point by scaleFactor.
-    /// This is relative scaling, meaning using  scale Factor of Vector3.one
-    /// will not change anything and new Vector3(0.5f,0.5f,0.5f) will reduce
-    /// the object size by half.
-    /// The pivot is in world space.
-    /// Scaling is applied to localScale of target.
+    /// Scales the target around an arbitrary point by scaleFactor (relative scaling).
+    /// See <see cref="MultitouchDraggable.ScaleAroundRelative"/>.
     /// </summary>
-    /// <param name="target">The object to scale.</param>
-    /// <param name="pivot">The point to scale around in space of target.</param>
-    /// <param name="scaleFactor">The factor with which the current localScale of the target will be multiplied with.</param>
     public static void ScaleAroundRelative(Transform target, Vector3 pivot, Vector3 scaleFactor)
-    {
-        // pivot
-        var pivotDelta = target.position - pivot;
-        pivotDelta.Scale(scaleFactor);
-        target.position = pivot + pivotDelta;
-    
-        // scale
-        var finalScale = target.localScale;
-        finalScale.Scale(scaleFactor);
-        target.localScale = finalScale;
-    }
-    
+        => MultitouchDraggable.ScaleAroundRelative(target, pivot, scaleFactor);
+
     /// <summary>
-    /// Scales the target around an arbitrary pivot.
-    /// This is absolute scaling, meaning using for example a scale factor of
-    /// Vector3.one will set the localScale of target to x=1, y=1 and z=1.
-    /// The pivot is in world space.
-    /// Scaling is applied to localScale of target.
+    /// Scales the target around an arbitrary pivot to an absolute new local scale.
+    /// See <see cref="MultitouchDraggable.ScaleAround"/>.
     /// </summary>
-    /// <param name="target">The object to scale.</param>
-    /// <param name="pivot">The point to scale around in the space of target.</param>
-    /// <param name="scaleFactor">The new localScale the target object will have after scaling.</param>
     public static void ScaleAround(Transform target, Vector3 pivot, Vector3 newScale)
-    {
-        // pivot
-        Vector3 pivotDelta = target.position - pivot; // diff from object pivot to desired pivot/origin
-        Vector3 scaleFactor = new Vector3(
-            newScale.x / target.localScale.x,
-            newScale.y / target.localScale.y,
-            newScale.z / target.localScale.z );
-        pivotDelta.Scale(scaleFactor);
-        target.position = pivot + pivotDelta;
-    
-        //scale
-        target.localScale = newScale;
-    }
+        => MultitouchDraggable.ScaleAround(target, pivot, newScale);
 
     void OnDrawGizmos () {
         // Camera.main.ScreenToWorldPoint(new Vector3(pivotFingerPos));

@@ -6,7 +6,8 @@ using UnityEngine.UI;
 [ExecuteAlways]
 [RequireComponent(typeof(Image))]
 public class AlphaHitTestThresholdSetter : MonoBehaviour {
-	public Image image => GetComponent<Image>();
+	Image _image;
+	public Image image => _image != null ? _image : (_image = GetComponent<Image>());
 	public float alphaThreshold = 0.1f;
 	void OnValidate() {
 		Refresh();

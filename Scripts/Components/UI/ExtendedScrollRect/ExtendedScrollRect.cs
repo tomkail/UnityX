@@ -32,9 +32,10 @@ namespace UnityEngine.UI {
 	    }
 	    public static bool IsEdgeFlagSet (int excessDragRerouteEdges, RectTransform.Edge edge) {
 		    return (excessDragRerouteEdges & EnumToFlagValue((int)edge+1)) != 0;
-		    static int EnumToFlagValue (int enumValue) {
-			    return enumValue == 0 ? 0 : 1 << (enumValue-1);
-		    }
+	    }
+	    // Shared by the runtime component and its editor (kept UI-local rather than depending on Extensions/FlagsX).
+	    public static int EnumToFlagValue (int enumValue) {
+		    return enumValue == 0 ? 0 : 1 << (enumValue-1);
 	    }
 
 

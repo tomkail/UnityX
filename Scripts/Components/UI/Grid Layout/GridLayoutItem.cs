@@ -26,12 +26,7 @@ namespace UnityEngine.UI {
 
 			if (gridLayout == null) return;
 
-			var size = gridLayout.GetItemSize();
-			rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size.x);
-			rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size.y);
-
-			rectTransform.position = gridLayout.GetWorldPositionForGridCoord(gridCoordinate);
-			rectTransform.anchoredPosition += new Vector2(size.x * (rectTransform.pivot.x), size.y * (rectTransform.pivot.y));
+			gridLayout.ApplyToRectTransform(rectTransform, gridCoordinate);
 
 			drivenRectTransformTracker.Add(this, rectTransform, DrivenTransformProperties.SizeDelta | DrivenTransformProperties.AnchoredPosition3D);
 		}

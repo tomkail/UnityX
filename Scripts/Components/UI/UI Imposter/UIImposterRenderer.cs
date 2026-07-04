@@ -236,7 +236,27 @@ public static class UIImposterRenderer {
         return destRect;
     }
 
-    static Bounds CreateEncapsulating (Vector3[] vectors) => BoundsX.CreateEncapsulating(vectors);
+    static Bounds CreateEncapsulating (Vector3[] vectors) {
+        if(vectors == null) return new Bounds(Vector3.zero, Vector3.zero);
+        var count = vectors.Length;
+        if(count == 0) return new Bounds(Vector3.zero, Vector3.zero);
+        Vector3 min = vectors[0];
+        Vector3 max = vectors[0];
+        foreach(var vector in vectors) {
+            if(vector.x < min.x) min.x = vector.x;
+            else if(vector.x > max.x) max.x = vector.x;
+
+            if(vector.y < min.y) min.y = vector.y;
+            else if(vector.y > max.y) max.y = vector.y;
+
+            if(vector.z < min.z) min.z = vector.z;
+            else if(vector.z > max.z) max.z = vector.z;
+        }
+
+        var size = max - min;
+        var center = min + size * 0.5f;
+        return new Bounds(center, size);
+    }
     
     static Rect CreateEncapsulating (params Vector2[] vectors) {
         float xMin = vectors[0].x;

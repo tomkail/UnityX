@@ -100,15 +100,7 @@ public class Draggable : Selectable, IBeginDragHandler, IEndDragHandler, IDragHa
 	/// The drag velocity.
 	/// </summary>
 	[SerializeField]
-	private Vector2 _dragVelocity;
-	private Vector2 dragVelocity {
-		get {
-			return _dragVelocity;
-		} set {
-			if(_dragVelocity == value) return;
-			_dragVelocity = value;
-		}
-	}
+	private Vector2 dragVelocity;
 	
 	public float distanceFromTarget => Vector2.Distance(rectTransform.anchoredPosition, dragTargetPosition);
 	/// <summary>

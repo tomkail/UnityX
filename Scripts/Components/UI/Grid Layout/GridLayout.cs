@@ -236,6 +236,17 @@ namespace UnityEngine.UI {
 			return new Vector2(xAxis.GetItemSize(), yAxis.GetItemSize());
 		}
 
+		// Sizes and positions a RectTransform to occupy the given grid coordinate.
+		// Shared by GridLayoutItem and GridLayoutApplier so the placement math lives in one place.
+		public void ApplyToRectTransform(RectTransform rt, Vector2 gridCoordinate) {
+			var size = GetItemSize();
+			rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size.x);
+			rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, size.y);
+			rt.position = GetWorldPositionForGridCoord(gridCoordinate);
+			var pivot = rt.pivot;
+			rt.anchoredPosition += new Vector2(size.x * pivot.x, size.y * pivot.y);
+		}
+
 		public Vector2 GetTotalSize() {
 			return new Vector2(xAxis.GetTotalSize(), yAxis.GetTotalSize());
 		}

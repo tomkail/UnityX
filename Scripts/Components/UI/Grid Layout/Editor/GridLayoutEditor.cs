@@ -39,7 +39,7 @@ namespace UnityEditor.UI {
 			if (prop.isExpanded) {
 				EditorGUI.indentLevel++;
 
-				var val = GetBaseProperty<GridLayout.GridLayoutAxisSettings>(prop);
+				var val = (GridLayout.GridLayoutAxisSettings)prop.boxedValue;
 
 				var sizeMode = prop.FindPropertyRelative("_sizeMode");
 				var fillMode = prop.FindPropertyRelative("_fillMode");
@@ -215,7 +215,9 @@ namespace UnityEditor.UI {
 	/// <param name="prop">Property.</param>
 	/// <typeparam name="T">The 1st type parameter.</typeparam>
 	public static T GetBaseProperty<T>(SerializedProperty prop) {
-		return GetValueFromObject<T>(prop.serializedObject.targetObject as object, prop.propertyPath);
+		// SerializedProperty.boxedValue (Unity 2022.1+) is the correct built-in for this;
+		// it replaces the fragile GetValueFromObject reflection below.
+		return (T)prop.boxedValue;
 	}
 
 	// public static System.Object GetBaseProperty(this SerializedProperty prop) {

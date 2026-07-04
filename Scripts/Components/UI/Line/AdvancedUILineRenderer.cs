@@ -178,8 +178,9 @@ namespace UnityEngine.UI.Extensions
             vh.AddVert(vertex2);
             vh.AddVert(vertex3);
             vh.AddVert(vertex4);
-            vh.AddTriangle(i+1,i+2,i+3);
-            vh.AddTriangle(i+3,i+0,i+1);
+            // Split along the 0-2 diagonal, matching UnityEngine.UI VertexHelper.AddUIVertexQuad.
+            vh.AddTriangle(i+0,i+1,i+2);
+            vh.AddTriangle(i+2,i+3,i+0);
         }
         static void AddQuad(VertexHelper vh, UIVertex[] verts) {
             AddQuad(vh, verts[0], verts[1], verts[2], verts[3]);
