@@ -14,7 +14,8 @@ public class OwnedIslandDetector<Coord, Owner> : IslandDetector<Coord> where Coo
 
 	public new List<OwnedIsland<Coord, Owner>> FindIslands () {
 		List<OwnedIsland<Coord, Owner>> islands = new List<OwnedIsland<Coord, Owner>>();
-		testedPoints.Clear();
+		// Local (not a field) so each call — including a re-entrant one — gets its own visited set.
+		HashSet<Coord> testedPoints = new HashSet<Coord>();
 
 		// Seeds are processed from a queue (Dequeue = pop, never peek → cannot hang). Flood-filling a
 		// region hands its valid-but-differently-owned boundary neighbours back onto the queue, so a
@@ -28,6 +29,9 @@ public class OwnedIslandDetector<Coord, Owner> : IslandDetector<Coord> where Coo
 			OwnedIsland<Coord, Owner> island = new OwnedIsland<Coord, Owner>(owner, new List<Coord>());
 			FloodFill(
 				seed,
+				testedPoints,
+				GetAdjacentPoints,
+				GetPointIsValid,
 				point => GetPointIsValid(point) && GetPointOwner(point).Equals(owner),
 				island.points.Add,
 				seedQueue.Enqueue
