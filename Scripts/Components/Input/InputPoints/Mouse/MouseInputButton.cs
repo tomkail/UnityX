@@ -77,6 +77,6 @@ public class MouseInputButton {
 	}
 	
 	public override string ToString () {
-		return string.Format ("[MouseInputButton] Button Index {0} Down {1} Up {2}", buttonIndex, held, up);
+		return string.Format ("[MouseInputButton] Button Index {0} Down {1} Up {2}", buttonIndex, down, up);
 	}
 }

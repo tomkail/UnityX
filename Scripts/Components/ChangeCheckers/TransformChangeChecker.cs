@@ -37,7 +37,10 @@ public class TransformChangeChecker : MonoBehaviour {
 			return;
 		}
 		#if UNITY_EDITOR
-		if(!Application.isPlaying && !useInEditMode) return;
+		if(!Application.isPlaying && !useInEditMode) {
+			enabled = false;
+			return;
+		}
 		#endif
 
 		if(transform.parent != lastParent) {

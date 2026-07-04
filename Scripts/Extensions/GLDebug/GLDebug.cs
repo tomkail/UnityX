@@ -55,13 +55,12 @@ public class GLDebug : MonoSingleton<GLDebug> {
 	private static Material _matZOff;
 	private static Material matZOff {
 		get {
-			if(_matZOn == null) {
+			if(_matZOff == null) {
 				Shader shader = Shader.Find("Debug/GLlineZOff");
-				_matZOn = new Material(shader);
-				_matZOn.hideFlags = HideFlags.HideAndDontSave;
-//				_matZOn.shader.hideFlags = HideFlags.HideAndDontSave;
+				_matZOff = new Material(shader);
+				_matZOff.hideFlags = HideFlags.HideAndDontSave;
 			}
-			return _matZOn;
+			return _matZOff;
 		}
 	}
    
@@ -107,12 +106,12 @@ public class GLDebug : MonoSingleton<GLDebug> {
 
         matZOn.SetPass (0);
         GL.Begin (GL.LINES);
-		linesZOff.ForEach(x => x.DrawGLLine());
+		linesZOn.ForEach(x => x.DrawGLLine());
         GL.End ();
-       
+
         matZOff.SetPass (0);
         GL.Begin (GL.LINES);
-		linesZOn.ForEach(x => x.DrawGLLine());
+		linesZOff.ForEach(x => x.DrawGLLine());
         GL.End ();
     }
 
@@ -310,11 +309,16 @@ public class GLDebug : MonoSingleton<GLDebug> {
 	// EXTRAS
     public static void DrawCircle (Vector3 center, float radius, Color? color = null, float duration = 0, bool depthTest = false)
     {
-//            float degRad = Mathf.PI / 180;
-		for(float theta = 0.0f; theta < (2*Mathf.PI); theta += 0.2f)
+		Vector3 PointAt (float theta) => new Vector3(Mathf.Cos(theta) * radius + center.x, Mathf.Sin(theta) * radius + center.y, center.z);
+		const float step = 0.2f;
+		Vector3 prev = PointAt(0f);
+		for(float theta = step; theta < (2*Mathf.PI); theta += step)
 		{
-			Vector3 ci = (new Vector3(Mathf.Cos(theta) * radius + center.x, Mathf.Sin(theta) * radius + center.y, center.z));
-			DrawLine (ci, ci+new Vector3(0,0.02f,0), color, duration, depthTest);
+			Vector3 ci = PointAt(theta);
+			DrawLine (prev, ci, color, duration, depthTest);
+			prev = ci;
 		}
+		// Close the loop back to the start so it reads as a circle, not a broken arc.
+		DrawLine (prev, PointAt(0f), color, duration, depthTest);
     }
 }

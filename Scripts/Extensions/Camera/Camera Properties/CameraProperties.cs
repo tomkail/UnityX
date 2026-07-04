@@ -608,15 +608,15 @@ public struct CameraProperties {
 		unchecked // Overflow is fine, just wrap
 		{
 			int hash = 27;
-			hash = hash * axis.GetHashCode();
-			hash = hash * targetPoint.GetHashCode();
-			hash = hash * distance.GetHashCode();
-			hash = hash * worldEulerAngles.GetHashCode();
-			hash = hash * localEulerAngles.GetHashCode();
-			hash = hash * viewportOffset.GetHashCode();
-			hash = hash * fieldOfView.GetHashCode();
-			hash = hash * orthographic.GetHashCode();
-			hash = hash * orthographicSize.GetHashCode();
+			hash = hash * 31 + axis.GetHashCode();
+			hash = hash * 31 + targetPoint.GetHashCode();
+			hash = hash * 31 + distance.GetHashCode();
+			hash = hash * 31 + worldEulerAngles.GetHashCode();
+			hash = hash * 31 + localEulerAngles.GetHashCode();
+			hash = hash * 31 + viewportOffset.GetHashCode();
+			hash = hash * 31 + fieldOfView.GetHashCode();
+			hash = hash * 31 + orthographic.GetHashCode();
+			hash = hash * 31 + orthographicSize.GetHashCode();
 			return hash;
 		}
 	}

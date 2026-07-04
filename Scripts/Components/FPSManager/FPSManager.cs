@@ -12,7 +12,8 @@ public class FPSManager : MonoSingleton<FPSManager> {
     
     public float averageFrameTime {
         get {
-            return 1f/averageFPS;
+            // Guard against divide-by-zero before the first sample (averageFPS starts at 0).
+            return averageFPS > 0f ? 1f/averageFPS : 0f;
         }
     }
     public float targetFrameTime {

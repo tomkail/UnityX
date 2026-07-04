@@ -116,7 +116,6 @@ public class InputPoint {
 	
 	private void UpdateDeltaMovement () {
 		lerpedMovement = Mathf.Lerp(lerpedMovement, deltaPosition.magnitude, Time.unscaledDeltaTime*40);
-		lerpedMovement += deltaPosition.magnitude;
 	}
 
 	public override string ToString () {

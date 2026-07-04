@@ -106,13 +106,14 @@ public class SLayoutAnimation {
 	}
 
     SLayoutAnimation ThenAnimateInternal(float duration, float delay, AnimationCurve customCurve, Action animAction, Action nonAnimatedAction)
-        => ThenAnimateInternal(duration, delay, animAction, nonAnimatedAction, a => a._customCurve = customCurve);
+        => CreateAndChainAnimation(duration, delay, animAction, nonAnimatedAction, a => a._customCurve = customCurve);
 
     SLayoutAnimation ThenAnimateInternal(float duration, float delay, EasingFunction.Ease easing, Action animAction, Action nonAnimatedAction)
-        => ThenAnimateInternal(duration, delay, animAction, nonAnimatedAction, a => a._easingFunction = EasingFunction.GetEasingFunction(easing));
+        => CreateAndChainAnimation(duration, delay, animAction, nonAnimatedAction, a => a._easingFunction = EasingFunction.GetEasingFunction(easing));
 
     // Shared body for the two overloads above; configureEasing sets either _customCurve or _easingFunction.
-    SLayoutAnimation ThenAnimateInternal(float duration, float delay, Action animAction, Action nonAnimatedAction, Action<SLayoutAnimation> configureEasing)
+    // Distinct name (not a ThenAnimateInternal overload) so a null AnimationCurve arg stays unambiguous.
+    SLayoutAnimation CreateAndChainAnimation(float duration, float delay, Action animAction, Action nonAnimatedAction, Action<SLayoutAnimation> configureEasing)
     {
         Debug.Assert(_chainedAnim == null, "This animation already has a chained animation (called via Then...()");
 		var nextAnim = new SLayoutAnimation() {

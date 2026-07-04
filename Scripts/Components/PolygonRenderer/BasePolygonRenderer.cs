@@ -91,11 +91,7 @@ public abstract class BasePolygonRenderer : MonoBehaviour {
     protected void OnEnable () {
         if(!Application.isPlaying) {
             GetMesh();
-            if(Application.isPlaying) {
-                DestroyMesh();
-            } else {
-                mesh.Clear();
-            }
+            mesh.Clear();
             RebuildMesh();
             RefreshMaterialPropertyBlock();
         }
@@ -126,7 +122,7 @@ public abstract class BasePolygonRenderer : MonoBehaviour {
 		    if(meshCollider != null) meshCollider.sharedMesh = null;
         }
         if(mesh == null) {
-            if(meshFilter.name == "Polygon Renderer Mesh "+ GetEntityId()) {
+            if(meshFilter.sharedMesh?.name == "Polygon Renderer Mesh "+ GetEntityId()) {
                 mesh = meshFilter.mesh;
             } else {
                 mesh = new Mesh();
@@ -191,10 +187,8 @@ public abstract class BasePolygonRenderer : MonoBehaviour {
                 }
                 for(int i = 0; i < points.Length; i++) {
                     var colorDir = Vector2.Dot(points[i], colorDirection);
-                    if(colorMode == ColorMode.Shape) {
-                        var colorN = Mathf.InverseLerp(distanceColorMin, distanceColorMax, colorDir);
-                        colors[i] = gradient.Evaluate(colorN);
-                    }
+                    var colorN = Mathf.InverseLerp(distanceColorMin, distanceColorMax, colorDir);
+                    colors[i] = gradient.Evaluate(colorN);
                 }
 
                 // var distanceColorMin = Mathf.Infinity;

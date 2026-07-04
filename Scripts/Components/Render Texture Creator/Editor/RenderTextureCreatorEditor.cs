@@ -32,7 +32,7 @@ public class RenderTextureCreatorEditor : Editor {
 	    var rt = _renderTextureProperty.objectReferenceValue as RenderTexture;
 	    EditorGUI.BeginDisabledGroup(true);
 	    EditorGUILayout.LabelField(new GUIContent("Size"), GUILayout.Width(40));
-	    EditorGUILayout.Vector2IntField(GUIContent.none, new Vector2Int(rt.width, rt.height), GUILayout.Width(120));
+	    EditorGUILayout.Vector2IntField(GUIContent.none, rt != null ? new Vector2Int(rt.width, rt.height) : Vector2Int.zero, GUILayout.Width(120));
 	    EditorGUI.EndDisabledGroup();
     }
 }

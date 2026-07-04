@@ -10,7 +10,26 @@ public class TextBackgroundHighlightEffect : MaskableGraphic {
     [SerializeField]
     private TextMeshProUGUI text;
     public RectOffset padding;
-    
+
+    protected override void OnEnable() {
+        base.OnEnable();
+        AutoWireText();
+    }
+
+#if UNITY_EDITOR
+    protected override void OnValidate() {
+        base.OnValidate();
+        AutoWireText();
+    }
+#endif
+
+    // If not assigned in the inspector, find a TextMeshProUGUI on this object or below it.
+    void AutoWireText() {
+        if(text != null) return;
+        text = GetComponent<TextMeshProUGUI>();
+        if(text == null) text = GetComponentInChildren<TextMeshProUGUI>(true);
+    }
+
     protected override void OnPopulateMesh(VertexHelper vh) {
         vh.Clear();
         if(text != null) {

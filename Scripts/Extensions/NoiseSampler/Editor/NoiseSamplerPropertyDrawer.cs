@@ -9,7 +9,7 @@ public class NoiseSamplerPropertyDrawer : PropertyDrawer {
 		if (property.propertyType == SerializedPropertyType.ManagedReference && property.managedReferenceValue == null) {
 			EditorGUI.PrefixLabel(position, new GUIContent(property.displayName));
 			if(GUI.Button(new Rect(position.xMax-48, position.y, 48, position.height), new GUIContent("Create"))) {
-				property.managedReferenceValue = new SpringHandler(Spring.snappy, 1, 0, 0);
+				property.managedReferenceValue = new NoiseSampler();
 			}
 			EditorGUI.EndProperty();
 			return;

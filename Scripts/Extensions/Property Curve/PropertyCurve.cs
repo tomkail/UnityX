@@ -95,15 +95,15 @@ public abstract class PropertyCurve<T> {
 		if(keys.Count == 0 || keys[keys.Count-1].time < keyframe.time){
 			keys.Add(keyframe);
 			return;
-		} else {
-			int closestIndex = ClosestIndexToTime(keyframe.time);
-			if(keys[closestIndex].time == keyframe.time) {
-				keys[closestIndex] = keyframe;
-			} else if(keys[closestIndex].time > keyframe.time && closestIndex > 0) {
-				closestIndex -= 1;
-			}
-			keys.Insert(closestIndex, keyframe);
 		}
+		int closestIndex = ClosestIndexToTime(keyframe.time);
+		if(keys[closestIndex].time == keyframe.time) {
+			keys[closestIndex] = keyframe;   // replace the key at the same time (was falling through to a duplicate Insert)
+			return;
+		}
+		// Keep keys sorted by time: insert after the closest key if it's earlier, otherwise before it.
+		int insertIndex = keys[closestIndex].time < keyframe.time ? closestIndex + 1 : closestIndex;
+		keys.Insert(insertIndex, keyframe);
 	}
 	
 	/// <summary>

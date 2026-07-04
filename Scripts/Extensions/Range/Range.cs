@@ -281,8 +281,8 @@ public struct Range : IEquatable<Range> {
 		unchecked // Overflow is fine, just wrap
 		{
 			int hash = 27;
-			hash *= min.GetHashCode();
-			hash *= max.GetHashCode();
+			hash = hash * 31 + min.GetHashCode();
+			hash = hash * 31 + max.GetHashCode();
 			return hash;
 		}
 	}

@@ -18,8 +18,8 @@ public class SetChildHideFlagsEditor : BaseEditor<SetChildHideFlags> {
 	}
 
 	void OnDoUndoRedo () {
-		foreach(var target in targets) {
-			data.ApplySettings();
+		foreach(var t in targets) {
+			(t as SetChildHideFlags)?.ApplySettings();
 		}
 	}
 
@@ -29,8 +29,8 @@ public class SetChildHideFlagsEditor : BaseEditor<SetChildHideFlags> {
 		EditorGUILayout.PropertyField(serializedObject.FindProperty("childHideFlags"));
 		serializedObject.ApplyModifiedProperties();
 		if(EditorGUI.EndChangeCheck()) {
-			foreach(var target in targets) {
-				data.ApplySettings();
+			foreach(var t in targets) {
+				(t as SetChildHideFlags)?.ApplySettings();
 			}
 		}
 	}

@@ -14,11 +14,7 @@ public class InputX : MonoSingleton<InputX> {
 		} set {
 			if(_acceptInput == value) return;
 			_acceptInput = value;
-			if(acceptInput){
-				ResetInput();
-			} else {
-				ResetInput();
-			}
+			ResetInput();
 		}
 	}
 

@@ -14,8 +14,9 @@ public class GUIDrawer : MonoBehaviour {
 	}
 
 	void OnGUI () {
-		foreach(var drawAction in drawActions) {
-			drawAction.Value();
+		// Snapshot the values: a drawAction may Start/StopDrawing (mutating the dict) mid-iteration.
+		foreach(var drawAction in new List<System.Action>(drawActions.Values)) {
+			drawAction();
 		}
 	}
 }

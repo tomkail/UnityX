@@ -50,8 +50,14 @@ public static class VersionControlX {
         // HEAD file contained a path to a ref file with a SHA?
         const string refColonHeader = "ref: ";
         if( headFileContent.StartsWith(refColonHeader) ) {
-            int pos = headFileContent.LastIndexOf("/") + 1;
-            return headFileContent.Substring(pos, headFileContent.Length - pos);
+            // e.g. "ref: refs/heads/feature/my-branch" — the branch is everything after "refs/heads/"
+            // (keep slashes; LastIndexOf('/') would drop "feature/").
+            var refPath = headFileContent.Substring(refColonHeader.Length);
+            const string headsPrefix = "refs/heads/";
+            int headsPos = refPath.IndexOf(headsPrefix);
+            if( headsPos >= 0 ) return refPath.Substring(headsPos + headsPrefix.Length);
+            int pos = refPath.LastIndexOf("/") + 1;
+            return refPath.Substring(pos);
         } else {
             return ReturnNullAndWarn("Tried to get git branch but headFileContent doesn't start with 'ref: '"+headFileContent);
         }

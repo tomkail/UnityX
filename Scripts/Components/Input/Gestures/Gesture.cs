@@ -14,6 +14,7 @@ public class Gesture {
 
 	public virtual void CompleteGesture () {
 		if(OnCompleteGesture != null) OnCompleteGesture(this);
-		inputPoints = null;
+		// Clear rather than null so subscribers reading inputPoints after completion get an empty list, not an NRE.
+		inputPoints?.Clear();
 	}
 }

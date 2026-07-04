@@ -994,8 +994,13 @@ public class Polygon {
 	}
 
 	public override int GetHashCode() {
-		// Not 100% on this. Should I be using actual values, since arrays are reference values?
-		return _vertices.GetHashCode();
+		// Content-based hash consistent with Equals (which uses _vertices.SequenceEqual);
+		// the array reference hash would break value equality.
+		unchecked {
+			int hash = 27;
+			foreach(var v in _vertices) hash = hash * 31 + v.GetHashCode();
+			return hash;
+		}
 	}
 
 	public static bool operator == (Polygon left, Polygon right) {
