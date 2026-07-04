@@ -5,8 +5,12 @@ public static class ByteFormatter {
 		B,KB,MB,GB,TB,PB,EB
 	}
 	
-	// public static double FromToSize (long from, SI fromOrder, SI targetOrder) {}
 	// SI is 0-indexed (B=0, KB=1, MB=2, …).
+	// Converts a value expressed in fromOrder units into targetOrder units.
+	// e.g. FromToSize(1.5, SI.MB, SI.KB) == 1536. Going to a larger unit divides, to a smaller unit multiplies.
+	public static double FromToSize (double from, SI fromOrder, SI targetOrder) {
+		return from * System.Math.Pow(1024, (int)fromOrder - (int)targetOrder);
+	}
 	public static double ToSize (long bytes, SI targetOrder) {
 		int orderIndex = 0;
 		int targetOrderIndex = (int)targetOrder;
@@ -18,10 +22,10 @@ public static class ByteFormatter {
 		return num;
 	}
 	
-	public static long ToSizeAuto (long bytes, out SI order) {
+	public static double ToSizeAuto (long bytes, out SI order) {
 		int orderIndex = 0;
 		int maxLength = (int)SI.EB;
-		long num = bytes;
+		double num = bytes;
 		while (num >= 1024 && orderIndex < maxLength) {
 			orderIndex++;
 			num = num/1024;

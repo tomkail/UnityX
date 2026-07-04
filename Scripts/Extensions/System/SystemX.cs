@@ -7,7 +7,8 @@ using System.IO;
 #endif
 
 public static class SystemX {
-	// Can use EditorUtility.RevealInFinder in editor
+	// Intentionally duplicates part of EditorUtility.RevealInFinder: that API is editor-only,
+	// whereas this works at RUNTIME (in built players) by shelling out to the platform file browser.
 	public static bool OpenInFileBrowser(string path) {
 		switch (Application.platform) {
 			case RuntimePlatform.WindowsEditor:
@@ -23,58 +24,44 @@ public static class SystemX {
 	}
 	
 	private static bool OpenInMacFileBrowser(string path) {
-		bool openInsidesOfFolder = false;
-		
-		// try mac
-		string macPath = path.Replace("\\", "/"); // mac finder doesn't like backward slashes
-		#if UNITY_EDITOR
-		// if path requested is a folder, automatically open insides of that folder
-		if ( Directory.Exists(macPath) ) {
-			openInsidesOfFolder = true;
-		}
-		#endif
-		
-		if ( !macPath.StartsWith("\"") ) {
-			macPath = "\"" + macPath;
-		}
-		
-		if ( !macPath.EndsWith("\"") ){
-			macPath = macPath + "\"";
-		}
-		
-		string arguments = (openInsidesOfFolder ? "" : "-R ") + macPath;
-		
-		try {
-			Process.Start("open", arguments);
-		} catch ( Win32Exception e ) {
-			// tried to open mac finder in windows
-			// just silently skip error
-			// we currently have no platform define for the current OS we are in, so we resort to this
-			e.HelpLink = ""; // do anything with this variable to silence warning about not using it
-			return false;
-		}
-		return true;
+		// mac finder doesn't like backward slashes, and wants "-R <quoted path>" to reveal a file.
+		return RunFileBrowserProcess(path, "\\", "/", "open", (cleanPath, openInsidesOfFolder) => {
+			string quotedPath = cleanPath;
+			if ( !quotedPath.StartsWith("\"") ) {
+				quotedPath = "\"" + quotedPath;
+			}
+			if ( !quotedPath.EndsWith("\"") ) {
+				quotedPath = quotedPath + "\"";
+			}
+			return (openInsidesOfFolder ? "" : "-R ") + quotedPath;
+		});
 	}
-	
+
 	private static bool OpenInWinFileBrowser(string path) {
+		// windows explorer doesn't like forward slashes, and wants "/select, <path>" to reveal a file.
+		return RunFileBrowserProcess(path, "/", "\\", "explorer.exe",
+			(cleanPath, openInsidesOfFolder) => (openInsidesOfFolder ? "" : "/select, \"") + cleanPath + "\"");
+	}
+
+	// Shared body for the platform-specific browsers: clean the path separators, detect whether the
+	// path is a folder (so we open its insides), build the OS-specific arguments, then Process.Start.
+	private static bool RunFileBrowserProcess(string path, string fromSeparator, string toSeparator, string executable, System.Func<string, bool, string> buildArguments) {
 		bool openInsidesOfFolder = false;
-		
-		// try windows
-		string winPath = path.Replace("/", "\\"); // windows explorer doesn't like forward slashes
+
+		string cleanPath = path.Replace(fromSeparator, toSeparator);
 		#if UNITY_EDITOR
 		// if path requested is a folder, automatically open insides of that folder
-		if ( Directory.Exists(winPath) ) {
+		if ( Directory.Exists(cleanPath) ) {
 			openInsidesOfFolder = true;
 		}
 		#endif
-		
+
 		try {
-			Process.Start("explorer.exe", (openInsidesOfFolder ? "" : "/select, \"") + winPath+"\"");
-		} catch ( Win32Exception e ) {
-			// tried to open win explorer in mac
-			// just silently skip error
-			// we currently have no platform define for the current OS we are in, so we resort to this
-			e.HelpLink = ""; // do anything with this variable to silence warning about not using it
+			Process.Start(executable, buildArguments(cleanPath, openInsidesOfFolder));
+		} catch ( Win32Exception ) {
+			// Deliberate fallback: we tried to launch the file browser for the wrong OS
+			// (e.g. mac 'open' while running on Windows). We have no platform define for the
+			// current OS, so we just silently skip.
 			return false;
 		}
 		return true;

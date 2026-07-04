@@ -1,15 +1,14 @@
 ﻿using System;
 
 public static class StringX {
-	//Returns true if string is only white space
+	//Returns true if string is non-empty and consists entirely of white space
 	public static bool IsWhiteSpace(this string s){
+		if(string.IsNullOrEmpty(s)) return false;
 		foreach(char c in s){
-			if(c != ' ' && c != '\t' && c != '\n') return false;
+			if(!char.IsWhiteSpace(c)) return false;
 		}
 		return true;
 	}
-
-
 
 	// return true if it contains, and sets the index in the output type variable
 	public static int FirstIndexOf(this string source, string[] toChecks, StringComparison comp, ref int stringsIndex) {
@@ -22,14 +21,13 @@ public static class StringX {
 		return index;
 	}
 
-
-	
 	/// <summary>
 	/// Contains the specified source, toCheck and comp.
 	/// </summary>
 	/// <param name="source">Source.</param>
 	/// <param name="toCheck">To check.</param>
 	/// <param name="comp">Comp.</param>
+	// Portability shim: string.Contains(string, StringComparison) only exists on .NET Standard 2.1+, not .NET Framework — keep this for consumers on the older API level.
 	public static bool Contains(this string source, string toCheck, StringComparison comp) {
 		return source.IndexOf(toCheck, comp) >= 0;
 	}
@@ -54,7 +52,9 @@ public static class StringX {
 	/// </summary>
 	/// <param name="source">The string to truncate.</param>
 	/// <param name="length">The maximum number of characters to allow in the string.</param>
-    public static string Truncate(this string source, int length){
+	public static string Truncate(this string source, int length){
+		if (source == null) return null;
+		if (length < 0) length = 0;
 		if (source.Length > length) {
 			source = source.Substring(0, length);
 		}
@@ -87,34 +87,25 @@ public static class StringX {
 	/// Returns the substring after the first occurrence of `a`.
 	/// </summary>
 	public static string AfterFirst(this string value, string a, bool returnEmptyIfNotFound = true) {
-		int posA = value.IndexOf(a);
+		int posA = value.IndexOf(a, StringComparison.Ordinal);
 		if (posA == -1) {
 			return returnEmptyIfNotFound ? string.Empty : value;
 		}
 		int adjustedPosA = posA + a.Length;
-		if (adjustedPosA >= value.Length) {
-			return returnEmptyIfNotFound ? string.Empty : value;
-		}
 		return value.Substring(adjustedPosA);
 	}
 
     /// <summary>
     /// Get string value after [last] a.
     /// </summary>
-    public static string After(this string value, string a, bool returnEmptyIfNotFound = true) {
-		int posA = value.LastIndexOf(a);
+	public static string After(this string value, string a, bool returnEmptyIfNotFound = true) {
+		int posA = value.LastIndexOf(a, StringComparison.Ordinal);
 		if (posA == -1) {
-		    return returnEmptyIfNotFound ? string.Empty : value;
+			return returnEmptyIfNotFound ? string.Empty : value;
 		}
 		int adjustedPosA = posA + a.Length;
-		if (adjustedPosA >= value.Length) {
-		    return returnEmptyIfNotFound ? string.Empty : value;
-		}
 		return value.Substring(adjustedPosA);
-    }
-
-
-    
+	}
 
 	public static string UppercaseFirstCharacter( this string s){
 		if (string.IsNullOrEmpty(s)) return string.Empty;
@@ -123,7 +114,7 @@ public static class StringX {
 		return new string(a);
 	}
 
-	public static string LowercaseFirstCharacter(string s){
+	public static string LowercaseFirstCharacter(this string s){
 		if (string.IsNullOrEmpty(s)) return string.Empty;
 		char[] a = s.ToCharArray();
 		a[0] = char.ToLowerInvariant(a[0]);
