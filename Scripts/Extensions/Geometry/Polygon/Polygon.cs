@@ -259,22 +259,21 @@ public class Polygon {
 		return length;
 	}
 	
+	/// <summary>
+	/// Returns a position along the polygon where each EDGE gets an equal share of the [0,1] parameter
+	/// (evenly by edge index, NOT by arc length). With n edges, edge i occupies the parameter slice
+	/// [i/n, (i+1)/n) regardless of that edge's physical length, so a long edge and a short edge each
+	/// span the same fraction of the parameter. Use GetPositionAtNormalizedArcLength for a
+	/// distance-proportional position instead.
+	/// </summary>
 	public Vector2 GetRegularEdgePosition (float normalizedEdgeLength) {
-		normalizedEdgeLength %= 1; 
-		var edgeLength = GetTotalLength() * normalizedEdgeLength;
-		// var edgeIndex = Mathf.FloorToInt(edgeLength);
-		// var edgeArcLength = edgeIndex-edgeLength;
-
-		var length = 0f;
-		foreach(var line in GetLines()) {
-			var endLength = length + line.length;
-			if(endLength > edgeLength) {
-				var l = Mathf.InverseLerp(length, endLength, edgeLength);
-				return Vector2.Lerp(line.start, line.end, l);
-			}
-			else length = endLength;
-		}
-		return vertices.Last();
+		// The polygon is closed: GetLines()/GetPositionAtArcLength treat the last->first edge as a
+		// real edge, so there are vertices.Length edges in total.
+		var n = vertices.Length;
+		var scaled = (normalizedEdgeLength - Mathf.Floor(normalizedEdgeLength)) * n; // wrap into [0,1) first, like the arc-length versions
+		var edgeIndex = Mathf.Min(Mathf.FloorToInt(scaled), n - 1); // clamp for the scaled==n edge case
+		var localT = scaled - edgeIndex;
+		return Vector2.Lerp(vertices[edgeIndex], vertices[(edgeIndex + 1) % n], localT);
 	}
 	public Vector2 GetPositionAtArcLength (float edgeLength) {
 		var length = 0f;

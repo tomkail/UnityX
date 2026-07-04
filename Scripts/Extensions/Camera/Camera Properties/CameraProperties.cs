@@ -419,18 +419,6 @@ public struct CameraProperties {
 		serCam.ApplyTo(camera);
 	}
 
-	// public bool HasNaN () {
-	// 	if(Vector3X.HasNaN(targetPoint)) return true;
-	// 	if(QuaternionX.IsNaN(axis)) return true;
-	// 	if(float.IsNaN(distance)) return true;
-	// 	if(Vector3X.HasNaN(worldEulerAngles)) return true;
-	// 	if(Vector3X.HasNaN(localEulerAngles)) return true;
-	// 	if(Vector3X.HasNaN(viewportOffset)) return true;
-	// 	if(float.IsNaN(orthographicSize)) return true;
-	// 	if(float.IsNaN(fieldOfView)) return true;
-	// 	return false;
-	// }
-
 	public bool IsValid () {
 		if(Vector3X.HasNaN(targetPoint)) return false;
 		if(QuaternionX.IsNaN(axis)) return false;

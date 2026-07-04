@@ -141,17 +141,6 @@ public static class CameraShotGeneratorTools {
 		
 		camera.transform.position = Vector3.zero;
 		camera.rect = shotGeneratorProperties.viewportRect;
-		// camera.useCustomScreen = true;
-		// 1f/Main.Instance.viewableCameraViewportArea.GetScreenRect().GetAspect()
-		// var customScreenSize = ScaleToContainerUtils.Resize(new Vector2(SerializableCamera.ScreenParams.gameScreenWidth, SerializableCamera.ScreenParams.gameScreenHeight), Main.Instance.viewableCameraViewportArea.GetScreenRect().GetAspect(), ScaleToContainerUtils.ScalingMode.AspectFitWidthOnly);
-		// var heightScale = SerializableCamera.ScreenParams.gameScreenHeight / Main.Instance.viewableCameraViewportArea.GetScreenRect().height;
-		// Debug.Log(heightScale);
-		// camera.customScreenParams = new SerializableCamera.ScreenParams(SerializableCamera.ScreenParams.gameScreenWidth, SerializableCamera.ScreenParams.gameScreenHeight * heightScale);
-		// Debug.Log(camera.customScreenParams.width + " " + camera.customScreenParams.height);
-		// if(camera.rect.width == 0 || camera.rect.height == 0) {
-		// 	Debug.LogError("Camera rect "+camera.rect+" is invalid");
-		// 	return false;
-		// }
 		if(camera.farClipPlane <= camera.nearClipPlane) {
 			Debug.LogWarning("Camera far clip plane "+camera.farClipPlane+" is invalid");
 			return false;

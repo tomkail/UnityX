@@ -17,22 +17,7 @@ public class NoiseSamplerPropertiesPropertyDrawer : PropertyDrawer {
 	
     public override void OnGUI (Rect position, SerializedProperty property, GUIContent label) {
         EditorGUI.BeginProperty (position, label, property);
-
-        if(property.isExpanded) {
-            EditorGUI.indentLevel++;
-            var y = DrawProperties(position, property, label) + EditorGUIUtility.standardVerticalSpacing;
-			
-            var curveRect = new Rect(position.x, y, position.width, curveHeight);
-
-            var frequency = property.FindPropertyRelative("frequency");
-            var octaves = property.FindPropertyRelative("octaves");
-            var lacunarity = property.FindPropertyRelative("lacunarity");
-            var persistence = property.FindPropertyRelative("persistence");
-            var normalization = property.FindPropertyRelative("normalization");
-            DrawNoiseGraph(curveRect, Noise.Perlin3D, frequency.floatValue, octaves.floatValue, lacunarity.floatValue, persistence.floatValue, Vector3.zero, (NoiseNormalization)normalization.enumValueIndex);
-            EditorGUI.indentLevel--;
-        }
-        property.isExpanded = EditorGUI.Foldout(new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight), property.isExpanded, property.displayName, true);
+        Draw(position, property, label, Vector3.zero);
         EditorGUI.EndProperty ();
     }
 
