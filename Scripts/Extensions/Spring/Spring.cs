@@ -39,7 +39,7 @@ public struct Spring {
     public float duration => response;
     
     // The amount of drag applied, as a fraction of the amount needed to produce critical damping.
-    // 0 will oscellate forever and 1 will be "fully damped".
+    // 0 will oscillate forever and 1 will be "fully damped".
     [SerializeField] float _dampingRatio;
     public float dampingRatio {
         get => _dampingRatio;
@@ -78,9 +78,9 @@ public struct Spring {
     const float defaultEpsilon = 0.0001f;
     #endregion
     
-    #region Contructors
+    #region Constructors
     // Creates a spring with the specified duration and damping ratio.
-    // Response is the time taken for one complete cycle of oscellation.
+    // Response is the time taken for one complete cycle of oscillation.
     // Damping ratio determines how bouncy the spring is and should be between 0 and 1.
     public static Spring Create (float response, float dampingRatio, float epsilon = defaultEpsilon) {
         Debug.Assert(response > 0);
@@ -113,7 +113,7 @@ public struct Spring {
     #endregion
     
     #region Converter methods
-    // Converts 2 parameter response/damping properties to physical properties. A mass my be specified.
+    // Converts 2 parameter response/damping properties to physical properties. A mass may be specified.
     public static (float mass, float stiffness, float damping) ResponseDampingToPhysical(float response, float dampingRatio, float existingMass = 1) {
         float mass = existingMass;
         float stiffness = Mathf.Pow(2 * Mathf.PI / response, 2) * mass;
@@ -121,11 +121,11 @@ public struct Spring {
         return (mass, stiffness, damping);
     }
     
-    // Converts 3 parameter physical properties to response/damping properties. A mass my be specified.
+    // Converts 3 parameter physical properties to response/damping properties. A mass may be specified.
     public static (float response, float dampingRatio) PhysicalToResponseDamping(float mass, float stiffness, float damping) {
         var omega0 = Mathf.Sqrt(stiffness / mass); // natural angular frequency (ωn) of the spring measured in radians/s
         var dampingRatio = damping / (2 * omega0); //  damping ratio (zeta, or ζ) is defined as actual damping/critical damping
-        float response = 2 * Mathf.PI / omega0; // Response is the time taken for one complete cycle of oscellation.
+        float response = 2 * Mathf.PI / omega0; // Response is the time taken for one complete cycle of oscillation.
         return (response, dampingRatio);
     }
 
@@ -179,8 +179,6 @@ public struct Spring {
             var sin = Mathf.Sin(omegaD * time);
             displacement = e * (c1 * cos + c2 * sin);
             velocity = e * ((c1 * omegaZeta - c2 * omegaD) * cos + (c1 * omegaD + c2 * omegaZeta) * sin);
-            // This line has also been tested to work. I've left it in for reference.
-            // velocity = -e * (c2 * omegaD * cos - c1 * omegaD * sin) - omegaZeta * displacement;
         }
         // Overdamped
         else if (dampingRatio > 1) {
@@ -243,7 +241,12 @@ public struct Spring {
         double omega0 = Mathf.Sqrt(stiffness / mass); // natural angular frequency (ωn) of the spring measured in radians/s
         double dampingRatio = damping / (2 * omega0);
         double omegaZeta = omega0 * dampingRatio;
-        
+
+        // An undamped spring oscillates forever and never settles. Guard here so we don't divide by
+        // -omegaZeta (== 0) below, which would otherwise give +Infinity — or NaN in the corner case where
+        // the log numerator is also 0 (x0 + |v0| == epsilon).
+        if (dampingRatio <= 0) return Mathf.Infinity;
+
         double t;
 
         // Underdamped
@@ -257,7 +260,7 @@ public struct Spring {
             var z1 = dampingRatio * -omega0 - omegaD;
             var z2 = dampingRatio * -omega0 + omegaD;
 
-// Pre-calculate the inverse of the absolute values of z1 and z2 to reduce divisions
+            // Pre-calculate the inverse of the absolute values of z1 and z2 to reduce divisions
             var invAbsZ1 = 1 / Math.Abs(z1);
             var invAbsZ2 = 1 / Math.Abs(z2);
 
@@ -353,7 +356,7 @@ public struct Spring {
         var omega0 = Mathf.Sqrt(stiffness / mass); // natural angular frequency (ωn) of the spring measured in radians/s
         var dampingRatio = damping / (2 * omega0);
         
-        // Only underdamped springs oscellate
+        // Only underdamped springs oscillate
         if (dampingRatio < 1) {
             var omegaD = omega0 * Mathf.Sqrt(1 - dampingRatio * dampingRatio); // damped angular frequency
         
@@ -375,7 +378,7 @@ public struct Spring {
 
             return timeOfMaxDisplacement;
         }
-        // Critically and overdamped springs do not oscellate, but they reach a settling point after a time.
+        // Critically and overdamped springs do not oscillate, but they reach a settling point after a time.
         else {
             return SettlingDuration(startValue, endValue, initialVelocity, mass, stiffness, damping, 0.0000001f);
         }

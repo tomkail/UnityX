@@ -71,41 +71,21 @@ public class SpringDamper {
 	}
 
 
-	// Explicit-Euler springs go unstable if a single integration step is too large (a low frame rate could
-	// push the spring out of equilibrium). Rather than hard-code the step to 1/60 (which ignored the caller's
-	// deltaTime and made the spring run at the wrong speed off 60fps), we sub-step the real deltaTime into
-	// fixed <= 1/60s chunks: stable per-step AND framerate-independent. Total simulated time is capped at 1s
-	// to guard against a huge hitch causing a catch-up spiral. (An analytic damped spring —
-	// http://www.ryanjuckett.com/programming/damped-springs/ — would be exact; sub-stepping is simple + stable.)
-	const float maxSpringStep = 1f/60f;
-
+	// Delegates to the analytic (closed-form) damped-spring solver in `Spring` — deterministic and
+	// framerate-independent, so there's no need for the old fixed-1/60 hack or explicit-Euler sub-stepping.
+	// `Spring.Update` is a Mathf.SmoothDamp-style step; SpringDamper models a unit-mass spring, so mass = 1.
 	public static float DampedSpring(float current, float target, ref float velocity, float springConstant, float damping) {
 		return DampedSpring(current, target, ref velocity, springConstant, damping, Time.deltaTime);
 	}
 	public static float DampedSpring(float current, float target, ref float velocity, float springConstant, float damping, float deltaTime) {
-		float remaining = Mathf.Min(deltaTime, 1f);
-		while (remaining > 0f) {
-			float dt = Mathf.Min(maxSpringStep, remaining);
-			remaining -= dt;
-			float force = (target - current) * springConstant + velocity * -damping;
-			velocity += force * dt;
-			current += velocity * dt;
-		}
-		return current;
+		return Spring.Update(current, target, ref velocity, 1f, springConstant, damping, deltaTime);
 	}
 
 	public static float CriticallyDampedSpring(float current, float target, ref float velocity, float springConstant) {
 		return CriticallyDampedSpring(current, target, ref velocity, springConstant, Time.deltaTime);
 	}
 	public static float CriticallyDampedSpring(float current, float target, ref float velocity, float springConstant, float deltaTime) {
-		float remaining = Mathf.Min(deltaTime, 1f);
-		while (remaining > 0f) {
-			float dt = Mathf.Min(maxSpringStep, remaining);
-			remaining -= dt;
-			float force = (target - current) * springConstant + (-velocity * 2 * Mathf.Sqrt(springConstant));
-			velocity += force * dt;
-			current += velocity * dt;
-		}
-		return current;
+		// Critical damping for a unit-mass spring: damping = 2·√stiffness (dampingRatio == 1).
+		return Spring.Update(current, target, ref velocity, 1f, springConstant, 2f * Mathf.Sqrt(springConstant), deltaTime);
 	}
 }

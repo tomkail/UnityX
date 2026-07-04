@@ -18,9 +18,13 @@ public static class HierarchyX {
 				var scene = SceneManager.GetSceneAt(i);
 				if (!scene.isLoaded) continue;
 				foreach (var root in scene.GetRootGameObjects()) {
-					// SetExpandedRecursive takes an int id; GetInstanceID() is deprecated, and EntityId
-					// won't auto-convert through reflection's boxed object[], so cast it to int explicitly.
-					setExpandedRecursiveMethod.Invoke(hierarchy, new object[] { (int)root.GetEntityId(), false });
+					// SceneHierarchyWindow.SetExpandedRecursive is an internal Unity API that still takes an
+					// int instance id (there is no EntityId overload). Unity gives no lossless EntityId->int
+					// conversion, so GetInstanceID() is the correct value to pass here — the obsolete warning
+					// is suppressed as the documented stopgap for legacy int-typed APIs we can't change.
+#pragma warning disable 618
+					setExpandedRecursiveMethod.Invoke(hierarchy, new object[] { root.GetInstanceID(), false });
+#pragma warning restore 618
 				}
 			}
 		}
