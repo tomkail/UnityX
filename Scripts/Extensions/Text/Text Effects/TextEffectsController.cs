@@ -11,17 +11,20 @@ public class TextEffectProperties {
     public float faceDilate;
     [Range(0f,1f)]
     public float softness;
-    
+
     [Space]
-    // public bool outlineEnabled = false;
+    public bool outlineEnabled;
     [ColorUsage(true, true)]
     public Color outlineColor;
     [Range(0f,1f)]
     public float outlineWidth;
-    // public Color outline2Color;
-    // [Range(0f,1f)]
-    // public float outline2Width;
-    
+    // Second outline: only takes effect on shaders that expose _Outline2Color/_Outline2Width
+    // (e.g. the SDF-Overlay / two-outline TMP shaders); on other shaders the writes are guarded out below.
+    [ColorUsage(true, true)]
+    public Color outline2Color;
+    [Range(0f,1f)]
+    public float outline2Width;
+
     [Space]
     public bool glowEnabled;
     [Range(0f,1f)]
@@ -36,15 +39,18 @@ public class TextEffectProperties {
     public void ApplyToMaterial(Material fontMaterial) {
         fontMaterial.SetColor(ShaderUtilities.ID_FaceColor, faceColor);
         fontMaterial.SetFloat(ShaderUtilities.ID_FaceDilate, faceDilate);
-    
-        // if(outlineEnabled) fontMaterial.EnableKeyword(ShaderUtilities.Keyword_Outline);
-        // else fontMaterial.DisableKeyword(ShaderUtilities.Keyword_Outline);
+
+        if(outlineEnabled) fontMaterial.EnableKeyword(ShaderUtilities.Keyword_Outline);
+        else fontMaterial.DisableKeyword(ShaderUtilities.Keyword_Outline);
         fontMaterial.SetFloat(ShaderUtilities.ID_OutlineSoftness, softness);
         fontMaterial.SetColor(ShaderUtilities.ID_OutlineColor, outlineColor);
-        fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, outlineWidth);
-        // fontMaterial.SetColor(ShaderUtilities.ID_Outline2Color, outline2Color);
-        // fontMaterial.SetFloat(ShaderUtilities.ID_Outline2Width, outline2Width);
-    
+        // Zero the width when disabled so the outline vanishes even on shaders that don't gate it by keyword.
+        fontMaterial.SetFloat(ShaderUtilities.ID_OutlineWidth, outlineEnabled ? outlineWidth : 0f);
+        if(fontMaterial.HasProperty(ShaderUtilities.ID_Outline2Color)) {
+            fontMaterial.SetColor(ShaderUtilities.ID_Outline2Color, outline2Color);
+            fontMaterial.SetFloat(ShaderUtilities.ID_Outline2Width, outline2Width);
+        }
+
         if(glowEnabled) fontMaterial.EnableKeyword(ShaderUtilities.Keyword_Glow);
         else fontMaterial.DisableKeyword(ShaderUtilities.Keyword_Glow);
         fontMaterial.SetFloat(ShaderUtilities.ID_GlowPower, glowPower);
@@ -60,16 +66,17 @@ public class TextEffectsController : MonoBehaviour
 {
     public TMP_Text m_TextComponent;
     [NonSerialized] bool isDirty;
-    // [System.NonSerialized] Material m_TextBaseMaterial;
+    // The shared material the text used before we swapped in our controlled instance; restored on disable.
+    [NonSerialized] Material m_TextBaseMaterial;
     [NonSerialized] Material fontMaterial;
 
     public TextEffectProperties effects;
-    
+
 
     public void SetDirty() {
         isDirty = true;
     }
-    
+
     void Reset() {
         m_TextComponent = GetComponent<TMP_Text>();
     }
@@ -81,42 +88,44 @@ public class TextEffectsController : MonoBehaviour
     void OnEnable() {
         m_TextComponent = GetComponent<TMP_Text>();
         m_TextComponent.RegisterDirtyVerticesCallback(OnDirtyVerts);
-        
-        // Create new instance of the material assigned to the text object
-        // Assumes all text objects will use the same highlight
-        // m_TextComponent.RegisterDirtyLayoutCallback(OnDirtyVerts);
-        // m_TextComponent.RegisterDirtyMaterialCallback(OnDirtyVerts);
-        // m_TextComponent.OnPreRenderText += OnPreRenderText;
 
+        // Create a per-object instance of the text's material so our effect tweaks don't mutate the shared asset.
         Init();
-            
         Refresh();
     }
 
     void Init() {
-        // if (m_TextComponent.fontSharedMaterial != null)
-        //     m_TextBaseMaterial = new Material(m_TextComponent.font.material);
+        // Capture the original shared material once, so OnDisable can put it back.
+        if (m_TextBaseMaterial == null && m_TextComponent.fontSharedMaterial != null && m_TextComponent.fontSharedMaterial != fontMaterial)
+            m_TextBaseMaterial = m_TextComponent.fontSharedMaterial;
 
-        if (m_TextComponent.fontSharedMaterial != null) {
-            fontMaterial = new Material(m_TextComponent.font.material);
-            fontMaterial.name = "Controlled Font Material";
+        var sourceMaterial = m_TextBaseMaterial != null ? m_TextBaseMaterial : (m_TextComponent.font != null ? m_TextComponent.font.material : null);
+        if (sourceMaterial == null) return;
 
-            // Need to manually copy the shader keywords
-            fontMaterial.shaderKeywords = m_TextComponent.fontSharedMaterial.shaderKeywords;
-            m_TextComponent.fontMaterial = fontMaterial;
-        }
+        // Destroy the previous instance before creating a new one — Init runs repeatedly from Update(),
+        // so without this every re-init would leak a Material.
+        DestroyControlledMaterial();
+
+        fontMaterial = new Material(sourceMaterial);
+        fontMaterial.name = "Controlled Font Material";
+        // Need to manually copy the shader keywords
+        fontMaterial.shaderKeywords = sourceMaterial.shaderKeywords;
+        m_TextComponent.fontMaterial = fontMaterial;
     }
 
     void OnDisable() {
-        // m_TextComponent.fontSharedMaterial = m_TextBaseMaterial;
         m_TextComponent.UnregisterDirtyVerticesCallback(OnDirtyVerts);
-        // m_TextComponent.UnregisterDirtyLayoutCallback(OnDirtyVerts);
-        // m_TextComponent.UnregisterDirtyMaterialCallback(OnDirtyVerts);
-        // m_TextComponent.OnPreRenderText -= OnPreRenderText;
+        // Restore the original shared material and free our instance.
+        if (m_TextBaseMaterial != null) m_TextComponent.fontSharedMaterial = m_TextBaseMaterial;
+        DestroyControlledMaterial();
+        m_TextBaseMaterial = null;
     }
 
-    void OnPreRenderText(TMP_TextInfo textInfo) {
-        Refresh();
+    void DestroyControlledMaterial() {
+        if (fontMaterial == null) return;
+        if (Application.isPlaying) Destroy(fontMaterial);
+        else DestroyImmediate(fontMaterial);
+        fontMaterial = null;
     }
 
     [NonSerialized] bool internalRefresh;
@@ -139,23 +148,19 @@ public class TextEffectsController : MonoBehaviour
             Init();
             SetDirty();
         }
-        
+
         if (isDirty)
             Refresh();
     }
-    
+
     void Refresh() {
+        if (effects == null || fontMaterial == null) return;
         internalRefresh = true;
-        if (effects == null) return;
-        if (fontMaterial == null) return;
         effects.ApplyToMaterial(fontMaterial);
-        // Reassigning fontMaterial is expensive (it instantiates a new material), so only do it when it actually differs (see the guard below).
+        // Reassigning fontMaterial is expensive (it instantiates a new material), so only do it when it actually differs.
         if (m_TextComponent.fontMaterial != fontMaterial)
             m_TextComponent.fontMaterial = fontMaterial;
-
-        // m_TextComponent.SetLayoutDirty();
-        // m_TextComponent.UpdateMeshPadding();
-        // isDirty = false;
+        isDirty = false;
         internalRefresh = false;
     }
 }

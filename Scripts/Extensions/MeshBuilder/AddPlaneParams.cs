@@ -41,12 +41,5 @@ namespace UnityX.MeshBuilder
 				return _standard;
 			}
 		}
-
-		// public AddPlaneParams () {
-		// 	Vector2 uvTopLeft = new Vector2(0,1);
-		// Vector2 uvTopRight = new Vector2(1,1);
-		// Vector2 uvBottomRight = new Vector2(1,0);
-		// Vector2 uvBottomLeft = new Vector2(0,0);
-		// }
 	}
 }

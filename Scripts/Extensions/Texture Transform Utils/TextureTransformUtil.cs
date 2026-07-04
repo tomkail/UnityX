@@ -5,11 +5,11 @@ using UnityEngine.Experimental.Rendering;
 // Uses a material by default, but can also use Graphics.DrawTexture; I assume the latter is faster but it doesn't deal with 0 alpha so well for some reason?
 public static class TextureTransformUtil {
 	public enum ImageOrientation { Unknown = -1, Normal = 0, Rotate90 = 1, Rotate180 = 2, Rotate270 = 3, FlipHorizontal = 4, Transpose = 5, FlipVertical = 6, Transverse = 7 }
-    
+
 	public static ImageOrientation GetOrientation(int rotation, bool flipHorizontal) {
 		var correctedRotation = rotation%360;
 		if (correctedRotation < 0) correctedRotation += 360;
-        
+
 		if (correctedRotation == 0 && !flipHorizontal) return ImageOrientation.Normal;
 		if (correctedRotation == 90 && !flipHorizontal) return ImageOrientation.Rotate90;
 		if (correctedRotation == 180 && !flipHorizontal) return ImageOrientation.Rotate180;
@@ -21,14 +21,14 @@ public static class TextureTransformUtil {
 		Debug.LogWarning("GetOrientation rotation must be a multiple of 90");
 		return ImageOrientation.Unknown;
 	}
-    
+
 	public static Vector2Int GetRotatedSize(Vector2Int size, ImageOrientation orientation) {
 		var swapWidthAndHeight = orientation is ImageOrientation.Rotate90 or ImageOrientation.Rotate270 or ImageOrientation.Transpose or ImageOrientation.Transverse;
 		if (swapWidthAndHeight) return new Vector2Int(size.y, size.x);
 		else return size;
 	}
-	
-	
+
+
     static Material _imageOrientationProcessingMaterial;
     static Material imageOrientationProcessingMaterial {
         get {
@@ -37,38 +37,51 @@ public static class TextureTransformUtil {
         }
     }
 
-    public static Texture2D CopyWithImageOrientation(Texture2D inputTexture, ImageOrientation orientation) {
-	    return CopyWithSizeAndImageOrientation(inputTexture, new Vector2Int(inputTexture.width, inputTexture.height), orientation);
-    }
+    // ---- Public Copy/Apply wrappers ----
+    // "Copy" returns a new readable Texture2D; "Apply" writes back into the input texture.
+    // Each comes in a material-Blit variant and a Graphics.DrawTexture variant ("…ViaGraphics"),
+    // differing only in which GPU core builds the temporary RenderTexture (see the two cores below).
 
-    public static Texture2D CopyWithSizeAndImageOrientation(Texture inputTexture, Vector2Int newSize, ImageOrientation orientation) {
-        var tempRT = GetTemporaryRTWithNewSizeAndImageOrientation(inputTexture, newSize, orientation);
+    public static Texture2D CopyWithImageOrientation(Texture2D inputTexture, ImageOrientation orientation)
+        => CopyWithSizeAndImageOrientation(inputTexture, new Vector2Int(inputTexture.width, inputTexture.height), orientation);
+
+    public static Texture2D CopyWithSizeAndImageOrientation(Texture inputTexture, Vector2Int newSize, ImageOrientation orientation)
+        => CopyFromTemporaryRT(GetTemporaryRTWithNewSizeAndImageOrientation(inputTexture, newSize, orientation));
+
+    public static Texture2D CopyWithImageOrientationViaGraphics(Texture inputTexture, ImageOrientation orientation)
+        => CopyWithSizeAndImageOrientationViaGraphics(inputTexture, new Vector2Int(inputTexture.width, inputTexture.height), orientation);
+
+    public static Texture2D CopyWithSizeAndImageOrientationViaGraphics(Texture inputTexture, Vector2Int newSize, ImageOrientation orientation)
+        => CopyFromTemporaryRT(GetTemporaryRTWithNewSizeAndImageOrientationViaGraphics(inputTexture, newSize, orientation));
+
+    public static void ApplyImageOrientation(Texture2D rawTexture, ImageOrientation orientation)
+        => ApplySizeAndImageOrientation(rawTexture, new Vector2Int(rawTexture.width, rawTexture.height), orientation);
+
+    public static void ApplySizeAndImageOrientation(Texture2D inputTexture, Vector2Int newSize, ImageOrientation orientation)
+        => ApplyFromTemporaryRT(inputTexture, GetTemporaryRTWithNewSizeAndImageOrientation(inputTexture, newSize, orientation));
+
+    public static void ApplyImageOrientationViaGraphics(Texture2D inputTexture, ImageOrientation orientation)
+        => ApplyFromTemporaryRT(inputTexture, GetTemporaryRTWithNewSizeAndImageOrientationViaGraphics(inputTexture, new Vector2Int(inputTexture.width, inputTexture.height), orientation));
+
+    // Shared tails: get-readable-then-release (Copy), and reinit-if-resized-then-read-back (Apply).
+    static Texture2D CopyFromTemporaryRT(RenderTexture tempRT) {
         var resultTexture = GetReadableTexture(tempRT);
         RenderTexture.ReleaseTemporary(tempRT);
         return resultTexture;
     }
-    
-    public static Texture2D CopyWithSizeAndImageOrientation2(Texture inputTexture, Vector2Int newSize, ImageOrientation orientation) {
-	    var tempRT = GetTemporaryRTWithNewSizeAndImageOrientationViaGraphics(inputTexture, newSize, orientation);
-	    var resultTexture = GetReadableTexture(tempRT);
-	    RenderTexture.ReleaseTemporary(tempRT);
-	    return resultTexture;
-    }
-    
-    public static void ApplyImageOrientation(Texture2D rawTexture, ImageOrientation orientation) {
-        ApplySizeAndImageOrientation(rawTexture, new Vector2Int(rawTexture.width, rawTexture.height), orientation);
-    }
-    public static void ApplySizeAndImageOrientation(Texture2D inputTexture, Vector2Int newSize, ImageOrientation orientation) {
-        var tempRT = GetTemporaryRTWithNewSizeAndImageOrientation(inputTexture, newSize, orientation);
+    static void ApplyFromTemporaryRT(Texture2D inputTexture, RenderTexture tempRT) {
         if(inputTexture.width != tempRT.width) inputTexture.Reinitialize(tempRT.width, tempRT.height, inputTexture.graphicsFormat, false);
         GetReadableTexture(tempRT, inputTexture);
         RenderTexture.ReleaseTemporary(tempRT);
     }
-    
+
+
+    // ---- GPU cores (legitimately distinct) ----
 
     public static RenderTexture GetTemporaryRTWithImageOrientation(Texture inputTexture, ImageOrientation orientation) {
 	    return GetTemporaryRTWithNewSizeAndImageOrientation(inputTexture, new Vector2Int(inputTexture.width, inputTexture.height), orientation);
     }
+    // Material core: orientation is baked into the ApplyImageOrientation shader, so a single Blit works.
     public static RenderTexture GetTemporaryRTWithNewSizeAndImageOrientation(Texture inputTexture, Vector2Int unrotatedRenderTextureSize, ImageOrientation orientation) {
 	    var size = GetRotatedSize(new Vector2Int(unrotatedRenderTextureSize.x, unrotatedRenderTextureSize.y), orientation);
 	    var tempRT = RenderTexture.GetTemporary(new RenderTextureDescriptor(size.x, size.y, SystemInfo.GetCompatibleFormat(inputTexture.graphicsFormat, GraphicsFormatUsage.Render), 0));
@@ -76,27 +89,15 @@ public static class TextureTransformUtil {
 	    Graphics.Blit(inputTexture, tempRT, imageOrientationProcessingMaterial);
 	    return tempRT;
     }
-    
-    
-    public static void ApplyImageOrientationViaGraphics(Texture2D inputTexture, ImageOrientation orientation) {
-	    var tempRT = GetTemporaryRTWithNewSizeAndImageOrientationViaGraphics(inputTexture, new Vector2Int(inputTexture.width, inputTexture.height), orientation);
-	    if(inputTexture.width != tempRT.width) inputTexture.Reinitialize(tempRT.width, tempRT.height, inputTexture.graphicsFormat, false);
-	    GetReadableTexture(tempRT, inputTexture);
-	    RenderTexture.ReleaseTemporary(tempRT);
-    }
-    public static Texture2D CopyWithImageOrientationViaGraphics(Texture inputTexture, ImageOrientation orientation) {
-	    var tempRT = GetTemporaryRTWithNewSizeAndImageOrientationViaGraphics(inputTexture, new Vector2Int(inputTexture.width, inputTexture.height), orientation);
-	    var resultTexture = GetReadableTexture(tempRT);
-	    RenderTexture.ReleaseTemporary(tempRT);
-	    return resultTexture;
-    }
-    
+
+    // Graphics core: no shader; orientation is applied via a GL matrix + Graphics.DrawTexture
+    // (Blit can't flip without a material). Presumably faster but handles 0-alpha less well.
     public static RenderTexture GetTemporaryRTWithNewSizeAndImageOrientationViaGraphics(Texture inputTexture, Vector2Int newSize, ImageOrientation orientation) {
-	    var size = GetRotatedSize(new Vector2Int(newSize.x, newSize.y), orientation); 
-	    
+	    var size = GetRotatedSize(new Vector2Int(newSize.x, newSize.y), orientation);
+
 	    RenderTextureDescriptor descriptor = new RenderTextureDescriptor(size.x, size.y, SystemInfo.GetCompatibleFormat(inputTexture.graphicsFormat, GraphicsFormatUsage.Render), 0);
 	    var tempRT = RenderTexture.GetTemporary(descriptor);
-	    
+
 		Matrix4x4 m = Matrix4x4.identity;
 		switch (orientation)
 		{
@@ -155,7 +156,7 @@ public static class TextureTransformUtil {
 		targetTexture.ReadPixels(new Rect(0f, 0f, inputTexture.width, inputTexture.height), 0, 0, false);
 		RenderTexture.active = prevRT;
 		targetTexture.Apply(false, false);
-		
+
 		return targetTexture;
 	}
 }

@@ -23,16 +23,13 @@ public class NoiseSamplerPropertyDrawer : PropertyDrawer {
 		
 		if (property.isExpanded) {
 			EditorGUI.indentLevel++;
-			
-			var noiseProperties = property.FindPropertyRelative("properties");
+
 			Rect positionRect = new Rect(position.x, position.y + (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) * 1, position.width, EditorGUIUtility.singleLineHeight);
-			
+
 			EditorGUI.PropertyField(positionRect, positionProp, new GUIContent(new GUIContent("Position")));
 
-			// if (noiseProperties.isExpanded) {
-				var noiseParamsPropertyDrawer = new NoiseSamplerPropertiesPropertyDrawer();
-				noiseParamsPropertyDrawer.Draw(new Rect(position.x, positionRect.yMax+EditorGUIUtility.standardVerticalSpacing, position.width, position.height), property.FindPropertyRelative("properties"), label, positionProp.vector3Value);
-			// }
+			var noiseParamsPropertyDrawer = new NoiseSamplerPropertiesPropertyDrawer();
+			noiseParamsPropertyDrawer.Draw(new Rect(position.x, positionRect.yMax+EditorGUIUtility.standardVerticalSpacing, position.width, position.height), property.FindPropertyRelative("properties"), label, positionProp.vector3Value);
 			EditorGUI.indentLevel--;
 		}
 		
@@ -45,11 +42,8 @@ public class NoiseSamplerPropertyDrawer : PropertyDrawer {
 		} else {
 			if (property.isExpanded) {
 				var noiseProperties = property.FindPropertyRelative("properties");
-				var noiseHeight = 0f;
-				// if (noiseProperties.isExpanded) {
-					var noiseParamsPropertyDrawer = new NoiseSamplerPropertiesPropertyDrawer();
-					noiseHeight = noiseParamsPropertyDrawer.GetPropertyHeight(noiseProperties, label);
-				// }
+				var noiseParamsPropertyDrawer = new NoiseSamplerPropertiesPropertyDrawer();
+				var noiseHeight = noiseParamsPropertyDrawer.GetPropertyHeight(noiseProperties, label);
 
 				return (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) * 2 + noiseHeight;
 			}

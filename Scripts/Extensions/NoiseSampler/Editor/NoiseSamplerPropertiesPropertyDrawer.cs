@@ -5,16 +5,8 @@ using UnityEngine;
 [CustomPropertyDrawer(typeof (NoiseSamplerProperties))]
 public class NoiseSamplerPropertiesPropertyDrawer : PropertyDrawer {
     const float curveHeight = 40;
-    static float graphXRange = 20;
-	
-    static Texture _currentPositionMarkerIcon;
-    static Texture currentPositionMarkerIcon {
-        get {
-            if (_currentPositionMarkerIcon == null) _currentPositionMarkerIcon = EditorGUIUtility.IconContent("d_curvekeyframeselected").image;
-            return _currentPositionMarkerIcon;
-        }
-    }
-	
+    const float graphXRange = 20;
+
     public override void OnGUI (Rect position, SerializedProperty property, GUIContent label) {
         EditorGUI.BeginProperty (position, label, property);
         Draw(position, property, label, Vector3.zero);
@@ -130,10 +122,7 @@ public class NoiseSamplerPropertiesPropertyDrawer : PropertyDrawer {
         EditorGUI.BeginDisabledGroup(true);
         graphGUI.DrawSpringGraph(rect, (indentedGraphRect) => {
             {
-                var pointerPosition = 0.5f;
-                var normalizedRectCoordinates = new Vector2(pointerPosition, 1);
-                var pos = Rect.NormalizedToPoint(indentedGraphRect, normalizedRectCoordinates);
-                // GUI.DrawTexture(CreateFromCenter(pos.x, pos.y+1, 16, 16), currentPositionMarkerIcon);
+                // Vertical marker line at the graph's horizontal centre (the sampled position).
                 Color savedColor = GUI.color;
                 GUI.color = Color.gray;
                 GUI.DrawTexture(new Rect(indentedGraphRect.x+indentedGraphRect.width*0.5f, indentedGraphRect.y, 1, indentedGraphRect.height), Texture2D.whiteTexture);
@@ -146,177 +135,174 @@ public class NoiseSamplerPropertiesPropertyDrawer : PropertyDrawer {
     }
 	
     public class GraphGUI {
-    public AnimationCurve curve;
-    public Rect curveValueRanges;
-    public Rect viewValueRanges;
+        public AnimationCurve curve;
+        public Rect curveValueRanges;
+        public Rect viewValueRanges;
     
-    GUIStyle labelStyle => EditorStyles.centeredGreyMiniLabel;
+        GUIStyle labelStyle => EditorStyles.centeredGreyMiniLabel;
 
-    static int scaleHeight = 14;
-    static int scaleMargin = 2;
-    public bool showHoverTooltip;
+        static int scaleHeight = 14;
+        static int scaleMargin = 2;
+        public bool showHoverTooltip;
 
-    // Create a new graph GUI for the given curve and sets the rect of the graph to the range of the curve
-    public GraphGUI(AnimationCurve curve) {
-        this.curve = curve;
+        // Create a new graph GUI for the given curve and sets the rect of the graph to the range of the curve
+        public GraphGUI(AnimationCurve curve) {
+            this.curve = curve;
 
-        curveValueRanges = viewValueRanges = Rect.MinMaxRect(curve.keys.Min(x => x.time), curve.keys.Min(x => x.value), curve.keys.Max(x => x.time), curve.keys.Max(x => x.value));
+            curveValueRanges = viewValueRanges = Rect.MinMaxRect(curve.keys.Min(x => x.time), curve.keys.Min(x => x.value), curve.keys.Max(x => x.time), curve.keys.Max(x => x.value));
 
-        if (viewValueRanges.height == 0) {
-            viewValueRanges.yMin -= 1;
-            viewValueRanges.yMax += 1;
-        } else {
-            viewValueRanges.yMin -= (viewValueRanges.yMax - viewValueRanges.yMin) * 0.35f;
-            viewValueRanges.yMax += (viewValueRanges.yMax - viewValueRanges.yMin) * 0.35f;
+            if (viewValueRanges.height == 0) {
+                viewValueRanges.yMin -= 1;
+                viewValueRanges.yMax += 1;
+            } else {
+                viewValueRanges.yMin -= (viewValueRanges.yMax - viewValueRanges.yMin) * 0.35f;
+                viewValueRanges.yMax += (viewValueRanges.yMax - viewValueRanges.yMin) * 0.35f;
+            }
         }
-    }
     
-    public delegate void OnDrawIndentedGraphGUI(Rect indentedGraphRect);
-    // Draw the graph. Provides callback to draw additional GUI elements inside the graph area
-    public void DrawSpringGraph(Rect rect, OnDrawIndentedGraphGUI onDrawIndentedGraphGUI) {
-        var graphRect = new Rect(rect.x, rect.y, rect.width, rect.height-scaleHeight);
-        EditorGUI.CurveField(graphRect, GUIContent.none, curve, Color.white, viewValueRanges);
-        var indentedGraphRect = EditorGUI.IndentedRect(graphRect);
-        onDrawIndentedGraphGUI?.Invoke(indentedGraphRect);
+        public delegate void OnDrawIndentedGraphGUI(Rect indentedGraphRect);
+        // Draw the graph. Provides callback to draw additional GUI elements inside the graph area
+        public void DrawSpringGraph(Rect rect, OnDrawIndentedGraphGUI onDrawIndentedGraphGUI) {
+            var graphRect = new Rect(rect.x, rect.y, rect.width, rect.height-scaleHeight);
+            EditorGUI.CurveField(graphRect, GUIContent.none, curve, Color.white, viewValueRanges);
+            var indentedGraphRect = EditorGUI.IndentedRect(graphRect);
+            onDrawIndentedGraphGUI?.Invoke(indentedGraphRect);
         
-        if (showHoverTooltip && indentedGraphRect.Contains(Event.current.mousePosition)) {
-            var normalizedTime = Rect.PointToNormalized(indentedGraphRect, Event.current.mousePosition).x;
-            var time = Mathf.Lerp(viewValueRanges.xMin, viewValueRanges.xMax, normalizedTime);
-            var value = curve.Evaluate(time);
-            var label = new GUIContent($"Time: {RoundToSignificantDigits(2, time).ToString(CultureInfo.CurrentCulture)}\nValue: {RoundToSignificantDigits(2, value).ToString(CultureInfo.CurrentCulture)}");
-            var labelSize = EditorStyles.helpBox.CalcSize(label);
-            var tooltipPivotPosition = TimeAndValueToGUIRectPosition(indentedGraphRect, time, value);
-            var tooltipRect = new Rect(tooltipPivotPosition.x - labelSize.x * 0.5f, tooltipPivotPosition.y-labelSize.y, labelSize.x, labelSize.y);
-            GUI.Box(tooltipRect, label, EditorStyles.helpBox);
+            if (showHoverTooltip && indentedGraphRect.Contains(Event.current.mousePosition)) {
+                var normalizedTime = Rect.PointToNormalized(indentedGraphRect, Event.current.mousePosition).x;
+                var time = Mathf.Lerp(viewValueRanges.xMin, viewValueRanges.xMax, normalizedTime);
+                var value = curve.Evaluate(time);
+                var label = new GUIContent($"Time: {RoundToSignificantDigits(2, time).ToString(CultureInfo.CurrentCulture)}\nValue: {RoundToSignificantDigits(2, value).ToString(CultureInfo.CurrentCulture)}");
+                var labelSize = EditorStyles.helpBox.CalcSize(label);
+                var tooltipPivotPosition = TimeAndValueToGUIRectPosition(indentedGraphRect, time, value);
+                var tooltipRect = new Rect(tooltipPivotPosition.x - labelSize.x * 0.5f, tooltipPivotPosition.y-labelSize.y, labelSize.x, labelSize.y);
+                GUI.Box(tooltipRect, label, EditorStyles.helpBox);
+            }
         }
-    }
     
-    public Vector2 TimeAndValueToNormalized(float time, float value) {
-        return new Vector2(Mathf.InverseLerp(viewValueRanges.xMin, viewValueRanges.xMax, time), Mathf.InverseLerp(viewValueRanges.yMin, viewValueRanges.yMax, value));
-    }
+        public Vector2 TimeAndValueToNormalized(float time, float value) {
+            return new Vector2(Mathf.InverseLerp(viewValueRanges.xMin, viewValueRanges.xMax, time), Mathf.InverseLerp(viewValueRanges.yMin, viewValueRanges.yMax, value));
+        }
 	
-    public Vector2 TimeAndValueToGUIRectPosition(Rect indentedGraphRect, float time, float value) {
-        var normalizedTimeAndValue = TimeAndValueToNormalized(time, value);
-        normalizedTimeAndValue.y = 1 - normalizedTimeAndValue.y;
-        return Rect.NormalizedToPoint(indentedGraphRect, normalizedTimeAndValue);
-    }
-
-    public void DrawXAxisLabel(Rect indentedGraphRect, string labelStr) => DrawXAxisLabel(indentedGraphRect, new GUIContent(labelStr));
-    public void DrawXAxisLabel(Rect indentedGraphRect, GUIContent label) {
-        var labelSize = labelStyle.CalcSize(label);
-        GUI.Label(CreateRectFromCenter(indentedGraphRect.center.x, indentedGraphRect.yMax + scaleMargin + labelSize.y * 0.5f, labelSize.x, labelSize.y), label, labelStyle);
-    }
-    
-    public void DrawYAxisLabel(Rect indentedGraphRect, string labelStr) => DrawYAxisLabel(indentedGraphRect, new GUIContent(labelStr));
-    public void DrawYAxisLabel(Rect indentedGraphRect, GUIContent label) {
-        var labelSize = labelStyle.CalcSize(label);
-        GUI.Label(CreateRectFromCenter(indentedGraphRect.xMin - scaleMargin - labelSize.x * 0.5f, indentedGraphRect.center.y, labelSize.x, labelSize.y), label, labelStyle);
-    }
-    
-    
-    public void DrawXScaleLabel(Rect indentedGraphRect, float time, string label) {
-        var minTimeLabel = new GUIContent(label);
-        var minTimeLabelSize = labelStyle.CalcSize(minTimeLabel);
-        var position = TimeAndValueToGUIRectPosition(indentedGraphRect, time, viewValueRanges.yMin);
-        // DrawLine(new Vector2(position.x, position.y), new Vector2(position.x, position.y + scaleMargin), labelStyle.normal.textColor, 1);
-        GUI.Label(CreateRectFromCenter(position.x, position.y + scaleMargin + minTimeLabelSize.y * 0.5f, minTimeLabelSize.x, minTimeLabelSize.y), minTimeLabel, labelStyle);
-    }
-    
-    // Displays the values of the view value ranges on the graph. Offsets them so they don't overshoot the graph rect.
-    public void DrawXMinMaxScaleLabels(Rect indentedGraphRect) {
-        var minMaxScaleLabels = RoundToSignificantDigits(2, curveValueRanges.xMin, curveValueRanges.xMax);
-        {
-            var label = new GUIContent(minMaxScaleLabels[0].ToString(CultureInfo.CurrentCulture));
-            var labelSize = labelStyle.CalcSize(label);
-            var position = TimeAndValueToGUIRectPosition(indentedGraphRect, curveValueRanges.xMin, viewValueRanges.yMin);
-            DrawLine(new Vector2(position.x, position.y), new Vector2(position.x, position.y + scaleMargin), labelStyle.normal.textColor, 1);
-            GUI.Label(CreateRectFromCenter(position.x + labelSize.x*0.5f, position.y + scaleMargin + labelSize.y * 0.5f, labelSize.x, labelSize.y), label, labelStyle);
+        public Vector2 TimeAndValueToGUIRectPosition(Rect indentedGraphRect, float time, float value) {
+            var normalizedTimeAndValue = TimeAndValueToNormalized(time, value);
+            normalizedTimeAndValue.y = 1 - normalizedTimeAndValue.y;
+            return Rect.NormalizedToPoint(indentedGraphRect, normalizedTimeAndValue);
         }
-        {
-            var label = new GUIContent(minMaxScaleLabels[1].ToString(CultureInfo.CurrentCulture));
+
+        public void DrawXAxisLabel(Rect indentedGraphRect, string labelStr) => DrawXAxisLabel(indentedGraphRect, new GUIContent(labelStr));
+        public void DrawXAxisLabel(Rect indentedGraphRect, GUIContent label) {
             var labelSize = labelStyle.CalcSize(label);
-            var position = TimeAndValueToGUIRectPosition(indentedGraphRect, curveValueRanges.xMax, viewValueRanges.yMin);
-            DrawLine(new Vector2(position.x, position.y), new Vector2(position.x, position.y + scaleMargin), labelStyle.normal.textColor, 1);
-            GUI.Label(CreateRectFromCenter(position.x - labelSize.x * 0.5f, position.y + scaleMargin + labelSize.y * 0.5f, labelSize.x, labelSize.y), label, labelStyle);
+            GUI.Label(CreateRectFromCenter(indentedGraphRect.center.x, indentedGraphRect.yMax + scaleMargin + labelSize.y * 0.5f, labelSize.x, labelSize.y), label, labelStyle);
         }
-    }
+    
+        public void DrawYAxisLabel(Rect indentedGraphRect, string labelStr) => DrawYAxisLabel(indentedGraphRect, new GUIContent(labelStr));
+        public void DrawYAxisLabel(Rect indentedGraphRect, GUIContent label) {
+            var labelSize = labelStyle.CalcSize(label);
+            GUI.Label(CreateRectFromCenter(indentedGraphRect.xMin - scaleMargin - labelSize.x * 0.5f, indentedGraphRect.center.y, labelSize.x, labelSize.y), label, labelStyle);
+        }
+    
+    
+        public void DrawXScaleLabel(Rect indentedGraphRect, float time, string label) {
+            var minTimeLabel = new GUIContent(label);
+            var minTimeLabelSize = labelStyle.CalcSize(minTimeLabel);
+            var position = TimeAndValueToGUIRectPosition(indentedGraphRect, time, viewValueRanges.yMin);
+            GUI.Label(CreateRectFromCenter(position.x, position.y + scaleMargin + minTimeLabelSize.y * 0.5f, minTimeLabelSize.x, minTimeLabelSize.y), minTimeLabel, labelStyle);
+        }
+    
+        // Displays the values of the view value ranges on the graph. Offsets them so they don't overshoot the graph rect.
+        public void DrawXMinMaxScaleLabels(Rect indentedGraphRect) {
+            var minMaxScaleLabels = RoundToSignificantDigits(2, curveValueRanges.xMin, curveValueRanges.xMax);
+            {
+                var label = new GUIContent(minMaxScaleLabels[0].ToString(CultureInfo.CurrentCulture));
+                var labelSize = labelStyle.CalcSize(label);
+                var position = TimeAndValueToGUIRectPosition(indentedGraphRect, curveValueRanges.xMin, viewValueRanges.yMin);
+                DrawLine(new Vector2(position.x, position.y), new Vector2(position.x, position.y + scaleMargin), labelStyle.normal.textColor, 1);
+                GUI.Label(CreateRectFromCenter(position.x + labelSize.x*0.5f, position.y + scaleMargin + labelSize.y * 0.5f, labelSize.x, labelSize.y), label, labelStyle);
+            }
+            {
+                var label = new GUIContent(minMaxScaleLabels[1].ToString(CultureInfo.CurrentCulture));
+                var labelSize = labelStyle.CalcSize(label);
+                var position = TimeAndValueToGUIRectPosition(indentedGraphRect, curveValueRanges.xMax, viewValueRanges.yMin);
+                DrawLine(new Vector2(position.x, position.y), new Vector2(position.x, position.y + scaleMargin), labelStyle.normal.textColor, 1);
+                GUI.Label(CreateRectFromCenter(position.x - labelSize.x * 0.5f, position.y + scaleMargin + labelSize.y * 0.5f, labelSize.x, labelSize.y), label, labelStyle);
+            }
+        }
 
     
     
-    public void DrawYScaleLabel(Rect indentedGraphRect, float value, string label) {
-        var minTimeLabel = new GUIContent(label);
-        var minTimeLabelSize = labelStyle.CalcSize(minTimeLabel);
-        var position = TimeAndValueToGUIRectPosition(indentedGraphRect, viewValueRanges.xMin, value);
-        DrawLine(new Vector2(position.x, position.y), new Vector2(position.x - scaleMargin, position.y), labelStyle.normal.textColor, 1);
-        GUI.Label(CreateRectFromCenter(position.x - scaleMargin - minTimeLabelSize.x * 0.5f, position.y, minTimeLabelSize.x, minTimeLabelSize.y), minTimeLabel, labelStyle);
-    }
-    
-    // Displays the values of the view value ranges on the graph. Offsets them so they don't overshoot the graph rect.
-    public void DrawYMinMaxScaleLabels(Rect indentedGraphRect) {
-        var minMaxScaleLabels = RoundToSignificantDigits(2, viewValueRanges.yMin, viewValueRanges.yMax);
-        // DrawYScaleLabel(indentedGraphRect, curveValueRanges.yMin, minMaxScaleLabels[0].ToString(CultureInfo.CurrentCulture));
-        // DrawYScaleLabel(indentedGraphRect, curveValueRanges.yMax, minMaxScaleLabels[1].ToString(CultureInfo.CurrentCulture));
-        {
-            var label = new GUIContent(minMaxScaleLabels[0].ToString(CultureInfo.CurrentCulture));
-            var labelSize = labelStyle.CalcSize(label);
-            var position = TimeAndValueToGUIRectPosition(indentedGraphRect, curveValueRanges.xMin, viewValueRanges.yMin);
+        public void DrawYScaleLabel(Rect indentedGraphRect, float value, string label) {
+            var minTimeLabel = new GUIContent(label);
+            var minTimeLabelSize = labelStyle.CalcSize(minTimeLabel);
+            var position = TimeAndValueToGUIRectPosition(indentedGraphRect, viewValueRanges.xMin, value);
             DrawLine(new Vector2(position.x, position.y), new Vector2(position.x - scaleMargin, position.y), labelStyle.normal.textColor, 1);
-            GUI.Label(CreateRectFromCenter(position.x - scaleMargin - labelSize.x*0.5f, position.y - labelSize.y*0.5f, labelSize.x, labelSize.y), label, labelStyle);
+            GUI.Label(CreateRectFromCenter(position.x - scaleMargin - minTimeLabelSize.x * 0.5f, position.y, minTimeLabelSize.x, minTimeLabelSize.y), minTimeLabel, labelStyle);
         }
-        {
-            var label = new GUIContent(minMaxScaleLabels[1].ToString(CultureInfo.CurrentCulture));
-            var labelSize = labelStyle.CalcSize(label);
-            var position = TimeAndValueToGUIRectPosition(indentedGraphRect, curveValueRanges.xMin, viewValueRanges.yMax);
-            DrawLine(new Vector2(position.x, position.y), new Vector2(position.x - scaleMargin, position.y), labelStyle.normal.textColor, 1);
-            GUI.Label(CreateRectFromCenter(position.x - scaleMargin - labelSize.x * 0.5f, position.y + labelSize.y*0.5f, labelSize.x, labelSize.y), label, labelStyle);
+    
+        // Displays the values of the view value ranges on the graph. Offsets them so they don't overshoot the graph rect.
+        public void DrawYMinMaxScaleLabels(Rect indentedGraphRect) {
+            var minMaxScaleLabels = RoundToSignificantDigits(2, viewValueRanges.yMin, viewValueRanges.yMax);
+            {
+                var label = new GUIContent(minMaxScaleLabels[0].ToString(CultureInfo.CurrentCulture));
+                var labelSize = labelStyle.CalcSize(label);
+                var position = TimeAndValueToGUIRectPosition(indentedGraphRect, curveValueRanges.xMin, viewValueRanges.yMin);
+                DrawLine(new Vector2(position.x, position.y), new Vector2(position.x - scaleMargin, position.y), labelStyle.normal.textColor, 1);
+                GUI.Label(CreateRectFromCenter(position.x - scaleMargin - labelSize.x*0.5f, position.y - labelSize.y*0.5f, labelSize.x, labelSize.y), label, labelStyle);
+            }
+            {
+                var label = new GUIContent(minMaxScaleLabels[1].ToString(CultureInfo.CurrentCulture));
+                var labelSize = labelStyle.CalcSize(label);
+                var position = TimeAndValueToGUIRectPosition(indentedGraphRect, curveValueRanges.xMin, viewValueRanges.yMax);
+                DrawLine(new Vector2(position.x, position.y), new Vector2(position.x - scaleMargin, position.y), labelStyle.normal.textColor, 1);
+                GUI.Label(CreateRectFromCenter(position.x - scaleMargin - labelSize.x * 0.5f, position.y + labelSize.y*0.5f, labelSize.x, labelSize.y), label, labelStyle);
+            }
         }
-    }
 	
-    public static Rect CreateRectFromCenter (Vector2 centerPosition, Vector2 size) {
-        return CreateRectFromCenter(centerPosition.x, centerPosition.y, size.x, size.y);
-    }
+        public static Rect CreateRectFromCenter (Vector2 centerPosition, Vector2 size) {
+            return CreateRectFromCenter(centerPosition.x, centerPosition.y, size.x, size.y);
+        }
 
-    public static Rect CreateRectFromCenter (float centerX, float centerY, float sizeX, float sizeY) {
-        return new Rect(centerX - sizeX * 0.5f, centerY - sizeY * 0.5f, sizeX, sizeY);
-    }
+        public static Rect CreateRectFromCenter (float centerX, float centerY, float sizeX, float sizeY) {
+            return new Rect(centerX - sizeX * 0.5f, centerY - sizeY * 0.5f, sizeX, sizeY);
+        }
 	
     
-    static Vector3 offset = new(0, -0.5f, 0); // Compensate for line width	
-    static Matrix4x4 guiTransMat = Matrix4x4.TRS(offset, Quaternion.identity, Vector3.one);
-    static Matrix4x4 guiTransMatInv = Matrix4x4.TRS(-offset, Quaternion.identity, Vector3.one);
-    public static void DrawLine(Vector2 pointA, Vector2 pointB, Color color, float width) {
-        if(width <= 0 || pointA == pointB || color.a == 0) return;
+        static Vector3 offset = new(0, -0.5f, 0); // Compensate for line width	
+        static Matrix4x4 guiTransMat = Matrix4x4.TRS(offset, Quaternion.identity, Vector3.one);
+        static Matrix4x4 guiTransMatInv = Matrix4x4.TRS(-offset, Quaternion.identity, Vector3.one);
+        public static void DrawLine(Vector2 pointA, Vector2 pointB, Color color, float width) {
+            if(width <= 0 || pointA == pointB || color.a == 0) return;
 
-        Matrix4x4 matrix = GUI.matrix;
-        Color savedColor = GUI.color;
-        GUI.color = color;
+            Matrix4x4 matrix = GUI.matrix;
+            Color savedColor = GUI.color;
+            GUI.color = color;
 
-        var delta = (Vector3)(pointB-pointA);
-        Quaternion guiRot = Quaternion.FromToRotation(Vector2.right, delta);
-        Matrix4x4 guiRotMat = Matrix4x4.TRS(pointA, guiRot, new Vector3(delta.magnitude, width, 1));
-        GUI.matrix = guiTransMatInv * guiRotMat * guiTransMat;
+            var delta = (Vector3)(pointB-pointA);
+            Quaternion guiRot = Quaternion.FromToRotation(Vector2.right, delta);
+            Matrix4x4 guiRotMat = Matrix4x4.TRS(pointA, guiRot, new Vector3(delta.magnitude, width, 1));
+            GUI.matrix = guiTransMatInv * guiRotMat * guiTransMat;
         
-        GUI.DrawTexture(new Rect(0, 0, 1, 1), Texture2D.whiteTexture);
-        GUI.matrix = matrix;
-        GUI.color = savedColor;
-    }
+            GUI.DrawTexture(new Rect(0, 0, 1, 1), Texture2D.whiteTexture);
+            GUI.matrix = matrix;
+            GUI.color = savedColor;
+        }
     
-    // Rounds several numbers to the same factor, using the largest number and a fixed num sig.digits by absolute value to determine the scale
-    public static float RoundToSignificantDigits(int significantDigits, float value) {
-        if(value == 0) return 0;
-        float scale = Mathf.Pow(10, Mathf.Floor(Mathf.Log10(Mathf.Abs(value))) + 1);
-        return scale * (value / scale).RoundTo(significantDigits);
-    }
-    public static float[] RoundToSignificantDigits(int significantDigits, params float[] values) {
-        // Find the largest number by absolute value to determine the scale
-        float maxNum = 0;
-        foreach (float num in values) if (Mathf.Abs(num) > Mathf.Abs(maxNum)) maxNum = num;
-        // Calculate the scale factor based on the largest number
-        float scale = Mathf.Pow(10, (int)Mathf.Floor(Mathf.Log10(Mathf.Abs(maxNum))) - (significantDigits - 1));
-        // Round all numbers using the calculated scale
-        for (int i = 0; i < values.Length; i++) values[i] = Mathf.Round(values[i] / scale) * scale;
+        // Rounds several numbers to the same factor, using the largest number and a fixed num sig.digits by absolute value to determine the scale
+        public static float RoundToSignificantDigits(int significantDigits, float value) {
+            if(value == 0) return 0;
+            float scale = Mathf.Pow(10, Mathf.Floor(Mathf.Log10(Mathf.Abs(value))) + 1);
+            return scale * (value / scale).RoundTo(significantDigits);
+        }
+        public static float[] RoundToSignificantDigits(int significantDigits, params float[] values) {
+            // Find the largest number by absolute value to determine the scale
+            float maxNum = 0;
+            foreach (float num in values) if (Mathf.Abs(num) > Mathf.Abs(maxNum)) maxNum = num;
+            // Calculate the scale factor based on the largest number
+            float scale = Mathf.Pow(10, (int)Mathf.Floor(Mathf.Log10(Mathf.Abs(maxNum))) - (significantDigits - 1));
+            // Round all numbers using the calculated scale
+            for (int i = 0; i < values.Length; i++) values[i] = Mathf.Round(values[i] / scale) * scale;
 
-        return values;
+            return values;
+        }
     }
-}
 }

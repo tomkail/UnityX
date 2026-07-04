@@ -42,7 +42,6 @@ namespace FlexLayout {
 
         public static Result GetLayoutRanges<TContainer, TItem>(TContainer layoutParams, IList<TItem> items) where TContainer : Container where TItem : Item {
             TryThrowExceptionForInvalidSettings(layoutParams, items);
-            // if (items == null || items.Count == 0) return layoutParams.totalPadding;
             Vector2 surplusOffsetPadding = Vector2.zero;
             float totalItemSpacing = layoutParams.spacing;
             

@@ -47,7 +47,6 @@ public class GLDebug : MonoSingleton<GLDebug> {
 				Shader shader = Shader.Find("Debug/GLlineZOn");
 				_matZOn = new Material(shader);
 				_matZOn.hideFlags = HideFlags.HideAndDontSave;
-//				_matZOn.shader.hideFlags = HideFlags.HideAndDontSave;
 			}
 			return _matZOn;
 		}
