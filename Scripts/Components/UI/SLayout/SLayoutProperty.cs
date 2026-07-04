@@ -38,8 +38,8 @@ public abstract class SLayoutProperty<T>
 
 public class SLayoutFloatProperty : SLayoutProperty<float> {
 	public override float Lerp(float v0, float v1, float t) {
-		// Don't use Mathf.Lerp since we want to allow extrapolation, not clamped
-		return v0 + t * (v1-v0);
+		// LerpUnclamped (not Lerp) since we want to allow extrapolation, not clamped
+		return Mathf.LerpUnclamped(v0, v1, t);
 	}
 }
 

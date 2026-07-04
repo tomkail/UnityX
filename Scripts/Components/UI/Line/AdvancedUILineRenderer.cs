@@ -172,23 +172,8 @@ namespace UnityEngine.UI.Extensions
             // }
         }
 
-        private static List<UIVertex> vertexBuffer = new List<UIVertex>(4);
-        private static List<int> indexBuffer = new List<int>(6);
         static void AddQuad(VertexHelper vh, UIVertex vertex1, UIVertex vertex2, UIVertex vertex3, UIVertex vertex4) {
             var i = vh.currentVertCount;
-            // vertexBuffer.Clear();
-            // vertexBuffer.Add(vertex1);
-            // vertexBuffer.Add(vertex2);
-            // vertexBuffer.Add(vertex3);
-            // vertexBuffer.Add(vertex4);
-            // indexBuffer.Clear();
-            // indexBuffer.Add(i+0);
-            // indexBuffer.Add(i+2);
-            // indexBuffer.Add(i+1);
-            // indexBuffer.Add(i+3);
-            // indexBuffer.Add(i+2);
-            // indexBuffer.Add(i+0);
-            // vh.AddUIVertexStream(vertexBuffer, indexBuffer);
             vh.AddVert(vertex1);
             vh.AddVert(vertex2);
             vh.AddVert(vertex3);

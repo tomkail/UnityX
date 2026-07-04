@@ -319,48 +319,6 @@ public class AdvancedUILine {
         return _lines;
     }
 
-    static Vector2 PointInPolyFromIndex(AdvancedUILine poly, int index) {
-        return poly.vertices [MathX.Mod(index, poly.vertices.Length)];
-    }
-
-    const float epsilon = 0.001f;
-
-    static int GetIndexInPolyAtPoint(AdvancedUILine poly, Vector2 point) {
-        return GetIndexInPolyLyingOnLineBetween (poly, point.AddX(-1 * epsilon), point.AddX(epsilon));
-    }
-
-    static int GetIndexInPolyLyingOnLineBetween(AdvancedUILine poly, Vector2 pointA, Vector2 pointB) {
-        var lineSegment = new Line (pointA, pointB); 
-
-        var index = -1;
-        for (var i = 0 ; i < poly.vertices.Length; i++) {
-            var vertex = poly.vertices [i];
-            // don't allow vertex on top of pointA. Use a very, very tight epsilon for this
-            if (Vector2.Distance(vertex, pointA) > epsilon * epsilon) {
-
-                var dist = lineSegment.GetClosestDistanceFromLine (vertex);
-                if (dist < epsilon) {
-                    // have we got a point closer to point A than the best so far (ie. first intersection?)
-                    if (index == -1 || (index > -1 && Vector2.Distance (vertex, pointA) < Vector2.Distance (poly.vertices [index], pointA))) {
-                        index = i; 
-                    }
-                }
-            }
-
-        }
-        return index; 
-    }
-
-    AdvancedUILine AddVert(int indexToAddAfter, Vector2 pointToAdd) {
-        var verts = new List<Vector2> (vertices);
-        if (indexToAddAfter == vertices.Length) {
-            verts.Add (pointToAdd);
-        } else {
-            verts.Insert (indexToAddAfter + 1, pointToAdd);
-        }
-        return new AdvancedUILine (verts.ToArray ());
-    }
-
     public struct AdvancedUILineRaycastHit {
         public float distance;
         public Vector2 point;

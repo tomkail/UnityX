@@ -229,35 +229,13 @@ namespace UnityEngine.UI.Extensions
         }
 
         /**
-            Gets the drawing points. This implementation simply calculates a certain number
-            of points per curve.
-
-            This is a lsightly different inplementation from the one above.
+            Retained for the BezierType.Improved enum option. It was a second implementation
+            of the same fixed-segments-per-curve sampling as GetDrawingPoints0 and produced
+            identical output, so it now simply forwards to that.
         */
         public List<Vector2> GetDrawingPoints1()
         {
-            List<Vector2> drawingPoints = new List<Vector2>();
-
-            for (int i = 0; i < controlPoints.Count - 3; i += 3)
-            {
-                Vector2 p0 = controlPoints[i];
-                Vector2 p1 = controlPoints[i + 1];
-                Vector2 p2 = controlPoints[i + 2];
-                Vector2 p3 = controlPoints[i + 3];
-
-                if (i == 0) //only do this for the first end point. When i != 0, this coincides with the end point of the previous segment,
-                {
-                    drawingPoints.Add(CalculateBezierPoint(0, p0, p1, p2, p3));
-                }
-
-                for (int j = 1; j <= SegmentsPerCurve; j++)
-                {
-                    float t = j / (float)SegmentsPerCurve;
-                    drawingPoints.Add(CalculateBezierPoint(t, p0, p1, p2, p3));
-                }
-            }
-
-            return drawingPoints;
+            return GetDrawingPoints0();
         }
 
         /**

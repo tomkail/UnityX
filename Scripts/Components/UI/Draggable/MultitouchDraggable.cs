@@ -94,7 +94,7 @@ public class MultitouchDraggable : Selectable, IBeginDragHandler, IEndDragHandle
 					var lastDistanceFromPivot = Vector2.Distance(normalizedLastFingerPoint, normalizedPivotFingerScreenPos);
 					var delta = SignedDistanceInDirection(normalizedFingerPoint, normalizedLastFingerPoint, normalizedPivotFingerScreenPos-normalizedFingerPoint);
 					float SignedDistanceInDirection (Vector2 fromVector, Vector2 toVector, Vector2 direction) {
-						Vector2 normalizedDirection = direction.sqrMagnitude == 1 ? direction : direction.normalized;
+						Vector2 normalizedDirection = direction.normalized;
 						return Vector2.Dot(toVector-fromVector, normalizedDirection);
 					}
 					if(delta != 0 && lastDistanceFromPivot != 0) {
