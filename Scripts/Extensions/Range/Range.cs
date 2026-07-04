@@ -26,8 +26,7 @@ public struct Range : IEquatable<Range> {
 	public static Range Centered(float mid, float width) => new(mid-0.5f*width, mid+0.5f*width);
 
 	public static Range Auto(float x0, float x1) {
-		if( x0 <= x1 ) return new Range(x0, x1);
-		else return new Range(x1, x0);
+		return new Range(Mathf.Min(x0, x1), Mathf.Max(x0, x1));
 	}
 
 	/// <summary>
@@ -113,12 +112,13 @@ public struct Range : IEquatable<Range> {
 		return ExpandedToInclude(valueToInclude.min).ExpandedToInclude(valueToInclude.max);
 	}
 	
-	public Range ShrunkToExclude (float trunctationValue, int directionToShrinkFrom) {
-		if (trunctationValue > min || trunctationValue < max) {
+	public Range ShrunkToExclude (float truncationValue, int directionToShrinkFrom) {
+		// Only shrink if the value is strictly inside the range — otherwise there's nothing to exclude.
+		if (truncationValue > min && truncationValue < max) {
 			if (directionToShrinkFrom == -1) {
-				 return new Range(trunctationValue, max);
+				return new Range(truncationValue, max);
 			} else if (directionToShrinkFrom == 1) {
-				return new Range(min, trunctationValue);
+				return new Range(min, truncationValue);
 			} else {
 				Debug.LogWarning("directionToShrinkFrom must be -1 or 1, but is set to "+directionToShrinkFrom);
 			}
@@ -127,7 +127,7 @@ public struct Range : IEquatable<Range> {
 	}
 	
 	public Range ExpandedFromPivot (float expansion, float pivot) {
-		return new Range(min - expansion * pivot, min + expansion * (1-pivot));
+		return new Range(min - expansion * pivot, max + expansion * (1-pivot));
 	}
 
 
@@ -168,8 +168,12 @@ public struct Range : IEquatable<Range> {
 			return newRanges;
 		}
 		
-		if (startInclusive ? rangeToRemove.min > min : rangeToRemove.min >= min) newRanges.Add(new Range(min, rangeToRemove.min));
-		if (endInclusive ? rangeToRemove.max < max : rangeToRemove.max <= max) newRanges.Add(new Range(rangeToRemove.max, max));
+		// Clamp the removed range to our bounds so the emitted sub-ranges can never invert, even if
+		// rangeToRemove extends past [min,max] (behaviour is unchanged for an already-contained range).
+		var removeMin = Mathf.Clamp(rangeToRemove.min, min, max);
+		var removeMax = Mathf.Clamp(rangeToRemove.max, min, max);
+		if (startInclusive ? removeMin > min : removeMin >= min) newRanges.Add(new Range(min, removeMin));
+		if (endInclusive ? removeMax < max : removeMax <= max) newRanges.Add(new Range(removeMax, max));
 
 		return newRanges;
 	}
@@ -385,39 +389,3 @@ public struct Range : IEquatable<Range> {
 		return $"[{min:N1} to {max:N1}]";
 	}
 }
-
-
-// Some visual tests for the range class
-// public class RangeTests : MonoBehaviour {
-// 	public Range container;
-// 	public Range content;
-// 	public Range intersection;
-// 	public float testPoint;
-// 	public float signedDistance;
-// 	public float signedDistanceForRange;
-// 	public float signedDistanceForRangeB;
-//     
-// 	public float signedDistanceFromMin;
-// 	public float signedDistanceFromMax;
-//
-// 	public void OnDrawGizmos() {
-// 		intersection = container.Intersection(content);
-// 		signedDistance = container.SignedDistance(testPoint);
-// 		signedDistanceForRange = Range.SignedDistance(container, content);
-// 		signedDistanceForRangeB = Range.SignedDistance(content, container);
-//
-// 		signedDistanceFromMin = Mathf.Max((container.min-content.min), (container.min-content.max));
-// 		signedDistanceFromMax = Mathf.Max((content.min-container.max), (content.max-container.max));
-//         
-// 		Gizmos.DrawSphere(transform.TransformPoint(new Vector2(testPoint,0)), 0.5f);
-//         
-// 		GizmosX.DrawArrowLine(transform.TransformPoint(new Vector2(container.min,0)), transform.TransformPoint(new Vector2(container.max,0)), Vector3.forward);
-// 		GizmosX.DrawArrowLine(transform.TransformPoint(new Vector2(container.max,0)), transform.TransformPoint(new Vector2(container.min,0)), Vector3.forward);
-// 		GizmosX.DrawArrowLine(transform.TransformPoint(new Vector2(content.min,1)), transform.TransformPoint(new Vector2(content.max,1)), Vector3.forward);
-// 		GizmosX.DrawArrowLine(transform.TransformPoint(new Vector2(content.max,1)), transform.TransformPoint(new Vector2(content.min,1)), Vector3.forward);
-//         
-// 		GizmosX.DrawArrowLine(transform.TransformPoint(new Vector2(intersection.min,2)), transform.TransformPoint(new Vector2(intersection.max,2)), Vector3.forward);
-// 		GizmosX.DrawArrowLine(transform.TransformPoint(new Vector2(intersection.max,2)), transform.TransformPoint(new Vector2(intersection.min,2)), Vector3.forward);
-//
-// 	}
-// }
