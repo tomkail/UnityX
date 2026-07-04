@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 
 [RequireComponent(typeof(CanvasRenderer))]
 public class TextBackgroundHighlightEffect : MaskableGraphic {
@@ -66,9 +68,11 @@ public class TextBackgroundHighlightEffect : MaskableGraphic {
         vh.AddUIVertexQuad(verts);
         return verts;
     }
-    /*
+#if UNITY_EDITOR
+    [SerializeField] bool drawDebugGizmos;
     void OnDrawGizmos()
     {
+        if(!drawDebugGizmos) return;
         var m_Transform = text.transform;
 
         // Get a reference to the text object's textInfo
@@ -161,5 +165,5 @@ public class TextBackgroundHighlightEffect : MaskableGraphic {
             Handles.DrawDottedLine(new Vector3(topRight.x, bottomLeft.y, bottomLeft.z), bottomLeft, size);
         }
     }
-    */
+#endif
 }

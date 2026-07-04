@@ -26,7 +26,6 @@ public class FPSManager : MonoSingleton<FPSManager> {
             var _targetFrameTime = 1f/Application.targetFrameRate;
             var difference = Mathf.Abs(_averageFrameTime - _targetFrameTime);
             if(difference > _targetFrameTime * 0.25f) {
-                // Debug.Log("Returning _averageFrameTime because average "+_targetFrameTime+" "+_averageFrameTime+" "+difference);
                 return _averageFrameTime;
             } else {
                 return _targetFrameTime;

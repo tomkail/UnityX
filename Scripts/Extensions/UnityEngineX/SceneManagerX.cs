@@ -1,4 +1,5 @@
-﻿using UnityEngine.SceneManagement;
+﻿using System.Linq;
+using UnityEngine.SceneManagement;
 
 public static class SceneManagerX {
 
@@ -10,16 +11,10 @@ public static class SceneManagerX {
 	}
 
 	public static string[] GetCurrentSceneNames () {
-		string[] scenes = new string[SceneManager.sceneCount];
-		for(int i = 0; i < scenes.Length; i++)
-			scenes[i] = SceneManager.GetSceneAt(i).name;
-		return scenes;
+		return GetCurrentScenes().Select(s => s.name).ToArray();
 	}
 
 	public static string[] GetCurrentScenePaths () {
-		string[] scenes = new string[SceneManager.sceneCount];
-		for(int i = 0; i < scenes.Length; i++)
-			scenes[i] = SceneManager.GetSceneAt(i).path;
-		return scenes;
+		return GetCurrentScenes().Select(s => s.path).ToArray();
 	}
 }

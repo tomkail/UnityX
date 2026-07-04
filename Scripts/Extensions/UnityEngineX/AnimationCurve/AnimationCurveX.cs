@@ -187,7 +187,7 @@ public static class AnimationCurveX {
 	public static void RemoveKeysBetween (this AnimationCurve curve, float startTime, float endTime) {
 		Keyframe[] keyframes = curve.keys;
 		for(int i = keyframes.Length-1; i >= 0; i--) {
-			if(keyframes[i].time.IsBetween(startTime, endTime)) {
+			if(keyframes[i].time > startTime && keyframes[i].time < endTime) {
 				curve.RemoveKey(i);
 			} else if (keyframes[i].time < startTime) {
 				break;
@@ -204,7 +204,7 @@ public static class AnimationCurveX {
 	public static void RemoveKeysBetweenAndIncluding (this AnimationCurve curve, float startTime, float endTime) {
 		Keyframe[] keyframes = curve.keys;
 		for(int i = keyframes.Length-1; i >= 0; i--) {
-			if(keyframes[i].time.IsBetween(startTime, endTime)) {
+			if(keyframes[i].time >= startTime && keyframes[i].time <= endTime) {
 				curve.RemoveKey(i);
 			} else if (keyframes[i].time < startTime) {
 				break;

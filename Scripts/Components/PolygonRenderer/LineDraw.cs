@@ -55,20 +55,6 @@ public static class LineDraw {
             createTriangles(points[0], Vector2.Lerp(points[0], points[1], 0.5f), points[1], vertices, lineWidth, join, miterLimit, attrs.extrusion);
         } else {
 
-            // if (points[0] == points[points.Length - 1] ||
-            //         (points[0].x == points[points.Length - 1].x && points[0].y == points[points.Length - 1].y)) {
-
-            //     var p0 = points.shift();
-            //     p0 = Point.Middle(p0, points[0]);
-            //     points.unshift(p0);
-            //     points.push(p0);
-            //     closed= true;
-            // }
-            
-
-            
-
-            
             if(attrs.closed) {
                 for (int i = 0; i < points.Length; i++) {
                     var startMid = Vector2.Lerp(i == 0 ? points[points.Length-1] : points[i-1], points[i], 0.5f);
@@ -182,12 +168,6 @@ public static class LineDraw {
                     center.y + radius * Mathf.Sin(orgAngle0 + angleInc * (1 + i))
            ));
         }
-        // var roundedcorner = UnityX.Geometry.DrawingUtils.DrawRoundedCorner(center, _p0, _p1, radius, 5);
-        // for (var i = 0; i < roundedcorner.Length-1; i++) {
-        //     verts.Add(new Vector2(center.x, center.y));
-        //     verts.Add(roundedcorner[i]);
-        //     verts.Add(roundedcorner[i+1]);
-        // }
     }
 
     static float signedArea(Vector2 p0, Vector2 p1, Vector2 p2) {

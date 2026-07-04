@@ -29,7 +29,6 @@ public class RenderTextureCreator : MonoBehaviour {
     public Vector2Int calculatedTextureSize => fullScreen ? screenSize : renderTextureSize;
 
 
-    // public static Vector2Int screenSize => new Vector2Int(Screen.width, Screen.height);
     public static Vector2Int screenSize => new(screenWidth, screenHeight);
     // Screen/Display don't report the Game view size in some editor contexts (e.g. from inspector windows),
     // so in-editor we read UnityStats.screenRes. NOTE: this reports the actual rendered backbuffer resolution.
@@ -67,7 +66,6 @@ public class RenderTextureCreator : MonoBehaviour {
     }
 
     protected virtual void OnValidate () {
-        // ReleaseRenderTexture();
         RefreshRenderTexture();
     }
     

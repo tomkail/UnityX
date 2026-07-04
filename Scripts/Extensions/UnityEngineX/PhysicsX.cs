@@ -11,6 +11,9 @@ public static class PhysicsX {
 		return FakeSphereCastRays(ray, radius, numRays).All(r => Physics.Raycast(r, distance, mask));
 	}
 
+	// Sphere/cylinder approximation: rays PARALLEL to the original, offset around a circle of `radius`
+	// perpendicular to the direction. Deliberately different from FakeConeCastRays (which diverges) — only the
+	// setup boilerplate (centre ray, perpendicular rotation, angle loop) is shared, not the ray geometry.
 	public static IEnumerable<Ray> FakeSphereCastRays (Ray ray, float radius, int numRays = defaultFakeSphereCastRays) {
 		yield return ray;
 		// Subtract a ray for the center raycast, and then also clamp to make sure there's at least 3 casts
@@ -31,6 +34,8 @@ public static class PhysicsX {
 		return FakeConeCastRays(ray, radius, distance, numRays).All(r => Physics.Raycast(r, distance, mask));
 	}
 
+	// Cone: rays DIVERGING from the single origin toward a circle of `radius` at `distance` along the ray.
+	// This is intentionally NOT the same as FakeSphereCastRays (parallel rays) — a cone spreads with distance.
 	public static IEnumerable<Ray> FakeConeCastRays (Ray ray, float radius, float distance, int numRays = defaultFakeSphereCastRays) {
 		yield return ray;
 		// Subtract a ray for the center raycast, and then also clamp to make sure there's at least 3 casts

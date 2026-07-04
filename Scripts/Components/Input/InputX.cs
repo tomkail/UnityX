@@ -39,9 +39,6 @@ public class InputX : MonoSingleton<InputX> {
 		}
 	}
 
-	//public delegate void OnDragEvent(InputPoint inputPoint);
-	//public event OnDragEvent OnDrag;
-
 	public delegate void OnTouchStartEvent(Finger finger);
 	public event OnTouchStartEvent OnTouchStart;
 	public delegate void OnTouchEndEvent(Finger finger);
@@ -148,11 +145,6 @@ public class InputX : MonoSingleton<InputX> {
 				if(touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled) {
         	        int? fingerIndex = GetFingerIndexByID(touch.fingerId);        	
 					if(fingerIndex != null){
-                        // var log = "Touch with fingerId "+touch.fingerId+" ended! Finger index is "+fingerIndex+". Index of this touch is "+i+". Listing touches:";
-                        // for(int j = 0; j < Input.touchCount; j++) log += "\n Touch "+j+", fingerId "+Input.touches[j].fingerId;
-                        // log += "\nListing Fingers";
-                        // for(int j = 0; j < fingers.Count; j++) log += "\n Finger "+j+", fingerId "+fingers[j].fingerId;
-                        // Debug.Log(log);
 						RemoveFinger((int)fingerIndex);
 						continue;
 					} else {
@@ -212,7 +204,6 @@ public class InputX : MonoSingleton<InputX> {
 	private void InitMouse(){
 		mouseInput = new MouseInput(Input.mousePosition);
 
-		//mouseInput.OnStart += InputPointStart;
 		mouseInput.OnTap += Tap;
 		mouseInput.OnMouseLeftClick += MouseLeftClick;
 		mouseInput.OnMouseLeftDown += MouseLeftDown;
@@ -224,7 +215,6 @@ public class InputX : MonoSingleton<InputX> {
 		mouseInput.OnMouseMiddleDown += MouseMiddleDown;
 		mouseInput.OnMouseMiddleUp += MouseMiddleUp;
 		mouseInput.OnMouseScroll += MouseScroll;
-		//mouseInput.OnEnd += InputPointEnd;
 
 		if(OnMouseStart != null){
 			OnMouseStart(mouseInput);
@@ -234,7 +224,6 @@ public class InputX : MonoSingleton<InputX> {
 	private void DestroyMouse(){
 		mouseInput.End();
 
-		//mouseInput.OnStart -= InputPointStart;
 		mouseInput.OnTap -= Tap;
 		mouseInput.OnMouseLeftClick -= MouseLeftClick;
 		mouseInput.OnMouseLeftDown -= MouseLeftDown;
@@ -246,7 +235,6 @@ public class InputX : MonoSingleton<InputX> {
 		mouseInput.OnMouseMiddleDown -= MouseMiddleDown;
 		mouseInput.OnMouseMiddleUp -= MouseMiddleUp;
 		mouseInput.OnMouseScroll -= MouseScroll;
-		//mouseInput.OnEnd -= InputPointEnd;
 
 		if(OnMouseEnd != null){
 			OnMouseEnd(mouseInput);
@@ -272,12 +260,6 @@ public class InputX : MonoSingleton<InputX> {
 	public void AddFinger (Finger finger) {
 		fingers.Add(finger);
 
-        // var log = "Start touch with fingerId "+_touch.fingerId+". Listing touches:";
-        // for(int j = 0; j < Input.touchCount; j++) log += "\n Touch "+j+", fingerId "+Input.touches[j].fingerId;
-        // log += "\nListing Fingers";
-        // for(int j = 0; j < fingers.Count; j++) log += "\n Finger "+j+", fingerId "+fingers[j].fingerId;
-        // Debug.Log(log);
-
 		if(OnTouchStart != null) OnTouchStart(finger);
 	}
 	public void RemoveFinger (Finger finger) {
@@ -302,14 +284,12 @@ public class InputX : MonoSingleton<InputX> {
 		foreach(var finger in fingers.AsEnumerable().Reverse()) {
             if(finger.isFakeMouseFinger) continue;
 			if(gestures.SelectMany(x => x.inputPoints).Contains(finger)) continue;
-			// if(finger.state != InputPointState.Started){
 				pinchFingers.Add(finger);
 				if(pinchFingers.Count == 2) {
 					AddGesture(new Pinch(pinchFingers[0], pinchFingers[1]));
 					pinchFingers.Clear();
 					break;
 				}
-			// }
 		}
 		// We might be able to do another!
 		CheckForPinchStart();
@@ -391,9 +371,6 @@ public class InputX : MonoSingleton<InputX> {
 		if(OnMouseLeftUp != null) OnMouseLeftUp(inputPoint, activeTime);
 	}
 	private void MouseLeftClick (MouseInput inputPoint) {
-        // if(useFakeMouseFingerInput) {
-        //     fakeMouseFinger.Tap();
-        // }
 		if(OnMouseLeftClick != null){
 			OnMouseLeftClick(inputPoint);
 		}
@@ -451,7 +428,6 @@ public class InputX : MonoSingleton<InputX> {
         foreach(var pinch in pinches) {
             var start = ScreenToGUIPoint(pinch.inputPoint1.position);
             var end = ScreenToGUIPoint(pinch.inputPoint2.position);
-            // DrawLine(start, end);
             GUI.Box(RectX.CreateFromCenter(Vector2.Lerp(start, end, 0.5f), new Vector2(60, 40)), pinch.currentPinchDistance.ToString());
         }
 

@@ -36,12 +36,5 @@ public class EnforceDecendentGameObjectProperties : MonoBehaviour {
 	void OnTransformChildrenChanged () {
 		EnforceProperties();
 	}
-	/*
-	#if UNITY_EDITOR
-	[UnityEditor.Callbacks.DidReloadScripts]
- 	private static void OnScriptsReloaded() {
-		EnforcePropertiesAll();
- 	}
- 	#endif
- 	*/
+	// (Auto-enforce-on-recompile was intentionally removed — too aggressive; enforcement is driven by the editor + OnTransformChildrenChanged.)
 }

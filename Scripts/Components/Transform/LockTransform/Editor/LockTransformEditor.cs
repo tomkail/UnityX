@@ -13,13 +13,6 @@ public class LockTransformEditor : BaseEditor<LockTransform> {
 		
 		EditorGUILayout.PropertyField(serializedObject.FindProperty("hideHandles"));
 
-//		EditorGUILayout.PropertyField(serializedObject.FindProperty("position"));
-//		EditorGUILayout.PropertyField(serializedObject.FindProperty("rotation"));
-//		EditorGUILayout.PropertyField(serializedObject.FindProperty("scale"));
-//		if(serializedObject.FindProperty("position").boolValue && serializedObject.FindProperty("rotation").boolValue && serializedObject.FindProperty("scale").boolValue) {
-//			EditorGUILayout.PropertyField(serializedObject.FindProperty("heightFromFloor"));
-//		}
-		
 		serializedObject.ApplyModifiedProperties();
 		HideTools(data != null ? (data.enabled && data.hideHandles) : false);
 	}

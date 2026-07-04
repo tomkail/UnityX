@@ -22,8 +22,6 @@ public class PolygonRenderer : BasePolygonRenderer {
     }
     
     [Space]
-    // public bool front = true;
-	// public bool back;
 
     [Space]
     public bool flipUVX;
@@ -52,26 +50,6 @@ public class PolygonRenderer : BasePolygonRenderer {
         var polygonRect = polygon.GetRect();
         var points = polygon.vertices;
 
-		// if(doubleSided) {
-		// 	var verts = points.Select(v => new Vector3(v.x, v.y, 0)).ToArray();
-		// 	var tris = new Triangulator(points).Triangulate();
-
-		// 	var doubleVerts = new Vector3[verts.Length * 2];
-		// 	for(int i = 0; i < verts.Length; i++) doubleVerts[i] = doubleVerts[i+verts.Length] = verts[i];
-
-		// 	var doubleTris = new int[tris.Length * 2];
-		// 	int triLengthMinusOne = tris.Length-1;
-		// 	for(int i = 0; i < tris.Length; i++) {
-		// 		doubleTris[i] = tris[i];
-		// 		doubleTris[i+tris.Length] = tris[triLengthMinusOne - i] + points.Length;
-		// 	}
-		// 	mesh.vertices = doubleVerts;
-		// 	mesh.triangles = doubleTris;
-		// } else {
-			
-        // }
-
-        // if(back) {
             mesh.vertices = points.Select(v => new Vector3(v.x, v.y, 0)).ToArray();
 			
             List<int> triangles = new List<int>();
@@ -80,7 +58,6 @@ public class PolygonRenderer : BasePolygonRenderer {
             
             mesh.uv = RecalculateUVs(polygonRect, points);
             mesh.colors = RecalculateColors(polygonRect, points);
-        // }
 
 		mesh.RecalculateNormals();
         
@@ -135,7 +112,10 @@ public class PolygonRenderer : BasePolygonRenderer {
         }
     }
 
+#if UNITY_EDITOR
+    [SerializeField] bool drawDebugGizmos;
     void OnDrawGizmosSelected () {
+        if(!drawDebugGizmos) return;
         GizmosX.BeginMatrix(transform.localToWorldMatrix);
         var polygonRect = polygon.GetRect();
         GizmosX.DrawWireRect(polygonRect);
@@ -155,43 +135,43 @@ public class PolygonRenderer : BasePolygonRenderer {
 
         Vector2 uvXDirection = MathX.DegreesToVector2(uvXAngle+90);
         Vector2 uvYDirection = MathX.DegreesToVector2(uvYAngle+90);
-        // Vector2[] uvs = new Vector2[polygon.vertices.Length];
-        // var distanceXMin = Mathf.Infinity;
-        // var distanceXMax = Mathf.NegativeInfinity;
-        // var distanceYMin = Mathf.Infinity;
-        // var distanceYMax = Mathf.NegativeInfinity;
-        // Vector2 distanceXMinPoint = Vector2.zero;
-        // Vector2 distanceXMaxPoint = Vector2.zero;
-        // Vector2 distanceYMinPoint = Vector2.zero;
-        // Vector2 distanceYMaxPoint = Vector2.zero;
-        // foreach(var vert in polygon.vertices) {
-        //     var distanceY = Vector2.Dot(vert, uvYDirection);
-        //     var distanceX = Vector2.Dot(vert, uvXDirection);
-        //     if(distanceX < distanceXMin) {
-        //         distanceXMin = distanceX;
-        //         distanceXMinPoint = vert;
-        //     } else if(distanceX > distanceXMax) {
-        //         distanceXMax = distanceX;
-        //         distanceXMaxPoint = vert;
-        //     }
-        //     if(distanceY < distanceYMin) {
-        //         distanceYMin = distanceY;
-        //         distanceYMinPoint = vert;
-        //     } else if(distanceY > distanceYMax) {
-        //         distanceYMax = distanceY;
-        //         distanceYMaxPoint = vert;
-        //     }
-        // }
-        // Gizmos.DrawSphere(distanceXMinPoint, 0.05f);
-        // Gizmos.DrawSphere(distanceXMaxPoint, 0.05f);
-        // Gizmos.DrawSphere(distanceYMinPoint, 0.05f);
-        // Gizmos.DrawSphere(distanceYMaxPoint, 0.05f);
-        // var left = new Vector2(distanceXMinPoint.x, Mathf.Lerp(distanceYMinPoint.y, distanceYMaxPoint.y, 0.5f));
-        // var bottom = new Vector2(Mathf.Lerp(distanceXMinPoint.x, distanceXMaxPoint.x, 0.5f), distanceYMinPoint.y);
-        // var xLength = Vector2.Distance(distanceXMinPoint, distanceXMaxPoint) * 0.1f;
-        // var yLength = Vector2.Distance(distanceYMinPoint, distanceYMaxPoint) * 0.1f;
-        // GizmosX.DrawArrowLine(left - uvYDirection * xLength * 0.5f, left + uvYDirection * xLength * 0.5f, Vector3.forward);
-        // GizmosX.DrawArrowLine(bottom - uvXDirection * yLength * 0.5f, bottom + uvXDirection * yLength * 0.5f, Vector3.forward);
+        Vector2[] uvs = new Vector2[polygon.vertices.Length];
+        var distanceXMin = Mathf.Infinity;
+        var distanceXMax = Mathf.NegativeInfinity;
+        var distanceYMin = Mathf.Infinity;
+        var distanceYMax = Mathf.NegativeInfinity;
+        Vector2 distanceXMinPoint = Vector2.zero;
+        Vector2 distanceXMaxPoint = Vector2.zero;
+        Vector2 distanceYMinPoint = Vector2.zero;
+        Vector2 distanceYMaxPoint = Vector2.zero;
+        foreach(var vert in polygon.vertices) {
+            var distanceY = Vector2.Dot(vert, uvYDirection);
+            var distanceX = Vector2.Dot(vert, uvXDirection);
+            if(distanceX < distanceXMin) {
+                distanceXMin = distanceX;
+                distanceXMinPoint = vert;
+            } else if(distanceX > distanceXMax) {
+                distanceXMax = distanceX;
+                distanceXMaxPoint = vert;
+            }
+            if(distanceY < distanceYMin) {
+                distanceYMin = distanceY;
+                distanceYMinPoint = vert;
+            } else if(distanceY > distanceYMax) {
+                distanceYMax = distanceY;
+                distanceYMaxPoint = vert;
+            }
+        }
+        Gizmos.DrawSphere(distanceXMinPoint, 0.05f);
+        Gizmos.DrawSphere(distanceXMaxPoint, 0.05f);
+        Gizmos.DrawSphere(distanceYMinPoint, 0.05f);
+        Gizmos.DrawSphere(distanceYMaxPoint, 0.05f);
+        var left = new Vector2(distanceXMinPoint.x, Mathf.Lerp(distanceYMinPoint.y, distanceYMaxPoint.y, 0.5f));
+        var bottom = new Vector2(Mathf.Lerp(distanceXMinPoint.x, distanceXMaxPoint.x, 0.5f), distanceYMinPoint.y);
+        var xLength = Vector2.Distance(distanceXMinPoint, distanceXMaxPoint) * 0.1f;
+        var yLength = Vector2.Distance(distanceYMinPoint, distanceYMaxPoint) * 0.1f;
+        GizmosX.DrawArrowLine(left - uvYDirection * xLength * 0.5f, left + uvYDirection * xLength * 0.5f, Vector3.forward);
+        GizmosX.DrawArrowLine(bottom - uvXDirection * yLength * 0.5f, bottom + uvXDirection * yLength * 0.5f, Vector3.forward);
         GizmosX.DrawArrowLine(Vector2.zero, colorDirection * 0.5f, Vector3.forward);
         GizmosX.DrawArrowLine(Vector2.zero, uvYDirection * 0.5f, Vector3.forward);
         GizmosX.DrawArrowLine(Vector2.zero, uvXDirection * 0.5f, Vector3.forward);
@@ -199,4 +179,5 @@ public class PolygonRenderer : BasePolygonRenderer {
         
         GizmosX.EndMatrix();
     }
+#endif
 }

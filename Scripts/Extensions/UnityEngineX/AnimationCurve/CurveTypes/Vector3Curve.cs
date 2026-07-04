@@ -140,8 +140,22 @@ public class Vector3Curve : BaseCurve<Vector3> {
 	/// </summary>
 	/// <returns>The time where the value is closest to the target value.</returns>
 	public float EstimateClosestTimeToValue (Vector3 vector) {
-		Debug.Log ("TODO");
-		return 0;
+		Keyframe[] xKeys = keys;
+		if(xKeys.Length == 0) return 0;
+		float startTime = xKeys[0].time;
+		float endTime = xKeys[xKeys.Length - 1].time;
+		const int sampleCount = 100;
+		float bestTime = startTime;
+		float bestSqrDistance = float.MaxValue;
+		for(int i = 0; i < sampleCount; i++) {
+			float t = sampleCount == 1 ? startTime : Mathf.Lerp(startTime, endTime, i / (float)(sampleCount - 1));
+			float sqrDistance = (Evaluate(t) - vector).sqrMagnitude;
+			if(sqrDistance < bestSqrDistance) {
+				bestSqrDistance = sqrDistance;
+				bestTime = t;
+			}
+		}
+		return bestTime;
 	}
 	
 	/// <summary>

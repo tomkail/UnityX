@@ -368,7 +368,7 @@ public static class ComponentX {
 		#if !UNITY_WINRT
 		if (!typeof(T).IsInterface) {
 			Debug.LogError(typeof(T) + ": is not an actual interface!");
-			return null;
+			return Enumerable.Empty<T>();
 		}
 		#endif
 		return inObj.GetComponentsInChildren<Component>().OfType<T>();

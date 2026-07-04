@@ -75,5 +75,4 @@ public class CoroutineHelper : MonoSingleton<CoroutineHelper> {
 		action();
 	}
 	
-	// delegate void DelayedMethod(params object[] objects); ?
 }

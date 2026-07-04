@@ -41,9 +41,6 @@ public class Pinch : Gesture {
 		foreach(var inputPoint in inputPoints)
 			inputPoint.OnEnd += OnFingerEnd;
 		
-		// inputPoint1.state = InputPointState.Pinch1;
-    	// inputPoint2.state = InputPointState.Pinch2;
-    	
 		startPinchDistance = currentPinchDistance = GetPinchDistance();
 		currentPinchCenter = GetPinchCenter();
 	}
@@ -86,32 +83,6 @@ public class Pinch : Gesture {
             }
 		base.CompleteGesture();
 	}
-
-    
-    // private void CheckForPinchEnd(){
-
-    // 	if(fingers.Count < 2){
-	// 		PinchEnd();
-    //     } else {
-    //     	if(pinchFinger1 != null){
-	//     		for(int i = 0; i < fingers.Count; i++){
-	// 				if(fingers[i].state != InputPointState.Started && fingers[i].state != InputPointState.Pinch2){
-	// 					fingers[i].state = InputPointState.Pinch1;
-	// 					pinchFinger1 = fingers[i];
-	// 				}
-	// 			}
-	//     	}
-	//     	if(pinchFinger2 != null){
-	//     		for(int i = 0; i < fingers.Count; i++){
-	// 				if(fingers[i].state != InputPointState.Started && fingers[i].state != InputPointState.Pinch1){
-	// 					fingers[i].state = InputPointState.Pinch2;
-	// 					pinchFinger2 = fingers[i];
-	// 				}
-	// 			}
-	//     	}
-    //     }
-    // }
-
 
 	float GetPinchDistance(){
     	return Vector2.Distance(inputPoint1.position, inputPoint2.position);
