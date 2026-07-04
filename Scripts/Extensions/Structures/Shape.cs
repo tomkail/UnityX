@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -19,11 +19,11 @@ public class Shape {
 		this.points = new List<Point>(points);
 		OnChangePoints();
 	}
-	
+
 	public IEnumerable<Point> GetTranslatedPoints(Point offset) {
 		return points.Select(x => x + offset);
 	}
-	
+
 	public void OnChangePoints () {
 		Vector2[] pointsAsVectors = new Vector2[points.Count];
 		for(int i = 0; i < points.Count; i++)
@@ -38,7 +38,7 @@ public static class ShapeUtils {
 	// create a random joined shape with X points. Think tetromino generator!
 	public static Shape CreateContiguous (int numPoints) {
 		Point[] points = new Point[numPoints];
-		TypeMap<bool> shape = new TypeMap<bool>(new Point(numPoints, numPoints));
+		TypeMap<bool> shapeMap = new TypeMap<bool>(new Point(numPoints, numPoints));
 		int x = 1;
 		int y = 1;
 		bool valid = false;
@@ -48,43 +48,42 @@ public static class ShapeUtils {
 		Point minPoint = new Point(numPoints, numPoints);
 
 		points[0] = new Point(x,y);
-	    shape.SetValueAtGridPoint(x,y,true);
-		
+		shapeMap.SetValueAtGridPoint(x,y,true);
 
-	    for(var i = 1; i < numPoints; i++) {
-	        do {
+
+		for(var i = 1; i < numPoints; i++) {
+			do {
 				rx = Random.Range(0,numPoints);
 				ry = Random.Range(0,numPoints);
 				valid = false;
 
-				if(shape.GetValueAtGridPoint(new Point(rx,ry)) == false){
-					if(shape.IsOnGrid(rx,ry-1) && shape.GetValueAtGridPoint(rx,ry-1)) valid = true;
-					if(shape.IsOnGrid(rx,ry+1) && shape.GetValueAtGridPoint(rx,ry+1)) valid = true;
-					if(shape.IsOnGrid(rx-1,ry) && shape.GetValueAtGridPoint(rx-1,ry)) valid = true;
-					if(shape.IsOnGrid(rx+1,ry) && shape.GetValueAtGridPoint(rx+1,ry)) valid = true;
-	            }
-	            
+				if(shapeMap.GetValueAtGridPoint(new Point(rx,ry)) == false){
+					if(shapeMap.IsOnGrid(rx,ry-1) && shapeMap.GetValueAtGridPoint(rx,ry-1)) valid = true;
+					if(shapeMap.IsOnGrid(rx,ry+1) && shapeMap.GetValueAtGridPoint(rx,ry+1)) valid = true;
+					if(shapeMap.IsOnGrid(rx-1,ry) && shapeMap.GetValueAtGridPoint(rx-1,ry)) valid = true;
+					if(shapeMap.IsOnGrid(rx+1,ry) && shapeMap.GetValueAtGridPoint(rx+1,ry)) valid = true;
+				}
 
-	        } while(!valid);
+
+			} while(!valid);
 
 			x = rx;
-	        y = ry;
+			y = ry;
 
 			points[i] = new Point(x,y);
-			shape.SetValueAtGridPoint(points[i],true);
+			shapeMap.SetValueAtGridPoint(points[i],true);
 
 
-	        
 
-	    }
-	    for(int i = 0; i < points.Length; i++) {
+		}
+		for(int i = 0; i < points.Length; i++) {
 			minPoint.x = Mathf.Min(minPoint.x, points[i].x);
 			minPoint.y = Mathf.Min(minPoint.y, points[i].y);
-	    }
+		}
 
 		for(int i = 0; i < points.Length; i++) {
-	    	points[i] -= minPoint;
-	    }
+			points[i] -= minPoint;
+		}
 		return new Shape(points);
 	}
 }

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 public static class OutlineDetector {
 	public static List<Vector2> GetOutlinePoly<Coord> (List<Coord> points, Func<Coord, int, Coord, int> GetTouchingCornerPointIndex, Func<Coord, int, Vector2> GetCornerPoint, int numCorners) where Coord : IEquatable<Coord> {
 		var outline = new List<Vector2>();
-		// List<HexCoord> hexPoints = points.Cast<HexCoord>().ToList();
 		Coord currentCoord = default(Coord);
 		int rotIndex = -1;
 
@@ -33,8 +32,6 @@ public static class OutlineDetector {
 				break;
 			}
 		}
-        // var startCoord = currentCoord;
-		// var startRotIndex = rotIndex;
 
 		// Execute
 		// Find a starting cell and vert.
@@ -80,8 +77,7 @@ public static class OutlineDetector {
 	// outlineDistance selects a ring by signed distance from the edge: 0 = the edge itself, positive = outside, negative = inside (interior rings).
 	public static IEnumerable<Coord> GetOutlineCoords<Coord> (List<Coord> points, int outlineDistance, Func<Coord, int, IList<Coord>> GetCoordsOnRing) where Coord : IEquatable<Coord> {
 		HashSet<Coord> outline = null;
-		// if(outlineDistance != 0) 
-			outline = new HashSet<Coord>();
+		outline = new HashSet<Coord>();
 		foreach(var point in points) {
 			bool all = true;
 			foreach(var adjacentPoint in GetCoordsOnRing(point, 1)) {
@@ -91,20 +87,12 @@ public static class OutlineDetector {
 				}
 			}
 			if(!all) {
-				// if(outlineDistance == 0) {
-				// 	yield return point;	
-				// } else {
-					outline.Add(point);
-				// }
+				outline.Add(point);
 			}
-		};
-		// foreach(var x in outline) {
-		// 	yield return x;
-		// }yield break;	
-		
+		}
+
 		Dictionary<Coord, int> coordDistanceDictionary = new Dictionary<Coord, int>();
 		Dictionary<Coord, int> coordSignDictionary = new Dictionary<Coord, int>();
-		// HashSet<Coord> pointsToSearch = new HashSet<Coord>(points);
 		foreach(var point in outline)
 			coordDistanceDictionary.Add(point, 0);
 		foreach(var point in outline) {
