@@ -56,13 +56,12 @@ class EnumFlagsButtonGroupDrawer : PropertyDrawer {
     public static void DrawLayout (SerializedProperty property) {
         DrawLayout(property, new GUIContent(property.displayName));
     }
-    // TODO - remove entries with a value of 0, or else have them set the entire thing. We might do the same with a -1 "everything" value.
+    // TODO: the static Draw overloads still render 0/composite enum values as buttons — filter them out (reuse the Initialize() single-bit filtering). We might instead have a 0/-1 "none"/"everything" value set the entire mask.
     public static void DrawLayout (SerializedProperty property, GUIContent label) {
         var position = GUILayoutUtility.GetRect(0, EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
         Draw(position, property, label);
     }
     public static void Draw (Rect position, SerializedProperty property, GUIContent label) {
-		// EditorGUI.BeginProperty (position, label, property);
 		var containerRect = EditorGUI.PrefixLabel(new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight), label);
 		
         var parentType = property.serializedObject.targetObject.GetType();
@@ -73,18 +72,6 @@ class EnumFlagsButtonGroupDrawer : PropertyDrawer {
         var typedValues = GetTypedValues(enumType);
         var display = property.enumDisplayNames;
         var names = property.enumNames;
-
-        // for (int i = 0; i < names.Length; i++) {
-        //     int sortedIndex = System.Array.IndexOf(trueNames, names[i]);
-        //     int value = typedValues[sortedIndex];
-        //     int bitCount = 0;  
-
-        //     for (int temp = value; (temp != 0 && bitCount <= 1); temp >>= 1)
-        //         bitCount += temp & 1;
-                
-        //     if (bitCount != 1)
-        //         continue;
-        // }
 
 		var numButtons = names.Length;
 		var width = containerRect.width/numButtons;
@@ -107,7 +94,6 @@ class EnumFlagsButtonGroupDrawer : PropertyDrawer {
                 names[i] = entry;
             }
         }
-		// EditorGUI.EndProperty ();
 	}
 
 

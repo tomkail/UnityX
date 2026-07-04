@@ -21,8 +21,7 @@ public class SetPropertyDrawer : BaseAttributePropertyDrawer<SetPropertyAttribut
 		// Rely on the default inspector GUI
 		EditorGUI.BeginChangeCheck ();
 		EditorGUI.PropertyField(position, property, label, true);
-		
-//		setProperty.IsDirty = true;
+
 		if (EditorGUI.EndChangeCheck()) {
 			// When a SerializedProperty is modified the actual field does not have the current value set (i.e.  
 			// FieldInfo.GetValue() will return the prior value that was set) until after this OnGUI call has completed. 

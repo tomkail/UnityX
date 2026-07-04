@@ -22,19 +22,6 @@ public class PropertyPopupDrawer : BaseAttributePropertyDrawer<PropertyPopupAttr
 			return;
 		}
 
-		/*
-		object parent = GetParentObjectOfProperty(property.propertyPath, property.serializedObject.targetObject);
-		Type type = parent.GetType();
-		FieldInfo fi = type.GetField(attribute.Name);
-		if (fi == null) {
-			Debug.LogError("Invalid property name: " + attribute.Name + "\nCheck your [SetProperty] attribute");
-			return;
-		}
-			// Use FieldInfo instead of the SerializedProperty accessors as we'd have to deal with every 
-			// SerializedPropertyType and use the correct accessor
-		list = fi.GetValue(parent) as string[];
-		*/
-
 		var subProperty = SerializedPropertyX.FindPropertyRelative(property, attribute.relativePropertyPath);
 		if(subProperty != null) {
 			list = new string[subProperty.arraySize + (attribute.addDefault ? 1 : 0)];
@@ -110,21 +97,4 @@ public class PropertyPopupDrawer : BaseAttributePropertyDrawer<PropertyPopupAttr
 			};
 		}
 	}
-    /*
-	private object GetParentObjectOfProperty(string path, object obj) {
-		string[] fields = path.Split('.');
-		
-		// We've finally arrived at the final object that contains the property
-		if (fields.Length == 1) {
-			return obj;
-		}
-		
-		// We may have to walk public or private fields along the chain to finding our container object, so we have to allow for both
-		FieldInfo fi = obj.GetType().GetField(fields[0], BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-		obj = fi.GetValue(obj);
-		
-		// Keep searching for our object that contains the property
-		return GetParentObjectOfProperty(string.Join(".", fields, 1, fields.Length - 1), obj);
-	}
-	*/
 }
