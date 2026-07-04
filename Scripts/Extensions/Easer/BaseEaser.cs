@@ -10,7 +10,7 @@ public abstract class BaseEaser<T> {
 		get {
 			return _target;
 		} set {
-			if(_target.Equals(value)) return;
+			if(EqualityComparer<T>.Default.Equals(_target, value)) return;
 			_target = value;
 			if(OnChangeTarget != null) OnChangeTarget(target);
 		}
@@ -21,7 +21,7 @@ public abstract class BaseEaser<T> {
 		get {
 			return _current;
 		} set {
-			if(_current.Equals(value)) return;
+			if(EqualityComparer<T>.Default.Equals(_current, value)) return;
 			_current = value;
 			if(OnChangeCurrent != null) OnChangeCurrent(current);
 		}

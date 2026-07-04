@@ -74,13 +74,11 @@ public class FloatSmoothStepDamper {
 	}
 	public FloatSmoothStepDamper (float current) {
 		lerpFunction = SmoothDamp;
-		// this.initial = 
         this.current = this.target = current;
 	}
 
 	public FloatSmoothStepDamper (float current, float smoothSpeed) {
 		lerpFunction = SmoothDamp;
-		// this.initial = 
         this.current = this.target = current;
         this.smoothSpeed = smoothSpeed;
     }
@@ -93,7 +91,7 @@ public class FloatSmoothStepDamper {
 	}
 
 	protected float SmoothDamp (float deltaTime) {
-        var targetVelocity = 0;
+        var targetVelocity = 0f;
 		if(current == target) {
 			targetVelocity = 0;
 		} else {

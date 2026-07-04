@@ -143,30 +143,26 @@ public class Selector<T, TPrioritySource>
 			return;
 		}
 
-		T previous = Value;
+		NotifyIfChanged(() => {
+			// Set priority if it doesn't already have one defined
+			if (!_priorities.ContainsKey (source)) {
+				int maxPriority = -1;
+				if( _priorities.Count > 0 )
+					maxPriority = _priorities.Max (objPriority => objPriority.Value);
+				var implicitPriority = maxPriority + 1;
+				AddPriority (source, implicitPriority);
+			}
 
-		// Set priority if it doesn't already have one defined
-		if (!_priorities.ContainsKey (source)) {
-			int maxPriority = -1;
-			if( _priorities.Count > 0 )
-				maxPriority = _priorities.Max (objPriority => objPriority.Value);
-			var implicitPriority = maxPriority + 1;
-			AddPriority (source, implicitPriority);
-		}
-
-		var existingIndex = _entries.FindIndex (e => e.source.Equals(source));
-		if (existingIndex != -1) {
-			var entry = _entries [existingIndex];
-			entry.desiredValue = desiredValue;
-			_entries [existingIndex] = entry;
-		} else {
-			_entries.Add (new Entry { source = source, desiredValue = desiredValue });
-			_entries.Sort (EntryComparer);
-		}
-
-		T current = Value;
-		if (!previous.Equals (current) && onChange != null)
-			onChange (current);
+			var existingIndex = _entries.FindIndex (e => e.source.Equals(source));
+			if (existingIndex != -1) {
+				var entry = _entries [existingIndex];
+				entry.desiredValue = desiredValue;
+				_entries [existingIndex] = entry;
+			} else {
+				_entries.Add (new Entry { source = source, desiredValue = desiredValue });
+				_entries.Sort (EntryComparer);
+			}
+		});
 	}
 
 	public void Unset (TPrioritySource source)
@@ -175,19 +171,19 @@ public class Selector<T, TPrioritySource>
 	}
 
 	public void Clear () {
-		T previous = Value;
-		_entries.Clear();
-		T current = Value;
-		if (!previous.Equals (current) && onChange != null)
-			onChange (current);
+		NotifyIfChanged(() => _entries.Clear());
 	}
 
 	void RemoveEntriesWhere(Predicate<Entry> predicate)
 	{
+		NotifyIfChanged(() => _entries.RemoveAll(predicate));
+	}
+
+	// Captures Value, runs the mutation, and fires onChange if Value changed as a result.
+	void NotifyIfChanged (Action action)
+	{
 		T previous = Value;
-
-		_entries.RemoveAll(predicate);
-
+		action();
 		T current = Value;
 		if (!previous.Equals (current) && onChange != null)
 			onChange (current);

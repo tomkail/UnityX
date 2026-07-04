@@ -30,7 +30,7 @@ public class Vector3Tween : TypeTween<Vector3> {
 	
 	protected override void TweenComplete () {
 		base.TweenComplete();
-		if(OnComplete != null)OnComplete();
+		if(OnComplete != null) OnComplete();
 	}
 	
 	public override void Interrupt () {

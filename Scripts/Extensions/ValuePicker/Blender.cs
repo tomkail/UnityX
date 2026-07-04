@@ -100,8 +100,6 @@ public class Blender<T>
 
 	void RemoveEntriesWhere(Predicate<Entry> predicate)
 	{
-		T previous = Value;
-
 		_entries.RemoveAll(predicate);
 
 		RefreshValue();

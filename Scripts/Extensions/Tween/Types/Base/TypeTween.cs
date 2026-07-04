@@ -43,6 +43,11 @@ public abstract class TypeTween<T> {
 	public delegate T LerpFunction(T start, T end, float lerp);
 	public LerpFunction lerpFunction;
 
+	// Cached default linear easing curve, shared to avoid allocating a new AnimationCurve
+	// on every default Tween(). Only ever passed by reference and READ (evaluated) within
+	// this class — never mutated in place — so sharing a single instance is safe.
+	static readonly AnimationCurve defaultLinearCurve = AnimationCurve.Linear(0, 0, 1, 1);
+
 	public TypeTween () {
 		Init();
 	}
@@ -152,7 +157,7 @@ public abstract class TypeTween<T> {
 	/// <param name="myTargetValue">The value to tween towards.</param>
 	/// <param name="myTweenTime">The time over which the tween will occur.</param>
 	public virtual void Tween(T myStartValue, T myTargetValue, float myTweenTime){
-		Tween(myStartValue, myTargetValue, myTweenTime, AnimationCurve.Linear(0, 0, 1, 1));
+		Tween(myStartValue, myTargetValue, myTweenTime, defaultLinearCurve);
 	}
 
 	public virtual void Tween(T myStartValue, T myTargetValue, float myTweenTime, AnimationCurve myLerpCurve){
@@ -160,7 +165,7 @@ public abstract class TypeTween<T> {
 	}
 
 	public virtual void Tween(T myStartValue, T myTargetValue, float myTweenTime, LerpFunction lerpFunction){
-		Tween(myStartValue, myTargetValue, myTweenTime, AnimationCurve.Linear(0, 0, 1, 1), lerpFunction);
+		Tween(myStartValue, myTargetValue, myTweenTime, defaultLinearCurve, lerpFunction);
 	}
 
 	/// <summary>
@@ -195,14 +200,14 @@ public abstract class TypeTween<T> {
 			Interrupt();
 		}
 		
-        SetEasingCurve(myLerpCurve);
+		SetEasingCurve(myLerpCurve);
 
-        if(lerpFunction == null) {
-            SetDefaultLerpFunction();
-        } else {
-            this.lerpFunction = lerpFunction;
-        }
-        
+		if(lerpFunction == null) {
+			SetDefaultLerpFunction();
+		} else {
+			this.lerpFunction = lerpFunction;
+		}
+
 		if (myTweenTime > 0.0f) {
 			tweenTimer = new Timer(myTweenTime);
 			tweenTimer.OnComplete += TweenComplete;
@@ -215,12 +220,15 @@ public abstract class TypeTween<T> {
 
 			tweening = true;
 		} else {
+			// Instant (zero-duration) tween: jump straight to the target. `tweening` stays
+			// false so below we fire OnStart then OnComplete in the same call — this is the
+			// intended semantics for a zero-time tween, not a bug.
 			currentValue = myTargetValue;
 			startValue = myStartValue;
 			targetValue = myTargetValue;
 		}
 		TweenStart();
-        if(!tweening) TweenComplete();
+		if(!tweening) TweenComplete();
 	}
 
 	protected virtual void SetEasingCurve (AnimationCurve easingCurve) {
@@ -239,8 +247,13 @@ public abstract class TypeTween<T> {
 	/// </summary>
 	public virtual T Update (float myDeltaTime) {
 		if(tweening){
-			SetValue(GetValueAtNormalizedTime(tweenTimer.GetNormalizedTime()));
+			// Advance the timer FIRST so the sampled value reflects the current frame's
+			// elapsed time rather than the previous frame's (which caused a one-frame lag).
 			tweenTimer.Update(myDeltaTime);
+			// If the timer reached its target during Update(), TweenComplete has already
+			// applied the value at normalized time 1 and cleared `tweening`, so skip the
+			// re-sample to avoid overwriting the completion value / firing a stale OnChange.
+			if(tweening) SetValue(GetValueAtNormalizedTime(tweenTimer.GetNormalizedTime()));
 		}
 		return currentValue;
 	}
@@ -277,6 +290,10 @@ public abstract class TypeTween<T> {
 	/// Returns the current value of the tween at a specified time
 	/// </summary>
 	public T GetValueAtTime(float myTime){
+		// Guard against a null timer or zero/negative duration (e.g. an instant tween),
+		// which would otherwise divide by zero. In that case the tween has no duration to
+		// interpolate over, so return the end value (equivalent to normalized time 1).
+		if(tweenTimer == null || tweenTimer.targetTime <= 0) return GetValueAtNormalizedTime(1);
 		return GetValueAtNormalizedTime(myTime/tweenTimer.targetTime);
 	}
 	

@@ -146,9 +146,7 @@ public struct Range : IEquatable<Range> {
 
 	// The shared range between this range and another
 	public Range Intersection (Range otherRange) {
-        var intersectionMin = Math.Max (min, otherRange.min);
-        var intersectionMax = Math.Min (max, otherRange.max);
-        return new Range(intersectionMin, intersectionMax);
+		return Intersection(this, otherRange);
 	}
 	
 	public static Range Intersection (Range a, Range b) {

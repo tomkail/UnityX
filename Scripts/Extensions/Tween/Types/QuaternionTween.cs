@@ -14,7 +14,7 @@ public class QuaternionTween : TypeTween<Quaternion> {
 	}
 
 	protected override void SetDeltaValue (Quaternion myLastValue, Quaternion myCurrentValue) {
-		deltaValue = myCurrentValue * myLastValue;
+		deltaValue = myCurrentValue * Quaternion.Inverse(myLastValue);
 	}
 	
 	//----------------- IOS GENERIC INHERITANCE EVENT CRASH BUG WORKAROUND ------------------
@@ -30,7 +30,7 @@ public class QuaternionTween : TypeTween<Quaternion> {
 	
 	protected override void TweenComplete () {
 		base.TweenComplete();
-		if(OnComplete != null)OnComplete();
+		if(OnComplete != null) OnComplete();
 	}
 	
 	public override void Interrupt () {

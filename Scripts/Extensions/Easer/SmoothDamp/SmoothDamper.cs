@@ -11,17 +11,17 @@ public abstract class SmoothDamper<T> : BaseEaser<T> {
 	private const float defaultSmoothTime = 0.1f;
 	private const float defaultMaxSpeed = Mathf.Infinity;
 
-	[Tooltip("Higher is slower")]
 	/// <summary>
 	/// The smooth time. Higher is slower.
 	/// </summary>
+	[Tooltip("Higher is slower")]
 	public float smoothTime = defaultSmoothTime;
-	[DisableAttribute, Tooltip("The current velocity of the damp")]
+	[Disable, Tooltip("The current velocity of the damp")]
 	public T currentVelocity;
-	[Tooltip("The velocity clamp")]
 	/// <summary>
 	/// The max delta per second.
 	/// </summary>
+	[Tooltip("The velocity clamp")]
 	public float maxSpeed = defaultMaxSpeed;
 
 	// Used for correct Unity editor serializer initialization

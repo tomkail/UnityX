@@ -9,7 +9,7 @@ public class RectTween : TypeTween<Rect> {
 
 	protected override void SetDefaultLerpFunction () {
 		lerpFunction = (start, end, lerp) => {
-			Vector4 newRect = Vector4.Lerp(new Vector4(start.x, start.y, start.width, start.height), new Vector4(end.x, end.y, end.width, end.height), easingCurve.Evaluate(lerp));
+			Vector4 newRect = Vector4.LerpUnclamped(new Vector4(start.x, start.y, start.width, start.height), new Vector4(end.x, end.y, end.width, end.height), easingCurve.Evaluate(lerp));
 			return new Rect(newRect.x, newRect.y, newRect.z, newRect.w);
 		};
 	}
@@ -31,7 +31,7 @@ public class RectTween : TypeTween<Rect> {
 	
 	protected override void TweenComplete () {
 		base.TweenComplete();
-		if(OnComplete != null)OnComplete();
+		if(OnComplete != null) OnComplete();
 	}
 	
 	public override void Interrupt () {

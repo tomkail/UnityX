@@ -50,7 +50,7 @@ public class ColorTween : TypeTween<Color> {
 	
 	protected override void TweenComplete () {
 		base.TweenComplete();
-		if(OnComplete != null)OnComplete();
+		if(OnComplete != null) OnComplete();
 	}
 	
 	public override void Interrupt () {

@@ -8,7 +8,7 @@ public class Vector2MoveTowardsEaser : MoveTowardsEaser<Vector2> {
 	public Vector2MoveTowardsEaser (Vector2 target, Vector2 current, float maxDelta) : base(target, current, maxDelta) {}
 
 	protected override Vector2 MoveTowards (float deltaTime) {
-		return Vector2.MoveTowards(current, target, maxDelta);
+		return Vector2.MoveTowards(current, target, maxDelta * deltaTime);
 	}
 
 	protected override Vector2 GetDelta (Vector2 lastValue, Vector2 newValue) {
