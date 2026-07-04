@@ -74,87 +74,59 @@ public partial class SLayout : UIBehaviour {
 
 	public SLayoutAnimation Animate(float duration, float delay, System.Action animAction)
 	{
-		return Animate(duration, delay, null, animAction);
+		return Animate(duration, delay, (AnimationCurve)null, animAction);
 	}
 
 	public SLayoutAnimation After(float delay, System.Action nonAnimatedAction)
 	{
 		// null curve, null animAction
-		var newAnim = new SLayoutAnimation() {
-			_duration = 0.0f, 
-			_maxDuration = 0.0f, 
-			_delay = delay, 
-			_maxDelay = delay, 
-			_nonAnimatedAction = nonAnimatedAction,
-			_owner = this
-		};
-		SLayoutAnimator.instance.StartAnimation(newAnim);
-		return newAnim;
+		return StartNewAnimation(0.0f, delay, null, nonAnimatedAction);
 	}
 
 	public SLayoutAnimation Animate(float duration, float delay, AnimationCurve customCurve, System.Action animAction)
 	{
-		var newAnim = new SLayoutAnimation() {
-			_duration = duration, 
-			_maxDuration = duration, 
-			_delay = delay, 
-			_maxDelay = delay, 
-			_customCurve = customCurve, 
-			_animAction = animAction,
-			_owner = this
-		};
-		SLayoutAnimator.instance.StartAnimation(newAnim);
-		#if UNITY_EDITOR
-		if(!Application.isPlaying) newAnim.CompleteImmediate();
-		#endif
-		return newAnim;
+		return StartNewAnimation(duration, delay, animAction, null, a => a._customCurve = customCurve);
 	}
-	
+
 	public SLayoutAnimation Animate(float duration, EasingFunction.Ease easing, System.Action animAction)
 	{
 		return Animate(duration, 0.0f, easing, animAction);
 	}
-	
+
 	public SLayoutAnimation Animate(float duration, float delay, EasingFunction.Ease easing, System.Action animAction)
 	{
-		var newAnim = new SLayoutAnimation() {
-			_duration = duration, 
-			_maxDuration = duration, 
-			_delay = delay, 
-			_maxDelay = delay, 
-			_easingFunction = EasingFunction.GetEasingFunction(easing), 
-			_animAction = animAction,
-			_owner = this
-		};
-		SLayoutAnimator.instance.StartAnimation(newAnim);
-		return newAnim;
+		return StartNewAnimation(duration, delay, animAction, null, a => a._easingFunction = EasingFunction.GetEasingFunction(easing));
 	}
 
 	public SLayoutAnimation AnimateCustom(float duration, System.Action<float> customAnimAction)
 	{
-		var newAnim = new SLayoutAnimation() {
-			_duration = duration, 
-			_maxDuration = duration, 
-			_delay = 0.0f, 
-			_maxDelay = 0.0f, 
-			_animAction = () => Animatable(customAnimAction),
-			_owner = this
-		};
-		SLayoutAnimator.instance.StartAnimation(newAnim);
-		return newAnim;
+		return AnimateCustom(duration, 0.0f, customAnimAction);
 	}
 
 	public SLayoutAnimation AnimateCustom(float duration, float delay, System.Action<float> customAnimAction)
 	{
+		return StartNewAnimation(duration, delay, () => Animatable(customAnimAction), null);
+	}
+
+	// Shared construction for all Animate/AnimateCustom/After overloads. configure sets the easing/curve (if any).
+	// In edit mode there's no play loop driving SLayoutAnimator, so the animation is completed immediately
+	// (as the AnimationCurve overload always did) — now applied consistently to every entry point.
+	SLayoutAnimation StartNewAnimation(float duration, float delay, System.Action animAction, System.Action nonAnimatedAction, System.Action<SLayoutAnimation> configure = null)
+	{
 		var newAnim = new SLayoutAnimation() {
-			_duration = duration, 
-			_maxDuration = duration, 
-			_delay = delay, 
-			_maxDelay = delay, 
-			_animAction = () => Animatable(customAnimAction),
+			_duration = duration,
+			_maxDuration = duration,
+			_delay = delay,
+			_maxDelay = delay,
+			_animAction = animAction,
+			_nonAnimatedAction = nonAnimatedAction,
 			_owner = this
 		};
+		configure?.Invoke(newAnim);
 		SLayoutAnimator.instance.StartAnimation(newAnim);
+		#if UNITY_EDITOR
+		if(!Application.isPlaying) newAnim.CompleteImmediate();
+		#endif
 		return newAnim;
 	}
 
@@ -806,15 +778,11 @@ public partial class SLayout : UIBehaviour {
 		}
 	}
 		
-	Vector2 GetPivotPos(RectTransform rt)
-	{
-		var rectSize = rt.rect.size;
-		var rectPivot = rt.pivot;
-		return new Vector2(
-			rectSize.x * rectPivot.x,
-			rectSize.y * rectPivot.y
-		);
-	}
+	// Distance from an edge of a RectTransform to its pivot, along each axis.
+	static float PivotOffsetX(RectTransform rt) => rt.pivot.x * rt.rect.width;          // left edge → pivot
+	static float PivotOffsetY(RectTransform rt) => rt.pivot.y * rt.rect.height;         // bottom edge → pivot
+	static float PivotOffsetToTopY(RectTransform rt) => (1.0f - rt.pivot.y) * rt.rect.height; // top edge → pivot
+	Vector2 GetPivotPos(RectTransform rt) => new Vector2(PivotOffsetX(rt), PivotOffsetY(rt));
 
 
     
@@ -852,24 +820,24 @@ public partial class SLayout : UIBehaviour {
 		var localPoint = transform.parent.InverseTransformPoint(worldPoint);
 		Vector2 anchoredPos = (Vector2)localPoint + pivot;
 		
-		float toLeftEdge = rt.pivot.x * rt.rect.width;
-		float parentToLeftEdge = parentRectT.pivot.x * parentRectT.rect.width;
+		float toLeftEdge = PivotOffsetX(rt);
+		float parentToLeftEdge = PivotOffsetX(parentRectT);
 		float leftInset = parentToLeftEdge - toLeftEdge;
 		anchoredPos.x += leftInset;
-		
+
 		if( originTopLeft ) {
-			// This calculation can almost certainly be simplied a LOT. This system confuses the heck out of me and I worked it out by just hacking things about.
-			float toTopEdge = (1.0f-rt.pivot.y) * rt.rect.height;
-			float parentToTopEdge = (1.0f-parentRectT.pivot.y) * parentRectT.rect.height;
+			// This calculation can almost certainly be simplified a LOT. This system confuses the heck out of me and I worked it out by just hacking things about.
+			float toTopEdge = PivotOffsetToTopY(rt);
+			float parentToTopEdge = PivotOffsetToTopY(parentRectT);
 			float topInset = parentToTopEdge - toTopEdge;
 			anchoredPos.y += topInset;
-			
+
 			anchoredPos.y = parentRectT.rect.height - anchoredPos.y;
 			anchoredPos.y -= parentRectT.rect.height * (parentRectT.pivot.y - 0.5f) * 2;
 			anchoredPos.y -= rt.rect.height * (1-rt.pivot.y) * 2;
 		} else {
-			float toBottomEdge = rt.pivot.y * rt.rect.height;
-			float parentToBottomEdge = parentRectT.pivot.y * parentRectT.rect.height;
+			float toBottomEdge = PivotOffsetY(rt);
+			float parentToBottomEdge = PivotOffsetY(parentRectT);
 			float bottomInset = parentToBottomEdge - toBottomEdge;
 			anchoredPos.y += bottomInset;
 		}
@@ -891,16 +859,16 @@ public partial class SLayout : UIBehaviour {
 		if( parentRectT == null )
 			return offset;
 		
-		float parentToLeftEdge = parentRectT.pivot.x * parentRectT.rect.width;
+		float parentToLeftEdge = PivotOffsetX(parentRectT);
 		offset.x = parentToLeftEdge;
 
 		if( originTopLeft ) {
 			canvasSpacePos.y = -canvasSpacePos.y;
-			float parentToTopEdge = (1.0f-parentRectT.pivot.y) * parentRectT.rect.height;
+			float parentToTopEdge = PivotOffsetToTopY(parentRectT);
 			float topInset = parentToTopEdge;
 			offset.y = topInset;
 		} else {
-			float parentToBottomEdge = parentRectT.pivot.y * parentRectT.rect.height;
+			float parentToBottomEdge = PivotOffsetY(parentRectT);
 			float bottomInset = parentToBottomEdge;
 			offset.y = bottomInset;
 		}
@@ -952,12 +920,12 @@ public partial class SLayout : UIBehaviour {
 	}
 
 	float GetRectTransformX(RectTransform rt) {
-		float toLeftEdge = rt.pivot.x * rt.rect.width;
+		float toLeftEdge = PivotOffsetX(rt);
 		var parentRectT = rt.parent as RectTransform;
 		if( parentRectT == null )
 			return 0.0f;
-		
-		float parentToLeftEdge = parentRectT.pivot.x * parentRectT.rect.width;
+
+		float parentToLeftEdge = PivotOffsetX(parentRectT);
 		float leftInset = parentToLeftEdge + transform.localPosition.x - toLeftEdge;
 		return leftInset;
 	}
@@ -968,13 +936,13 @@ public partial class SLayout : UIBehaviour {
 			return 0.0f;
 		
 		if( originTopLeft ) {
-			float toTopEdge = (1.0f-rt.pivot.y) * rt.rect.height;
-			float parentToTopEdge = (1.0f-parentRectT.pivot.y) * parentRectT.rect.height;
+			float toTopEdge = PivotOffsetToTopY(rt);
+			float parentToTopEdge = PivotOffsetToTopY(parentRectT);
 			float topInset = parentToTopEdge - transform.localPosition.y - toTopEdge;
 			return topInset;
 		} else {
-			float toBottomEdge = rt.pivot.y * rt.rect.height;
-			float parentToBottomEdge = parentRectT.pivot.y * parentRectT.rect.height;
+			float toBottomEdge = PivotOffsetY(rt);
+			float parentToBottomEdge = PivotOffsetY(parentRectT);
 			float bottomInset = parentToBottomEdge + transform.localPosition.y - toBottomEdge;
 			return bottomInset;
 		}
@@ -987,8 +955,8 @@ public partial class SLayout : UIBehaviour {
 
 		var rt = rectTransform;
 
-		var parentPivotPosX = parentRT.pivot.x * parentRT.rect.width;
-		var ownPivotPosX = rt.pivot.x * rt.rect.width;
+		var parentPivotPosX = PivotOffsetX(parentRT);
+		var ownPivotPosX = PivotOffsetX(rt);
 
 		// X local to parent pivot (i.e. the localPosition)
 		var localX = -parentPivotPosX + x + ownPivotPosX;
@@ -1009,12 +977,12 @@ public partial class SLayout : UIBehaviour {
 		
 		var rt = rectTransform;
 		if( originTopLeft ) {
-			var parentPivotPosToTop = (1.0f-parentRT.pivot.y) * parentRT.rect.height;
-			var ownPivotPosToTop = (1.0f-rt.pivot.y) * rt.rect.height;
+			var parentPivotPosToTop = PivotOffsetToTopY(parentRT);
+			var ownPivotPosToTop = PivotOffsetToTopY(rt);
 			localY = parentPivotPosToTop - y - ownPivotPosToTop;
 		} else {
-			var parentPivotPosY = parentRT.pivot.y * parentRT.rect.height;
-			var ownPivotPosY = rt.pivot.y * rt.rect.height;
+			var parentPivotPosY = PivotOffsetY(parentRT);
+			var ownPivotPosY = PivotOffsetY(rt);
 			localY = -parentPivotPosY + y + ownPivotPosY;
 		}
 			

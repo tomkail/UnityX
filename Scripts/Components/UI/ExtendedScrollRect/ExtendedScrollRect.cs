@@ -14,7 +14,6 @@ namespace UnityEngine.UI {
 		    get => excessDragRerouteEdges;
 		    set => excessDragRerouteEdges = value;
 	    }
-	    // public bool CurrentlyRoutingExcessDragToParent => routingExcessDragToParent;
 	    bool currentlyRoutingExcessDragToParent = false;
 	    bool routedExcessDragToParent = false;
 	    
@@ -350,12 +349,5 @@ namespace UnityEngine.UI {
 			dragging = false;
 			base.OnDisable();
 		}
-		// #if UNITY_EDITOR
-		// protected override void Reset() {
-		// 	this.viewport = this.transform.Find("Viewport").transform as RectTransform;
-		// 	this.content = this.transform.Find("Viewport/Content").transform as RectTransform;
-		// 	base.Reset();
-		// }
-		// #endif
 	}
 }

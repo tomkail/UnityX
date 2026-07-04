@@ -93,24 +93,11 @@ namespace UnityEngine.UI {
 			public float GetPositionForGridCoord(float index, float otherAxisIndex) => GetPositionForGridCoord(index, otherAxisIndex, 0);
 			public float GetCenterPositionForGridCoord(float index, float otherAxisIndex) => GetPositionForGridCoord(index, otherAxisIndex, 0.5f);
 
-			// public float GetPositionForGridCoord(float index) {
-			// 	if (_flip) index = Mathf.Max(0, GetCellCount() - 1) - index;
-			// 	return CalculatePositionForGridCoord(index, GetItemSize(), _spacing, margin, 0);
-			// }
-			// public float GetCenterPositionForGridCoord(float index) {
-			// 	if (_flip) index = Mathf.Max(0, GetCellCount() - 1) - index;
-			// 	return CalculatePositionForGridCoord(index, GetItemSize(), _spacing, margin, 0.5f);
-			// }
-
 			public float GetPositionOffsetForGridCoord(float otherAxisIndex) {
 				return CalculatePositionOffsetForGridCoord(otherAxisIndex, _offset, otherAxis.GetCellCount());
 			}
 
 			public override string ToString() {
-				// public float aspectRatio
-				// float spacing;
-				// float offset;
-				// bool _flip;
 				return $"[GridLayoutAxisSettings: axis={(isXAxis ? "X" : "Y")}, containerSize={containerSize}, sizeMode={sizeMode}, fillMode={fillMode}, totalSize (calculated)={GetTotalSize()}, itemSize (calculated)={GetItemSize()}, cellCount (calculated)={GetCellCount()}, spacing={spacing}, offset={offset}, flip={_flip}]";
 			}
 		}
@@ -271,7 +258,9 @@ namespace UnityEngine.UI {
 		}
 		
 		public static float CalculatePositionForGridCoord(float coord, float itemSize, float spacing, Vector2 margin, float pivot) {
-			return margin.x + (spacing * coord) + (itemSize * coord);
+			// pivot shifts the position within the cell: 0 = cell origin, 0.5 = centre, 1 = far edge.
+			// (Previously pivot was accepted but ignored, so GetCenterPositionForGridCoord returned the cell origin.)
+			return margin.x + (spacing * coord) + (itemSize * coord) + (itemSize * pivot);
 		}
 		
 		public static float CalculatePositionOffsetForGridCoord(float otherAxisIndex, float offset, int otherAxisCellCount) {

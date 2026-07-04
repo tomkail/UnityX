@@ -3,7 +3,8 @@
 namespace UnityEngine.UI {
     public class ExtendedCanvasScaler : CanvasScaler {
         public bool m_useCameraSizeInsteadOfScreenSize = true;
-        public float scaleMultipler = 1;
+        [UnityEngine.Serialization.FormerlySerializedAs("scaleMultipler")]
+        public float scaleMultiplier = 1;
 
         const float kLogBase = 2;
         #if UNITY_EDITOR
@@ -59,7 +60,7 @@ namespace UnityEngine.UI {
                 }
             }
 
-            scaleFactor *= scaleMultipler;
+            scaleFactor *= scaleMultiplier;
 
             SetScaleFactor(scaleFactor);
             SetReferencePixelsPerUnit(m_ReferencePixelsPerUnit);
@@ -90,7 +91,7 @@ namespace UnityEngine.UI {
                     break;
             }
 
-            SetScaleFactor((dpi / targetDPI) * scaleMultipler);
+            SetScaleFactor((dpi / targetDPI) * scaleMultiplier);
             SetReferencePixelsPerUnit(m_ReferencePixelsPerUnit * targetDPI / m_DefaultSpriteDPI);
         }
     }

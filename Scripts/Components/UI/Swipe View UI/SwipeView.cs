@@ -430,7 +430,8 @@ namespace UnityEngine.UI {
 		static Vector2 NormalizedToPointUnclamped(Rect rectangle, Vector2 normalizedRectCoordinates) {
 			return new Vector2(Mathf.LerpUnclamped(rectangle.x, rectangle.xMax, normalizedRectCoordinates.x), Mathf.LerpUnclamped(rectangle.y, rectangle.yMax, normalizedRectCoordinates.y));
 		}
-		//
+		// DEVELOPMENT/DEBUG: gizmos that visualise each page's pivot and its edge position while tuning
+		// swipe behaviour. Kept intentionally — uncomment this block (including the #if/#endif) to enable.
 		// #if UNITY_EDITOR
 		// void OnDrawGizmos() {
 		// 	var color = Gizmos.color;

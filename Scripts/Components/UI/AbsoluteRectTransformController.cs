@@ -31,10 +31,8 @@ public class AbsoluteRectTransformController : UIBehaviour {
 		base.OnRectTransformDimensionsChange();
 	}
 	
-	void Update() {
-		Refresh();
-	}
-	
+	// Refresh once per frame in LateUpdate (after layout, so rects are final). Resizes are handled
+	// immediately by OnRectTransformDimensionsChange; a second Refresh() in Update() was redundant.
 	void LateUpdate() {
 		Refresh();
 	}

@@ -48,19 +48,15 @@ public class RoundRectPolygonUI : UIBehaviour, ILayoutElement {
     }
 
 
-    // [SerializeField] 
+    // ILayoutElement values. -1 means "unset / ignore" (the standard ILayoutElement convention), so min/flexible
+    // are intentionally left unset; m_Preferred* are computed at runtime in CalculateLayoutInput*. These are
+    // deliberately NOT [SerializeField] — expose them only if you want designers to override the computed sizes.
     private float m_MinWidth = -1;
-    // [SerializeField] 
     private float m_MinHeight = -1;
-    // [SerializeField] 
     private float m_PreferredWidth = -1;
-    // [SerializeField] 
     private float m_PreferredHeight = -1;
-    // [SerializeField] 
     private float m_FlexibleWidth = -1;
-    // [SerializeField] 
     private float m_FlexibleHeight = -1;
-    // [SerializeField] 
     private int m_LayoutPriority = 1;
 
     public virtual void CalculateLayoutInputHorizontal() {

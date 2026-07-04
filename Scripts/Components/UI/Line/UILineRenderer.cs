@@ -181,7 +181,7 @@ namespace UnityEngine.UI.Extensions
         }
 
         /**
-            Caluclates a point on the path.
+            Calculates a point on the path.
             
             @param curveIndex The index of the curve that the point is on. For example, 
             the second curve (index 1) is the curve with controlpoints 3, 4, 5, and 6.
@@ -316,7 +316,7 @@ namespace UnityEngine.UI.Extensions
 
 
         /**
-            Caluclates a point on the Bezier curve represented with the four controlpoints given.
+            Calculates a point on the Bezier curve represented with the four controlpoints given.
         */
         private Vector2 CalculateBezierPoint(float t, Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3)
         {

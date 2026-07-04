@@ -14,9 +14,9 @@ public class ModifiedShadow : Shadow
         UIVertex vt;
 
         // The capacity calculation of the original version seems wrong.
-        var neededCpacity = verts.Count + (end - start);
-        if (verts.Capacity < neededCpacity)
-            verts.Capacity = neededCpacity;
+        var neededCapacity = verts.Count + (end - start);
+        if (verts.Capacity < neededCapacity)
+            verts.Capacity = neededCapacity;
 
         for (int i = start; i < end; ++i)
         {

@@ -5,8 +5,6 @@ using UnityEngine.UI;
 namespace UnityEditor.UI {
 	[CustomEditor(typeof(SwipeView)), CanEditMultipleObjects]
 	public class SwipeViewEditor : Editor {
-		static int targetPage;
-		
 		public override void OnInspectorGUI() {
 			serializedObject.Update();
 			
@@ -73,14 +71,6 @@ namespace UnityEditor.UI {
 			var pagePivots = serializedObject.FindProperty("pagePivots");
 			EditorGUILayout.PropertyField(pagePivots);
 
-			EditorGUILayout.Space();
-
-			EditorGUI.BeginDisabledGroup(true);
-			
-			
-			EditorGUI.EndDisabledGroup();
-			
-			// if(GUILayout.Button("Go to page")) GoToPageImmediate
 			serializedObject.ApplyModifiedProperties();
 		}
 
@@ -119,17 +109,6 @@ namespace UnityEditor.UI {
 				x += buttonWidth;
 				y += EditorGUIUtility.singleLineHeight;
 			}
-			// var labelSB = new StringBuilder();
-			// labelSB.AppendLine($"Target page index: {swipeView.targetPageIndex}");
-			// labelSB.AppendLine($"Closest page index: {swipeView.closestPageIndex}");
-			// labelSB.AppendLine($"Interpolated current page index: {swipeView.GetInterpolatedCurrentPageIndex()}");
-			// labelSB.AppendLine($"Normalized progress: {swipeView.GetNormalizedProgress()}");
-			//
-			// EditorGUI.LabelField(r, labelSB.ToString());
-			// if (GUI.Button(r, labelSB.ToString())) {
-			// 	swipeView.GoToPageImmediate(0);
-			// }
-			
 			GUI.EndScrollView();
 		}
 		

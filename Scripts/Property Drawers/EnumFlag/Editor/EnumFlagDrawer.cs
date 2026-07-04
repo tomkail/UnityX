@@ -34,7 +34,9 @@ public class EnumFlagDrawer : BaseAttributePropertyDrawer<EnumFlagAttribute> {
 	/// <param name="prop">Property.</param>
 	/// <typeparam name="T">The 1st type parameter.</typeparam>
 	public static T GetBaseProperty<T>(SerializedProperty prop) {
-		return GetValueFromObject<T>(prop.serializedObject.targetObject as object, prop.propertyPath);
+		// SerializedProperty.boxedValue (Unity 2022.1+) replaces the fragile GetValueFromObject reflection below.
+		// Keep returning default(T) (e.g. null for a non-enum) rather than throwing, so IsSupported still works.
+		return prop.boxedValue is T t ? t : default;
 	}
 
 	// public static System.Object GetBaseProperty(this SerializedProperty prop) {

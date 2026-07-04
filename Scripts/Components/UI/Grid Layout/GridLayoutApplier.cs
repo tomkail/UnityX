@@ -13,8 +13,6 @@ namespace UnityEngine.UI {
 
 		public enum AutoFillMode {
 			None,
-
-			// Auto,
 			XAxis,
 			YAxis
 		}

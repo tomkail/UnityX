@@ -189,5 +189,5 @@ public sealed class SLayoutAnimator : MonoBehaviour
 	List<SLayoutAnimation> _animations = new List<SLayoutAnimation>();
 	List<SLayoutAnimation> _animationsToRemove = new List<SLayoutAnimation>();
 
-	public static SLayoutAnimator _instance;
+	static SLayoutAnimator _instance;
 }

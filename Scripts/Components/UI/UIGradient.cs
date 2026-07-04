@@ -432,7 +432,7 @@ namespace UnityEngine.UI.Extensions
             for (int i = 0; i < stops.Count; i++) {
                 stops[i] = (stops[i] * size) + min;
 
-                if (i > 0 && Math.Abs(stops[i] - stops[i - 1]) < 2) {
+                if (i > 0 && Mathf.Abs(stops[i] - stops[i - 1]) < 2) {
                     stops.RemoveAt(i);
                     --i;
                 }

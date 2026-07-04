@@ -202,12 +202,6 @@ namespace UnityEditor.UI {
 			}
 		}
 
-		// public override void OnPreviewSettings() {
-		// 	LoadSettings(settings);
-		// 	settings.visualisationMode = (VisualisationMode)EditorGUILayout.EnumPopup(settings.visualisationMode, EditorStyles.toolbarDropDown, GUILayout.Width(120));
-		// 	SaveSettings(settings);
-		// }
-		
 		/// <summary>
 	/// Gets the actual value of a serialized property using reflection. A bit expensive. Doesn't work in every case.
 	/// </summary>
@@ -216,15 +210,11 @@ namespace UnityEditor.UI {
 	/// <typeparam name="T">The 1st type parameter.</typeparam>
 	public static T GetBaseProperty<T>(SerializedProperty prop) {
 		// SerializedProperty.boxedValue (Unity 2022.1+) is the correct built-in for this;
-		// it replaces the fragile GetValueFromObject reflection below.
-		return (T)prop.boxedValue;
+		// it replaces the fragile GetValueFromObject reflection below. default(T) on type mismatch (was the old behaviour).
+		return prop.boxedValue is T t ? t : default;
 	}
 
-	// public static System.Object GetBaseProperty(this SerializedProperty prop) {
-	// 	return GetValueFromObject(prop.serializedObject.targetObject as object, prop.propertyPath);
-	// }
-
-
+	// Legacy path-walking reflection, kept as public API (superseded by SerializedProperty.boxedValue above).
 	// If this goes wrong again, try some of the suggestions here - http://stackoverflow.com/questions/23181307/parse-field-property-path
 	public static T GetValueFromObject<T>(object obj, string propertyPath) {
 		Debug.Assert(obj != null);

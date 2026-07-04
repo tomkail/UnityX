@@ -105,28 +105,16 @@ public class SLayoutAnimation {
         return ThenAnimateInternal(duration, delay, null, () => SLayout.Animatable(customAnimAction), null);
 	}
 
-    SLayoutAnimation ThenAnimateInternal(float duration, float delay, AnimationCurve customCurve, Action animAction, Action nonAnimatedAction) {
-        Debug.Assert(_chainedAnim == null, "This animation already has a chained animation (called via Then...()");
-        // var nextAnim = new SLayoutAnimation(duration, delay, customCurve, animAction, nonAnimatedAction, _owner);
-		var nextAnim = new SLayoutAnimation() {
-			_duration = duration,
-			_maxDuration = duration,
-			_delay = delay,
-			_maxDelay = delay,
-			_animAction = animAction,
-			_nonAnimatedAction = nonAnimatedAction,
-			_customCurve = customCurve,
-			_owner = owner,
-		};
-        if (this.isComplete) SLayoutAnimator.instance.StartAnimation(nextAnim);
-        else _chainedAnim = nextAnim;
-        return nextAnim;
-	}
-	
+    SLayoutAnimation ThenAnimateInternal(float duration, float delay, AnimationCurve customCurve, Action animAction, Action nonAnimatedAction)
+        => ThenAnimateInternal(duration, delay, animAction, nonAnimatedAction, a => a._customCurve = customCurve);
+
     SLayoutAnimation ThenAnimateInternal(float duration, float delay, EasingFunction.Ease easing, Action animAction, Action nonAnimatedAction)
+        => ThenAnimateInternal(duration, delay, animAction, nonAnimatedAction, a => a._easingFunction = EasingFunction.GetEasingFunction(easing));
+
+    // Shared body for the two overloads above; configureEasing sets either _customCurve or _easingFunction.
+    SLayoutAnimation ThenAnimateInternal(float duration, float delay, Action animAction, Action nonAnimatedAction, Action<SLayoutAnimation> configureEasing)
     {
         Debug.Assert(_chainedAnim == null, "This animation already has a chained animation (called via Then...()");
-        // var nextAnim = new SLayoutAnimation(duration, delay, customCurve, animAction, nonAnimatedAction, _owner);
 		var nextAnim = new SLayoutAnimation() {
 			_duration = duration,
 			_maxDuration = duration,
@@ -134,9 +122,9 @@ public class SLayoutAnimation {
 			_maxDelay = delay,
 			_animAction = animAction,
 			_nonAnimatedAction = nonAnimatedAction,
-			_easingFunction = EasingFunction.GetEasingFunction(easing),
 			_owner = owner,
 		};
+        configureEasing(nextAnim);
         if (this.isComplete) SLayoutAnimator.instance.StartAnimation(nextAnim);
         else _chainedAnim = nextAnim;
         return nextAnim;

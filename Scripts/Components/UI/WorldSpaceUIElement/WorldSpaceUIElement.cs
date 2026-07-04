@@ -294,7 +294,8 @@ public class WorldSpaceUIElement : UIBehaviour {
 		}
 	}
 
-	// Test clamp with this
+	// DEVELOPMENT/DEBUG: draws the clamp rects as gizmos. Disabled by the leading underscore
+	// (Unity won't call `_OnDrawGizmos`); rename to `OnDrawGizmos` to visualise while debugging.
 	void _OnDrawGizmos () {
 //		if(!Application.isPlaying) return;
 		Vector3? targetPosition = WorldPointToLocalPointInRectangle(rootCanvas, worldCamera, targetPositionInternal);

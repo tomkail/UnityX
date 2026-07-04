@@ -147,7 +147,7 @@ public class BackgroundBlurUI : UIBehaviour {
             weightTexture.wrapMode = TextureWrapMode.Clamp;
         }
 
-        Color[] colors = new Color[size];;
+        Color[] colors = new Color[size];
         float sum = 0f;
 
         // Directly compute Gaussian weights into the colors array

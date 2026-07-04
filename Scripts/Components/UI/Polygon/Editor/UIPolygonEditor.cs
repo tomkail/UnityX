@@ -91,11 +91,7 @@ namespace UnityEditor.UI
             serializedObject.Update();
 
 			EditorGUILayout.PropertyField(texture, new GUIContent("Texture"));
-//			pointsList.DoLayoutList();
             EditorGUILayout.PropertyField(polygon, new GUIContent("Polygon"), true);
-			// EditorGUILayoutX.DrawSerializedProperty(polygon);
-            // EditorGUILayoutX.DrawSerializedProperty(polygon);
-            // base.OnInspectorGUI();
 
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("uvMode"));
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("uvXAngle"));

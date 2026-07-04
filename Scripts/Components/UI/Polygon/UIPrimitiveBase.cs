@@ -63,7 +63,7 @@ namespace UnityEngine.UI.Extensions
 
         [SerializeField]
         private float m_Resolution;
-        public float Resoloution { get { return m_Resolution; } set { m_Resolution = value; SetAllDirty(); } }
+        public float Resolution { get { return m_Resolution; } set { m_Resolution = value; SetAllDirty(); } }
 
 
 
@@ -247,7 +247,7 @@ namespace UnityEngine.UI.Extensions
 
         /// <summary>
         /// Return image adjusted position
-        /// **Copied from Unity's Image component for now and simplified for UI Extensions primatives
+        /// **Copied from Unity's Image component for now and simplified for UI Extensions primitives
         /// </summary>
         /// <param name="local"></param>
         /// <param name="rect"></param>

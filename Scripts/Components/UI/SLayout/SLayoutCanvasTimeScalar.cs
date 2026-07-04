@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// Allows the speed of an animation to be sped up or slowed down independently
@@ -18,7 +16,7 @@ public class SLayoutCanvasTimeScalar : MonoBehaviour {
 	}
 
 	/// <summary>
-	/// When Scaled, the the timeScale is in addition to any Time.timeScale.
+	/// When Scaled, the timeScale is in addition to any Time.timeScale.
 	/// When Unscaled, it acts entirely independently.
 	/// </summary>
 	public TimeType timeType;

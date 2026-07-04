@@ -84,5 +84,6 @@ namespace UnityEditor.UI.Extensions
             //     data.SetMaterialDirty();
             // }
         }
+        #pragma warning restore
 	}
 }
