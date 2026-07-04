@@ -82,7 +82,7 @@ public class Blender<T>
 
 	void RefreshValue () {
 		T current = Value;
-		if (!previousValue.Equals (current) && onChange != null) {
+		if (!EqualityComparer<T>.Default.Equals (previousValue, current) && onChange != null) {
 			onChange (current);
 			previousValue = current;
 		}

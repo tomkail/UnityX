@@ -23,16 +23,11 @@ public class FloatTween : TypeTween<float> {
 	//http://angrytroglodyte.net/cave/index.php/blog/11-unity-ios-doesn-t-like-generic-events
 	public new event OnChangeEvent OnChange;
 	public new event OnInterruptEvent OnInterrupt;
-	public new event OnStartEvent OnStart;
 	public new event OnCompleteEvent OnComplete;
-	
+
 	protected override void ChangedCurrentValue () {
 		base.ChangedCurrentValue();
 		if(OnChange != null) OnChange(currentValue);
-	}
-
-	protected override void TweenStart () {
-		if(OnStart != null) OnStart();
 	}
 
 	protected override void TweenComplete () {

@@ -25,11 +25,14 @@ public class SpringDamper {
 	public event System.Action<float> OnChangeCurrent;
 
 	/// <summary>
-	/// Adds a force without deltaTime.
+	/// Applies an instantaneous change in velocity (an impulse).
+	/// Unlike AddForce, this is NOT scaled by deltaTime — it's a one-off momentum kick (Δvelocity),
+	/// mirroring Unity's ForceMode.Impulse vs ForceMode.Force distinction.
 	/// </summary>
-	/// <param name="force">Force.</param>
-	public void AddImpulse (float force) {
-		currentVelocity += force;
+	/// <param name="impulse">The velocity change to apply.</param>
+	public void AddImpulse (float impulse) {
+		Debug.Assert(!float.IsNaN(impulse) && !float.IsInfinity(impulse), "Impulse is "+impulse);
+		currentVelocity += impulse;
 	}
 
 	/// <summary>
@@ -68,39 +71,41 @@ public class SpringDamper {
 	}
 
 
-	// Ok, so this is not accurate and definitely breaks when deltaTime is > 1, and also maybe because both steps should happen at once.
-	// The correct solution to this is http://www.ryanjuckett.com/programming/damped-springs/ which is a deterministic approach using a fixed wave period
-	// But that's nuts so we just clamp delta time, which means it'll be wrong, but not especially noticably wrong.
+	// Explicit-Euler springs go unstable if a single integration step is too large (a low frame rate could
+	// push the spring out of equilibrium). Rather than hard-code the step to 1/60 (which ignored the caller's
+	// deltaTime and made the spring run at the wrong speed off 60fps), we sub-step the real deltaTime into
+	// fixed <= 1/60s chunks: stable per-step AND framerate-independent. Total simulated time is capped at 1s
+	// to guard against a huge hitch causing a catch-up spiral. (An analytic damped spring —
+	// http://www.ryanjuckett.com/programming/damped-springs/ — would be exact; sub-stepping is simple + stable.)
+	const float maxSpringStep = 1f/60f;
+
 	public static float DampedSpring(float current, float target, ref float velocity, float springConstant, float damping) {
 		return DampedSpring(current, target, ref velocity, springConstant, damping, Time.deltaTime);
 	}
 	public static float DampedSpring(float current, float target, ref float velocity, float springConstant, float damping, float deltaTime) {
-		// we fix deltatime because a varying rate can see the spring go out of equilibrium. (Note: fixing the step trades exactness for stability — it is not truly framerate-independent.)
-		deltaTime = 1f/60f;
-
-		var currentToTarget = target - current;
-		var springForce = currentToTarget * springConstant;
-		var dampingForce = velocity * -damping;
-
-		float force = springForce + dampingForce;
-		velocity += force * deltaTime;
-		
-		float displacement = velocity * deltaTime;
-		return current + displacement;		
+		float remaining = Mathf.Min(deltaTime, 1f);
+		while (remaining > 0f) {
+			float dt = Mathf.Min(maxSpringStep, remaining);
+			remaining -= dt;
+			float force = (target - current) * springConstant + velocity * -damping;
+			velocity += force * dt;
+			current += velocity * dt;
+		}
+		return current;
 	}
 
 	public static float CriticallyDampedSpring(float current, float target, ref float velocity, float springConstant) {
-		// we fix deltatime because a varying rate can see the spring go out of equilibrium. (Note: fixing the step trades exactness for stability — it is not truly framerate-independent.) 
-		var deltaTime = 1f/60f;
-
-		float currentToTarget = target - current;
-		float springForce = currentToTarget * springConstant;
-		float dampingForce = -velocity * 2 * Mathf.Sqrt(springConstant);
-		
-		float force = springForce + dampingForce;		
-		velocity += force * deltaTime;
-		
-		float displacement = velocity * deltaTime;
-		return current + displacement;
+		return CriticallyDampedSpring(current, target, ref velocity, springConstant, Time.deltaTime);
+	}
+	public static float CriticallyDampedSpring(float current, float target, ref float velocity, float springConstant, float deltaTime) {
+		float remaining = Mathf.Min(deltaTime, 1f);
+		while (remaining > 0f) {
+			float dt = Mathf.Min(maxSpringStep, remaining);
+			remaining -= dt;
+			float force = (target - current) * springConstant + (-velocity * 2 * Mathf.Sqrt(springConstant));
+			velocity += force * dt;
+			current += velocity * dt;
+		}
+		return current;
 	}
 }

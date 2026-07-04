@@ -29,7 +29,6 @@ public class TextBouncer : BaseTextMeshProEffect {
         var revealParams = TextRevealAnimatorCalculatedParams.Calculate(textInfo, animationProgress, characterEffectWidth);
 
         var currentCharacterDistance = 0f;
-        // Debug.Log(revealParams.totalWidth+" "+revealParams.normalizedEffectWidth+" "+revealParams.effectStart+" "+revealParams.effectEnd);
         foreach (var characterInfo in textInfo.characterInfo) {
             if (!characterInfo.isVisible) continue;
             

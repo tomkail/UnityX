@@ -30,17 +30,31 @@ public class Shape {
 			pointsAsVectors[i] = (Vector2)points[i];
 		bounds = RectX.CreateEncapsulating(pointsAsVectors);
 		center = bounds.center;
-		pointBounds = new PointRect((int)bounds.x, (int)bounds.y, (int)bounds.width, (int)bounds.height);
+		// Build the integer bounds by flooring the min corner and ceiling the max corner.
+		// Flooring/ceiling (rather than casting, which truncates toward zero) keeps negative
+		// origins on the correct side, and clamping each extent to >= 1 guarantees a single
+		// point (or a degenerate line) still spans at least one cell instead of collapsing to
+		// a zero-size rect.
+		int minX = Mathf.FloorToInt(bounds.xMin);
+		int minY = Mathf.FloorToInt(bounds.yMin);
+		int maxX = Mathf.CeilToInt(bounds.xMax);
+		int maxY = Mathf.CeilToInt(bounds.yMax);
+		pointBounds = new PointRect(minX, minY, Mathf.Max(maxX - minX, 1), Mathf.Max(maxY - minY, 1));
 	}
 }
 
 public static class ShapeUtils {
 	// create a random joined shape with X points. Think tetromino generator!
 	public static Shape CreateContiguous (int numPoints) {
+		// Guard degenerate inputs: nothing to build for < 1 point.
+		if(numPoints < 1) return new Shape();
+
 		Point[] points = new Point[numPoints];
 		TypeMap<bool> shapeMap = new TypeMap<bool>(new Point(numPoints, numPoints));
-		int x = 1;
-		int y = 1;
+		// Seed near a corner. For numPoints >= 2 this is (1,1) as before; for numPoints == 1
+		// the grid is only 1x1, so clamp the seed to (0,0) to stay on the grid.
+		int x = Mathf.Min(1, numPoints - 1);
+		int y = Mathf.Min(1, numPoints - 1);
 		bool valid = false;
 		int rx;
 		int ry;
@@ -50,8 +64,14 @@ public static class ShapeUtils {
 		points[0] = new Point(x,y);
 		shapeMap.SetValueAtGridPoint(x,y,true);
 
+		// Cap the search for an adjacent free cell so a bad/small numPoints (e.g. a grid too
+		// cramped to fit the requested count) can't spin forever. On hitting the cap we bail
+		// gracefully and keep the cells placed so far.
+		int maxAttempts = Mathf.Max(1000, numPoints * numPoints * 4);
+		int placedCount = 1;
 
 		for(var i = 1; i < numPoints; i++) {
+			int attempts = 0;
 			do {
 				rx = Random.Range(0,numPoints);
 				ry = Random.Range(0,numPoints);
@@ -65,17 +85,26 @@ public static class ShapeUtils {
 				}
 
 
-			} while(!valid);
+			} while(!valid && ++attempts < maxAttempts);
+
+			// Couldn't find an adjacent free cell within the cap: stop growing the shape.
+			if(!valid) break;
 
 			x = rx;
 			y = ry;
 
 			points[i] = new Point(x,y);
 			shapeMap.SetValueAtGridPoint(points[i],true);
+			placedCount++;
 
 
 
 		}
+
+		// If we bailed early, trim off the unused (default) slots so we don't emit stray points.
+		if(placedCount < points.Length)
+			System.Array.Resize(ref points, placedCount);
+
 		for(int i = 0; i < points.Length; i++) {
 			minPoint.x = Mathf.Min(minPoint.x, points[i].x);
 			minPoint.y = Mathf.Min(minPoint.y, points[i].y);

@@ -23,8 +23,7 @@ public class LogicBlender<T> {
 	// Sets a source (creating if necessary) and refreshes
 	public void Set (object source, T value) {
 		if (source == null) return;
-		// Debug.Assert(sources.All(x => !x.Equals(null)));
-		var existingIndex = sources.FindIndex (e => e.source.Equals(source));
+		var existingIndex = sources.FindIndex (e => EqualityComparer<object>.Default.Equals(e.source, source));
 		if (existingIndex != -1) {
 			var entry = sources [existingIndex];
 			if(entry.value.Equals(value)) return;
@@ -42,14 +41,12 @@ public class LogicBlender<T> {
 		int numItemsRemoved = 0;
 		for (int i = sources.Count - 1; i >= 0; i--) {
 			var _source = sources[i];
-			if (source == _source.source) {
+			if (EqualityComparer<object>.Default.Equals(source, _source.source)) {
 				sources.RemoveAt(i);
 				numItemsRemoved++;
 			}
 		}
 		if(numItemsRemoved > 0) Refresh();
-		// This creates garbage.
-		// RemoveEntriesWhere (p => p.source.Equals (source));
 	}
 	
 	// Removes all sources and refreshes
@@ -67,7 +64,7 @@ public class LogicBlender<T> {
 	public bool TryGetValueForSource (object source, out T value) {
 		value = default;
 		foreach(var entry in sources) {
-			if(entry.source == source) {
+			if(EqualityComparer<object>.Default.Equals(entry.source, source)) {
 				value = entry.value;
 				return true;
 			}
@@ -79,7 +76,7 @@ public class LogicBlender<T> {
 	protected virtual void Refresh() {
 		var previousValue = value;
 		value = GetValue();
-		if (!previousValue.Equals(value)) {
+		if (!EqualityComparer<T>.Default.Equals(previousValue, value)) {
 			onChange?.Invoke (value);
 		}
 	}

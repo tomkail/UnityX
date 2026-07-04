@@ -176,16 +176,7 @@ namespace SplineSystem {
 			for (int i = 0; i < bezierPoints.Length-1; i++) curves[i] = new SplineBezierCurve(bezierPoints [i], bezierPoints [i+1]);
 			
 			float distance = 0;
-			// float roughLength = 0;
-			// foreach(var curve in curves) {
-			// 	curve.CacheData();
-			// 	var curveRoughLength = curve.GetRoughLength();
-			// 	roughLength += curveRoughLength;
-			// }
 			foreach(var curve in curves) {
-				// var curveRoughLength = curve.GetRoughLength();
-				// var cachedPointsPerMeter = (curveRoughLength/roughLength) * quality;
-				
 				curve.CacheData();
 				curve.numArcLengthsForArcLengthToTCalculation = Mathf.Max(2, Mathf.CeilToInt(quality));//Mathf.Max(2, Mathf.CeilToInt(cachedPointsPerMeter));
 
@@ -233,14 +224,6 @@ namespace SplineSystem {
 			return curves[index].GetTAtBezierArcLength(arcLength);
 		}
 
-		// public SplineBezierCurve GetCurveStartingWith (SplineBezierPoint bezierPoint) {
-		// 	if(curves.Length == 0 || !curves.ContainsIndex(bezierPoint.indexInCurve)) {
-		// 		Debug.LogError("Point not found "+bezierPoint.indexInCurve+" "+curves.Length);
-		// 		return null;
-		// 	}
-		// 	return curves[bezierPoint.indexInCurve];
-		// }
-
 		public float ClampArcLength (float targetArcLength) {
 			return Mathf.Clamp(targetArcLength, 0, length);
 		}
@@ -266,26 +249,6 @@ namespace SplineSystem {
 				if(sqrDistances[i] > acceptableSqrDistances) curvesToTry.RemoveAt(i);
 			}
 		}
-		/*
-		// Finds the best point on the spline by evaluating all the cached points using a scoring function
-		public SplineSampleData RoughEstimateBestCurveT (System.Func<Vector3, float> scoringFunction) {
-			float bestScore = Mathf.NegativeInfinity;
-			SplineBezierCurve bestCurve = null;
-			float bestT = 0;
-			foreach(var curve in curves) {
-				for (int i = 0; i < curve._points.Length; i++) {
-					var curvePoint = curve._points[i];
-					float score = scoringFunction(curvePoint);
-					if(score > bestScore) {
-						bestScore = score;
-						bestCurve = curve;
-						bestT = i * curve.numArcLengthsForArcLengthToTCalculationReciprocal;
-					}
-				}
-			}
-			return SplineSampleData.CreateFromCurveAndT(bestCurve, bestT);
-		}
- 		*/
 
 		// Gets the best T using the cached points only. This could be optimized by using a binary sort.
 		public bool RoughEstimateBestCurveT (System.Func<Vector3, float> scoringFunction, ref SplineBezierCurve bestCurve, ref float bestT, ref float bestScore) {
@@ -443,24 +406,6 @@ namespace SplineSystem {
 			return SqrDistance(samplePosition, curvePoint);
 		}
 
-		// This could be more efficient by using a binary search
-		void SubdivideInCurve (SplineBezierCurve curve, Vector3 samplePosition, ref float bestT, ref float tRange, int numSamples) {
-			var leftT = bestT - tRange * 0.5f;
-			var r = 1f/(numSamples-1);
-			r *= tRange;
-			tRange = r;
-			var bestDist = Mathf.Infinity;
-			for(int i = 0; i < numSamples; i++) {
-				var t = leftT + (i * r);
-				var curvePoint = curve.GetPointAtT(t);
-				float distance = SqrDistance(samplePosition, curvePoint);
-				if(distance < bestDist) {
-					bestDist = distance;
-					bestT = t;
-				}
-			}
-		}
-
 		public IEnumerable<Vector3> GetVerts (int numPoints) {
 			var r = length/(numPoints-1);
 			for (var i = 0; i < numPoints; i++)
@@ -487,12 +432,10 @@ namespace SplineSystem {
 
 		public IEnumerable<Vector3> GetVertsWithPointsPerMeter (float pointsPerMeter) {
 			int numPoints = Mathf.Max(Mathf.CeilToInt(length * pointsPerMeter), 2);
-			var r = length/(numPoints-1);
 			return GetVerts(numPoints);
 		}
 		public IEnumerable<Vector3> GetVertsWithPointsPerMeter (float pointsPerMeter, Matrix4x4 localToWorldMatrix) {
 			int numPoints = Mathf.Max(Mathf.CeilToInt(length * pointsPerMeter), 2);
-			var r = length/(numPoints-1);
 			return GetVerts(numPoints, localToWorldMatrix);
 		}
 

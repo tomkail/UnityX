@@ -8,8 +8,8 @@ using UnityEngine;
 //     public bool defaultVisible;
 //     public bool edges;
 //     public bool center;
-//     public static bool Edges => instance.edges;
-//     public static bool Center => instance.center;
+//     public static bool Edges => Instance.edges;
+//     public static bool Center => Instance.center;
 //     [PreviewTexture(256)]
 //     public Texture2D inputTexture;
 //     [PreviewTexture(256)]

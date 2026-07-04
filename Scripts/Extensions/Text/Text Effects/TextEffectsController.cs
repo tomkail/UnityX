@@ -34,7 +34,6 @@ public class TextEffectProperties {
     public float glowInner;
 
     public void ApplyToMaterial(Material fontMaterial) {
-        // fontMaterial.set
         fontMaterial.SetColor(ShaderUtilities.ID_FaceColor, faceColor);
         fontMaterial.SetFloat(ShaderUtilities.ID_FaceDilate, faceDilate);
     
@@ -127,7 +126,6 @@ public class TextEffectsController : MonoBehaviour
     }
 
     void Update() {
-        // Debug.Log(gameObject.name+" "+fontMaterial.mainTexture +" "+ m_TextComponent.font.atlasTexture+" "+m_TextComponent.fontMaterial+" "+m_TextComponent.fontMaterial.mainTexture+" "+m_TextComponent.fontSharedMaterial+" "+m_TextComponent.fontSharedMaterial.mainTexture);
         if(m_TextComponent.materialForRendering.mainTexture != m_TextComponent.font.atlasTexture) {
             Init();
             SetDirty();

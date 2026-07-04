@@ -68,6 +68,8 @@ public class Selector<T, TPrioritySource>
 			if (_nullRemovesValue != value) {
 				_nullRemovesValue = value;
 				if (_nullRemovesValue)
+					// nullRemovesValue only applies to reference-type T: for a value-type T,
+					// desiredValue == null is always false, so nothing is removed here (as intended).
 					RemoveEntriesWhere (p => p.desiredValue == null);
 			}
 		}
@@ -138,6 +140,8 @@ public class Selector<T, TPrioritySource>
 
 	public void Set (TPrioritySource source, T desiredValue)
 	{
+		// nullRemovesValue only applies to reference-type T: for a value-type T,
+		// desiredValue == null is always false, so this branch never fires (as intended).
 		if (_nullRemovesValue && desiredValue == null) {
 			Unset (source);
 			return;
@@ -185,7 +189,7 @@ public class Selector<T, TPrioritySource>
 		T previous = Value;
 		action();
 		T current = Value;
-		if (!previous.Equals (current) && onChange != null)
+		if (!EqualityComparer<T>.Default.Equals (previous, current) && onChange != null)
 			onChange (current);
 	}
 
