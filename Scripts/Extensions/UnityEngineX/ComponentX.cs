@@ -41,8 +41,8 @@ public static class ComponentX {
 	public static void BetterBroadcastMessage (this GameObject go, string message, object obj = null, SendMessageOptions sendMessageOptions = SendMessageOptions.DontRequireReceiver) {
 		#if UNITY_EDITOR
 		if(!Application.isPlaying) {
-			foreach(var transform in go.GetComponentsInChildren<Transform>()) 
-				go.BetterSendMessage(message, obj, sendMessageOptions);
+			foreach(var transform in go.GetComponentsInChildren<Transform>())
+				transform.gameObject.BetterSendMessage(message, obj, sendMessageOptions);
 			return;
 		}
 		#endif
@@ -147,7 +147,7 @@ public static class ComponentX {
 			return new ComponentSearchParams<T>(1, 1, includeInactive, predicate);
 		}
 		public static ComponentSearchParams<T> ImmediateAncestorsExcludingSelf (bool includeInactive = false, Predicate<T> predicate = null) {
-			return new ComponentSearchParams<T>(1, 1, includeInactive, predicate);
+			return new ComponentSearchParams<T>(-1, -1, includeInactive, predicate);
 		}
 		public static ComponentSearchParams<T> AllDescendentsExcludingSelf (bool includeInactive = false, Predicate<T> predicate = null) {
 			return new ComponentSearchParams<T>(1, int.MaxValue-1, includeInactive, predicate);

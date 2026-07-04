@@ -15,7 +15,8 @@ public static class PhysicsX {
 		yield return ray;
 		// Subtract a ray for the center raycast, and then also clamp to make sure there's at least 3 casts
 		numRays = Mathf.Max(numRays-1, 3);
-		var rotation = Quaternion.LookRotation(ray.direction, Vector3.up);
+		var up = Mathf.Abs(Vector3.Dot(ray.direction.normalized, Vector3.up)) > 0.999f ? Vector3.forward : Vector3.up;
+		var rotation = Quaternion.LookRotation(ray.direction, up);
 		var intervalAngle = 360f/numRays;
 		var angle = 0f;
 		for(int i = 0; i < numRays; i++) {
@@ -34,7 +35,8 @@ public static class PhysicsX {
 		yield return ray;
 		// Subtract a ray for the center raycast, and then also clamp to make sure there's at least 3 casts
 		numRays = Mathf.Max(numRays-1, 3);
-		var rotation = Quaternion.LookRotation(ray.direction, Vector3.up);
+		var up = Mathf.Abs(Vector3.Dot(ray.direction.normalized, Vector3.up)) > 0.999f ? Vector3.forward : Vector3.up;
+		var rotation = Quaternion.LookRotation(ray.direction, up);
 		var intervalAngle = 360f/numRays;
 		var angle = 0f;
 		for(int i = 0; i < numRays; i++) {

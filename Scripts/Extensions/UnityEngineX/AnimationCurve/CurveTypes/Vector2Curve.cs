@@ -28,7 +28,7 @@ public class Vector2Curve : BaseCurve<Vector2> {
 	}
 	
 	public void AddKey(float time, float x, float y){
-		AddKey(time, x, y);
+		AddKey(time, new Vector2(x, y));
 	}
 
 	public override void AddKey(float time, Vector2 vector){

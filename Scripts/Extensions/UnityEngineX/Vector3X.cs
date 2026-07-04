@@ -69,7 +69,8 @@ public static class Vector3X {
 	/// <param name="inNormal">In normal.</param>
 	/// <param name="coeficientOfRestitution">Coeficient of restitution.</param>
 	public static Vector3 Reflect(Vector3 inDirection, Vector3 inNormal, float coefficientOfRestitution = 1.0f) {
-		return (2 * Vector3.Project(inDirection, inNormal.normalized) - inDirection) * coefficientOfRestitution;
+		// Local fix: corrected sign — a true reflection is d - 2*Project(d,n), not 2*Project(d,n) - d (which is the negation).
+		return (inDirection - 2 * Vector3.Project(inDirection, inNormal.normalized)) * coefficientOfRestitution;
 	}
 
 	public static Vector3 ProjectOnPlane(Vector3 vector, Plane plane) {

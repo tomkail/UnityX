@@ -32,6 +32,7 @@ public static class ReflectionX {
 			bool isArray = type != null && (type.IsArray || type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>));
 			if (i != parts.Length-1 && isArray) {
 				i+=2;
+				if(i >= parts.Length) break; // Malformed/short path: no collection element part to parse.
 				int indexStart = parts[i].IndexOf("[", StringComparison.Ordinal)+1;
 				int collectionElementIndex = Int32.Parse(parts[i].Substring(indexStart, parts[i].Length-indexStart-1));
 				if(obj != null) {
@@ -77,6 +78,7 @@ public static class ReflectionX {
 //			((PropertyInfo)fieldInfo).
 			
 			if (x is IList) {
+				if(partIndex+2 >= parts.Length) return default; // Malformed/short path: no collection element part to parse.
 				int indexStart = parts[partIndex+2].IndexOf("[", StringComparison.Ordinal)+1;
 				int collectionElementIndex = Int32.Parse(parts[partIndex+2].Substring(indexStart, parts[partIndex+2].Length-indexStart-1));
 				IList list = x as IList;
@@ -123,6 +125,7 @@ public static object GetValueFromObject(object obj, string propertyPath, Type t)
 //			((PropertyInfo)fieldInfo).
 			
 			if (x is IList list) {
+				if(partIndex+2 >= parts.Length) return null; // Malformed/short path: no collection element part to parse.
 				int indexStart = parts[partIndex+2].IndexOf("[", StringComparison.Ordinal)+1;
 				int collectionElementIndex = Int32.Parse(parts[partIndex+2].Substring(indexStart, parts[partIndex+2].Length-indexStart-1));
 				if(MathX.IsBetweenInclusive(collectionElementIndex, 0, list.Count-1)) {
@@ -161,6 +164,7 @@ public static object GetValueFromObject(object obj, string propertyPath, Type t)
 			if(fieldInfo is FieldInfo) x = ((FieldInfo)fieldInfo).GetValue(obj);
 			if(fieldInfo is PropertyInfo) x = ((PropertyInfo)fieldInfo).GetValue(obj, null);
 			if (x is IList) {
+				if(partIndex+2 >= parts.Length) return null; // Malformed/short path: no collection element part to parse.
 				int indexStart = parts[partIndex+2].IndexOf("[", StringComparison.Ordinal)+1;
 				int collectionElementIndex = Int32.Parse(parts[partIndex+2].Substring(indexStart, parts[partIndex+2].Length-indexStart-1));
 				IList list = x as IList;
@@ -218,8 +222,13 @@ public static object GetValueFromObject(object obj, string propertyPath, Type t)
 			
 			value = fieldInfo.GetValue(value);
 		}
-		
-		value = val;
+		// NOTE: The actual write-back happens inside the loop via fieldInfo.SetValue(obj, val)
+		// when we reach the target member. There is deliberately no assignment here: `value` is a
+		// local reference, so assigning to it would achieve nothing.
+		// LIMITATION: This does not work for value-type (struct) intermediates that are not stored
+		// in an IList. Reflection returns a boxed *copy* of a struct, so writing a field on that copy
+		// never propagates back to the parent. Correctly supporting nested structs would require
+		// tracking the (parent, fieldInfo) chain and re-assigning each boxed struct back up the chain.
 	}
 
 

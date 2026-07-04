@@ -27,7 +27,8 @@ public static class GeometryX {
 	}
 
 	public static bool TestPlanesPoint (Plane[] planes, Vector3 point) {
-		for(int i = 0; i < 6; i++)
+		if(planes == null || planes.Length == 0) return false;
+		for(int i = 0; i < planes.Length; i++)
 			if(Vector3.Dot(planes[i].normal, point) + planes[i].distance < 0) 
 				return false;
 		return true;

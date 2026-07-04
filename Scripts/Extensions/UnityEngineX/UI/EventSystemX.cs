@@ -147,6 +147,8 @@ public static class EventSystemX {
 	// This allows you to manually begin a drag on a given object. It should implement the draggable interfaces, obviously.
 	// Pointer event allows you to make use of the existing event, if this is triggered from a pointer event.
 	public static void ForceStartDrag(GameObject gameObject, PointerEventData pointerEvent = null) {
+		// pointerEvent is optional; when not supplied we synthesise a valid one so the ExecuteEvents calls below don't dereference null.
+		if(pointerEvent == null) pointerEvent = new PointerEventData(EventSystem.current);
 		EventSystem.current.SetSelectedGameObject(gameObject);
 		ExecuteEvents.Execute(pointerEvent.selectedObject, pointerEvent, ExecuteEvents.pointerDownHandler);
 		pointerEvent.pointerDrag = gameObject;

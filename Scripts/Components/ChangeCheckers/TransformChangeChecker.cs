@@ -43,35 +43,30 @@ public class TransformChangeChecker : MonoBehaviour {
 		}
 		#endif
 
+		// Per-field checks stay inline to preserve the type-specific != (Transform reference; Unity's
+		// approximate Vector3/Quaternion comparison); FireChange handles the shared event/SendMessage tail.
 		if(transform.parent != lastParent) {
 			lastParent = transform.parent;
-			if(OnParentChanged != null) OnParentChanged();
-			if(OnTransformChanged != null) OnTransformChanged();
-			gameObject.BetterSendMessage("OnChangedTransform");
-			gameObject.BetterSendMessage("OnChangedParent");
+			FireChange(OnParentChanged, "Parent");
 		}
-
 		if(transform.rotation != lastTransform.rotation) {
 			lastTransform.rotation = transform.rotation;
-			if(OnRotationChanged != null) OnRotationChanged();
-			if(OnTransformChanged != null) OnTransformChanged();
-			gameObject.BetterSendMessage("OnChangedTransform");
-			gameObject.BetterSendMessage("OnChangedRotation");
+			FireChange(OnRotationChanged, "Rotation");
 		}
 		if(transform.localScale != lastTransform.localScale) {
 			lastTransform.localScale = transform.localScale;
-			if(OnScaleChanged != null) OnScaleChanged();
-			if(OnTransformChanged != null) OnTransformChanged();
-			gameObject.BetterSendMessage("OnChangedTransform");
-			gameObject.BetterSendMessage("OnChangedScale");
+			FireChange(OnScaleChanged, "Scale");
 		}
-
 		if(transform.position != lastTransform.position) {
 			lastTransform.position = transform.position;
-			if(OnPositionChanged != null) OnPositionChanged();
-			if(OnTransformChanged != null) OnTransformChanged();
-			gameObject.BetterSendMessage("OnChangedTransform");
-			gameObject.BetterSendMessage("OnChangedPosition");
+			FireChange(OnPositionChanged, "Position");
 		}
+	}
+
+	void FireChange (TransformDelegate specificChange, string suffix) {
+		specificChange?.Invoke();
+		OnTransformChanged?.Invoke();
+		gameObject.BetterSendMessage("OnChangedTransform");
+		gameObject.BetterSendMessage("OnChanged" + suffix);
 	}
 }

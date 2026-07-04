@@ -28,13 +28,18 @@ public static class TextureX {
     /// <param name="height">Destination texture height.</param>
     public static Texture2D CopyWithSizeScaled(this Texture src, int width, int height) {
         Rect texR = new Rect(0,0,width,height);
-        GPUScale(src,width,height);
-        
-        //Get rendered data back to a new texture
-        Texture2D result = new Texture2D(width, height, TextureFormat.ARGB32, true);
-        result.Reinitialize(width, height);
-        result.ReadPixels(texR,0,0,true);
-        return result;                 
+        RenderTexture previous = RenderTexture.active;
+        RenderTexture rtt = GPUScale(src,width,height);
+        try {
+            //Get rendered data back to a new texture (rtt is still the active RenderTexture)
+            Texture2D result = new Texture2D(width, height, TextureFormat.ARGB32, true);
+            result.Reinitialize(width, height);
+            result.ReadPixels(texR,0,0,true);
+            return result;
+        } finally {
+            RenderTexture.active = previous;
+            RenderTexture.ReleaseTemporary(rtt);
+        }
     }
     
     /// <summary>
@@ -45,15 +50,20 @@ public static class TextureX {
     /// <param name="height">New height.</param>
     public static void ResizeScaled(this Texture2D tex, int width, int height) {
         Rect texR = new Rect(0,0,width,height);
-        GPUScale(tex,width,height);
-        
-        // Update new texture
-        tex.Reinitialize(width, height);
-        tex.ReadPixels(texR,0,0,true);
-        tex.Apply(true);
+        RenderTexture previous = RenderTexture.active;
+        RenderTexture rtt = GPUScale(tex,width,height);
+        try {
+            // Update new texture (rtt is still the active RenderTexture)
+            tex.Reinitialize(width, height);
+            tex.ReadPixels(texR,0,0,true);
+            tex.Apply(true);
+        } finally {
+            RenderTexture.active = previous;
+            RenderTexture.ReleaseTemporary(rtt);
+        }
     }
     
-    static void GPUScale(Texture src, int width, int height, int depth = 0) {
+    static RenderTexture GPUScale(Texture src, int width, int height, int depth = 0) {
 	    //We need the source texture in VRAM because we render with it
 	    // src.filterMode = fmode;
 	    // src.Apply(true);
@@ -64,7 +74,7 @@ public static class TextureX {
 	    //Set the RTT in order to render to it
 	    Graphics.SetRenderTarget(rtt);
 
-	    
+
 	    //Setup 2D matrix in range 0..1, so nobody needs to care about sizes
 	    GL.LoadPixelMatrix(0,1,1,0);
 
@@ -72,8 +82,9 @@ public static class TextureX {
 	    GL.Clear(true,true,new Color(0,0,0,0));
 	    Graphics.DrawTexture(new Rect(0,0,1,1),src);
 
-	    //Release the RenderTexture when it is no longer needed
-	    RenderTexture.ReleaseTemporary(rtt);
+	    //Leave rtt as the active RenderTexture so the caller can ReadPixels from it.
+	    //The caller is responsible for restoring RenderTexture.active and calling ReleaseTemporary.
+	    return rtt;
     }
     
     /// <summary>
@@ -93,7 +104,7 @@ public static class TextureX {
     public static Texture2D Create(int width, int height, Color _color, FilterMode filterMode = FilterMode.Point, TextureFormat textureFormat = TextureFormat.ARGB32){
 	    Color[] colors = new Color[width * height];
 	    colors.Fill(_color);
-	    return Create(width, height, colors, filterMode);
+	    return Create(width, height, colors, filterMode, textureFormat);
     }
     public static Texture2D Create(Point _size, Color _color, FilterMode filterMode = FilterMode.Point, TextureFormat textureFormat = TextureFormat.ARGB32){
 	    return Create (_size.x, _size.y, _color, filterMode, textureFormat);
@@ -102,6 +113,7 @@ public static class TextureX {
     public static Texture2D Create(int width, int height, Color[] _array, FilterMode filterMode = FilterMode.Point, TextureFormat textureFormat = TextureFormat.ARGB32){
 	    if(width * height != _array.Length) {
 		    MonoBehaviour.print("Cannot create color texture from color array because Size is ("+width+", "+height+") with area "+(width * height)+" and array size is "+_array.Length);
+		    return null;
 	    }
 	    Texture2D tmpTexture = new Texture2D(width, height, textureFormat, false);
 	    tmpTexture.SetPixels(_array);

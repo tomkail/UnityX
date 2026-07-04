@@ -78,78 +78,26 @@ public class TriggerListener : MonoBehaviour {
 		}
    	}
    	
-	void OnCollisionEnter (Collision _collider) {
-		if(ignoreLayers.Includes(_collider.gameObject.layer)) return;
-		OnCollisionEnterEvent.Invoke(_collider);
-		if(CollisionEnter != null) CollisionEnter(_collider);
-	}
-	
-	void OnCollisionStay (Collision _collider) {
-		if(ignoreLayers.Includes(_collider.gameObject.layer)) return;
-		OnCollisionStayEvent.Invoke(_collider);
-		if(CollisionStay != null) CollisionStay(_collider);
+	// Shared handler body: ignore-layer gate, fire the UnityEvent, then the C# event.
+	void Dispatch<T> (T collider, int layer, UnityEvent<T> unityEvent, System.Action rawEvent) {
+		if(ignoreLayers.Includes(layer)) return;
+		unityEvent.Invoke(collider);
+		rawEvent?.Invoke();
 	}
 
-	void OnCollisionExit (Collision _collider) {
-		if(ignoreLayers.Includes(_collider.gameObject.layer)) return;
-		OnCollisionExitEvent.Invoke(_collider);
-		if(CollisionExit != null) CollisionExit(_collider);
-	}
+	void OnCollisionEnter (Collision c)   => Dispatch(c, c.gameObject.layer, OnCollisionEnterEvent, () => CollisionEnter?.Invoke(c));
+	void OnCollisionStay  (Collision c)   => Dispatch(c, c.gameObject.layer, OnCollisionStayEvent,  () => CollisionStay?.Invoke(c));
+	void OnCollisionExit  (Collision c)   => Dispatch(c, c.gameObject.layer, OnCollisionExitEvent,  () => CollisionExit?.Invoke(c));
 
+	void OnCollisionEnter2D (Collision2D c) => Dispatch(c, c.gameObject.layer, OnCollisionEnter2DEvent, () => CollisionEnter2D?.Invoke(c));
+	void OnCollisionStay2D  (Collision2D c) => Dispatch(c, c.gameObject.layer, OnCollisionStay2DEvent,  () => CollisionStay2D?.Invoke(c));
+	void OnCollisionExit2D  (Collision2D c) => Dispatch(c, c.gameObject.layer, OnCollisionExit2DEvent,  () => CollisionExit2D?.Invoke(c));
 
-	void OnCollisionEnter2D (Collision2D _collider) {
-		if(ignoreLayers.Includes(_collider.gameObject.layer)) return;
-		OnCollisionEnter2DEvent.Invoke(_collider);
-		if(CollisionEnter2D != null) CollisionEnter2D(_collider);
-	}
-	
-	void OnCollisionStay2D (Collision2D _collider) {
-		if(ignoreLayers.Includes(_collider.gameObject.layer)) return;
-		OnCollisionStay2DEvent.Invoke(_collider);
-		if(CollisionStay2D != null) CollisionStay2D(_collider);
-	}
+	void OnTriggerEnter (Collider c) => Dispatch(c, c.gameObject.layer, OnTriggerEnterEvent, () => TriggerEnter?.Invoke(c));
+	void OnTriggerStay  (Collider c) => Dispatch(c, c.gameObject.layer, OnTriggerStayEvent,  () => TriggerStay?.Invoke(c));
+	void OnTriggerExit  (Collider c) => Dispatch(c, c.gameObject.layer, OnTriggerExitEvent,  () => TriggerExit?.Invoke(c));
 
-	void OnCollisionExit2D (Collision2D _collider) {
-		if(ignoreLayers.Includes(_collider.gameObject.layer)) return;
-		OnCollisionExit2DEvent.Invoke(_collider);
-		if(CollisionExit2D != null) CollisionExit2D(_collider);
-	}
-	
-	
-	void OnTriggerEnter (Collider _collider) {
-		if(ignoreLayers.Includes(_collider.gameObject.layer)) return;
-		OnTriggerEnterEvent.Invoke(_collider);
-		if(TriggerEnter != null) TriggerEnter(_collider);
-	}
-	
-	void OnTriggerStay (Collider _collider) {
-		if(ignoreLayers.Includes(_collider.gameObject.layer)) return;
-		OnTriggerStayEvent.Invoke(_collider);
-		if(TriggerStay != null) TriggerStay(_collider);
-	}
-	
-	void OnTriggerExit (Collider _collider) {
-		if(ignoreLayers.Includes(_collider.gameObject.layer)) return;
-		OnTriggerExitEvent.Invoke(_collider);
-		if(TriggerExit != null) TriggerExit(_collider);
-	}
-	
-	
-	void OnTriggerEnter2D (Collider2D _collider) {
-		if(ignoreLayers.Includes(_collider.gameObject.layer)) return;
-		OnTriggerEnter2DEvent.Invoke(_collider);
-		if(TriggerEnter2D != null) TriggerEnter2D(_collider);
-	}
-	
-	void OnTriggerStay2D (Collider2D _collider) {
-		if(ignoreLayers.Includes(_collider.gameObject.layer)) return;
-		OnTriggerStay2DEvent.Invoke(_collider);
-		if(TriggerStay2D != null) TriggerStay2D(_collider);
-	}
-	
-	void OnTriggerExit2D (Collider2D _collider) {
-		if(ignoreLayers.Includes(_collider.gameObject.layer)) return;
-		OnTriggerExit2DEvent.Invoke(_collider);
-		if(TriggerExit2D != null) TriggerExit2D(_collider);
-	}
+	void OnTriggerEnter2D (Collider2D c) => Dispatch(c, c.gameObject.layer, OnTriggerEnter2DEvent, () => TriggerEnter2D?.Invoke(c));
+	void OnTriggerStay2D  (Collider2D c) => Dispatch(c, c.gameObject.layer, OnTriggerStay2DEvent,  () => TriggerStay2D?.Invoke(c));
+	void OnTriggerExit2D  (Collider2D c) => Dispatch(c, c.gameObject.layer, OnTriggerExit2DEvent,  () => TriggerExit2D?.Invoke(c));
 }

@@ -348,7 +348,7 @@ public static class AnimationCurveX {
 	/// Creates a new Animation Curve that eases in of given width and height.
 	/// </summary>
 	public static AnimationCurve EaseIn(float width, float height, float inTangent = DefaultTangent){
-		return EaseIn(0,width,0,height);
+		return EaseIn(0,width,0,height,inTangent);
 	}
 
 	/// <summary>
@@ -406,7 +406,7 @@ public static class AnimationCurveX {
 	/// Creates a new Animation Curve that eases in of given width and height
 	/// </summary>
 	public static AnimationCurve EaseOutInvert(float width, float height, float inTangent = DefaultTangent){
-		return EaseInInvert(0,width,height,0, inTangent);
+		return EaseOutInvert(0,width,height,0, inTangent);
 	}
 
 	/// <summary>
@@ -415,7 +415,7 @@ public static class AnimationCurveX {
 	public static AnimationCurve EaseOutInvert(float startTime, float endTime, float startHeight, float endHeight, float inTangent = DefaultTangent){
 		Keyframe[] ks = new Keyframe[2];
 		ks[0] = new Keyframe(startTime, startHeight);
-		ks[0].inTangent = ks[1].outTangent = 0;
+		ks[0].inTangent = ks[0].outTangent = 0;
 		ks[1] = new Keyframe(endTime, endHeight);
 		ks[1].outTangent = 0;
 		ks[1].inTangent = -inTangent * Mathf.PI;
@@ -463,7 +463,7 @@ public static class AnimationCurveX {
 	public static AnimationCurve EaseInOutInvert(float startTime, float endTime, float startHeight, float endHeight){
 		Keyframe[] ks = new Keyframe[2];
 		ks[0] = new Keyframe(startTime, startHeight);
-		ks[0].inTangent = ks[1].outTangent = 0;
+		ks[0].inTangent = ks[0].outTangent = 0;
 		ks[1] = new Keyframe(endTime, endHeight);
 		ks[1].outTangent = ks[1].inTangent = 0;
 		return new AnimationCurve(ks);

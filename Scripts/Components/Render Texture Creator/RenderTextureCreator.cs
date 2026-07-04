@@ -32,11 +32,14 @@ public class RenderTextureCreator : MonoBehaviour {
     // public static Vector2Int screenSize => new Vector2Int(Screen.width, Screen.height);
     public static Vector2Int screenSize => new(screenWidth, screenHeight);
     // Screen/Display don't report the Game view size in some editor contexts (e.g. from inspector windows),
-    // so in-editor we ask the editor directly (no locale-fragile string parsing).
+    // so in-editor we read UnityStats.screenRes. NOTE: this reports the actual rendered backbuffer resolution.
+    // Handles.GetMainGameViewSize() returns the *logical* view size instead, which differs under the Game
+    // view Scale slider / Low Resolution Aspect Ratios — not a guaranteed drop-in, so kept as-is.
 	static int screenWidth {
 		get {
 			#if UNITY_EDITOR
-			return (int)UnityEditor.Handles.GetMainGameViewSize().x;
+			var res = UnityStats.screenRes.Split('x');
+			return int.Parse(res[0]);
 			#else
 			// Consider adding target displays, then replace with this.
 			// Display.displays[0].renderingWidth
@@ -47,7 +50,8 @@ public class RenderTextureCreator : MonoBehaviour {
 	static int screenHeight {
 		get {
 			#if UNITY_EDITOR
-			return (int)UnityEditor.Handles.GetMainGameViewSize().y;
+			var res = UnityStats.screenRes.Split('x');
+			return int.Parse(res[1]);
 			#else
 			// Consider adding target displays, then replace with this.
 			// Display.displays[0].renderingHeight

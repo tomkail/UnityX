@@ -11,15 +11,7 @@ public static class ColliderX {
 	/// <param name="from">The point to measure from.</param>
 	public static Vector3 GetClosestPoint (Collider collider, Vector3 from) {
 		Debug.Assert(collider != null, "Collider is null");
-		Vector3 hitPoint = collider.transform.position;
-		Vector3 direction = Vector3X.FromTo(from, collider.transform.position);
-		RaycastHit[] raycastHits = Physics.RaycastAll(new Ray(from, direction), Vector3.Distance(from, collider.transform.position));
-		foreach(var raycastHit in raycastHits) {
-			if(raycastHit.collider == collider) {
-				hitPoint = raycastHit.point;
-				return hitPoint;
-			}
-		}
-		return hitPoint;
+		// Delegates to Unity's built-in Collider.ClosestPoint (available since 2017.1), which returns the true closest point on the collider surface.
+		return collider.ClosestPoint(from);
 	}
 }

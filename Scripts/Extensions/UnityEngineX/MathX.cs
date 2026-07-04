@@ -38,6 +38,7 @@ public static class MathX {
 	/// <param name="max">Max.</param>
 	public static int RepeatInclusive (int val, int min, int max) {
 		int range = max - min;
+		if (range == 0) return min;
 		if (val > max) 
 			val -= range * Mathf.CeilToInt((val-max) / range);
 		else if (val < min) 
@@ -54,6 +55,7 @@ public static class MathX {
 	/// <param name="max">Max.</param>
 	public static float RepeatInclusive (float val, float min, float max) {
 		float range = max - min;
+		if (range == 0) return min;
 		if (val > max) 
 			val -= range * Mathf.CeilToInt((val-max) / range);
 		else if (val < min) 
@@ -629,6 +631,8 @@ public static class MathX {
 	// If the target is outside the range, it extrapolates using the scale of the closest two numbers.
 	public static float FindIndexPosition(IList<float> list, float target) {
 		if (list.Count == 0) return 0;
+		// A single element (or empty) list has no neighbours to interpolate against, so the only valid index is 0.
+		if (list.Count == 1) return 0;
         
 		// Check if the target is less than the first element
 		if (target < list[0]) {

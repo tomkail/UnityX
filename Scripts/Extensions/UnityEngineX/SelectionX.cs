@@ -118,7 +118,7 @@ public static class SelectionX {
 			get => EditorUtility.EntityIdToObject(EntityId.FromULong(activeInstanceID));
 			set {
 				if(value == null) activeInstanceID = 0;
-				activeInstanceID = EntityId.ToULong(value.GetEntityId());
+				else activeInstanceID = EntityId.ToULong(value.GetEntityId());
 			}
 		}
 
@@ -129,7 +129,7 @@ public static class SelectionX {
 		public Object[] objects {
 			get => instanceIDs.Select(id => EditorUtility.EntityIdToObject(EntityId.FromULong(id))).ToArray();
 			set {
-				if(value == null) objects = Array.Empty<Object>();
+				if(value == null) instanceIDs = Array.Empty<ulong>();
 				else instanceIDs = value.Where(obj => obj != null).Select(obj => EntityId.ToULong(obj.GetEntityId())).ToArray();
 			}
 		}
