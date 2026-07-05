@@ -1,36 +1,37 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
-/// <summary>
-/// Handy extendable wrapper for Unity's Vector/Mathf.MoveTowards functions, tucking away the state for each ease you want running.
-/// </summary>
-[System.Serializable]
-public abstract class MoveTowardsEaser<T> : BaseEaser<T> {
+namespace UnityX.Easer {
+	/// <summary>
+	/// Handy extendable wrapper for Unity's Vector/Mathf.MoveTowards functions, tucking away the state for each ease you want running.
+	/// </summary>
+	[System.Serializable]
+	public abstract class MoveTowardsEaser<T> : BaseEaser<T> {
 
-	private const float defaultMaxDelta = 1;
+		private const float defaultMaxDelta = 1;
 
-	public float maxDelta = defaultMaxDelta;
+		public float maxDelta = defaultMaxDelta;
 
-	// Used for correct Unity editor serializer initialization
-	protected MoveTowardsEaser () {
-		lerpFunction = MoveTowards;
-		maxDelta = defaultMaxDelta;
+		// Used for correct Unity editor serializer initialization
+		protected MoveTowardsEaser () {
+			lerpFunction = MoveTowards;
+			maxDelta = defaultMaxDelta;
+		}
+
+		public MoveTowardsEaser (T target, T current) {
+			lerpFunction = MoveTowards;
+			this.target = target;
+			this.current = current;
+		}
+
+		public MoveTowardsEaser (T target, T current, float maxDelta) {
+			lerpFunction = MoveTowards;
+			this.target = target;
+			this.current = current;
+			this.maxDelta = maxDelta;
+		}
+
+		protected abstract T MoveTowards (float deltaTime);
 	}
-
-	public MoveTowardsEaser (T target, T current) {
-		lerpFunction = MoveTowards;
-		this.target = target;
-		this.current = current;
-	}
-
-	public MoveTowardsEaser (T target, T current, float maxDelta) {
-		lerpFunction = MoveTowards;
-		this.target = target;
-		this.current = current;
-		this.maxDelta = maxDelta;
-	}
-	
-	protected abstract T MoveTowards (float deltaTime);
 }
