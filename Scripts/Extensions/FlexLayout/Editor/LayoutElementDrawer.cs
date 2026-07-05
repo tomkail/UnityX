@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace FlexLayout.Editor {
+namespace UnityX.Layout.Editor {
     [CustomPropertyDrawer(typeof(LayoutElement))]
     public class LayoutElementDrawer : PropertyDrawer {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {

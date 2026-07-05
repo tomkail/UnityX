@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace FlexLayout {
+namespace UnityX.Layout {
     /// <summary>
     /// A 1D flexbox-style layout solver. Given a <see cref="Container"/> and a list of <see cref="Item"/>s,
     /// <see cref="GetLayoutRanges{TContainer,TItem}"/> resolves each item's size and position along a single
