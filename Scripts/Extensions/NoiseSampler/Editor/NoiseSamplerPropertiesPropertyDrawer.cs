@@ -104,7 +104,7 @@ public class NoiseSamplerPropertiesPropertyDrawer : PropertyDrawer {
         float maxGraphTime = offsetPosition.x + graphXRange * 0.5f;
         
         float samplePixelDistance = 3;
-        int numKeys = Mathf.Max(1, Mathf.FloorToInt(rect.width / samplePixelDistance));
+        int numKeys = Mathf.Max(2, Mathf.FloorToInt(rect.width / samplePixelDistance));
         Keyframe[] keys = new Keyframe[numKeys];
         var r = 1f/(numKeys-1);
         for (int i = 0; i < numKeys; i++) {
@@ -149,7 +149,15 @@ public class NoiseSamplerPropertiesPropertyDrawer : PropertyDrawer {
         public GraphGUI(AnimationCurve curve) {
             this.curve = curve;
 
-            curveValueRanges = viewValueRanges = Rect.MinMaxRect(curve.keys.Min(x => x.time), curve.keys.Min(x => x.value), curve.keys.Max(x => x.time), curve.keys.Max(x => x.value));
+            var keys = curve.keys;
+            if (keys.Length == 0) {
+                curveValueRanges = viewValueRanges = new Rect(0, 0, 0, 0);
+                viewValueRanges.yMin -= 1;
+                viewValueRanges.yMax += 1;
+                return;
+            }
+
+            curveValueRanges = viewValueRanges = Rect.MinMaxRect(keys.Min(x => x.time), keys.Min(x => x.value), keys.Max(x => x.time), keys.Max(x => x.value));
 
             if (viewValueRanges.height == 0) {
                 viewValueRanges.yMin -= 1;
