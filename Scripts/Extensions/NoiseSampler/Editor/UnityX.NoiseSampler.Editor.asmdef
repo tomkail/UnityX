@@ -1,0 +1,19 @@
+{
+    "name": "UnityX.NoiseSampler.Editor",
+    "rootNamespace": "UnityX.NoiseSampler.Editor",
+    "references": [
+        "UnityX.NoiseSampler",
+        "UnityX.Noises"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
