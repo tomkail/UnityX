@@ -157,6 +157,15 @@ a single monorepo of packages, split per-repo only if independent release cadenc
       (the `.Min`/`.Max` calls now bind to `System.Linq`, so no UnityX runtime dep remains). Added
       `using UnityX.Springs;` to the two struct consumers (`SwipeView`, `Easer/SmoothDamp/SpringDamper`).
       Compiles clean. **Awaiting review before rollout.**
-- [ ] Roll out to the other fully-portable modules after review: UI Imposter, MeshBuilder, FlexLayout, ViewAnimator.
-      **Explicitly NOT Tween or Easer yet.**
+- [x] Modularised (namespace + asmdef(s), compiles clean; each runtime asmdef has empty `references` unless noted):
+      - **Splines** — `Spline System/` → `UnityX.Splines` (+ `.Editor`). Inlined `Bezier` (internal); editor uses `System.Linq` for `.ToList()`.
+      - **Noises** — `Algorithms/Noise/` → `UnityX.Noises`. Pluralised to avoid the `Noise` type/namespace clash. Moved `NoiseNormalization` enum here.
+      - **NoiseSampler** — `NoiseSampler/` → `UnityX.NoiseSampler` (+ `.Editor`), references `UnityX.Noises`. Inlined `MathX.RoundTo`.
+      - **Timers** — `Timer/` → `UnityX.Timers` (+ `.Editor`). Dropped `[Disable]`. **Moved `TimerDrawer` in from Tween/** (it belongs with Timer).
+      - **Colors** — NEW `Colors/` module → `UnityX.Colors`. Extracted `BlendMode` + `Blend` + blend helpers + `HSLColor` out of the `ColorX` grab-bag (ColorX now references it). Consumers `AdvancedUILineRenderer` + `ColorTween` rewired to `ColorBlend`/`BlendMode`.
+      - **Tween** — `Tween/` → `UnityX.Tween` (+ `.Editor`), references `UnityX.Timers` + `UnityX.Colors`. Consumers: `AudioSourceManager`, `CameraPropertiesTween`.
+      - **Easer** — `Easer/` → `UnityX.Easer`, references `UnityX.Springs`. Inlined `QuaternionX.Difference/SmoothDamp` + `MathX.Sign` as `EaserMath`; dropped `[Disable]`; removed unused `using UnityEngine.UI`. Consumer: `ThumbstickUI`.
+      - **Layout** — `FlexLayout/` → `UnityX.Layout` (+ `.Editor`), zero-dep. Rename also resolved the `FlexLayout.FlexLayout` type/namespace awkwardness.
+- [ ] Still to roll out: UI Imposter (needs `UnityEngine.UI`/`UnityEditor.UI` refs), MeshBuilder (→ `UnityX.Meshes`), ViewAnimator.
 - [ ] (Opportunistic) Supply the missing `Color32.Compare` helper used by the Text Effects framework.
+- [ ] Pre-existing unrelated error to resolve separately: `Grass/GrassComputeScript.cs` references `VectorFieldComponent.gridRenderer` which no longer exists (concurrent change to VectorFieldComponent).
