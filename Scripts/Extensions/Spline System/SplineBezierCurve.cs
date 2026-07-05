@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace SplineSystem {
+namespace UnityX.Splines {
 	// Arc length == NormalizedDistance
 	//	 The bezier curve groups positions unevenly. This gets the sample position for the bezier algorithm based on a normalized distance
 
@@ -54,7 +54,6 @@ namespace SplineSystem {
 		}
 
 		public void SetLength () {
-			var roughLength = Bezier.GetRoughLength(p0, p1, p2, p3);
 			float rec = 1f/(numArcLengthsForArcLengthToTCalculation-1);
 
 			Vector3 pA = GetPointAtT(0);

@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace SplineSystem {
+namespace UnityX.Splines {
 	public delegate void OnSplineChangeEvent(Spline spline);
 
 	[System.Serializable]

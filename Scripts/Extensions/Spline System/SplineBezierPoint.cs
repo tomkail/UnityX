@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace SplineSystem {
+namespace UnityX.Splines {
 	[System.Serializable]
 	public struct SplineBezierPoint {
 

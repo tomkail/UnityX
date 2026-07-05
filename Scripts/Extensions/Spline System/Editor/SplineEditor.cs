@@ -1,8 +1,9 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 using UnityEditor;
 
 
-namespace SplineSystem {
+namespace UnityX.Splines.Editor {
 	public class SplineEditor {
 		const float cursorPointHandleSize = 0.125f;
 		const float bezierPointHandleSize = 0.075f;
