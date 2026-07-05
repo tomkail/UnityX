@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityX.Tween;
 
 /// <summary>
 /// A tween class for Camera Properties. Saves writing out lots of code for a simple camera effect such as a smooth zoom or pan.

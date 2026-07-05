@@ -1,0 +1,18 @@
+{
+    "name": "UnityX.Tween.Editor",
+    "rootNamespace": "UnityX.Tween.Editor",
+    "references": [
+        "UnityX.Tween"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
