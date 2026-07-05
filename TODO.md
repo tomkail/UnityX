@@ -150,8 +150,13 @@ require asmdefs). Distribute via GitHub git-URL (`...git?path=Packages/com.unity
 a single monorepo of packages, split per-repo only if independent release cadences are needed.
 
 ### Tasks
-- [ ] Confirm namespace prefix (`UnityX` vs author handle vs none).
-- [ ] Scaffold **Spring** in place as the reviewable template (namespace + 2 asmdefs + Easy fix).
+- [x] Confirm namespace prefix (`UnityX` vs author handle vs none). → **`UnityX`** chosen.
+- [x] Scaffold **Spring** in place as the reviewable template (namespace + 2 asmdefs + Easy fix). Done:
+      runtime `UnityX.Springs` (empty-`references` asmdef, enforces portability) + editor `UnityX.Springs.Editor`
+      (Editor-only asmdef → references the runtime one). Inlined `MathX.RoundTo` into the editor's `GraphGUI`
+      (the `.Min`/`.Max` calls now bind to `System.Linq`, so no UnityX runtime dep remains). Added
+      `using UnityX.Springs;` to the two struct consumers (`SwipeView`, `Easer/SmoothDamp/SpringDamper`).
+      Compiles clean. **Awaiting review before rollout.**
 - [ ] Roll out to the other fully-portable modules after review: UI Imposter, MeshBuilder, FlexLayout, ViewAnimator.
       **Explicitly NOT Tween or Easer yet.**
 - [ ] (Opportunistic) Supply the missing `Color32.Compare` helper used by the Text Effects framework.

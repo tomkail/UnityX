@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityX.Springs;
 
 [System.Serializable]
 public class SpringDamper {

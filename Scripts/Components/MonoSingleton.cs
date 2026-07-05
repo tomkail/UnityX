@@ -22,7 +22,14 @@ public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T
     public static bool IsInitialized => _Instance != null;
 
     protected virtual void Awake () {
+        if(_Instance != null && _Instance != this) {
+            Debug.LogWarning($"Duplicate {typeof(T).Name} singleton on '{name}'; destroying it.", this);
+            Destroy(this);
+            return;
+        }
         _Instance = (T)this;
+        // The instance is known now, so no scene search is needed.
+        searched = true;
     }
     // Nullify the reference
     // to clear up the native Unity representation of the MonoBehaviour
