@@ -4,10 +4,34 @@ using System.Linq;
 using UnityEngine;
 
 namespace FlexLayout {
+    /// <summary>
+    /// A 1D flexbox-style layout solver. Given a <see cref="Container"/> and a list of <see cref="Item"/>s,
+    /// <see cref="GetLayoutRanges{TContainer,TItem}"/> resolves each item's size and position along a single
+    /// axis (call it once per axis to build a 2D layout).
+    ///
+    /// Items are either fixed (a set size) or flexible (grow to fill leftover space, bounded by min/max and
+    /// shared out by weight, like CSS flex-grow). The container is likewise fixed or flexible; a flexible
+    /// container shrink-wraps its content between its own min and max size. Any leftover space is distributed
+    /// according to the container's <see cref="Container.SurplusMode"/>.
+    ///
+    /// <code>
+    /// var container = Container.Fixed(300).SetPadding(8).SetSpacing(10);
+    /// var items = new[] {
+    ///     Item.Fixed(50),                        // fixed 50 units
+    ///     Item.Flexible(minSize: 20, weight: 1), // grows to fill remaining space
+    ///     Item.Flexible(minSize: 20, weight: 2), // grows twice as fast as the item above
+    /// };
+    /// FlexLayout.Result result = FlexLayout.GetLayoutRanges(container, items);
+    /// // result.ranges[i] is the (start, end) position of item i; result.containerSize is the total extent.
+    /// </code>
+    /// </summary>
     public static class FlexLayout {
+        /// <summary>The result of a layout pass.</summary>
         [Serializable]
         public class Result {
+            /// <summary>Total extent consumed along the axis, including padding.</summary>
             public float containerSize;
+            /// <summary>Per-item positions in item order, where x is the start edge and y is the end edge.</summary>
             public List<Vector2> ranges;
         }
 
@@ -16,12 +40,22 @@ namespace FlexLayout {
             None = 0,
             ContainerNull = 1 << 0,
             ContainerAndChildBothFlexible = 1 << 1,
+            ItemsNull = 1 << 2,
         }
+        /// <summary>
+        /// Checks for settings that <see cref="GetLayoutRanges{TContainer,TItem}"/> can't handle. Returns true if
+        /// a problem is found, with the specific problems flagged in <paramref name="invalidSettingsType"/>.
+        /// </summary>
         public static bool DetectInvalidSettings<TContainer, TItem>(TContainer layoutParams, IList<TItem> items, out InvalidSettingsType invalidSettingsType) where TContainer : Container where TItem : Item {
             invalidSettingsType = 0;
-            
+
             if (layoutParams == null) {
                 invalidSettingsType |= InvalidSettingsType.ContainerNull;
+                return true;
+            }
+
+            if (items == null) {
+                invalidSettingsType |= InvalidSettingsType.ItemsNull;
                 return true;
             }
 
@@ -34,12 +68,17 @@ namespace FlexLayout {
 
         static void TryThrowExceptionForInvalidSettings<TContainer, TItem>(TContainer layoutParams, IList<TItem> items) where TContainer : Container where TItem : Item {
             if(!DetectInvalidSettings(layoutParams, items, out InvalidSettingsType invalidSettings)) return;
-            if(invalidSettings.HasFlag(InvalidSettingsType.ContainerNull)) throw new ArgumentException("AutoLayoutWithDynamicSizing can't run because parentLayout is null");
+            if(invalidSettings.HasFlag(InvalidSettingsType.ContainerNull)) throw new ArgumentException("GetLayoutRanges can't run because the container is null");
+            if(invalidSettings.HasFlag(InvalidSettingsType.ItemsNull)) throw new ArgumentException("GetLayoutRanges can't run because the items list is null");
             if(invalidSettings.HasFlag(InvalidSettingsType.ContainerAndChildBothFlexible)) {
                 throw new ArgumentException($"When using a flexible container with an infinite max size, all flexible items must have a finite max size.");
             }
         }
 
+        /// <summary>
+        /// Resolves the size and position of each item along the axis.
+        /// Throws <see cref="ArgumentException"/> if the settings are invalid (see <see cref="DetectInvalidSettings{TContainer,TItem}"/>).
+        /// </summary>
         public static Result GetLayoutRanges<TContainer, TItem>(TContainer layoutParams, IList<TItem> items) where TContainer : Container where TItem : Item {
             TryThrowExceptionForInvalidSettings(layoutParams, items);
             Vector2 surplusOffsetPadding = Vector2.zero;
@@ -53,33 +92,41 @@ namespace FlexLayout {
             float totalMinFlexibleItemSize = items.Where(i => i.flexible).Sum(i => i.minSize);
             availableFlexibleSpace -= totalMinFlexibleItemSize;
                 
-            float totalFixedSpacing = layoutParams.spacing * (items.Count - 1);
+            float totalFixedSpacing = layoutParams.spacing * Math.Max(0, items.Count - 1);
             availableFlexibleSpace -= totalFixedSpacing;
 
             float totalMarginMin = items.Sum(i => i.marginMin);
             float totalMarginMax = items.Sum(i => i.marginMax);
             availableFlexibleSpace -= totalMarginMin + totalMarginMax;
             
-            // Map to hold final sizes for each flexible item
-            var flexItemSizes = items.Where(i => i.flexible).ToDictionary(i => i, i => i.minSize);
+            // Final resolved size for each item, indexed by position. Flexible items start at their min size
+            // and grow below; fixed items keep their fixed size. Indexing by position (rather than a dictionary
+            // keyed by item reference) means the same Item instance can safely appear more than once in the list.
+            var itemSizes = new float[items.Count];
+            for (var i = 0; i < items.Count; i++)
+                itemSizes[i] = items[i].flexible ? items[i].minSize : items[i].fixedSize;
 
             while (availableFlexibleSpace > 0) {
                 // Get the total weight of the flexible items that can still grow
-                float totalWeight = items.Where(i => i.flexible && flexItemSizes[i] < i.maxSize).Sum(i => i.weight);
+                float totalWeight = 0f;
+                for (var i = 0; i < items.Count; i++) {
+                    if (items[i].flexible && itemSizes[i] < items[i].maxSize) totalWeight += items[i].weight;
+                }
 
                 if (totalWeight == 0) break;
 
                 float spaceAllocatedThisIteration = 0;
 
-                foreach (var item in items.Where(i => i.flexible)) {
-                    if (flexItemSizes[item] >= item.maxSize)
+                for (var i = 0; i < items.Count; i++) {
+                    var item = items[i];
+                    if (!item.flexible || itemSizes[i] >= item.maxSize)
                         continue;
 
                     float weightFraction = item.weight / totalWeight;
                     float spaceForThisItem = weightFraction * availableFlexibleSpace;
-                    float spaceActuallyUsed = Math.Min(spaceForThisItem, item.maxSize - flexItemSizes[item]);
+                    float spaceActuallyUsed = Math.Min(spaceForThisItem, item.maxSize - itemSizes[i]);
 
-                    flexItemSizes[item] += spaceActuallyUsed;
+                    itemSizes[i] += spaceActuallyUsed;
                     spaceAllocatedThisIteration += spaceActuallyUsed;
                 }
 
@@ -88,7 +135,10 @@ namespace FlexLayout {
             }
 
             // The total size of the content and fixed spacing. Any additional space can be used for extra spacing or padding.
-            float contentSizeAndFixedSpacing = totalFixedItemSize + flexItemSizes.Values.Sum() + totalFixedSpacing;
+            float totalFlexibleItemSize = 0f;
+            for (var i = 0; i < items.Count; i++)
+                if (items[i].flexible) totalFlexibleItemSize += itemSizes[i];
+            float contentSizeAndFixedSpacing = totalFixedItemSize + totalFlexibleItemSize + totalFixedSpacing;
             // The space that's left after the content and fixed spacing is taken into account to be used for extra spacing or padding.
             // Can be negative, if the content is larger than the maximum size of the container.
             var flexibleSpacing = 0f;
@@ -105,19 +155,24 @@ namespace FlexLayout {
                 surplusOffsetPadding.x = flexibleSpacing * layoutParams.surplusOffsetPivot;
                 surplusOffsetPadding.y = flexibleSpacing * (1f - layoutParams.surplusOffsetPivot);
             } else if (layoutParams.surplusMode == Container.SurplusMode.Space) {
-                // When justifySpacePaddingRatio is 1 we're effectively pretending there are 2 zero-size items at the start and end of the list.
+                // When surplusSpacePaddingRatio is 1 we're effectively pretending there are 2 zero-size items at the start and end of the list.
                 var fakeItemCountForFlexibleSpacing = (items.Count - 1) + layoutParams.surplusSpacePaddingRatio * 2;
-                var flexibleItemSpacing = flexibleSpacing / fakeItemCountForFlexibleSpacing;
-                surplusOffsetPadding.x = flexibleItemSpacing * layoutParams.surplusSpacePaddingRatio;
-                surplusOffsetPadding.y = flexibleItemSpacing * layoutParams.surplusSpacePaddingRatio;
-                totalItemSpacing += flexibleItemSpacing;
+                // Guard against a zero/negative denominator (e.g. a single item with space-between, or an empty
+                // list), which would otherwise yield NaN/Infinity and corrupt every range. In that case there
+                // are no gaps to distribute into, so the surplus is simply left unused (items sit at the start).
+                if (fakeItemCountForFlexibleSpacing > 0) {
+                    var flexibleItemSpacing = flexibleSpacing / fakeItemCountForFlexibleSpacing;
+                    surplusOffsetPadding.x = flexibleItemSpacing * layoutParams.surplusSpacePaddingRatio;
+                    surplusOffsetPadding.y = flexibleItemSpacing * layoutParams.surplusSpacePaddingRatio;
+                    totalItemSpacing += flexibleItemSpacing;
+                }
             }
             
             var ranges = new List<Vector2>();
             var currentItemPosition = 0f;
             for (var index = 0; index < items.Count; index++) {
                 var item = items[index];
-                float itemSize = flexItemSizes.TryGetValue(item, out var flexibleSize) ? flexibleSize : item.fixedSize;
+                float itemSize = itemSizes[index];
                 if (layoutParams.reversed) {
                     // When reversed, we first account for marginMax as it's now at the 'start'.
                     currentItemPosition -= item.marginMax;
@@ -157,56 +212,55 @@ namespace FlexLayout {
         }
     }
 
+    /// <summary>Sizing fields shared by <see cref="Container"/> and <see cref="Item"/>.</summary>
     [Serializable]
     public class LayoutElement {
-        // If the item is flexible
+        // When true the element is flexible (uses minSize/maxSize); when false it's a fixed size (uses fixedSize).
         public bool flexible;
 
-        // If the item isn't flexible, this is the size that is used.
+        // The size used when not flexible.
         public float fixedSize;
 
-        // Min/Max sizes for flexible items.
+        // The minimum and maximum size used when flexible.
         public float minSize;
-
         public float maxSize;
     }
 
-    // Define the properties of the container that LayoutItemParams are laid out in.
+    /// <summary>The area that <see cref="Item"/>s are laid out within: its size, padding, spacing and surplus behaviour.</summary>
     [Serializable]
     public class Container : LayoutElement {
+        // Inner size = outer size minus padding; this is the space actually available to the items.
         public float fixedInnerSize => fixedSize - totalPadding;
         public float minInnerSize => minSize - totalPadding;
         public float maxInnerSize => maxSize - totalPadding;
 
+        // Padding reserved inside the container, before (min) and after (max) the items.
         public float paddingMin;
         public float paddingMax;
         public float totalPadding => paddingMin + paddingMax;
 
-        // The fixed spacing between the elements. Extra spacing may be added if justifyMode is Space.
+        // The fixed spacing between adjacent items. Extra spacing may be added when surplusMode is Space.
         public float spacing;
 
-        // Describes what happens to extra space when the items don't fill the container.
+        // Describes what happens to leftover space when the items don't fill the container.
         public SurplusMode surplusMode = SurplusMode.Offset;
         public enum SurplusMode {
-            // Offset adds extra padding (at the start or end depending on the justifyPivot setting).
+            // Surplus becomes padding placed around the items, positioned by surplusOffsetPivot.
             Offset,
-            // Space adds extra space between the items.
+            // Surplus is distributed as extra space between (and optionally around) the items, controlled by surplusSpacePaddingRatio.
             Space,
         }
 
 
-        // When using SurplusMode.Offset
-        // This corresponds to flexbox's justify-content flex-start/flex-right/center options.
-        // Set to 0 to add the spacing at the start, 0.5 for center, and 1 at the end.
-        // Note the use of "Start and end" vs "min and max". They are relative to direction - if direction is reversed, 0 is the right edge instead of the left edge.
+        // Used when surplusMode is Offset. Aligns the items within the leftover space, like flexbox justify-content:
+        // 0 = start, 0.5 = centre, 1 = end. Relative to layout direction, so it is not flipped by 'reversed'.
         public float surplusOffsetPivot = 0.5f;
 
-        // When using SurplusMode.Space
-        // This corresponds to flexbox's justify-content space options.
-        // Set to 0 for space-between, 0.5 for space-around, and 1 for space-evenly.
+        // Used when surplusMode is Space. Corresponds to flexbox's justify-content space options:
+        // 0 = space-between, 0.5 = space-around, 1 = space-evenly.
         public float surplusSpacePaddingRatio;
 
-        // When reversed, the layout starts at the max rather than the min, and starts with the last layout item rather than the first.
+        // When reversed, the layout runs from the max edge to the min edge, starting with the last item rather than the first.
         // Note that surplusOffsetPivot is not reversed.
         public bool reversed;
         
@@ -277,18 +331,20 @@ namespace FlexLayout {
         }
     }
 
-// LayoutItemParams determine the sizes of the layouts when using GetLayoutRanges, which is the base of other layout functions.
-// It allows fixed and flexible sizes.
-// Flexible is similar to CSS Flexbox and can have a min/max size and a weight.
+    /// <summary>
+    /// An item to be laid out. Either fixed (a set size) or flexible (grows to fill leftover space, bounded by
+    /// min/max and shared out by weight, like CSS flex-grow). Margins add space around the item without counting
+    /// toward its size.
+    /// </summary>
     [Serializable]
     public class Item : LayoutElement {
-        // This is present in flexbox, and it might be an upgrade to consider.
+        // Present in flexbox; might be worth adding as an upgrade.
         // public int order;
 
-        // This is similar to flex-grow in CSS.
+        // Relative growth rate among flexible items, like CSS flex-grow. Only used when flexible.
         public float weight;
 
-        // Adds a margin to the item. This is not included in the size of the item, but in the spacing between items.
+        // Margin before (min) and after (max) the item. Adds to the space around the item without counting toward its size.
         public float marginMin;
         public float marginMax;
         public float totalMargin => marginMin + marginMax;
