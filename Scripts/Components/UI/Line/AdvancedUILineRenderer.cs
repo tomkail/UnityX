@@ -1,6 +1,7 @@
 ﻿using UnityEngine.UI;
 using System.Collections.Generic;
 using System;
+using UnityX.Colors;
 
 namespace UnityEngine.UI.Extensions
 {
@@ -9,7 +10,7 @@ namespace UnityEngine.UI.Extensions
 
 	public class AdvancedUILineRenderer : UIPrimitiveBase {
         public float colorBlendWeight;
-        public ColorX.BlendMode colorBlendMode;
+        public BlendMode colorBlendMode;
         public float _uvY = 0;
         public float uvY {
             get {
@@ -196,7 +197,7 @@ namespace UnityEngine.UI.Extensions
             public float innerAlpha;
             public float outerAlpha;
             public float colorBlendWeight;
-            public ColorX.BlendMode colorBlendMode;
+            public BlendMode colorBlendMode;
         }
 
         
@@ -223,12 +224,12 @@ namespace UnityEngine.UI.Extensions
 			
             var color1 = properties.start.color;
             if(properties.colorBlendWeight == 1) color1 = properties.color;
-            else if(properties.colorBlendWeight > 0) color1 = (Color32)ColorX.Blend(properties.start.color, properties.color, properties.colorBlendWeight, properties.colorBlendMode);
+            else if(properties.colorBlendWeight > 0) color1 = (Color32)ColorBlend.Blend(properties.start.color, properties.color, properties.colorBlendWeight, properties.colorBlendMode);
             var color2 = color1;
 
             var color3 = properties.end.color;
             if(properties.colorBlendWeight == 1) color3 = properties.color;
-            else if(properties.colorBlendWeight > 0) color3 = ColorX.Blend(properties.end.color, properties.color, properties.colorBlendWeight, properties.colorBlendMode);
+            else if(properties.colorBlendWeight > 0) color3 = ColorBlend.Blend(properties.end.color, properties.color, properties.colorBlendWeight, properties.colorBlendMode);
             var color4 = color3;
             
             if(properties.innerAlpha == 0) {
