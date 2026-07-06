@@ -1,0 +1,20 @@
+{
+    "name": "UnityX.UIImposters.Editor",
+    "rootNamespace": "UnityX.UIImposters.Editor",
+    "references": [
+        "UnityX.UIImposters",
+        "UnityEngine.UI",
+        "UnityEditor.UI"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
