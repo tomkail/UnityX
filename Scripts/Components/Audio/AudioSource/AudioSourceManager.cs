@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityX.Tween;
+using UnityX.ValuePicker;
 using System.Linq;
 
 [RequireComponent(typeof(AudioSource))]
