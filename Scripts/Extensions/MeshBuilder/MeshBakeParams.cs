@@ -1,4 +1,4 @@
-namespace UnityX.MeshBuilder {
+namespace UnityX.Meshes {
     [System.Serializable]
     public struct MeshBakeParams {
         public bool recalculateNormals;

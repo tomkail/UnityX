@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityX.MeshBuilder
+namespace UnityX.Meshes
 {
     public struct AddPlaneParams {
 		public bool front;

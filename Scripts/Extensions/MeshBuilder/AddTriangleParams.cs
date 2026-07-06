@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityX.MeshBuilder
+namespace UnityX.Meshes
 {
     public struct AddTriangleParams {
 		public bool front;

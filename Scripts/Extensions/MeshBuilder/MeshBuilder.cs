@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace UnityX.MeshBuilder
+namespace UnityX.Meshes
 {
     public class MeshBuilder {
         
@@ -21,6 +21,9 @@ namespace UnityX.MeshBuilder
 			if(mesh.vertexCount != verts.Count) {
 				mesh.Clear();
 			}
+			// Use a 32-bit index buffer once we pass the 16-bit vertex limit, otherwise SetTriangles would throw.
+			var requiredIndexFormat = verts.Count > 65535 ? UnityEngine.Rendering.IndexFormat.UInt32 : UnityEngine.Rendering.IndexFormat.UInt16;
+			if(mesh.indexFormat != requiredIndexFormat) mesh.indexFormat = requiredIndexFormat;
             mesh.SetVertices(verts);
 			mesh.SetTriangles(tris,0);
             mesh.SetUVs(0, uvs);
