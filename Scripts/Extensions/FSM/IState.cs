@@ -1,4 +1,4 @@
-namespace UnityX.StateMachine {
+namespace UnityX.StateMachines {
 	public delegate void OnEnterStateEvent();
 	public delegate void OnExitStateEvent();
 	

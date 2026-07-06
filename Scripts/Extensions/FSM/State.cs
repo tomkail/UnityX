@@ -1,6 +1,6 @@
 ﻿// A state machine inspired by Prime31's StateKit (https://github.com/prime31/StateKit/tree/master/Assets/StateKit).
 
-namespace UnityX.StateMachine {	
+namespace UnityX.StateMachines {	
 	/// <summary>
 	/// State.
 	/// </summary>
@@ -12,7 +12,6 @@ namespace UnityX.StateMachine {
 		/// <summary>
 		/// The time spent in this state since becoming active.
 		/// </summary>
-		[DisableAttribute]
 		public float elapsedTimeInState = 0f;
 		
 		/// <summary>

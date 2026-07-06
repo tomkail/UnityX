@@ -26,8 +26,9 @@
 
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
-namespace UnityX.StateMachine {
+namespace UnityX.StateMachines {
 	/// <summary>
 	/// State machine.
 	/// </summary>
@@ -69,7 +70,7 @@ namespace UnityX.StateMachine {
 		/// Adds a state to the machine
 		/// </summary>
 		public void AddState(State<T> state) {
-			DebugX.Assert(state != null, "New state is null");
+			if(state == null) Debug.LogError("New state is null");
 			states[state.GetType()] = state;
 			state.SetMachine(this);
 		}
@@ -94,7 +95,7 @@ namespace UnityX.StateMachine {
 			
 			if(!ContainsState<R>()) {
 				// AddState(new R());
-				DebugX.LogError(this, "State " + newType.Name + " does not exist on "+context+". Did you forget to add it by calling addState? Current state will remain active.");
+				Debug.LogError("State " + newType.Name + " does not exist on "+context+". Did you forget to add it by calling addState? Current state will remain active.");
 				return null;
 			}
 
