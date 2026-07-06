@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 
-namespace UnityX.Versioning {
+namespace UnityX.Versioning.Editor {
     // This script updates all the version number fields in PlayerSettings to match the VersionManager script's version.
     // It also updates some fields on VersionManager based on the build settings, such as if the build is a Development build.
     [InitializeOnLoad]

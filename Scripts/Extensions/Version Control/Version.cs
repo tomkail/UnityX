@@ -8,24 +8,15 @@ namespace UnityX.Versioning
 		public int minor;
 		public int build;
 		
-        [InfoAttribute("For demos or other special versions")]
-		[Disable]
 		public string buildType;
-		[Disable]
 		public string platform;
-		[Disable]
 		public string buildTarget;
 
-        [Disable]
 		public bool isDevelopment;
 
-		[Disable]
 		public string gitBranch;
-		[Disable]
 		public string gitCommitSHA;
-		[Disable]
 		public string buildDateTimeString;
-		[Disable]
 		public string inkCompileDateTimeString;
 
 		public string ToBasicVersionString () {
