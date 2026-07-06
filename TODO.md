@@ -166,6 +166,58 @@ a single monorepo of packages, split per-repo only if independent release cadenc
       - **Tween** — `Tween/` → `UnityX.Tween` (+ `.Editor`), references `UnityX.Timers` + `UnityX.Colors`. Consumers: `AudioSourceManager`, `CameraPropertiesTween`.
       - **Easer** — `Easer/` → `UnityX.Easer`, references `UnityX.Springs`. Inlined `QuaternionX.Difference/SmoothDamp` + `MathX.Sign` as `EaserMath`; dropped `[Disable]`; removed unused `using UnityEngine.UI`. Consumer: `ThumbstickUI`.
       - **Layout** — `FlexLayout/` → `UnityX.Layout` (+ `.Editor`), zero-dep. Rename also resolved the `FlexLayout.FlexLayout` type/namespace awkwardness.
-- [ ] Still to roll out: UI Imposter (needs `UnityEngine.UI`/`UnityEditor.UI` refs), MeshBuilder (→ `UnityX.Meshes`), ViewAnimator.
+      - **Meshes** — `MeshBuilder/` → `UnityX.Meshes` (was `UnityX.MeshBuilder`), zero-dep. Improvement: `ToMesh` now sets a 32-bit index buffer for >65535 verts (was a latent break). Consumer `PolygonOutlineRenderer` re-pointed to `UnityX.Meshes`.
+      - **ViewAnimation** — `Components/ViewAnimator/` → `UnityX.ViewAnimation` (avoids the `ViewAnimator` type/namespace clash), zero-dep. NOTE: `ViewAnimator.Reset()` shadows Unity's editor `Reset()` message (clicking Reset / adding the component wipes animation state) — left as-is, flag for review.
+      - **UIImposters** — `Components/UI/UI Imposter/` → `UnityX.UIImposters` (+ `.Editor`). Runtime references `UnityEngine.UI`; editor references `UnityEngine.UI` + `UnityEditor.UI` (extends `RawImageEditor`). No consumers.
+      - **Versioning** — `Version Control/` → `UnityX.Versioning` (+ `.Editor`). Wrapped the still-global `VersionControlX`; moved `VersionBuildPreProcessor` to `.Editor`; dropped `[Disable]`/`[Info]` on `Version` (restore once PropertyDrawers is a module).
+      - **StateMachines** — `FSM/` → `UnityX.StateMachines` (was `UnityX.StateMachine`; pluralised to dodge the `StateMachine` type/namespace clash). Replaced 2 `DebugX` calls with `Debug.LogError`; dropped `[Disable]` on `State.elapsedTimeInState`. No consumers.
+      - **ValuePicker** — `ValuePicker/` → `UnityX.ValuePicker`. Inlined `DebugX.ListAsString` as a private helper in `LogicBlender`. Consumer `AudioSourceManager` gets `using UnityX.ValuePicker`.
+      - **PropertyCurves** — `Property Curve/` → `UnityX.PropertyCurves` (pluralised; `PropertyCurve<T>` type). Inlined `IsBetween`; relocated unused `PolygonPropertyCurve` bridge to Assembly-CSharp (`Extensions/PropertyCurvePolygon/`).
+      - **UI.GridLayout** — `Components/UI/Grid Layout/` → `UnityX.UI.GridLayout` (+ `.Editor`). Moved out of `namespace UnityEngine.UI` into `UnityX.UI`; renamed type `GridLayout`→`GridLayoutElement` (kills the `UnityEngine.GridLayout` Tilemap clash + editor alias); `.cs` renamed (meta GUID kept). Refs `UnityEngine.UI` (+ `UnityEditor.UI`). First of the 13 UI files to leave `UnityEngine.UI`.
+      (Meshes/ViewAnimation/UIImposters/Versioning/StateMachines/ValuePicker: VERIFIED clean. PropertyCurves/UI.GridLayout: edits done, verify pending — MCP bridge down.)
+### asmdef granularity — policy (not religious)
+An asmdef is a *boundary you actually need*, not "one per module". Make one only when the module is (a) a
+plausible standalone UPM **package**, (b) worth **compile-isolating** (changes often), or (c) a wall you want to
+**enforce** (empty `references`). Everything else stays in `Assembly-CSharp`. **Do NOT asmdef single-file utilities** —
+the loose one-file helpers (`ScaleUtils`, `ScaleToContainerUtils`, `WeightedBlends`, `HumanFriendlyCodeGenerator`,
+`Regex`, `MenuItems`, `Serialized Scriptable Singleton`, `Undo History`, `GLDebug`, `Texture Transform Utils`, one-off
+components/editor tools) either stay in Assembly-CSharp or fold into a shared `UnityX.Core`. Prefer bundling over
+proliferation (e.g. all Property Drawers = one assembly, not one-per-drawer).
+
+### Packaging candidates (cohesive, reasonable file counts) — verified file counts
+**Tier 1 — easy next wins (few files, ✅/light 🟢):**
+- [x] MeshBuilder (4, 0 ed) → `UnityX.Meshes` — done (+ 32-bit index buffer fix).
+- [x] ViewAnimator (2, 0 ed) → `UnityX.ViewAnimation` — done.
+- [x] UI Imposter (`Components/UI/UI Imposter/`, 3, 1 ed) → `UnityX.UIImposters` — done (refs UnityEngine.UI / UnityEditor.UI).
+- [~] Range — DE-SCOPED as a standalone module (it's a tiny serializable min/max struct + drawer, i.e. a value type, not a package). Leave in Assembly-CSharp / fold into a future `UnityX.Core`.
+- [x] FSM (3, 0 ed) → `UnityX.StateMachines` — done (pluralised to avoid the `StateMachine` clash; DebugX→Debug.LogError, dropped `[Disable]`).
+- [x] ValuePicker (3, 0 ed) → `UnityX.ValuePicker` — done (inlined `DebugX.ListAsString`; consumer `AudioSourceManager`).
+- [x] Property Curve (5→4, 0 ed) → `UnityX.PropertyCurves` — done. Inlined `MathX.IsBetween` (exclusive range check); relocated the unused `PolygonPropertyCurve` (a PropertyCurve↔Geometry bridge, so it can't live in either empty-refs module) out to `Extensions/PropertyCurvePolygon/` in Assembly-CSharp.
+- [x] Version Control (4, 1 ed) → `UnityX.Versioning` (+ `.Editor`) — done (dropped `[Info]`/`[Disable]`).
+- [~] Audio — `Extensions/Audio` (8, 3 ed) — DE-SCOPED for now: a heterogeneous utils grab-bag (WAV/mic/FFT/clip), not one cohesive feature. Revisit only if an "audio tools" package is actually wanted.
+
+**Tier 2 — foundational, unlock the rest (bigger, higher leverage):**
+- [ ] Geometry (15, 4 ed) → `UnityX.Geometry` (bundle the loose `Triangulator.cs`). Unlocks Grid, PolygonRenderer, Region, UI Line/Polygon.
+- [ ] Property Drawers (86, 44 ed) → one `UnityX.PropertyDrawers` (+ `.Editor`). Shared hub — lets modules *use* `[Disable]`/`[Info]` instead of dropping them.
+- [ ] Core: `UnityEngineX` + `Collections` + `System` → `UnityX.Core`; `UnityEditorX` → `UnityX.Core.Editor`. The dependency sink; removes the need to inline helpers per module.
+
+**Tier 3 — depend on Tier 2 (do after):**
+- [ ] Grid (22, 1 ed) — after Geometry.
+- [ ] PolygonRenderer (7, 3 ed) + Region (2) — after Geometry + MeshBuilder.
+- [ ] Structures (7) — after Geometry/Grid.
+- [ ] Input (12, 0 ed) — needs a home for `MonoSingleton` + `ScreenX`.
+- [ ] Text Effects (17, 0 ed) — needs the `Color32.Compare` fix + `Range`/`GradientX`.
+
+### Point → Vector2Int migration (in progress; keep `Point`, don't delete)
+Point predates Vector2Int; migrating to Unity's type. Added implicit `Point`↔`Vector2Int` conversions + a
+`Vector2Int.Area()` extension (`UnityEngineX/Vector2IntX.cs`) so code migrates incrementally (mixed code compiles).
+- [x] Beachhead: `Grid.size` (`Point`→`Vector2Int`, serialized field — identical {x,y} layout) + `size.area`→`size.Area()`
+      in Grid.cs and the inheriting TypeMap.cs. **Verify serialization survives on a real Grid asset before proceeding.**
+- [x] `Grid.cs` fully migrated off Point (only `PointRect` remains — kept type). Added `Vector2Int` direction
+      extensions (`CardinalDirections`/`OrdinalDirections`/`CompassDirections` in `Vector2IntX`, offsets matching Point).
+      Cascade check: only `TypeMap : Grid` subclasses it, nothing overrides the changed virtuals, and Grid's changed
+      collection-returning methods have no external callers — so implicit conversions bridge consumers; should compile standalone.
+- [ ] Remaining ~35 files (TypeMap, GridRenderer, agents, Structures/Shape, scattered consumers). Migrate module-by-module.
+- [ ] Keep `PointRect` (→ `RectInt` is higher-friction: no `MinMaxRect`/`ToRect`, different semantics). Separate, later.
 - [ ] (Opportunistic) Supply the missing `Color32.Compare` helper used by the Text Effects framework.
 - [ ] Pre-existing unrelated error to resolve separately: `Grass/GrassComputeScript.cs` references `VectorFieldComponent.gridRenderer` which no longer exists (concurrent change to VectorFieldComponent).
