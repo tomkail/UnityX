@@ -1,6 +1,10 @@
 ﻿using UnityEngine;
 using UnityX.Geometry;
+using UnityX.PropertyCurves;
 
+// Bridges PropertyCurve (UnityX.PropertyCurves) with Polygon (UnityX.Geometry). Because it depends on BOTH
+// modules it can't live inside either portable assembly, so it sits in Assembly-CSharp. Move it into a
+// dedicated bridge/module if Geometry + PropertyCurves ever ship together.
 [System.Serializable]
 public class PolygonPropertyCurve : PropertyCurve<Polygon> {
 
