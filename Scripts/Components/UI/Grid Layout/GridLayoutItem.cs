@@ -1,10 +1,13 @@
-namespace UnityEngine.UI {
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace UnityX.UI {
 	[ExecuteAlways]
 	[RequireComponent(typeof(RectTransform))]
 	public class GridLayoutItem : MonoBehaviour {
 		public RectTransform rectTransform => (RectTransform) transform;
 
-		public GridLayout gridLayout;
+		public GridLayoutElement gridLayout;
 		public Vector2 gridCoordinate;
 
 		DrivenRectTransformTracker drivenRectTransformTracker;

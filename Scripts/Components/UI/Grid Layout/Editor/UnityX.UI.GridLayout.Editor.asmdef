@@ -1,0 +1,20 @@
+{
+    "name": "UnityX.UI.GridLayout.Editor",
+    "rootNamespace": "UnityX.UI.Editor",
+    "references": [
+        "UnityX.UI.GridLayout",
+        "UnityEngine.UI",
+        "UnityEditor.UI"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

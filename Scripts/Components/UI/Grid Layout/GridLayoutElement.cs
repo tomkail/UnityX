@@ -1,13 +1,16 @@
 using System;
 
-namespace UnityEngine.UI {
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace UnityX.UI {
 	[RequireComponent(typeof(RectTransform))]
-	public class GridLayout : MonoBehaviour, ILayoutElement {
+	public class GridLayoutElement : MonoBehaviour, ILayoutElement {
 		public RectTransform rectTransform => (RectTransform) transform;
 
 		[Serializable]
 		public class GridLayoutAxisSettings {
-			[NonSerialized] public GridLayout gridLayout;
+			[NonSerialized] public GridLayoutElement gridLayout;
 
 			[NonSerialized] public bool isXAxis;
 
@@ -239,7 +242,7 @@ namespace UnityEngine.UI {
 		}
 		#endregion
 
-		public override string ToString() => $"[GridLayout: X={xAxis}, Y={yAxis}]";
+		public override string ToString() => $"[GridLayoutElement: X={xAxis}, Y={yAxis}]";
 
 
 

@@ -1,23 +1,23 @@
 ﻿using System;
 using System.Collections;
 using UnityEngine;
+using UnityEditor;
 using System.Collections.Generic;
 using System.Reflection;
-using GridLayout = UnityEngine.UI.GridLayout;
 using Object = UnityEngine.Object;
 
-namespace UnityEditor.UI {
-	[CustomEditor(typeof(GridLayout)), CanEditMultipleObjects]
-	public class GridLayoutEditor : Editor {
-		protected List<GridLayout> datas;
+namespace UnityX.UI.Editor {
+	[CustomEditor(typeof(GridLayoutElement)), CanEditMultipleObjects]
+	public class GridLayoutEditor : UnityEditor.Editor {
+		protected List<GridLayoutElement> datas;
 		static Vector3[] rectPoints;
 
 		public virtual void OnEnable() {
-			datas = new List<GridLayout>();
+			datas = new List<GridLayoutElement>();
 			foreach (Object t in targets) {
 				if (t == null) continue;
-				Debug.Assert(t as GridLayout != null, "Cannot cast " + t + " to " + typeof(GridLayout));
-				datas.Add((GridLayout) t);
+				Debug.Assert(t as GridLayoutElement != null, "Cannot cast " + t + " to " + typeof(GridLayoutElement));
+				datas.Add((GridLayoutElement) t);
 			}
 		}
 
@@ -39,7 +39,7 @@ namespace UnityEditor.UI {
 			if (prop.isExpanded) {
 				EditorGUI.indentLevel++;
 
-				var val = (GridLayout.GridLayoutAxisSettings)prop.boxedValue;
+				var val = (GridLayoutElement.GridLayoutAxisSettings)prop.boxedValue;
 
 				var sizeMode = prop.FindPropertyRelative("_sizeMode");
 				var fillMode = prop.FindPropertyRelative("_fillMode");
@@ -51,14 +51,14 @@ namespace UnityEditor.UI {
 				var flip = prop.FindPropertyRelative("_flip");
 
 				EditorGUILayout.PropertyField(sizeMode);
-				if (sizeMode.enumValueIndex == (int) GridLayout.CellSizeMode.Defined) {
+				if (sizeMode.enumValueIndex == (int) GridLayoutElement.CellSizeMode.Defined) {
 					EditorGUILayout.PropertyField(itemSize);
-				} else if (sizeMode.enumValueIndex == (int) GridLayout.CellSizeMode.FillContainer) {
+				} else if (sizeMode.enumValueIndex == (int) GridLayoutElement.CellSizeMode.FillContainer) {
 					// EditorGUILayout.PropertyField(itemSize);
 					EditorGUI.BeginDisabledGroup(true);
 					EditorGUILayout.FloatField("Cell Size", val.GetItemSize());
 					EditorGUI.EndDisabledGroup();
-				} else if (sizeMode.enumValueIndex == (int) GridLayout.CellSizeMode.AspectRatio) {
+				} else if (sizeMode.enumValueIndex == (int) GridLayoutElement.CellSizeMode.AspectRatio) {
 					EditorGUILayout.PropertyField(aspectRatio);
 					EditorGUI.BeginDisabledGroup(true);
 					EditorGUILayout.FloatField("Cell Size", val.GetItemSize());
@@ -68,9 +68,9 @@ namespace UnityEditor.UI {
 				EditorGUILayout.Space();
 
 				EditorGUILayout.PropertyField(fillMode);
-				if (fillMode.enumValueIndex == (int) GridLayout.CellCountMode.Defined) {
+				if (fillMode.enumValueIndex == (int) GridLayoutElement.CellCountMode.Defined) {
 					EditorGUILayout.PropertyField(cellCount);
-				} else if (fillMode.enumValueIndex == (int) GridLayout.CellCountMode.FitContainer) {
+				} else if (fillMode.enumValueIndex == (int) GridLayoutElement.CellCountMode.FitContainer) {
 					EditorGUI.BeginDisabledGroup(true);
 					EditorGUILayout.FloatField("Cell Count", val.GetCellCount());
 					EditorGUI.EndDisabledGroup();
@@ -167,9 +167,9 @@ namespace UnityEditor.UI {
 						gridCellRect.center = new Vector2(gridCellRect.center.x, gridSize.y - gridCellRect.center.y);
 						gridCellRect = new Rect(gridRect.position + gridCellRect.position * scaleFactor, gridCellRect.size * scaleFactor);
 						// gridCellRect.center = new Vector2(gridCellRect.center.x, r.yMax-gridCellRect.center.y);
-						EditorGUI.DrawRect(gridCellRect, Color.black.WithAlpha(0.2f));
+						EditorGUI.DrawRect(gridCellRect, new Color(0f, 0f, 0f, 0.2f));
 						DrawRect(gridCellRect, 1, Color.white);
-						GUI.Label(gridCellRect, GridLayout.GridCoordToArrayIndex(new Vector2Int(x, y), data.gridSize.x).ToString(), EditorStyles.centeredGreyMiniLabel);
+						GUI.Label(gridCellRect, GridLayoutElement.GridCoordToArrayIndex(new Vector2Int(x, y), data.gridSize.x).ToString(), EditorStyles.centeredGreyMiniLabel);
 					}
 				}
 			}

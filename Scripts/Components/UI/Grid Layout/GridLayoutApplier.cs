@@ -1,13 +1,16 @@
 using System.Collections.Generic;
 
-namespace UnityEngine.UI {
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace UnityX.UI {
 	// Automatically sets the children of this object to be objects in the grid, and applies their positions to the grid.
 	// Also sets the size of this recttransform
 	[ExecuteAlways]
-	[RequireComponent(typeof(GridLayout))]
+	[RequireComponent(typeof(GridLayoutElement))]
 	public class GridLayoutApplier : MonoBehaviour {
 		public RectTransform rectTransform => (RectTransform) transform;
-		public GridLayout gridLayout => GetComponent<GridLayout>();
+		public GridLayoutElement gridLayout => GetComponent<GridLayoutElement>();
 
 		public AutoFillMode autoFillMode;
 
@@ -45,14 +48,14 @@ namespace UnityEngine.UI {
 			var numValidChildren = validChildren.Count;
 			// With no children ArrayIndexToGridCoord(-1, ...) would give a negative cell count.
 			if (autoFillMode == AutoFillMode.XAxis) {
-				gridLayout.xAxis.SetTargetCellCount(numValidChildren > 0 ? GridLayout.ArrayIndexToGridCoord(numValidChildren - 1, gridLayout.yAxis.GetCellCount()).y + 1 : 0);
-				if (gridLayout.xAxis.sizeMode != GridLayout.CellSizeMode.FillContainer) {
+				gridLayout.xAxis.SetTargetCellCount(numValidChildren > 0 ? GridLayoutElement.ArrayIndexToGridCoord(numValidChildren - 1, gridLayout.yAxis.GetCellCount()).y + 1 : 0);
+				if (gridLayout.xAxis.sizeMode != GridLayoutElement.CellSizeMode.FillContainer) {
 					gridLayout.xAxis.ApplySizeToRectTransform();
 					drivenRectTransformTracker.Add(this, rectTransform, DrivenTransformProperties.SizeDeltaX);
 				}
 			} else if (autoFillMode == AutoFillMode.YAxis) {
-				gridLayout.yAxis.SetTargetCellCount(numValidChildren > 0 ? GridLayout.ArrayIndexToGridCoord(numValidChildren - 1, gridLayout.xAxis.GetCellCount()).y + 1 : 0);
-				if (gridLayout.yAxis.sizeMode != GridLayout.CellSizeMode.FillContainer) {
+				gridLayout.yAxis.SetTargetCellCount(numValidChildren > 0 ? GridLayoutElement.ArrayIndexToGridCoord(numValidChildren - 1, gridLayout.xAxis.GetCellCount()).y + 1 : 0);
+				if (gridLayout.yAxis.sizeMode != GridLayoutElement.CellSizeMode.FillContainer) {
 					gridLayout.yAxis.ApplySizeToRectTransform();
 					drivenRectTransformTracker.Add(this, rectTransform, DrivenTransformProperties.SizeDeltaY);
 				}
@@ -61,7 +64,7 @@ namespace UnityEngine.UI {
 			var cellCountX = gridLayout.xAxis.GetCellCount();
 			int i = 0;
 			foreach (var child in validChildren) {
-				var gridCoordinate = GridLayout.ArrayIndexToGridCoord(i, cellCountX);
+				var gridCoordinate = GridLayoutElement.ArrayIndexToGridCoord(i, cellCountX);
 				gridLayout.ApplyToRectTransform(child, gridCoordinate);
 				i++;
 			}
