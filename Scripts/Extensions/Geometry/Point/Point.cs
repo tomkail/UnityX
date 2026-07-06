@@ -273,6 +273,16 @@ public struct Point : IEquatable<Point> {
 		return src.ToVector3();
 	}
 
+	// Point predates Vector2Int and has the same {int x, int y} layout, so these conversions are lossless.
+	// They let call sites move to Unity's Vector2Int while still casting to Point for its richer helpers.
+	public static implicit operator Vector2Int(Point src) {
+		return new Vector2Int(src.x, src.y);
+	}
+
+	public static implicit operator Point(Vector2Int src) {
+		return new Point(src.x, src.y);
+	}
+
 	public static ReadOnlyCollection<Point> cardinalDirections = Array.AsReadOnly(new Point[4] {
 		new Point(0, 1),
 		new Point(1, 0),

@@ -14,7 +14,7 @@ public class TypeMap<T> : Grid, IEnumerable<TypeMapCellInfo<T>> {
 	}
 	
 	public TypeMap (Point _size) : base (_size) {
-		values = new T[size.area];
+		values = new T[size.Area()];
 	}
 	
 	public TypeMap (Point _size, T _value) : this (_size) {
@@ -31,7 +31,7 @@ public class TypeMap<T> : Grid, IEnumerable<TypeMapCellInfo<T>> {
 	}
 	
 	public virtual void Clear() {
-		values = new T[size.area];
+		values = new T[size.Area()];
 	}
 
 	/// <summary>
@@ -253,7 +253,7 @@ public class TypeMap<T> : Grid, IEnumerable<TypeMapCellInfo<T>> {
 	public virtual void Offset (Point offset) {
 		T[] cachedValues = new T[values.Length];
 		System.Array.Copy(values, cachedValues, values.Length);
-		values = new T[size.area];
+		values = new T[size.Area()];
 		for(int i = 0; i < cachedValues.Length; i++) {
 			Point gridPoint = ArrayIndexToGridPoint(i);
 			gridPoint += offset;
