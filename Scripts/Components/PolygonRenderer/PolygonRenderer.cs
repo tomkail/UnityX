@@ -60,9 +60,16 @@ public class PolygonRenderer : BasePolygonRenderer {
             mesh.colors = RecalculateColors(polygonRect, points);
 
 		mesh.RecalculateNormals();
-        
+
         if(meshFilter != null)
             meshFilter.mesh = mesh;
+        // Force the MeshCollider to re-cook. GetMesh() assigns sharedMesh while the mesh
+        // is still empty, and mutating it in place above doesn't trigger a re-bake.
+        // Null-then-assign because assigning the same reference can early-out and skip the cook.
+        if(meshCollider != null) {
+            meshCollider.sharedMesh = null;
+            meshCollider.sharedMesh = mesh;
+        }
 	}
 
 
