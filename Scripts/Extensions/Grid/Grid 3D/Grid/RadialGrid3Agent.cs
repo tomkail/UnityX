@@ -9,16 +9,16 @@ using System.Collections.ObjectModel;
 public class RadialGrid3Agent : MonoBehaviour {
 	public WorldGrid3 worldGrid;
 	public float spawnRadius = 50;	
-	[System.NonSerialized] public HashSet<Point3> chunkPoints = new HashSet<Point3>();
-	public System.Action<List<Point3>> OnEnterPoints;
-	public System.Action<List<Point3>> OnExitPoints;
+	[System.NonSerialized] public HashSet<Vector3Int> chunkPoints = new HashSet<Vector3Int>();
+	public System.Action<List<Vector3Int>> OnEnterPoints;
+	public System.Action<List<Vector3Int>> OnExitPoints;
 
 	void OnEnable () {
 		chunkPoints.Clear();
 	}
 	
-	static List<Point3> entered;
-	static List<Point3> exited;
+	static List<Vector3Int> entered;
+	static List<Vector3Int> exited;
 	public void Update () {
 		var newChunkPoints = worldGrid.GetPointsInRadius(transform.position, spawnRadius);
 		

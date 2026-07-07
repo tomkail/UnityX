@@ -5,16 +5,16 @@ using UnityX.Geometry;
 
 public struct TypeMap3DCellInfo<T> {
 	public int index {get; private set;}
-	public Point3 point {get; private set;}
+	public Vector3Int point {get; private set;}
 	public T value {get; private set;}
 
-	public TypeMap3DCellInfo (int index, Point3 point, T value) {
+	public TypeMap3DCellInfo (int index, Vector3Int point, T value) {
 		this.index = index;
 		this.point = point;
 		this.value = value;
 	}
 
-	public void Set (int index, Point3 point, T value) {
+	public void Set (int index, Vector3Int point, T value) {
 		this.index = index;
 		this.point = point;
 		this.value = value;

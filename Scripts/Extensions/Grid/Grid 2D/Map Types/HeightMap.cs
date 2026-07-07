@@ -10,9 +10,9 @@ public class HeightMap : TypeMap<float> {
 	public float deltaHeight;
 	public float totalHeight;
 
-	public HeightMap (Point _size) : base (_size) {}
-	public HeightMap (Point _size, float _value) : base (_size, _value) {}
-	public HeightMap (Point _size, float[] _mapArray) : base (_size, _mapArray) {}
+	public HeightMap (Vector2Int _size) : base (_size) {}
+	public HeightMap (Vector2Int _size, float _value) : base (_size, _value) {}
+	public HeightMap (Vector2Int _size, float[] _mapArray) : base (_size, _mapArray) {}
 	public HeightMap (TypeMap<float> typeMap) : base (typeMap.size, typeMap.values) {}
 	public HeightMap (HeightMap _map) : base (_map) {
 		averageHeight = _map.averageHeight;

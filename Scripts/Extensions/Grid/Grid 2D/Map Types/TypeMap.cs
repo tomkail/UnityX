@@ -13,15 +13,15 @@ public class TypeMap<T> : Grid, IEnumerable<TypeMapCellInfo<T>> {
 		}
 	}
 	
-	public TypeMap (Point _size) : base (_size) {
+	public TypeMap (Vector2Int _size) : base (_size) {
 		values = new T[size.Area()];
 	}
 	
-	public TypeMap (Point _size, T _value) : this (_size) {
+	public TypeMap (Vector2Int _size, T _value) : this (_size) {
 		Fill(_value);
 	}
 	
-	public TypeMap (Point _size, T[] _mapArray) : this (_size) {
+	public TypeMap (Vector2Int _size, T[] _mapArray) : this (_size) {
 		Fill(_mapArray);
 	}
 	
@@ -126,7 +126,7 @@ public class TypeMap<T> : Grid, IEnumerable<TypeMapCellInfo<T>> {
 	/// </summary>
 	/// <returns>The value at grid point.</returns>
 	/// <param name="gridPosition">Grid position.</param>
-	public T GetValueAtGridPoint(Point gridPoint) {
+	public T GetValueAtGridPoint(Vector2Int gridPoint) {
 		return GetValueAtGridPoint(gridPoint.x, gridPoint.y);
 	}
 
@@ -135,7 +135,7 @@ public class TypeMap<T> : Grid, IEnumerable<TypeMapCellInfo<T>> {
 	/// </summary>
 	/// <returns>The value at grid point.</returns>
 	/// <param name="gridPosition">Grid position.</param>
-	public T[] GetValuesAtGridPoints(IList<Point> gridPoints) {
+	public T[] GetValuesAtGridPoints(IList<Vector2Int> gridPoints) {
 		T[] values = new T[gridPoints.Count];
 		for(int i = 0; i < gridPoints.Count; i++) {
 			values[i] = GetValueAtGridPoint(gridPoints[i]);
@@ -160,25 +160,25 @@ public class TypeMap<T> : Grid, IEnumerable<TypeMapCellInfo<T>> {
 	/// <returns>The value at grid point.</returns>
 	/// <param name="gridPosition">Grid position.</param>
 	/// <param name="val">Value.</param>
-	public T SetValueAtGridPoint(Point gridPosition, T val){
+	public T SetValueAtGridPoint(Vector2Int gridPosition, T val){
 		if (IsOnGrid(gridPosition))
 			return SetValueAtGridPoint(gridPosition.x, gridPosition.y, val);
 		else
 			return default; 
 	}
 	
-	public void SetValueAtGridPoints(PointRect pointRect, T[] vals) {
-        Debug.Assert(vals.Length == pointRect.area);
+	public void SetValueAtGridPoints(RectInt pointRect, T[] vals) {
+        Debug.Assert(vals.Length == (pointRect.width * pointRect.height));
         int i = 0;
-		foreach(Point gridPoint in pointRect.GetPoints()) {
+		foreach(Vector2Int gridPoint in pointRect.allPositionsWithin) {
             var index = GridPointToArrayIndex(gridPoint.x, gridPoint.y);
             values[index] = vals[i];
             i++;
         }
 	}
 
-	public void SetValueAtGridPoints(IEnumerable<Point> gridPoints, T val){
-		foreach(Point gridPoint in gridPoints)
+	public void SetValueAtGridPoints(IEnumerable<Vector2Int> gridPoints, T val){
+		foreach(Vector2Int gridPoint in gridPoints)
 			SetValueAtGridPoint(gridPoint.x, gridPoint.y, val);
 	}
 
@@ -214,8 +214,8 @@ public class TypeMap<T> : Grid, IEnumerable<TypeMapCellInfo<T>> {
 	}
 
 
-	public List<Point> GetGridPointsContainingValue(T val){
-		List<Point> points = new List<Point>();
+	public List<Vector2Int> GetGridPointsContainingValue(T val){
+		List<Vector2Int> points = new List<Vector2Int>();
 		for(int i = 0; i < cellCount; i++)
 			if(values[i].Equals(val))
 				points.Add(ArrayIndexToGridPoint(i));
@@ -225,19 +225,19 @@ public class TypeMap<T> : Grid, IEnumerable<TypeMapCellInfo<T>> {
 	/// <summary>
 	/// Resize the grid to specified size, optionally offsetting the existing contents simultaneously in order to control the expansion pivot.
 	/// Operates silently (does not raise OnChangeGridPoint callbacks).
-	/// For example, Resize(size + Point.one * 2, Point.one * 2) resizes from the top right, whereas Resize(size + Point.one, Point.zero) resizes from the bottom right.
+	/// For example, Resize(size + Vector2Int.one * 2, Vector2Int.one * 2) resizes from the top right, whereas Resize(size + Vector2Int.one, Vector2Int.zero) resizes from the bottom right.
 	/// </summary>
 	/// <param name="size">Size.</param>
 	/// <param name="offset">Offset.</param>
-	public virtual void Resize (Point size, Point offset) {
-		Point lastSize = this.size;
+	public virtual void Resize (Vector2Int size, Vector2Int offset) {
+		Vector2Int lastSize = this.size;
 		this.size = size;
 
 		T[] cachedValues = new T[values.Length];
 		System.Array.Copy(values, cachedValues, values.Length);
-		values = new T[size.area];
+		values = new T[size.Area()];
 		for(int i = 0; i < cachedValues.Length; i++) {
-			Point gridPoint = ArrayIndexToGridPoint(i, lastSize.x);
+			Vector2Int gridPoint = ArrayIndexToGridPoint(i, lastSize.x);
 			gridPoint += offset;
 			if(IsOnGrid(gridPoint))
 				SetValueAtGridPoint(gridPoint, cachedValues[i]);
@@ -250,23 +250,23 @@ public class TypeMap<T> : Grid, IEnumerable<TypeMapCellInfo<T>> {
 	/// Offset the values.
 	/// </summary>
 	/// <param name="offset">Offset.</param>
-	public virtual void Offset (Point offset) {
+	public virtual void Offset (Vector2Int offset) {
 		T[] cachedValues = new T[values.Length];
 		System.Array.Copy(values, cachedValues, values.Length);
 		values = new T[size.Area()];
 		for(int i = 0; i < cachedValues.Length; i++) {
-			Point gridPoint = ArrayIndexToGridPoint(i);
+			Vector2Int gridPoint = ArrayIndexToGridPoint(i);
 			gridPoint += offset;
 			if(IsOnGrid(gridPoint))
 				SetValueAtGridPoint(gridPoint, cachedValues[i]);
 		}
 	}
 
-	public TypeMap<T> GetTrimmed (PointRect pointRect) {
-		TypeMap<T> newMap = new TypeMap<T>(new Point(pointRect.width, pointRect.height));
+	public TypeMap<T> GetTrimmed (RectInt pointRect) {
+		TypeMap<T> newMap = new TypeMap<T>(new Vector2Int(pointRect.width, pointRect.height));
 		for(int i = 0; i < values.Length; i++) {
-			Point gridPoint = ArrayIndexToGridPoint(i);
-			Point relativeGridPoint = new Point(gridPoint.x - pointRect.x, gridPoint.y - pointRect.y);
+			Vector2Int gridPoint = ArrayIndexToGridPoint(i);
+			Vector2Int relativeGridPoint = new Vector2Int(gridPoint.x - pointRect.x, gridPoint.y - pointRect.y);
 			if(newMap.IsOnGrid(relativeGridPoint)) {
 				int newMapIndex = newMap.GridPointToArrayIndex(relativeGridPoint);
 				newMap[newMapIndex] = values[i];
@@ -275,8 +275,8 @@ public class TypeMap<T> : Grid, IEnumerable<TypeMapCellInfo<T>> {
 		return newMap;
 	}
 
-	public TypeMap<T> GetTrimmed (Rect rect, Point resolution) {
-		PointRect expandedPointRect = new PointRect(Mathf.FloorToInt(rect.x), Mathf.FloorToInt(rect.y), Mathf.CeilToInt(rect.width), Mathf.CeilToInt(rect.height));
+	public TypeMap<T> GetTrimmed (Rect rect, Vector2Int resolution) {
+		RectInt expandedPointRect = new RectInt(Mathf.FloorToInt(rect.x), Mathf.FloorToInt(rect.y), Mathf.CeilToInt(rect.width), Mathf.CeilToInt(rect.height));
 		TypeMap<T> expandedMap = GetTrimmed(expandedPointRect);
 		TypeMap<T> trimmedMap = new TypeMap<T>(resolution);
 		foreach(var cellInfo in trimmedMap) {
@@ -294,11 +294,11 @@ public class TypeMap<T> : Grid, IEnumerable<TypeMapCellInfo<T>> {
 	/// </summary>
 	/// <returns>The enumerator.</returns>
 	IEnumerator<TypeMapCellInfo<T>> IEnumerable<TypeMapCellInfo<T>>.GetEnumerator() {
-		TypeMapCellInfo<T> cellInfo = new TypeMapCellInfo<T>(0, Point.zero, default(T));
+		TypeMapCellInfo<T> cellInfo = new TypeMapCellInfo<T>(0, Vector2Int.zero, default(T));
 		for (int y = 0; y < size.y; y++) {
 			for (int x = 0; x < size.x; x++) {
 				int index = GridPointToArrayIndex(x, y);
-				cellInfo.Set(index, new Point(x,y), values[index]);
+				cellInfo.Set(index, new Vector2Int(x,y), values[index]);
 				yield return cellInfo;
 		    }
 		}
@@ -306,11 +306,11 @@ public class TypeMap<T> : Grid, IEnumerable<TypeMapCellInfo<T>> {
 
 	public TypeMapCellInfo<T> GetCellInfo (int x, int y) {
 		int index = GridPointToArrayIndex(x, y);
-		return new TypeMapCellInfo<T>(index, new Point(x,y), values[index]);
+		return new TypeMapCellInfo<T>(index, new Vector2Int(x,y), values[index]);
     }
 
 	public TypeMapCellInfo<T> GetCellInfo (int index) {
-		Point point = ArrayIndexToGridPoint(index);
+		Vector2Int point = ArrayIndexToGridPoint(index);
 		return new TypeMapCellInfo<T>(index, point, values[index]);
     }
 

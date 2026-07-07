@@ -7,9 +7,9 @@ using UnityX.Geometry;
 [ExecuteAlways]
 public class SquareGridAgent : MonoBehaviour {
 	public GridRenderer worldGrid;
-	public List<Point> chunkPoints = new List<Point>();
-	public System.Action<List<Point>> OnEnterPoints;
-	public System.Action<List<Point>> OnExitPoints;
+	public List<Vector2Int> chunkPoints = new List<Vector2Int>();
+	public System.Action<List<Vector2Int>> OnEnterPoints;
+	public System.Action<List<Vector2Int>> OnExitPoints;
 
 	void OnEnable () {
 		chunkPoints.Clear();

@@ -9,9 +9,9 @@ public class Vector2Map : TypeMap<Vector2> {
 //	public float minMagnitude;
 //	public float maxMagnitude;
 //	public float deltaMagnitude;
-	public Vector2Map (Point _size) : base (_size) {}
-	public Vector2Map (Point _size, Vector2 _value) : base (_size, _value) {}
-	public Vector2Map (Point _size, Vector2[] _mapArray) : base (_size, _mapArray) {}
+	public Vector2Map (Vector2Int _size) : base (_size) {}
+	public Vector2Map (Vector2Int _size, Vector2 _value) : base (_size, _value) {}
+	public Vector2Map (Vector2Int _size, Vector2[] _mapArray) : base (_size, _mapArray) {}
 	public Vector2Map (TypeMap<Vector2> typeMap) : base (typeMap) {}
 //	public Vector2Map (Vector2Map _map) : base (_map) {
 //		averageVector = _map.averageVector;

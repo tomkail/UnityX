@@ -6,9 +6,9 @@ using UnityX.Geometry;
 public class ColorMap : TypeMap<Color> {
 	public Color averageColor;
 	
-	public ColorMap (Point _size) : base (_size) {}
-	public ColorMap (Point _size, Color _value) : base (_size, _value) {}
-	public ColorMap (Point _size, Color[] _mapArray) : base (_size, _mapArray) {}
+	public ColorMap (Vector2Int _size) : base (_size) {}
+	public ColorMap (Vector2Int _size, Color _value) : base (_size, _value) {}
+	public ColorMap (Vector2Int _size, Color[] _mapArray) : base (_size, _mapArray) {}
 	public ColorMap (TypeMap<Color> typeMap) : base (typeMap.size, typeMap.values) {}
 
 	public override void CalculateMapProperties() {

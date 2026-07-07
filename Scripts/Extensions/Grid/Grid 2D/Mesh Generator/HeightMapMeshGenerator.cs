@@ -56,7 +56,7 @@ public class HeightMapMeshGenerator : MonoBehaviour {
 			mesh.RecalculateNormals();
 	}
 	
-	// public Mesh CreateMeshFromHeightMapArray(Point size, float[] mapArray, float[] colorArray){
+	// public Mesh CreateMeshFromHeightMapArray(Vector2Int size, float[] mapArray, float[] colorArray){
 	public Mesh CreateMeshFromHeightMap(HeightMap heightMap, ColorMap colorMap = null) {
 		if(alwaysDirty && !isDirty) 
 			isDirty = true;
@@ -78,14 +78,14 @@ public class HeightMapMeshGenerator : MonoBehaviour {
 		Vector2 uv2 = Vector2.zero;
 		Vector2 uv3 = Vector2.zero;
 		
-		Point sizeMinusOne = new Point(heightMap.size.x-1, heightMap.size.y-1);
+		Vector2Int sizeMinusOne = new Vector2Int(heightMap.size.x-1, heightMap.size.y-1);
 		Vector2 sizeReciprocal = new Vector2(1f/sizeMinusOne.x, 1f/sizeMinusOne.y);
 		
 		int numVerts = 0;
 		int numTris = 0;
 		int numUVs = 0;
 		
-		Point clampedSizeMinusOne = new Point(MathX.Clamp1Infinity(sizeMinusOne.x), MathX.Clamp1Infinity(sizeMinusOne.y));
+		Vector2Int clampedSizeMinusOne = new Vector2Int(MathX.Clamp1Infinity(sizeMinusOne.x), MathX.Clamp1Infinity(sizeMinusOne.y));
 		if(drawTop) {
 			if(internals) {
 				if(useTriangles) {

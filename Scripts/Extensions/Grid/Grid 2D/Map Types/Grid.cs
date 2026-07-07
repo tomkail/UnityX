@@ -14,7 +14,7 @@ public class Grid {
 	/// <summary>
 	/// The size of the grid.
 	/// </summary>
-	// Migrated Point -> Vector2Int (identical {x,y int} serialized layout). Vector2Int still implicitly converts both ways,
+	// Migrated Vector2Int -> Vector2Int (identical {x,y int} serialized layout). Vector2Int still implicitly converts both ways,
 	// so the rest of this class (and consumers) keep compiling during the incremental migration.
 	public Vector2Int size;
 	
@@ -458,13 +458,12 @@ public class Grid {
 	}
 
 
-	public PointRect GetPointRectFromNormalizedRect (Rect prospectiveRect) {
-		return PointRect.MinMaxRect(
-			new Vector2Int(Mathf.FloorToInt(prospectiveRect.xMin * size.x), Mathf.FloorToInt(prospectiveRect.yMin * size.y)),
-			new Vector2Int(Mathf.CeilToInt(prospectiveRect.xMax * size.x), Mathf.CeilToInt(prospectiveRect.yMax * size.y))
-		);
+	public RectInt GetPointRectFromNormalizedRect (Rect prospectiveRect) {
+		var min = new Vector2Int(Mathf.FloorToInt(prospectiveRect.xMin * size.x), Mathf.FloorToInt(prospectiveRect.yMin * size.y));
+		var max = new Vector2Int(Mathf.CeilToInt(prospectiveRect.xMax * size.x), Mathf.CeilToInt(prospectiveRect.yMax * size.y));
+		return new RectInt(min.x, min.y, max.x - min.x, max.y - min.y);
 	}
-	public Rect GetNormalizedRectFromPointRect (PointRect pointRect) {
+	public Rect GetNormalizedRectFromPointRect (RectInt pointRect) {
 		return RectX.MinMaxRect(
 			new Vector2(pointRect.xMin * sizeReciprocal.x, pointRect.yMin * sizeReciprocal.y),
 			new Vector2(pointRect.xMax * sizeReciprocal.x, pointRect.yMax * sizeReciprocal.y)

@@ -224,4 +224,14 @@ public struct Point3 {
 	public static implicit operator Point(Point3 src) {
 		return src.ToPoint();
 	}
+
+	// Lossless conversions to/from Unity's Vector3Int (identical int x/y/z layout). These let call
+	// sites migrate from Point3 to Vector3Int incrementally — assignments and returns auto-convert.
+	public static implicit operator Vector3Int(Point3 src) {
+		return new Vector3Int(src.x, src.y, src.z);
+	}
+
+	public static implicit operator Point3(Vector3Int src) {
+		return new Point3(src.x, src.y, src.z);
+	}
 }

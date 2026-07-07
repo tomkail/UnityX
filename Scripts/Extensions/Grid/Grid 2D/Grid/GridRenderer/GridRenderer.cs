@@ -10,8 +10,8 @@ public class GridRenderer : MonoBehaviour {
 	public bool scaleWithGridSize = true;
 
 	[SerializeField]
-    Point _gridSize;
-	public Point gridSize {
+    Vector2Int _gridSize;
+	public Vector2Int gridSize {
 		get => _gridSize;
 		set {
 			if(_gridSize == value) return;
@@ -65,7 +65,7 @@ public class GridRenderer : MonoBehaviour {
 
     [System.Serializable]
 	public class GridCenterConversion : GridConversion {
-		public override Point gridSize => gridRenderer.gridSize;
+		public override Vector2Int gridSize => gridRenderer.gridSize;
 
 		public override Matrix4x4 gridToLocalMatrix {
 			get {
@@ -83,7 +83,7 @@ public class GridRenderer : MonoBehaviour {
 
     [System.Serializable]
 	public class GridEdgeConversion : GridConversion {
-		public override Point gridSize => gridRenderer.gridSize+Point.one;
+		public override Vector2Int gridSize => gridRenderer.gridSize+Vector2Int.one;
 
 		public override Matrix4x4 gridToLocalMatrix {
 			get {
@@ -100,7 +100,7 @@ public class GridRenderer : MonoBehaviour {
 	[System.Serializable]
 	public abstract class GridConversion {
 		protected GridRenderer gridRenderer;
-		public abstract Point gridSize {get;}
+		public abstract Vector2Int gridSize {get;}
 		protected Transform transform => gridRenderer.transform;
 
         protected bool _gridToLocalMatrixSet = false;
@@ -276,11 +276,11 @@ public class GridRenderer : MonoBehaviour {
 		}
 	}
 
-	public IEnumerable<Point> GetPointsInWorldBounds (Bounds bounds, bool clamped = true) {
+	public IEnumerable<Vector2Int> GetPointsInWorldBounds (Bounds bounds, bool clamped = true) {
 		Vector2 _min = cellCenter.WorldToGridPosition(bounds.min);
-		Point min = new Point(Mathf.Floor(_min.x), Mathf.Floor(_min.y));
+		Vector2Int min = new Vector2Int(Mathf.FloorToInt(_min.x), Mathf.FloorToInt(_min.y));
 		Vector2 _max = cellCenter.WorldToGridPosition(bounds.max);
-		Point max = new Point(Mathf.Ceil(_max.x), Mathf.Ceil(_max.y));
+		Vector2Int max = new Vector2Int(Mathf.CeilToInt(_max.x), Mathf.CeilToInt(_max.y));
 
 		foreach(var vert in bounds.GetVertices()) {
 			var gridVert = cellCenter.WorldToGridPosition(vert);
@@ -295,20 +295,20 @@ public class GridRenderer : MonoBehaviour {
 			max.x = Mathf.Min(max.x, gridSize.x);
 			max.y = Mathf.Min(max.y, gridSize.y);
 		}
-		var pointRect = PointRect.MinMaxRect(min, max);
+		var pointRect = new RectInt(min.x, min.y, max.x - min.x, max.y - min.y);
 
-		foreach(var point in pointRect.GetPoints()) {
+		foreach(var point in pointRect.allPositionsWithin) {
 			yield return point;
 		}
 	}
 
-	public IEnumerable<Point> GetPointsInRadius (Vector3 circleCenter, float radius, bool clampToGrid) {
+	public IEnumerable<Vector2Int> GetPointsInRadius (Vector3 circleCenter, float radius, bool clampToGrid) {
 		var chunkSample = cellCenter.WorldToGridPosition(circleCenter);
 
 		Vector2 _start = edge.WorldToGridPosition(circleCenter - Vector3.one * radius);
-		Point start = new Point(Mathf.Floor(_start.x), Mathf.Floor(_start.y));
+		Vector2Int start = new Vector2Int(Mathf.FloorToInt(_start.x), Mathf.FloorToInt(_start.y));
 		Vector2 _end = edge.WorldToGridPosition(circleCenter + Vector3.one * radius);
-		Point end = new Point(Mathf.Ceil(_end.x)+1, Mathf.Ceil(_end.y)+1);
+		Vector2Int end = new Vector2Int(Mathf.CeilToInt(_end.x)+1, Mathf.CeilToInt(_end.y)+1);
 		
 		if(clampToGrid) {
 			start.x = Mathf.Clamp(start.x, 0, gridSize.x);
@@ -320,16 +320,16 @@ public class GridRenderer : MonoBehaviour {
 		float radiusSquared = radius * radius;
 		for (int x = start.x; x < end.x; x++) {
 			for (int y = start.y; y < end.y; y++) {
-				var point = new Point(x,y);
+				var point = new Vector2Int(x,y);
 				var distance = GetSqrDistanceToChunk(chunkSample, circleCenter, point);
 				if (distance <= radiusSquared) {
-					yield return new Point(x,y);
+					yield return new Vector2Int(x,y);
 				}
 			}
 		}
 	}
 
-	float GetSqrDistanceToChunk (Vector2 chunkSpaceTarget, Vector3 worldSpaceTarget, Point chunk) {
+	float GetSqrDistanceToChunk (Vector2 chunkSpaceTarget, Vector3 worldSpaceTarget, Vector2Int chunk) {
 		Vector2 testPoint = Vector2.zero;
 		testPoint.x = Mathf.Clamp(chunkSpaceTarget.x, chunk.x-0.5f, chunk.x+0.5f);
 		testPoint.y = Mathf.Clamp(chunkSpaceTarget.y, chunk.y-0.5f, chunk.y+0.5f);
@@ -337,7 +337,7 @@ public class GridRenderer : MonoBehaviour {
 		return Vector3X.SqrDistanceAgainstDirection(worldSpaceTarget, pointPosition, transform.rotation * Vector3.forward);
 	}
 
-	public List<Point> OrderPointsByDistance (List<Point> points, Vector3 position) {
+	public List<Vector2Int> OrderPointsByDistance (List<Vector2Int> points, Vector3 position) {
 		var chunkSample = cellCenter.WorldToGridPosition(position);
 		return points.OrderBy(x => GetSqrDistanceToChunk(chunkSample, position, x)).ToList();
 	}
