@@ -13,15 +13,15 @@ public class TypeMap3D<T> : Grid3D, IEnumerable<TypeMap3DCellInfo<T>> {
 		}
 	}
 	
-	public TypeMap3D (Point3 _size) : base (_size) {
+	public TypeMap3D (Vector3Int _size) : base (_size) {
 		Clear();
 	}
 	
-	public TypeMap3D (Point3 _size, T _value) : this (_size) {
+	public TypeMap3D (Vector3Int _size, T _value) : this (_size) {
 		Fill(_value);
 	}
 	
-	public TypeMap3D (Point3 _size, T[] _mapArray) : this (_size) {
+	public TypeMap3D (Vector3Int _size, T[] _mapArray) : this (_size) {
 		Fill(_mapArray);
 	}
 	
@@ -31,7 +31,7 @@ public class TypeMap3D<T> : Grid3D, IEnumerable<TypeMap3DCellInfo<T>> {
 	}
 	
 	public virtual void Clear() {
-		values = new T[size.area];
+		values = new T[size.Area()];
 	}
 	
 	/// <summary>
@@ -60,61 +60,50 @@ public class TypeMap3D<T> : Grid3D, IEnumerable<TypeMap3DCellInfo<T>> {
 	}
 	
 	/// <summary>
-	/// Gets the value at normalized position.
+	/// Gets the value at a normalized (0-1) position, trilinearly interpolated across the volume.
 	/// </summary>
-	/// <returns>The value at normalized position.</returns>
-	/// <param name="position">Position.</param>
+	/// <returns>The interpolated value at the normalized position.</returns>
+	/// <param name="position">Normalized (0-1) position.</param>
 	public T GetValueAtNormalizedPosition(Vector3 position){
-		return GetValueAtNormalizedPosition(position.XZ());
-	}
-	/*
-	/// <summary>
-	/// Gets the value at normalized position.
-	/// </summary>
-	/// <returns>The value at normalized position.</returns>
-	/// <param name="position">Position.</param>
-	public T GetValueAtNormalizedPosition(Vector2 position){
 		return GetValueAtGridPosition(NormalizedPositionToGridPosition(position));
 	}
-	
-	/// <summary>
-	/// Gets the value at the specified grid position.
-	/// Interpolates between the 4 points that this position falls between based on distance from the points.
-	/// Note that this is significantly slower than obtaining values via a grid point, or directly from an array index.
-	/// </summary>
-	/// <returns>The value at grid position.</returns>
-	/// <param name="gridPosition">Grid position.</param>
 
+	/// <summary>
+	/// Gets the value at the specified (possibly fractional) grid position, trilinearly interpolating
+	/// between the eight grid points surrounding it. Whole positions short-circuit to a direct lookup.
+	/// Significantly slower than sampling a grid point or array index directly.
+	/// </summary>
+	/// <returns>The interpolated value at the grid position.</returns>
+	/// <param name="gridPosition">Grid position.</param>
 	public T GetValueAtGridPosition(Vector3 gridPosition){
 		gridPosition = ClampGridPosition(gridPosition);
-		if(gridPosition.x.IsWhole() && gridPosition.y.IsWhole()) {
-			return GetValueAtGridPoint((int)gridPosition.x, (int)gridPosition.y);
-		}
+		if(gridPosition.x.IsWhole() && gridPosition.y.IsWhole() && gridPosition.z.IsWhole())
+			return GetValueAtGridPoint((int)gridPosition.x, (int)gridPosition.y, (int)gridPosition.z);
 
-		int left = Mathf.FloorToInt(gridPosition.x);
-		int right = left+1;
-		int bottom = Mathf.FloorToInt(gridPosition.y);
-		int top = bottom+1;
-		
-		Vector2 offset = new Vector2(gridPosition.x - Mathf.Floor(gridPosition.x), gridPosition.y - Mathf.Floor(gridPosition.y), gridPosition.z - Mathf.Floor(gridPosition.z));
-		
-		left = Mathf.Clamp(left, 0, sizeMinusOne.x);
-		right = Mathf.Clamp(right, 0, sizeMinusOne.x);
-		bottom = Mathf.Clamp(bottom, 0, sizeMinusOne.y);
-		top = Mathf.Clamp(top, 0, sizeMinusOne.y);
+		// The eight grid points surrounding this position (low/high corner on each axis), clamped to the grid.
+		int x0 = Mathf.Clamp(Mathf.FloorToInt(gridPosition.x), 0, sizeMinusOne.x);
+		int y0 = Mathf.Clamp(Mathf.FloorToInt(gridPosition.y), 0, sizeMinusOne.y);
+		int z0 = Mathf.Clamp(Mathf.FloorToInt(gridPosition.z), 0, sizeMinusOne.z);
+		int x1 = Mathf.Clamp(x0 + 1, 0, sizeMinusOne.x);
+		int y1 = Mathf.Clamp(y0 + 1, 0, sizeMinusOne.y);
+		int z1 = Mathf.Clamp(z0 + 1, 0, sizeMinusOne.z);
 
-		T topLeftValue = GetValueAtGridPoint(left, top);
-		T topRightValue = GetValueAtGridPoint(right, top);
-		T bottomLeftValue = GetValueAtGridPoint(left, bottom);
-		T bottomRightValue = GetValueAtGridPoint(right, bottom);
+		// Fractional distance into the cell on each axis.
+		float tx = gridPosition.x - Mathf.Floor(gridPosition.x);
+		float ty = gridPosition.y - Mathf.Floor(gridPosition.y);
+		float tz = gridPosition.z - Mathf.Floor(gridPosition.z);
 
-		T x1 = Lerp(bottomLeftValue, bottomRightValue, offset.x);
-		T x2 = Lerp(topLeftValue, topRightValue, offset.x);
-		
-		T xValue = Lerp(x1, x2, offset.y);
-		return xValue;
+		// Trilinear: lerp along x on the four edges, then along y within each z-plane, then along z.
+		T x00 = Lerp(GetValueAtGridPoint(x0, y0, z0), GetValueAtGridPoint(x1, y0, z0), tx);
+		T x10 = Lerp(GetValueAtGridPoint(x0, y1, z0), GetValueAtGridPoint(x1, y1, z0), tx);
+		T x01 = Lerp(GetValueAtGridPoint(x0, y0, z1), GetValueAtGridPoint(x1, y0, z1), tx);
+		T x11 = Lerp(GetValueAtGridPoint(x0, y1, z1), GetValueAtGridPoint(x1, y1, z1), tx);
+
+		T z0Plane = Lerp(x00, x10, ty);
+		T z1Plane = Lerp(x01, x11, ty);
+
+		return Lerp(z0Plane, z1Plane, tz);
 	}
-	*/
 	
 	/// <summary>
 	/// Gets the value at grid point.
@@ -131,7 +120,7 @@ public class TypeMap3D<T> : Grid3D, IEnumerable<TypeMap3DCellInfo<T>> {
 	/// </summary>
 	/// <returns>The value at grid point.</returns>
 	/// <param name="gridPosition">Grid position.</param>
-	public T GetValueAtGridPoint(Point3 gridPoint) {
+	public T GetValueAtGridPoint(Vector3Int gridPoint) {
 		return GetValueAtGridPoint(gridPoint.x, gridPoint.y, gridPoint.z);
 	}
 
@@ -140,7 +129,7 @@ public class TypeMap3D<T> : Grid3D, IEnumerable<TypeMap3DCellInfo<T>> {
 	/// </summary>
 	/// <returns>The value at grid point.</returns>
 	/// <param name="gridPosition">Grid position.</param>
-	public T[] GetValuesAtGridPoints(IList<Point3> gridPoints) {
+	public T[] GetValuesAtGridPoints(IList<Vector3Int> gridPoints) {
 		T[] values = new T[gridPoints.Count];
 		for(int i = 0; i < gridPoints.Count; i++) {
 			values[i] = GetValueAtGridPoint(gridPoints[i]);
@@ -165,17 +154,17 @@ public class TypeMap3D<T> : Grid3D, IEnumerable<TypeMap3DCellInfo<T>> {
 	/// <returns>The value at grid point.</returns>
 	/// <param name="gridPosition">Grid position.</param>
 	/// <param name="val">Value.</param>
-	public T SetValueAtGridPoint(Point3 gridPosition, T val){
+	public T SetValueAtGridPoint(Vector3Int gridPosition, T val){
 		return SetValueAtGridPoint(gridPosition.x, gridPosition.y, gridPosition.z, val);
 	}
 	
-	public void SetValueAtGridPoints(IList<Point3> gridPoints, T val){
-		foreach(Point3 gridPoint in gridPoints)
+	public void SetValueAtGridPoints(IList<Vector3Int> gridPoints, T val){
+		foreach(Vector3Int gridPoint in gridPoints)
 			SetValueAtGridPoint(gridPoint.x, gridPoint.y, gridPoint.z, val);
 	}
 	
-	public List<Point3> GetGridPointsContainingValue(T val){
-		List<Point3> points = new List<Point3>();
+	public List<Vector3Int> GetGridPointsContainingValue(T val){
+		List<Vector3Int> points = new List<Vector3Int>();
 		for(int i = 0; i < cellCount; i++)
 			if(values[i].Equals(val))
 				points.Add(ArrayIndexToGridPoint(i));
@@ -185,19 +174,19 @@ public class TypeMap3D<T> : Grid3D, IEnumerable<TypeMap3DCellInfo<T>> {
 	/// <summary>
 	/// Resize the grid to specified size, optionally offsetting the existing contents simultaneously in order to control the expansion pivot.
 	/// Operates silently (does not raise OnChangeGridPoint callbacks).
-	/// For example, Resize(size + Point.one * 2, Point.one * 2) resizes from the top right, whereas Resize(size + Point.one, Point.zero) resizes from the bottom right.
+	/// For example, Resize(size + Vector2Int.one * 2, Vector2Int.one * 2) resizes from the top right, whereas Resize(size + Vector2Int.one, Vector2Int.zero) resizes from the bottom right.
 	/// </summary>
 	/// <param name="size">Size.</param>
 	/// <param name="offset">Offset.</param>
-	public virtual void Resize (Point3 size, Point3 offset) {
-		Point3 lastSize = this.size;
+	public virtual void Resize (Vector3Int size, Vector3Int offset) {
+		Vector3Int lastSize = this.size;
 		this.size = size;
 
 		T[] cachedValues = new T[values.Length];
 		System.Array.Copy(values, cachedValues, values.Length);
-		values = new T[size.area];
+		values = new T[size.Area()];
 		for(int i = 0; i < cachedValues.Length; i++) {
-			Point3 gridPoint = ArrayIndexToGridPoint(i, lastSize.y, lastSize.z);
+			Vector3Int gridPoint = ArrayIndexToGridPoint(i, lastSize.y, lastSize.z);
 			gridPoint += offset;
 			if(IsOnGrid(gridPoint))
 				SetValueAtGridPoint(gridPoint, cachedValues[i]);
@@ -210,23 +199,23 @@ public class TypeMap3D<T> : Grid3D, IEnumerable<TypeMap3DCellInfo<T>> {
 	/// Offset the values.
 	/// </summary>
 	/// <param name="offset">Offset.</param>
-	public virtual void Offset (Point3 offset) {
+	public virtual void Offset (Vector3Int offset) {
 		T[] cachedValues = new T[values.Length];
 		System.Array.Copy(values, cachedValues, values.Length);
-		values = new T[size.area];
+		values = new T[size.Area()];
 		for(int i = 0; i < cachedValues.Length; i++) {
-			Point3 gridPoint = ArrayIndexToGridPoint(i);
+			Vector3Int gridPoint = ArrayIndexToGridPoint(i);
 			gridPoint += offset;
 			if(IsOnGrid(gridPoint))
 				SetValueAtGridPoint(gridPoint, cachedValues[i]);
 		}
 	}
 
-//	public TypeMap<T> GetTrimmed (PointRect pointRect) {
-//		TypeMap<T> newMap = new TypeMap<T>(new Point(pointRect.width, pointRect.height));
+//	public TypeMap<T> GetTrimmed (RectInt pointRect) {
+//		TypeMap<T> newMap = new TypeMap<T>(new Vector2Int(pointRect.width, pointRect.height));
 //		for(int i = 0; i < values.Length; i++) {
-//			Point gridPoint = ArrayIndexToGridPoint(i);
-//			Point relativeGridPoint = new Point(gridPoint.x - pointRect.x, gridPoint.y - pointRect.y);
+//			Vector2Int gridPoint = ArrayIndexToGridPoint(i);
+//			Vector2Int relativeGridPoint = new Vector2Int(gridPoint.x - pointRect.x, gridPoint.y - pointRect.y);
 //			if(newMap.IsOnGrid(relativeGridPoint)) {
 //				int newMapIndex = newMap.GridPointToArrayIndex(relativeGridPoint);
 //				newMap[newMapIndex] = values[i];
@@ -235,8 +224,8 @@ public class TypeMap3D<T> : Grid3D, IEnumerable<TypeMap3DCellInfo<T>> {
 //		return newMap;
 //	}
 
-//	public TypeMap<T> GetTrimmed (Rect rect, Point3 resolution) {
-//		PointRect expandedPointRect = new PointRect(Mathf.FloorToInt(rect.x), Mathf.FloorToInt(rect.y), Mathf.CeilToInt(rect.width), Mathf.CeilToInt(rect.height));
+//	public TypeMap<T> GetTrimmed (Rect rect, Vector3Int resolution) {
+//		RectInt expandedPointRect = new RectInt(Mathf.FloorToInt(rect.x), Mathf.FloorToInt(rect.y), Mathf.CeilToInt(rect.width), Mathf.CeilToInt(rect.height));
 //		TypeMap<T> expandedMap = GetTrimmed(expandedPointRect);
 //		TypeMap<T> heightMap = new TypeMap<T>(resolution);
 //		foreach(var cellInfo in heightMap) {
@@ -254,12 +243,12 @@ public class TypeMap3D<T> : Grid3D, IEnumerable<TypeMap3DCellInfo<T>> {
 	/// </summary>
 	/// <returns>The enumerator.</returns>
 	IEnumerator<TypeMap3DCellInfo<T>> IEnumerable<TypeMap3DCellInfo<T>>.GetEnumerator() {
-		TypeMap3DCellInfo<T> cellInfo = new TypeMap3DCellInfo<T>(0, Point3.zero, default(T));
+		TypeMap3DCellInfo<T> cellInfo = new TypeMap3DCellInfo<T>(0, Vector3Int.zero, default(T));
 		for (int z = 0; z < size.z; z++) {
 			for (int y = 0; y < size.y; y++) {
 				for (int x = 0; x < size.x; x++) {
 					int index = GridPointToArrayIndex(x, y, z);
-					cellInfo.Set(index, new Point3(x,y,z), values[index]);
+					cellInfo.Set(index, new Vector3Int(x,y,z), values[index]);
 					yield return cellInfo;
 				}
 		    }
