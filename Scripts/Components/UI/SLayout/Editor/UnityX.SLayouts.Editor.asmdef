@@ -1,0 +1,19 @@
+{
+    "name": "UnityX.SLayouts.Editor",
+    "rootNamespace": "UnityX.SLayouts.Editor",
+    "references": [
+        "UnityX.SLayouts",
+        "UnityEngine.UI"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

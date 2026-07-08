@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityX.SLayouts;
 
 [ExecuteAlways]
 public class VirtualKeyboardManager : MonoSingleton<VirtualKeyboardManager> {
