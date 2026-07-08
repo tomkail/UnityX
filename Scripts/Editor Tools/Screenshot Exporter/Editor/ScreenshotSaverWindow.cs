@@ -293,7 +293,7 @@ public class ScreenshotSaverWindow : EditorWindow {
 		GUILayout.BeginVertical(GUI.skin.box);
 
 		captureKeycode = (KeyCode)EditorGUILayout.EnumPopup("Capture Keycode", captureKeycode);
-		if(SystemInfoX.IsMacOS && KeyCodeIsFKey(captureKeycode)) {
+		if((SystemInfo.operatingSystemFamily == OperatingSystemFamily.MacOSX) && KeyCodeIsFKey(captureKeycode)) {
 			EditorGUILayout.HelpBox("CMD+Shift+"+captureKeycode, MessageType.Info);
 		}
 
