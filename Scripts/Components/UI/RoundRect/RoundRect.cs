@@ -16,8 +16,8 @@ using static UnityEngine.Mathf;
 ///     own set of UVs
 /// 
 /// It draws one set of geometry for the outline and one set of geometry for the fill.
-/// Originally it used to draw both with two different colours, but this isn't possible
-/// without different materials since you can only pass one colour into the vertex data.
+/// It can't draw the outline and fill in two different colours without separate materials,
+/// since you can only pass one colour into the vertex data.
 /// 
 /// The biggest edge (haha) case we have to cover is when the outline is larger than
 /// the radius. In this case, we don't just draw a 9-slice. Instead, we draw the 8 slices

@@ -74,8 +74,7 @@ public class HSVColor {
             }else if(b.s==0){
                 h=a.h;
             }else{
-                // h is in degrees, so LerpAngle directly (the old code multiplied by 360 and then
-                // never assigned the result, so Lerp always returned hue 0 / red).
+                // h is in degrees, so LerpAngle directly.
                 float angle = Mathf.LerpAngle(a.h, b.h, t);
                 while (angle < 0f)
                     angle += 360f;

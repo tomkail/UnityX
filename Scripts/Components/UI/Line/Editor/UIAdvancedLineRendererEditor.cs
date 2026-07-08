@@ -45,8 +45,7 @@ namespace UnityEditor.UI.Extensions
         }
 
         protected void SetData () {
-            // If an object has been deleted under our feet we need to handle it gracefully
-            // (Previously it would assert)
+            // If an object has been deleted under our feet we need to handle it gracefully.
             // This can happen if an editor script deletes an object that you previously had selected.
             if( target == null ) {
                 data = null;

@@ -1,8 +1,8 @@
 using UnityEngine;
 
 namespace UnityX.Colors {
-	// Photoshop-style colour blend modes, extracted from the ColorX grab-bag into their own portable module
-	// so consumers (e.g. the Tween system's ColorTween) can reference blending without pulling in all of ColorX.
+	// Photoshop-style colour blend modes in their own portable module, so consumers (e.g. the Tween system's
+	// ColorTween) can reference blending without pulling in all of ColorX.
 	// HSLColor (used by the HSL-based modes) lives alongside this in the same module.
 	public enum BlendMode {
 		Normal,
@@ -71,7 +71,6 @@ namespace UnityX.Colors {
 
 		public static Color BlendOverlay(Color color1, Color color2){
 			// Standard per-channel overlay: base < 0.5 → 2·base·blend, else → 1 − 2·(1−base)(1−blend).
-			// (Previously the implementation was commented out and it just returned color2 — a broken stub.)
 			return new Color(Overlay(color1.r, color2.r), Overlay(color1.g, color2.g), Overlay(color1.b, color2.b), Overlay(color1.a, color2.a));
 		}
 

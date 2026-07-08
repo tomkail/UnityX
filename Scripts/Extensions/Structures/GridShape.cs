@@ -30,7 +30,7 @@ public class GridShape {
 
 	public bool Contains (Vector2Int cell) => cells.Contains(cell);
 
-	// Folded in from the old Structure type: predicate membership test.
+	// Predicate membership test.
 	public bool Contains (Func<Vector2Int, bool> predicate) => cells.Any(predicate);
 
 	public IEnumerable<Vector2Int> GetTranslatedCells (Vector2Int offset) => cells.Select(c => c + offset);

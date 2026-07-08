@@ -37,7 +37,7 @@ namespace UnityX.Noises {
 
 		// To remove the need for index wrapping, double the permutation table length
 		private static int[] perm = new int[512];
-		static SimplexNoise() { for(int i=0; i<512; i++) perm[i]=p[i & 255]; } // moved to constructor
+		static SimplexNoise() { for(int i=0; i<512; i++) perm[i]=p[i & 255]; }
 		// A lookup table to traverse the simplex around a given point in 4D.
 		// Details can be found where this table is used, in the 4D noise method.
 		private static int[][] simplex = {

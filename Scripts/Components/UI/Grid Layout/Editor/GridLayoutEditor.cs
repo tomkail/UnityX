@@ -209,12 +209,11 @@ namespace UnityX.UI.Editor {
 	/// <param name="prop">Property.</param>
 	/// <typeparam name="T">The 1st type parameter.</typeparam>
 	public static T GetBaseProperty<T>(SerializedProperty prop) {
-		// SerializedProperty.boxedValue (Unity 2022.1+) is the correct built-in for this;
-		// it replaces the fragile GetValueFromObject reflection below. default(T) on type mismatch (was the old behaviour).
+		// SerializedProperty.boxedValue (Unity 2022.1+) is the built-in for this; returns default(T) on type mismatch.
 		return prop.boxedValue is T t ? t : default;
 	}
 
-	// Legacy path-walking reflection, kept as public API (superseded by SerializedProperty.boxedValue above).
+	// Path-walking reflection, kept as public API. Prefer GetBaseProperty (SerializedProperty.boxedValue) above.
 	// If this goes wrong again, try some of the suggestions here - http://stackoverflow.com/questions/23181307/parse-field-property-path
 	public static T GetValueFromObject<T>(object obj, string propertyPath) {
 		Debug.Assert(obj != null);

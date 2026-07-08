@@ -299,7 +299,7 @@ namespace UnityX.NoiseSampler.Editor {
             }
 
             // Rounds several numbers to the same factor, using the largest number and a fixed num sig.digits by absolute value to determine the scale
-            // Inlined from UnityX's MathX.RoundTo so this module's editor assembly needs no reference to the rest of UnityX.
+            // Local RoundTo so this module's editor assembly needs no reference to the rest of UnityX.
             static float RoundTo(float value, int decimalPlaces) {
                 return Mathf.Round(value * Mathf.Pow(10, decimalPlaces)) / Mathf.Pow(10, decimalPlaces);
             }

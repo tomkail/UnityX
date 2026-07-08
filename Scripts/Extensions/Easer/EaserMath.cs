@@ -1,8 +1,8 @@
 using UnityEngine;
 
 namespace UnityX.Easer {
-	// A small subset of UnityX's UnityEngineX helpers (QuaternionX / MathX), inlined so this module's assembly
-	// needs no reference to the rest of UnityX. These are faithful copies of the originals.
+	// A small, self-contained subset of UnityX's UnityEngineX helpers (QuaternionX / MathX), so this module's
+	// assembly needs no reference to the rest of UnityX.
 	internal static class EaserMath {
 		// QuaternionX.Difference: the relative rotation between two rotations.
 		public static Quaternion Difference (Quaternion rotationA, Quaternion rotationB) {

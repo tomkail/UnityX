@@ -200,7 +200,7 @@ namespace UnityX.PropertyCurves {
 		/// <param name="endTime">End time.</param>
 		public void RemoveKeysBetween (float startTime, float endTime) {
 			for(int i = keys.Count-1; i >= 0; i--) {
-				// Exclusive range check (inlined from MathX.IsBetween to keep this module dependency-free).
+				// Exclusive range check, kept local to keep this module dependency-free.
 				if(keys[i].time > startTime && keys[i].time < endTime) {
 					keys.RemoveAt (i);
 				} else if (keys[i].time < startTime) {

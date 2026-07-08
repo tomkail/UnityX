@@ -53,8 +53,8 @@ namespace UnityX.Islands {
 		// adjacency/validity predicates — is passed in, so it holds no instance state; but it stays a member
 		// (not a free function) and `protected` so subclasses like OwnedIslandDetector can still reuse it.
 		// Every point reachable through getAdjacentPoints for which canJoin(point) is true is added via addPoint
-		// and recorded in testedPoints so it is never visited twice. An explicit Stack replaces the old mutual
-		// recursion (no stack-overflow risk) and, with the HashSet membership test, keeps this O(n).
+		// and recorded in testedPoints so it is never visited twice. An explicit Stack (rather than mutual
+		// recursion) avoids stack-overflow risk and, with the HashSet membership test, keeps this O(n).
 		// onValidSkip (optional) receives points that are valid but rejected by canJoin (e.g. a neighbour that
 		// belongs to a different owner) so a caller can queue them as future seeds.
 		protected static void FloodFill (Coord seed, HashSet<Coord> testedPoints, Func<Coord, IEnumerable<Coord>> getAdjacentPoints, Func<Coord, bool> getPointIsValid, Func<Coord, bool> canJoin, Action<Coord> addPoint, Action<Coord> onValidSkip = null) {

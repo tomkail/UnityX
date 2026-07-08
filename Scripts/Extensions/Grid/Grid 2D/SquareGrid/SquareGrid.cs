@@ -14,8 +14,6 @@ public class SquareGrid {
 	/// <summary>
 	/// The size of the grid.
 	/// </summary>
-	// Migrated Vector2Int -> Vector2Int (identical {x,y int} serialized layout). Vector2Int still implicitly converts both ways,
-	// so the rest of this class (and consumers) keep compiling during the incremental migration.
 	public Vector2Int size;
 	
 	/// <summary>
@@ -470,7 +468,7 @@ public class SquareGrid {
 		);
 	}
 
-	// --- Inlined helpers (formerly MathX.RepeatInclusive / RectX.*) so SquareGrid is dependency-free ---
+	// --- Helpers kept inline so SquareGrid is dependency-free ---
 	static int RepeatInclusive (int val, int min, int max) {
 		int range = max - min;
 		if (range == 0) return min;
@@ -492,7 +490,7 @@ public class SquareGrid {
 		return true;
 	}
 
-	// Neighbour offsets (formerly Vector2IntX.CardinalDirections/OrdinalDirections/CompassDirections).
+	// Neighbour offsets.
 	static readonly Vector2Int[] cardinalOffsets = { new Vector2Int(0, 1), new Vector2Int(1, 0), new Vector2Int(0, -1), new Vector2Int(-1, 0) };
 	static readonly Vector2Int[] ordinalOffsets = { new Vector2Int(1, 1), new Vector2Int(1, -1), new Vector2Int(-1, -1), new Vector2Int(-1, 1) };
 	static readonly Vector2Int[] compassOffsets = { new Vector2Int(0, 1), new Vector2Int(1, 1), new Vector2Int(1, 0), new Vector2Int(1, -1), new Vector2Int(0, -1), new Vector2Int(-1, -1), new Vector2Int(-1, 0), new Vector2Int(-1, 1) };

@@ -382,7 +382,7 @@ public class SquareGridRenderer : MonoBehaviour {
 	}
 	#endif
 
-	// The eight corners of a Bounds (formerly BoundsX.GetVertices).
+	// The eight corners of a Bounds.
 	static IEnumerable<Vector3> BoundsVertices (Bounds b) {
 		var min = b.min; var max = b.max;
 		yield return min;

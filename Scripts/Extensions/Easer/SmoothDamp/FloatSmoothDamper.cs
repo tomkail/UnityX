@@ -1,8 +1,7 @@
 using UnityEngine;
 
 namespace UnityX.Easer {
-	// Derives from SmoothDamper<float> like every other concrete damper (was a full standalone
-	// reimplementation of the BaseEaser/SmoothDamper scaffolding).
+	// Derives from SmoothDamper<float> like every other concrete damper.
 	[System.Serializable]
 	public class FloatSmoothDamper : SmoothDamper<float> {
 		protected FloatSmoothDamper () : base () {}

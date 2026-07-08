@@ -1,6 +1,5 @@
 ﻿/// Credit jack.sydorenko, firagon
 /// Sourced from - http://forum.unity3d.com/threads/new-ui-and-line-drawing.253772/
-/// Updated/Refactored from - http://forum.unity3d.com/threads/new-ui-and-line-drawing.253772/#post-2528050
 
 using System.Collections.Generic;
 using System;

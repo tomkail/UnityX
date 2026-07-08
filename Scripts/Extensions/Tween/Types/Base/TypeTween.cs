@@ -250,7 +250,7 @@ namespace UnityX.Tween {
 		public virtual T Update (float myDeltaTime) {
 			if(tweening){
 				// Advance the timer FIRST so the sampled value reflects the current frame's
-				// elapsed time rather than the previous frame's (which caused a one-frame lag).
+				// elapsed time rather than the previous frame's — sampling before advancing would lag by one frame.
 				tweenTimer.Update(myDeltaTime);
 				// If the timer reached its target during Update(), TweenComplete has already
 				// applied the value at normalized time 1 and cleared `tweening`, so skip the

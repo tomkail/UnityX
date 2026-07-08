@@ -11,8 +11,7 @@ public class CubeGridRenderer : MonoBehaviour {
 	public bool showGizmos;
 	public int gizmoChunkExtent = 3;
 
-	// Chunk space (one cell = one unit) -> world, straight off the Transform (was a cached TRS matrix
-	// built from explicit centre/rotation/step fields).
+	// Chunk space (one cell = one unit) -> world, straight off the Transform.
 	public Matrix4x4 chunkToWorldMatrix => transform.localToWorldMatrix;
 
 	public Vector3 ChunkToWorldSpace (Vector3 chunkPosition) {

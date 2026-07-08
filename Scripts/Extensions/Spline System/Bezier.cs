@@ -1,8 +1,8 @@
 using UnityEngine;
 
 namespace UnityX.Splines {
-	// Inlined from UnityX's Algorithms/Bezier so this module needs no reference to the rest of UnityX.
-	// Only the members the spline system uses are kept (cubic Vector3 evaluation + rough length).
+	// Self-contained Bezier helpers so this module needs no reference to the rest of UnityX.
+	// Only the members the spline system uses are present (cubic Vector3 evaluation + rough length).
 	// Marked internal so it isn't part of the module's public surface.
 	internal static class Bezier {
 		public static Vector3 GetPoint(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t) {

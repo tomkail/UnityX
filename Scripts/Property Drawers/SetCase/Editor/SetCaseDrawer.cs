@@ -13,8 +13,8 @@ public class SetCaseDrawer : BaseAttributePropertyDrawer<SetCaseAttribute> {
 		EditorGUI.BeginProperty(position, label, property);
 		EditorGUI.BeginChangeCheck();
 		string value = EditorGUI.TextField(position, label, property.stringValue);
-		// Only write on edit — the old unconditional write dirtied the object every repaint and
-		// clobbered multi-object selections. ToUpper/ToLower are the correct built-ins (no dup to remove).
+		// Only write on edit — an unconditional write would dirty the object every repaint and clobber
+		// multi-object selections. ToUpper/ToLower are the correct built-ins.
 		if (EditorGUI.EndChangeCheck())
 			property.stringValue = SetCase(value);
 		EditorGUI.EndProperty();

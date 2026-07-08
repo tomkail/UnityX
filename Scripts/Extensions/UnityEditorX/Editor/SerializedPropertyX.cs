@@ -78,7 +78,7 @@ public static class SerializedPropertyX
 	/// <typeparam name="T">The 1st type parameter.</typeparam>
 	public static T GetBaseProperty<T>(this SerializedProperty prop) {
 		// SerializedProperty.boxedValue (Unity 2022.1+) is the built-in for this; robust and cheaper than the reflection walk.
-		// Preserve the old "return default(T) on type mismatch" behaviour rather than throwing on a bad cast.
+		// Returns default(T) on type mismatch rather than throwing on a bad cast.
 		return prop.boxedValue is T t ? t : default;
 	}
 

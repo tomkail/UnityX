@@ -74,7 +74,7 @@ public static class FlagsX {
 	public static T Create<T>(params T[] flags) where T : Enum {
 		// OR the flags in signed-long space: Convert.ToInt64 reads the real underlying value (handling
 		// negative/high-bit members like `All = ~0` that a checked ulong cast would overflow on), and
-		// Enum.ToObject rebuilds for any backing type. (The old `(int)(object)flags[i]` unbox crashed for
+		// Enum.ToObject rebuilds for any backing type. (A `(int)(object)flags[i]` unbox would crash for
 		// non-int-backed enums; a checked Caster<T,ulong> cast crashes on negative members.)
 		long result = 0;
 		for(int i = 0; i < flags.Length; i++) result |= Convert.ToInt64(flags[i]);
@@ -99,7 +99,7 @@ public static class FlagsX {
 	public static T CreateEverything<T>() where T : Enum {
 		// All bits set for the enum's underlying type. Enum.ToObject converts -1 unchecked to the backing
 		// type (0xFF for byte, ~0 for int, 0xFFFF…F for ulong, …), so this works for any backing type —
-		// unlike the old `(T)(object)~0` (InvalidCastException for non-int enums) or a checked ulong cast
+		// unlike `(T)(object)~0` (InvalidCastException for non-int enums) or a checked ulong cast
 		// (OverflowException on members whose bit pattern is negative, e.g. an `All = ~0` entry).
 		return (T)Enum.ToObject(typeof(T), -1L);
 	}
@@ -125,8 +125,8 @@ public static class FlagsX {
 	}
 
 	public static int Invert<T>(int flags) where T : Enum {
-		// Convert.ToInt32 respects the enum's real underlying type; the old (int)(object)
-		// unbox threw InvalidCastException for non-int-backed enums. (Return type is int,
+		// Convert.ToInt32 respects the enum's real underlying type; a plain (int)(object)
+		// unbox throws InvalidCastException for non-int-backed enums. (Return type is int,
 		// so this remains an int-domain helper for enums whose "everything" fits in int.)
 		return Convert.ToInt32(CreateEverything<T>()) & ~(flags);
 	}
@@ -146,7 +146,7 @@ public static class FlagsX {
 		ulong bits = Convert.ToUInt64(value);
 		// A value of zero decomposes to the enum's zero-named member (e.g. None = 0),
 		// if one is defined. `values` only ever contains the individual non-zero flag
-		// bits (GetFlagValues skips zero), so the old tail check `values[0] == 0` was
+		// bits (GetFlagValues skips zero), so a `values[0] == 0` tail check would be
 		// unreachable; look the zero member up from the enum type directly instead.
 		if (bits == 0L)
 		{

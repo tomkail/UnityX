@@ -262,7 +262,6 @@ namespace UnityX.UI {
 		
 		public static float CalculatePositionForGridCoord(float coord, float itemSize, float spacing, Vector2 margin, float pivot) {
 			// pivot shifts the position within the cell: 0 = cell origin, 0.5 = centre, 1 = far edge.
-			// (Previously pivot was accepted but ignored, so GetCenterPositionForGridCoord returned the cell origin.)
 			return margin.x + (spacing * coord) + (itemSize * coord) + (itemSize * pivot);
 		}
 		

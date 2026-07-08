@@ -91,7 +91,7 @@ namespace UnityX.ValuePicker {
 			return $"[{GetType().Name}] Value={value}, Sources=\n{ListAsString(sources)}";
 		}
 
-		// Inlined from UnityX's DebugX.ListAsString so this module needs no reference to the rest of UnityX.
+		// Local ListAsString so this module needs no reference to the rest of UnityX.
 		static string ListAsString<U> (IEnumerable<U> list) {
 			if(list == null) return "NULL";
 			int count = 0;

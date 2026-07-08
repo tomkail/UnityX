@@ -74,7 +74,7 @@ namespace UnityX.Easer {
 
 
 		// Delegates to the analytic (closed-form) damped-spring solver in `Spring` — deterministic and
-		// framerate-independent, so there's no need for the old fixed-1/60 hack or explicit-Euler sub-stepping.
+		// framerate-independent, so it needs no fixed-timestep hack or explicit-Euler sub-stepping.
 		// `Spring.Update` is a Mathf.SmoothDamp-style step; SpringDamper models a unit-mass spring, so mass = 1.
 		public static float DampedSpring(float current, float target, ref float velocity, float springConstant, float damping) {
 			return DampedSpring(current, target, ref velocity, springConstant, damping, Time.deltaTime);

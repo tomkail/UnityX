@@ -1,8 +1,7 @@
 using UnityEngine;
 
 namespace UnityX.Easer {
-	// Derives from MoveTowardsEaser<float> like every other concrete easer (was a full standalone
-	// reimplementation of the BaseEaser/MoveTowardsEaser scaffolding).
+	// Derives from MoveTowardsEaser<float> like every other concrete easer.
 	[System.Serializable]
 	public class FloatMoveTowardsEaser : MoveTowardsEaser<float> {
 		protected FloatMoveTowardsEaser () : base () {}

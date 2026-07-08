@@ -14,8 +14,7 @@ namespace UnityX.Islands {
 	// ring lookups), so this works for square grids, hex grids, etc.
 	public static class OutlineDetector {
 
-		// Wraps val into the half-open range [a, b) (b exclusive). Inlined from MathX.RepeatInRange so
-		// this module stays dependency-free.
+		// Wraps val into the half-open range [a, b) (b exclusive). Kept local so this module stays dependency-free.
 		static float RepeatInRange (float a, float b, float val) {
 			if(a == b) return val;
 			b -= a;
