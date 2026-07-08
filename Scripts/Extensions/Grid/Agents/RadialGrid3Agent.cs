@@ -7,7 +7,7 @@ using System.Collections.ObjectModel;
 
 [ExecuteAlways]
 public class RadialGrid3Agent : MonoBehaviour {
-	public WorldGrid3 worldGrid;
+	public CubeGridRenderer worldGrid;
 	public float spawnRadius = 50;	
 	[System.NonSerialized] public HashSet<Vector3Int> chunkPoints = new HashSet<Vector3Int>();
 	public System.Action<List<Vector3Int>> OnEnterPoints;
