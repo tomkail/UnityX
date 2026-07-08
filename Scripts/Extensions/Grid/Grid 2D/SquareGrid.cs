@@ -4,12 +4,12 @@ using System;
 using System.Linq;
 
 /// <summary>
-/// Grid class.
+/// SquareGrid class.
 /// Normalized space is in the range (0, 1) on the X and Y axes.
-/// Grid space is in the range (0, size), on the X and Y axis.
+/// SquareGrid space is in the range (0, size), on the X and Y axis.
 /// </summary>
 [System.Serializable]
-public class Grid {
+public class SquareGrid {
 	
 	/// <summary>
 	/// The size of the grid.
@@ -77,7 +77,7 @@ public class Grid {
 	public event OnResizeEvent OnResize;
 
 	
-	public Grid (Vector2Int _size) {
+	public SquareGrid (Vector2Int _size) {
 		SetSize(_size);
 	}
 	
@@ -86,7 +86,7 @@ public class Grid {
 	}
 	
 	public int GridPointToArrayIndex (int x, int y){
-		return Grid.GridPointToArrayIndex(x, y, size.x);
+		return SquareGrid.GridPointToArrayIndex(x, y, size.x);
 	}
 	
 	public int GridPointToArrayIndex (Vector2Int gridPoint){
@@ -139,11 +139,11 @@ public class Grid {
 	// RANDOM LOCATION
 	
 	public Vector2Int RandomGridPoint () {
-		return Grid.RandomGridPoint(size);
+		return SquareGrid.RandomGridPoint(size);
 	}
 	
 	public Vector2 RandomGridPosition () {
-		return Grid.RandomGridPosition(size);
+		return SquareGrid.RandomGridPosition(size);
 	}
 	
 	public Vector2Int GetRandomEdgeGridPoint () {
@@ -169,15 +169,15 @@ public class Grid {
 	//Conversion Functions
 	
 	public Vector2 GridToNormalizedPosition (Vector2 gridPosition){
-		return Grid.GridToNormalizedPosition(gridPosition, size);
+		return SquareGrid.GridToNormalizedPosition(gridPosition, size);
 	}
 	
 	public Vector2 NormalizedToGridPosition (Vector2 normalizedPosition){
-		return Grid.NormalizedToGridPosition(normalizedPosition, size);
+		return SquareGrid.NormalizedToGridPosition(normalizedPosition, size);
 	}
 	
 	public Vector2Int NormalizedToGridPoint(Vector2 normalizedPosition) {
-		return Grid.NormalizedToGridPoint(normalizedPosition, size);
+		return SquareGrid.NormalizedToGridPoint(normalizedPosition, size);
 	}
 	
 	
@@ -251,15 +251,15 @@ public class Grid {
 
 
 	public Vector2Int[] ValidCardinalDirections(Vector2Int gridPoint){
-		return Grid.Filter(gridPoint.CardinalDirections().ToList(), IsOnGrid).ToArray();
+		return SquareGrid.Filter(gridPoint.CardinalDirections().ToList(), IsOnGrid).ToArray();
 	}
 
 	public Vector2Int[] ValidOrdinalDirections(Vector2Int gridPoint){
-		return Grid.Filter(gridPoint.OrdinalDirections().ToList(), IsOnGrid).ToArray();
+		return SquareGrid.Filter(gridPoint.OrdinalDirections().ToList(), IsOnGrid).ToArray();
 	}
 
 	public Vector2Int[] ValidCompassDirections(Vector2Int gridPoint){
-		return Grid.Filter(gridPoint.CompassDirections().ToList(), IsOnGrid).ToArray();
+		return SquareGrid.Filter(gridPoint.CompassDirections().ToList(), IsOnGrid).ToArray();
 	}
 	
 	
@@ -313,7 +313,7 @@ public class Grid {
 	/// Converts a grid point to an index of the array.
 	/// </summary>
 	/// <returns>The point to array index.</returns>
-	/// <param name="gridPoint">Grid point.</param>
+	/// <param name="gridPoint">SquareGrid point.</param>
 	/// <param name="width">Width.</param>
 	public static int GridPointToArrayIndex (Vector2Int gridPoint, int width){
 		return GridPointToArrayIndex(gridPoint.x, gridPoint.y, width);
@@ -350,7 +350,7 @@ public class Grid {
 
 	/// <summary>
 	/// Removes the invalid points in the list as defined by function parameters.
-	/// Example usage: List<Vector2Int> validAdjacent = Grid.Filter(GetAdjacentPoints(new Vector2Int(0,3), IsOnGrid);
+	/// Example usage: List<Vector2Int> validAdjacent = SquareGrid.Filter(GetAdjacentPoints(new Vector2Int(0,3), IsOnGrid);
 	/// </summary>
 	/// <returns>The invalid.</returns>
 	/// <param name="allPoints">All points.</param>

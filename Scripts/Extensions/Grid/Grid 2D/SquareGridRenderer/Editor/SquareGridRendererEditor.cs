@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using UnityEditor;
 
-[CustomEditor(typeof(GridRenderer))]
-public class GridRendererEditor : BaseEditor<GridRenderer> {
+[CustomEditor(typeof(SquareGridRenderer))]
+public class SquareGridRendererEditor : BaseEditor<SquareGridRenderer> {
 	public override void OnEnable() {
 		base.OnEnable();
 		Undo.undoRedoPerformed += HandleUndoRedoCallback;

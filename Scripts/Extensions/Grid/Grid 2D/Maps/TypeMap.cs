@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityX.Geometry;
 
 [System.Serializable]
-public class TypeMap<T> : Grid, IEnumerable<TypeMapCellInfo<T>> {
+public class TypeMap<T> : SquareGrid, IEnumerable<TypeMapCellInfo<T>> {
 
 	public T[] values;
 	public float valuesLengthReciprocal {

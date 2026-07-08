@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 
 [ExecuteAlways]
-public class GridRenderer : MonoBehaviour {
-    public event System.Action<GridRenderer> OnRefresh;
+public class SquareGridRenderer : MonoBehaviour {
+    public event System.Action<SquareGridRenderer> OnRefresh;
 	public Plane floorPlane => new(-transform.forward, transform.position);
-	public GridRendererModeModule modeModule;
+	public SquareGridRendererModeModule modeModule;
 	public bool scaleWithGridSize = true;
 
 	[SerializeField]
@@ -78,7 +78,7 @@ public class GridRenderer : MonoBehaviour {
                 return _gridToLocalMatrix;
 			}
 		}
-		public GridCenterConversion (GridRenderer gridRenderer) : base (gridRenderer) {}
+		public GridCenterConversion (SquareGridRenderer gridRenderer) : base (gridRenderer) {}
 	}
 
     [System.Serializable]
@@ -94,12 +94,12 @@ public class GridRenderer : MonoBehaviour {
                 return _gridToLocalMatrix;
 			}
 		}
-		public GridEdgeConversion (GridRenderer gridRenderer) : base (gridRenderer) {}
+		public GridEdgeConversion (SquareGridRenderer gridRenderer) : base (gridRenderer) {}
 	}
         
 	[System.Serializable]
 	public abstract class GridConversion {
-		protected GridRenderer gridRenderer;
+		protected SquareGridRenderer gridRenderer;
 		public abstract Vector2Int gridSize {get;}
 		protected Transform transform => gridRenderer.transform;
 
@@ -159,7 +159,7 @@ public class GridRenderer : MonoBehaviour {
 			}
 		}
 
-		public GridConversion (GridRenderer gridRenderer) {
+		public GridConversion (SquareGridRenderer gridRenderer) {
 			this.gridRenderer = gridRenderer;
 		}
 
@@ -193,11 +193,11 @@ public class GridRenderer : MonoBehaviour {
 		}
 
 		public virtual Vector2 NormalizedToGridPosition (Vector2 normalizedPosition){
-			return Grid.NormalizedToGridPosition(normalizedPosition, gridSize);
+			return SquareGrid.NormalizedToGridPosition(normalizedPosition, gridSize);
 		}
 
 		public virtual Vector2 GridToNormalizedPosition (Vector2 normalizedPosition){
-			return Grid.GridToNormalizedPosition(normalizedPosition, gridSize);
+			return SquareGrid.GridToNormalizedPosition(normalizedPosition, gridSize);
 		}
 		
 

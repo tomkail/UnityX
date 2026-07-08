@@ -275,7 +275,7 @@ public class Grid3D {
 
 	/// <summary>
 	/// Removes the invalid points in the list as defined by function parameters.
-	/// Example usage: List<Vector2Int> validAdjacent = Grid.Filter(GetAdjacentPoints(new Vector2Int(0,3), IsOnGrid);
+	/// Example usage: List<Vector2Int> validAdjacent = SquareGrid.Filter(GetAdjacentPoints(new Vector2Int(0,3), IsOnGrid);
 	/// </summary>
 	/// <returns>The invalid.</returns>
 	/// <param name="allPoints">All points.</param>

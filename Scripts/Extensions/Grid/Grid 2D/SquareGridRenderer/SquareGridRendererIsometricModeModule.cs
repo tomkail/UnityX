@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class GridRendererIsometricModeModule : GridRendererModeModule {
+public class SquareGridRendererIsometricModeModule : SquareGridRendererModeModule {
     public float isometricHeight = 0.6f;
     public Vector3 isometricScale {
         get {

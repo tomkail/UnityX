@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class GridRendererManhattanModeModule : GridRendererModeModule {
+public class SquareGridRendererManhattanModeModule : SquareGridRendererModeModule {
     
     public override Matrix4x4 GetGridToLocalMatrix (Vector3 cellScale, Vector2 gridSize) {
         var _gridToLocalMatrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, cellScale);

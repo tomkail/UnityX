@@ -6,7 +6,7 @@ using UnityX.Geometry;
 
 [ExecuteAlways]
 public class SquareGridAgent : MonoBehaviour {
-	public GridRenderer worldGrid;
+	public SquareGridRenderer worldGrid;
 	public List<Vector2Int> chunkPoints = new List<Vector2Int>();
 	public System.Action<List<Vector2Int>> OnEnterPoints;
 	public System.Action<List<Vector2Int>> OnExitPoints;

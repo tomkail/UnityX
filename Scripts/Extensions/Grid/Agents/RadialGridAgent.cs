@@ -6,7 +6,7 @@ using UnityX.Geometry;
 
 [ExecuteAlways]
 public class RadialGridAgent : MonoBehaviour {
-	public GridRenderer worldGrid;
+	public SquareGridRenderer worldGrid;
 	public bool clampToGrid;
 	public float radius = 50;
 	public float worldRadius {
