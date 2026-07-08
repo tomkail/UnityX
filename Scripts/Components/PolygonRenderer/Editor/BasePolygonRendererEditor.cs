@@ -4,12 +4,14 @@ using UnityEditor;
 
 // Shared editor for the PolygonRenderer family (PolygonRenderer / PolygonOutlineRenderer), which share the
 // BasePolygonRenderer runtime base. The concrete subclasses below only supply the [CustomEditor] target type.
-public abstract class BasePolygonRendererEditor<T> : BaseEditor<T> where T : BasePolygonRenderer {
+public abstract class BasePolygonRendererEditor<T> : Editor where T : BasePolygonRenderer {
+	// BaseEditor<T> used to supply `data`; inlined here so this editor doesn't depend on it.
+	protected T data => target as T;
+
 	// Keys we registered with PolygonEditorTool, so we can unregister on disable.
 	readonly List<object> editorKeys = new List<object>();
 
-	public override void OnEnable() {
-		base.OnEnable();
+	void OnEnable() {
 		Undo.undoRedoPerformed += HandleUndoRedoCallback;
 		RegisterPolygonEditors();
 	}
@@ -39,7 +41,8 @@ public abstract class BasePolygonRendererEditor<T> : BaseEditor<T> where T : Bas
 	public override void OnInspectorGUI() {
 		serializedObject.Update();
 		EditorGUI.BeginChangeCheck();
-		base.OnInspectorGUI();
+		DrawDefaultInspector();
+		if(GUI.changed && target != null) EditorUtility.SetDirty(target);
 		if(EditorGUI.EndChangeCheck()) data.OnPropertiesChanged();
 		serializedObject.ApplyModifiedProperties();
 	}

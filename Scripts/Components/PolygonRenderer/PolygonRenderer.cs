@@ -81,8 +81,8 @@ public class PolygonRenderer : BasePolygonRenderer {
                 uvs[i] = Rect.PointToNormalized(polygonRect, points[i]);
             }
         } else if(uvMode == UVMode.Shape) {
-            Vector2 uvXDirection = MathX.DegreesToVector2(uvXAngle);
-            Vector2 uvYDirection = MathX.DegreesToVector2(uvYAngle);
+            Vector2 uvXDirection = PolygonRendererInternal.DegreesToVector2(uvXAngle);
+            Vector2 uvYDirection = PolygonRendererInternal.DegreesToVector2(uvYAngle);
             var distanceXMin = Mathf.Infinity;
             var distanceXMax = Mathf.NegativeInfinity;
             var distanceYMin = Mathf.Infinity;
@@ -123,15 +123,16 @@ public class PolygonRenderer : BasePolygonRenderer {
     [SerializeField] bool drawDebugGizmos;
     void OnDrawGizmosSelected () {
         if(!drawDebugGizmos) return;
-        GizmosX.BeginMatrix(transform.localToWorldMatrix);
+        var previousGizmoMatrix = Gizmos.matrix;
+        Gizmos.matrix = transform.localToWorldMatrix;
         var polygonRect = polygon.GetRect();
-        GizmosX.DrawWireRect(polygonRect);
+        PolygonRendererInternal.DrawWireRect(polygonRect);
 
         
-        Vector2 colorDirection = MathX.DegreesToVector2(colorAngle+90);
-        Vector2 oppositeColorDirection = MathX.DegreesToVector2(colorAngle+90+180);
-        var startPoint = RectX.SplatVector(polygonRect, colorDirection);
-        var endPoint = RectX.SplatVector(polygonRect, oppositeColorDirection);
+        Vector2 colorDirection = PolygonRendererInternal.DegreesToVector2(colorAngle+90);
+        Vector2 oppositeColorDirection = PolygonRendererInternal.DegreesToVector2(colorAngle+90+180);
+        var startPoint = PolygonRendererInternal.SplatVector(polygonRect, colorDirection);
+        var endPoint = PolygonRendererInternal.SplatVector(polygonRect, oppositeColorDirection);
         Gizmos.DrawSphere(startPoint, Vector2.Distance(startPoint, endPoint) * 0.025f);
         Gizmos.DrawSphere(endPoint, Vector2.Distance(startPoint, endPoint) * 0.025f);
         
@@ -140,8 +141,8 @@ public class PolygonRenderer : BasePolygonRenderer {
         
 
 
-        Vector2 uvXDirection = MathX.DegreesToVector2(uvXAngle+90);
-        Vector2 uvYDirection = MathX.DegreesToVector2(uvYAngle+90);
+        Vector2 uvXDirection = PolygonRendererInternal.DegreesToVector2(uvXAngle+90);
+        Vector2 uvYDirection = PolygonRendererInternal.DegreesToVector2(uvYAngle+90);
         Vector2[] uvs = new Vector2[polygon.vertices.Length];
         var distanceXMin = Mathf.Infinity;
         var distanceXMax = Mathf.NegativeInfinity;
@@ -177,14 +178,14 @@ public class PolygonRenderer : BasePolygonRenderer {
         var bottom = new Vector2(Mathf.Lerp(distanceXMinPoint.x, distanceXMaxPoint.x, 0.5f), distanceYMinPoint.y);
         var xLength = Vector2.Distance(distanceXMinPoint, distanceXMaxPoint) * 0.1f;
         var yLength = Vector2.Distance(distanceYMinPoint, distanceYMaxPoint) * 0.1f;
-        GizmosX.DrawArrowLine(left - uvYDirection * xLength * 0.5f, left + uvYDirection * xLength * 0.5f, Vector3.forward);
-        GizmosX.DrawArrowLine(bottom - uvXDirection * yLength * 0.5f, bottom + uvXDirection * yLength * 0.5f, Vector3.forward);
-        GizmosX.DrawArrowLine(Vector2.zero, colorDirection * 0.5f, Vector3.forward);
-        GizmosX.DrawArrowLine(Vector2.zero, uvYDirection * 0.5f, Vector3.forward);
-        GizmosX.DrawArrowLine(Vector2.zero, uvXDirection * 0.5f, Vector3.forward);
+        PolygonRendererInternal.DrawArrowLine(left - uvYDirection * xLength * 0.5f, left + uvYDirection * xLength * 0.5f, Vector3.forward);
+        PolygonRendererInternal.DrawArrowLine(bottom - uvXDirection * yLength * 0.5f, bottom + uvXDirection * yLength * 0.5f, Vector3.forward);
+        PolygonRendererInternal.DrawArrowLine(Vector2.zero, colorDirection * 0.5f, Vector3.forward);
+        PolygonRendererInternal.DrawArrowLine(Vector2.zero, uvYDirection * 0.5f, Vector3.forward);
+        PolygonRendererInternal.DrawArrowLine(Vector2.zero, uvXDirection * 0.5f, Vector3.forward);
 
         
-        GizmosX.EndMatrix();
+        Gizmos.matrix = previousGizmoMatrix;
     }
 #endif
 }

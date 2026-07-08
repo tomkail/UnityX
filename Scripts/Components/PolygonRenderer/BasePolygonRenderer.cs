@@ -108,7 +108,7 @@ public abstract class BasePolygonRenderer : MonoBehaviour {
     }
     protected void DestroyMesh () {
         if(mesh != null) {
-            ObjectX.DestroyAutomatic(mesh);
+            PolygonRendererInternal.DestroyAutomatic(mesh);
             mesh = null;
             if(meshFilter != null) meshFilter.mesh = null;
 		    if(meshCollider != null) meshCollider.sharedMesh = null;
@@ -139,11 +139,11 @@ public abstract class BasePolygonRenderer : MonoBehaviour {
     // kept as protected API for external subclasses that colour points individually. Don't remove.
     protected Color GetColor (Rect polygonRect, Vector2[] points, Vector2 point) {
         if(colorMode == ColorMode.Rect || colorMode == ColorMode.Shape) {
-            Vector2 colorDirection = MathX.DegreesToVector2(colorAngle+90);
-            Vector2 oppositeColorDirection = MathX.DegreesToVector2(colorAngle+90+180);
+            Vector2 colorDirection = PolygonRendererInternal.DegreesToVector2(colorAngle+90);
+            Vector2 oppositeColorDirection = PolygonRendererInternal.DegreesToVector2(colorAngle+90+180);
             if(colorMode == ColorMode.Rect) {
-                var startPoint = RectX.SplatVector(polygonRect, colorDirection);
-                var endPoint = RectX.SplatVector(polygonRect, oppositeColorDirection);
+                var startPoint = PolygonRendererInternal.SplatVector(polygonRect, colorDirection);
+                var endPoint = PolygonRendererInternal.SplatVector(polygonRect, oppositeColorDirection);
                 
                 Line3D line = new Line3D(startPoint, endPoint);
                 var n = line.GetNormalizedDistanceOnLine(point);
@@ -169,11 +169,11 @@ public abstract class BasePolygonRenderer : MonoBehaviour {
     protected Color[] RecalculateColors (Rect polygonRect, Vector2[] points) {
         if(colorMode == ColorMode.Rect || colorMode == ColorMode.Shape) {
             Color[] colors = new Color[points.Length];
-            Vector2 colorDirection = MathX.DegreesToVector2(colorAngle+90);
-            Vector2 oppositeColorDirection = MathX.DegreesToVector2(colorAngle+90+180);
+            Vector2 colorDirection = PolygonRendererInternal.DegreesToVector2(colorAngle+90);
+            Vector2 oppositeColorDirection = PolygonRendererInternal.DegreesToVector2(colorAngle+90+180);
             if(colorMode == ColorMode.Rect) {
-                var startPoint = RectX.SplatVector(polygonRect, colorDirection);
-                var endPoint = RectX.SplatVector(polygonRect, oppositeColorDirection);
+                var startPoint = PolygonRendererInternal.SplatVector(polygonRect, colorDirection);
+                var endPoint = PolygonRendererInternal.SplatVector(polygonRect, oppositeColorDirection);
                 for(int i = 0; i < points.Length; i++) {
                     Line3D line = new Line3D(startPoint, endPoint);
                     var n = line.GetNormalizedDistanceOnLine(points[i]);
