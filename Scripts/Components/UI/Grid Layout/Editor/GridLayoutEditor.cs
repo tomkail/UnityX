@@ -202,62 +202,15 @@ namespace UnityX.UI.Editor {
 			}
 		}
 
-		/// <summary>
-	/// Gets the actual value of a serialized property using reflection. A bit expensive. Doesn't work in every case.
+	/// <summary>
+	/// Gets the value of a serialized property via SerializedProperty.boxedValue.
 	/// </summary>
-	/// <returns>The base property.</returns>
+	/// <returns>The property value, or default(T) on type mismatch.</returns>
 	/// <param name="prop">Property.</param>
-	/// <typeparam name="T">The 1st type parameter.</typeparam>
+	/// <typeparam name="T">The value type to read.</typeparam>
 	public static T GetBaseProperty<T>(SerializedProperty prop) {
 		// SerializedProperty.boxedValue (Unity 2022.1+) is the built-in for this; returns default(T) on type mismatch.
 		return prop.boxedValue is T t ? t : default;
-	}
-
-	// Path-walking reflection, kept as public API. Prefer GetBaseProperty (SerializedProperty.boxedValue) above.
-	// If this goes wrong again, try some of the suggestions here - http://stackoverflow.com/questions/23181307/parse-field-property-path
-	public static T GetValueFromObject<T>(object obj, string propertyPath) {
-		Debug.Assert(obj != null);
-		MemberInfo memberInfo = null;
-//		PropertyInfo propertyInfo = null;
-		string[] parts = propertyPath.Split('.');
-		int partIndex = -1;
-		foreach (string part in parts) {
-			partIndex++;
-			if(obj is T) return (T)obj;
-			var members = obj.GetType().GetMember(part, BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.Static|BindingFlags.Instance);
-			memberInfo = members.Length > 0 ? members[0] : null;
-			if(memberInfo == null)continue;
-
-//			propertyInfo = obj.GetType().GetProperty(part, BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.Static|BindingFlags.Instance);
-//			if(propertyInfo == null)continue;
-			object x = null;
-			if(memberInfo is FieldInfo) x = ((FieldInfo)memberInfo).GetValue(obj);
-			if(memberInfo is PropertyInfo) x = ((PropertyInfo)memberInfo).GetValue(obj, null);
-//			((PropertyInfo)fieldInfo).
-			
-			if (x is IList) {
-				int indexStart = parts[partIndex+2].IndexOf("[")+1;
-				int collectionElementIndex = Int32.Parse(parts[partIndex+2].Substring(indexStart, parts[partIndex+2].Length-indexStart-1));
-				IList list = x as IList;
-				if(collectionElementIndex >= 0 && collectionElementIndex < list.Count) {
-					obj = (x as IList)[collectionElementIndex];
-//					type = obj.GetType();
-				} else {
-					Debug.LogWarning ("Index: "+collectionElementIndex+", List Count: "+list.Count+", Current Path Part: "+part+", Full Path: "+propertyPath);
-					return default(T);
-				}
-				continue;
-			} else {
-//				type = fieldInfo.GetType();
-			}
-
-			if(memberInfo is FieldInfo) obj = ((FieldInfo)memberInfo).GetValue(obj);
-			if(memberInfo is PropertyInfo) obj = ((PropertyInfo)memberInfo).GetValue(obj, null);
-//			obj = fieldInfo.GetValue(obj);
-		}
-			
-		if(!(obj is T)) return default(T);
-		return (T)obj;
 	}
 	}
 }
