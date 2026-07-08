@@ -24,7 +24,7 @@ public class SquareGrid {
 	/// <value>The length.</value>
 	public int cellCount {
 		get {
-			return size.Area();
+			return (size.x * size.y);
 		}
 	}
 	
@@ -86,7 +86,7 @@ public class SquareGrid {
 	}
 	
 	public int GridPointToArrayIndex (int x, int y){
-		return SquareGrid.GridPointToArrayIndex(x, y, size.x);
+		return GridPointToArrayIndex(x, y, size.x);
 	}
 	
 	public int GridPointToArrayIndex (Vector2Int gridPoint){
@@ -139,11 +139,11 @@ public class SquareGrid {
 	// RANDOM LOCATION
 	
 	public Vector2Int RandomGridPoint () {
-		return SquareGrid.RandomGridPoint(size);
+		return RandomGridPoint(size);
 	}
 	
 	public Vector2 RandomGridPosition () {
-		return SquareGrid.RandomGridPosition(size);
+		return RandomGridPosition(size);
 	}
 	
 	public Vector2Int GetRandomEdgeGridPoint () {
@@ -169,15 +169,15 @@ public class SquareGrid {
 	//Conversion Functions
 	
 	public Vector2 GridToNormalizedPosition (Vector2 gridPosition){
-		return SquareGrid.GridToNormalizedPosition(gridPosition, size);
+		return GridToNormalizedPosition(gridPosition, size);
 	}
 	
 	public Vector2 NormalizedToGridPosition (Vector2 normalizedPosition){
-		return SquareGrid.NormalizedToGridPosition(normalizedPosition, size);
+		return NormalizedToGridPosition(normalizedPosition, size);
 	}
 	
 	public Vector2Int NormalizedToGridPoint(Vector2 normalizedPosition) {
-		return SquareGrid.NormalizedToGridPoint(normalizedPosition, size);
+		return NormalizedToGridPoint(normalizedPosition, size);
 	}
 	
 	
@@ -219,8 +219,8 @@ public class SquareGrid {
 	}
 	
 	public Vector2 RepeatNormalizedPosition(Vector2 normalizedPosition, float minX, float maxX, float minY, float maxY){
-		float x = MathX.RepeatInclusive(normalizedPosition.x, minX, maxX);
-		float y = MathX.RepeatInclusive(normalizedPosition.y, minY, maxY);
+		float x = RepeatInclusive(normalizedPosition.x, minX, maxX);
+		float y = RepeatInclusive(normalizedPosition.y, minY, maxY);
 		if(normalizedPosition.x == x && normalizedPosition.y == y) return normalizedPosition;
 		return new Vector2(x, y);
 	}
@@ -230,8 +230,8 @@ public class SquareGrid {
 	}
 	
 	public Vector2 RepeatGridPosition(Vector2 gridPosition, float minX, float maxX, float minY, float maxY){
-		float x = MathX.RepeatInclusive(gridPosition.x, minX, maxX);
-		float y = MathX.RepeatInclusive(gridPosition.y, minY, maxY);
+		float x = RepeatInclusive(gridPosition.x, minX, maxX);
+		float y = RepeatInclusive(gridPosition.y, minY, maxY);
 		if(gridPosition.x == x && gridPosition.y == y) return gridPosition;
 		return new Vector2(x, y);
 	}
@@ -241,8 +241,8 @@ public class SquareGrid {
 	}
 	
 	public Vector2Int RepeatGridPoint(Vector2Int gridPoint, int minX, int maxX, int minY, int maxY){
-		int x = MathX.RepeatInclusive(gridPoint.x, minX, maxX);
-		int y = MathX.RepeatInclusive(gridPoint.y, minY, maxY);
+		int x = RepeatInclusive(gridPoint.x, minX, maxX);
+		int y = RepeatInclusive(gridPoint.y, minY, maxY);
 		if(gridPoint.x == x && gridPoint.y == y) return gridPoint;
 		return new Vector2Int(x, y);
 	}
@@ -251,15 +251,15 @@ public class SquareGrid {
 
 
 	public Vector2Int[] ValidCardinalDirections(Vector2Int gridPoint){
-		return SquareGrid.Filter(gridPoint.CardinalDirections().ToList(), IsOnGrid).ToArray();
+		return Filter(CardinalDirections(gridPoint).ToList(), IsOnGrid).ToArray();
 	}
 
 	public Vector2Int[] ValidOrdinalDirections(Vector2Int gridPoint){
-		return SquareGrid.Filter(gridPoint.OrdinalDirections().ToList(), IsOnGrid).ToArray();
+		return Filter(OrdinalDirections(gridPoint).ToList(), IsOnGrid).ToArray();
 	}
 
 	public Vector2Int[] ValidCompassDirections(Vector2Int gridPoint){
-		return SquareGrid.Filter(gridPoint.CompassDirections().ToList(), IsOnGrid).ToArray();
+		return Filter(CompassDirections(gridPoint).ToList(), IsOnGrid).ToArray();
 	}
 	
 	
@@ -268,7 +268,7 @@ public class SquareGrid {
 	
 	// MAP FUNCTIONS
 	public Vector2Int[] GetAllGridPoints () {
-		Vector2Int[] gridPoints = new Vector2Int[size.Area()];
+		Vector2Int[] gridPoints = new Vector2Int[(size.x * size.y)];
 		for(int y = 0; y < size.y; y++)
 			for(int x = 0; x < size.x; x++)
 				gridPoints[GridPointToArrayIndex(x,y)] = new Vector2Int(x,y);
@@ -350,7 +350,7 @@ public class SquareGrid {
 
 	/// <summary>
 	/// Removes the invalid points in the list as defined by function parameters.
-	/// Example usage: List<Vector2Int> validAdjacent = SquareGrid.Filter(GetAdjacentPoints(new Vector2Int(0,3), IsOnGrid);
+	/// Example usage: List<Vector2Int> validAdjacent = Filter(GetAdjacentPoints(new Vector2Int(0,3), IsOnGrid);
 	/// </summary>
 	/// <returns>The invalid.</returns>
 	/// <param name="allPoints">All points.</param>
@@ -440,7 +440,7 @@ public class SquareGrid {
 			gridCellRectXMax = gridCellRectXMin + cellViewportSize.x;
 			for(int x = pointRectXMin; x < pointRectXMax; x++) {
 				if(IsOnGrid(x,y)) {
-					if(RectX.Intersect(
+					if(Intersect(
 						normalizedRectXMin, normalizedRectXMax, normalizedRectYMin, normalizedRectYMax, 
 						gridCellRectXMin, gridCellRectXMax, gridCellRectYMin, gridCellRectYMax, 
 						ref intersectingRect)
@@ -464,9 +464,44 @@ public class SquareGrid {
 		return new RectInt(min.x, min.y, max.x - min.x, max.y - min.y);
 	}
 	public Rect GetNormalizedRectFromPointRect (RectInt pointRect) {
-		return RectX.MinMaxRect(
+		return MinMaxRect(
 			new Vector2(pointRect.xMin * sizeReciprocal.x, pointRect.yMin * sizeReciprocal.y),
 			new Vector2(pointRect.xMax * sizeReciprocal.x, pointRect.yMax * sizeReciprocal.y)
 		);
+	}
+
+	// --- Inlined helpers (formerly MathX.RepeatInclusive / RectX.*) so SquareGrid is dependency-free ---
+	static int RepeatInclusive (int val, int min, int max) {
+		int range = max - min;
+		if (range == 0) return min;
+		if (val > max) val -= range * Mathf.CeilToInt((val - max) / range);
+		else if (val < min) val += range * Mathf.CeilToInt((-val + min) / range);
+		return val;
+	}
+	static float RepeatInclusive (float val, float min, float max) {
+		float range = max - min;
+		if (range == 0) return min;
+		if (val > max) val -= range * Mathf.CeilToInt((val - max) / range);
+		else if (val < min) val += range * Mathf.CeilToInt((-val + min) / range);
+		return val;
+	}
+	static Rect MinMaxRect (Vector2 min, Vector2 max) => Rect.MinMaxRect(min.x, min.y, max.x, max.y);
+	static bool Intersect (float r1xMin, float r1xMax, float r1yMin, float r1yMax, float r2xMin, float r2xMax, float r2yMin, float r2yMax, ref Rect output) {
+		if (r1xMax < r2xMin || r1xMin > r2xMax || r1yMax < r2yMin || r1yMin > r2yMax) return false;
+		output = Rect.MinMaxRect(Mathf.Max(r1xMin, r2xMin), Mathf.Max(r1yMin, r2yMin), Mathf.Min(r1xMax, r2xMax), Mathf.Min(r1yMax, r2yMax));
+		return true;
+	}
+
+	// Neighbour offsets (formerly Vector2IntX.CardinalDirections/OrdinalDirections/CompassDirections).
+	static readonly Vector2Int[] cardinalOffsets = { new Vector2Int(0, 1), new Vector2Int(1, 0), new Vector2Int(0, -1), new Vector2Int(-1, 0) };
+	static readonly Vector2Int[] ordinalOffsets = { new Vector2Int(1, 1), new Vector2Int(1, -1), new Vector2Int(-1, -1), new Vector2Int(-1, 1) };
+	static readonly Vector2Int[] compassOffsets = { new Vector2Int(0, 1), new Vector2Int(1, 1), new Vector2Int(1, 0), new Vector2Int(1, -1), new Vector2Int(0, -1), new Vector2Int(-1, -1), new Vector2Int(-1, 0), new Vector2Int(-1, 1) };
+	static Vector2Int[] CardinalDirections (Vector2Int p) => Offsets(cardinalOffsets, p);
+	static Vector2Int[] OrdinalDirections (Vector2Int p) => Offsets(ordinalOffsets, p);
+	static Vector2Int[] CompassDirections (Vector2Int p) => Offsets(compassOffsets, p);
+	static Vector2Int[] Offsets (Vector2Int[] offsets, Vector2Int p) {
+		var result = new Vector2Int[offsets.Length];
+		for (int i = 0; i < offsets.Length; i++) result[i] = offsets[i] + p;
+		return result;
 	}
 }
