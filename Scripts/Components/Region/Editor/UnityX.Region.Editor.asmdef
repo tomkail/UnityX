@@ -3,7 +3,8 @@
     "rootNamespace": "",
     "references": [
         "UnityX.Region",
-        "UnityX.Geometry"
+        "UnityX.Geometry",
+        "UnityX.Geometry.Polygon.Editor"
     ],
     "includePlatforms": [
         "Editor"
