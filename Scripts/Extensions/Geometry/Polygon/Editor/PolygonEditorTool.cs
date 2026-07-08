@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 [EditorTool("Edit Polygon")]
-class PolygonEditorTool : EditorTool {
+public class PolygonEditorTool : EditorTool {
     const string iconPath = "Assets/UnityX/Scripts/Extensions/Geometry/Polygon/Editor/polygonEditorToolIcon.png";
 
     // Serialize this value to set a default value in the Inspector.

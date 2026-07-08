@@ -1402,7 +1402,11 @@ public class Polygon {
 
 	public float GetArea () {
 		if(!IsValid()) return 0;
-		return Triangulator.Area(_vertices);
+		int n = _vertices.Length;
+		float a = 0f;
+		for(int p = n - 1, q = 0; q < n; p = q++)
+			a += _vertices[p].x * _vertices[q].y - _vertices[q].x * _vertices[p].y;
+		return Mathf.Abs(a * 0.5f);
 	}
 
 	/// <summary>
