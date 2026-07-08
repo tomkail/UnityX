@@ -92,14 +92,15 @@ namespace UnityEditorX.SceneManagement {
 		}
 		
 		private static string[] GetScenePathsInProject (string path = "") {
-			string[] files = System.IO.Directory.GetFiles(Path.Combine(Application.dataPath, path), "*.unity", System.IO.SearchOption.AllDirectories);
-			if(files == null) files = new string[0];
-
-			var assetsPath = Application.dataPath.Substring(0, Application.dataPath.LastIndexOf("Assets"));
-			for(int i = 0; i < files.Length; i++) {
-				files[i] = files[i].Substring(files[i].IndexOf(assetsPath) + assetsPath.Length).Replace("\\", "/");
-			}
-			return files;
+			// AssetDatabase.FindAssets covers Assets *and* Packages and returns proper asset paths, so no
+			// Directory.GetFiles walk or manual path munging is needed.
+			string[] guids = string.IsNullOrEmpty(path)
+				? AssetDatabase.FindAssets("t:SceneAsset")
+				: AssetDatabase.FindAssets("t:SceneAsset", new[] { path.TrimEnd('/') });
+			string[] paths = new string[guids.Length];
+			for (int i = 0; i < guids.Length; i++)
+				paths[i] = AssetDatabase.GUIDToAssetPath(guids[i]);
+			return paths;
 		}
 	}
 }
