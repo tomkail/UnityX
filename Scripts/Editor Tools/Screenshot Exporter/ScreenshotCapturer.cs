@@ -83,7 +83,7 @@ public class ScreenshotCapturer {
 	public static event OnCompleteScreenshotCaptureEvent OnCompleteScreenshotCapture;
 	
 	public static void CaptureScreenshot(ScreenshotCapturerProperties properties) {
-		CoroutineHelper.Execute(CaptureScreenshotCoroutine(properties));
+		RunCoroutine(CaptureScreenshotCoroutine(properties));
 	}
 	
 	struct SavedCameraProperties {
@@ -101,14 +101,14 @@ public class ScreenshotCapturer {
 		}
 	}
 	public static IEnumerator CaptureScreenshotCoroutine (ScreenshotCapturerProperties properties) {
-        List<Camera> _cameras = properties.cameras.ToList();
-		_cameras.RemoveNull();
+        List<Camera> _cameras = new List<Camera>(properties.cameras);
+		_cameras.RemoveAll(c => c == null);
 
-		if(capturingScreenshot || properties.width <= 0 || properties.height <= 0 || _cameras.IsNullOrEmpty()) {
+		if(capturingScreenshot || properties.width <= 0 || properties.height <= 0 || (_cameras == null || _cameras.Count == 0)) {
 			if(capturingScreenshot) Debug.LogError("Could not capture screenshot because a screenshot is currently being captured by the same ScreenshotSaver.");
 			else if(properties.width <= 0) Debug.LogError("Could not capture screenshot because width is "+properties.width+".");
 			else if(properties.height <= 0) Debug.LogError("Could not capture screenshot because height is "+properties.height+".");
-			else if(_cameras.IsNullOrEmpty()) Debug.LogError("Could not capture screenshot because camera array contains no cameras.");
+			else if((_cameras == null || _cameras.Count == 0)) Debug.LogError("Could not capture screenshot because camera array contains no cameras.");
 			yield break;
 		}
 
@@ -154,6 +154,20 @@ public class ScreenshotCapturer {
 		if(properties.onComplete != null) properties.onComplete(screenshot);
 		if(OnCompleteScreenshotCapture != null) {
 			OnCompleteScreenshotCapture(screenshot);
+		}
+	}
+
+	// Runs a coroutine from this static context via a throwaway hidden GameObject (was CoroutineHelper).
+	static void RunCoroutine (IEnumerator routine) {
+		var go = new GameObject("ScreenshotCapturer") { hideFlags = HideFlags.HideAndDontSave };
+		var runner = go.AddComponent<Runner>();
+		runner.StartCoroutine(runner.RunAndDestroy(routine));
+	}
+
+	class Runner : MonoBehaviour {
+		public IEnumerator RunAndDestroy (IEnumerator routine) {
+			yield return StartCoroutine(routine);
+			Destroy(gameObject);
 		}
 	}
 }

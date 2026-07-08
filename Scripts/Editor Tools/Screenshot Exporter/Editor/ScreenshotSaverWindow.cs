@@ -27,17 +27,17 @@ public class ScreenshotSaverWindowProperties {
 	
 	public ScreenshotResolution currentResolution {
 		get {
-			if(resolutions.IsNullOrEmpty()) {
+			if(resolutions == null || resolutions.Count == 0) {
 				CreateDefaultResolutions();
 			}
-			return !resolutions.ContainsIndex(currentResolutionIndex) ? null : resolutions[currentResolutionIndex];
+			return (currentResolutionIndex < 0 || currentResolutionIndex >= resolutions.Count) ? null : resolutions[currentResolutionIndex];
 			
 		}
 	}
 	
 	public ScreenshotResolution customResolution {
 		get {
-			if(resolutions.IsNullOrEmpty()) {
+			if(resolutions == null || resolutions.Count == 0) {
 				CreateDefaultResolutions();
 			}
 			return resolutions[0].name != "Custom" ? null : resolutions[0];
@@ -369,7 +369,7 @@ public class ScreenshotSaverWindow : EditorWindow {
 			} else {
 				DrawCustomCameraSelectionList();
 			}
-			if(cameras.IsNullOrEmpty()) {
+			if(cameras == null || cameras.Count == 0) {
 				EditorGUILayout.HelpBox("Must be capturing at least one camera", MessageType.Warning);
 			}
 			EditorGUI.indentLevel--;

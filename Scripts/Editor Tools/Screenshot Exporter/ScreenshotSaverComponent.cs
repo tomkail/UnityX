@@ -20,7 +20,7 @@ public class ScreenshotSaverComponent : MonoBehaviour {
 	}
 	
 	private void Update () {
-		if(keycodes.IsNullOrEmpty()) return;
+		if((keycodes == null || keycodes.Length == 0)) return;
 		foreach(KeyCode keycode in keycodes) {
 			if(Input.GetKeyDown(keycode)) {
 				ScreenshotCapturer.CaptureScreenshot(new ScreenshotCapturer.ScreenshotCapturerProperties(Mathf.FloorToInt(Screen.width * resolutionScaleFactor), Mathf.FloorToInt(Screen.height * resolutionScaleFactor)));
