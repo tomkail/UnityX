@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
-using System.Reflection;
 using Object = UnityEngine.Object;
 
 namespace UnityX.UI.Editor {
