@@ -56,11 +56,11 @@ public class SquareGridRenderer : MonoBehaviour {
 	}
 	
 	public Vector2 CenterPositionToEdgePosition (Vector2 centerPoint) {
-		return centerPoint+Vector2X.half;
+		return centerPoint+new Vector2(0.5f, 0.5f);
 	}
 
 	public Vector2 EdgePositionToCenterPosition (Vector2 edgePoint) {
-		return edgePoint-Vector2X.half;
+		return edgePoint-new Vector2(0.5f, 0.5f);
 	}
 
     [System.Serializable]
@@ -225,12 +225,13 @@ public class SquareGridRenderer : MonoBehaviour {
 
 
 		public Vector3[] GridToWorldRect (Rect gridRect) {
-			Vector3[] worldPoints = new Vector3[4];
-			worldPoints[0] = GridToWorldPoint(gridRect.position);
-			worldPoints[1] = GridToWorldPoint(gridRect.position + new Vector2(gridRect.size.x, 0));
-			worldPoints[2] = GridToWorldPoint(gridRect.position + gridRect.size);
-			worldPoints[3] = GridToWorldPoint(gridRect.position + new Vector2(0, gridRect.size.y));
-			return worldPoints;
+			Vector3[] worldPoints = new Vector3[] {
+                GridToWorldPoint(gridRect.position),
+                GridToWorldPoint(gridRect.position + new Vector2(gridRect.size.x, 0)),
+                GridToWorldPoint(gridRect.position + gridRect.size),
+                GridToWorldPoint(gridRect.position + new Vector2(0, gridRect.size.y)),
+            };
+            return worldPoints;
 		}
 		public void GridToWorldRectNonAlloc (Rect gridRect, ref Vector3[] worldPoints) {
 			if(worldPoints == null || worldPoints.Length != 4)
@@ -242,30 +243,33 @@ public class SquareGridRenderer : MonoBehaviour {
 		}
 
 		public Vector2[] GridToLocalRect (Rect gridRect) {
-			Vector2[] worldPoints = new Vector2[4];
-			worldPoints[0] = GridToLocalPoint(gridRect.position);
-			worldPoints[1] = GridToLocalPoint(gridRect.position + new Vector2(gridRect.size.x, 0));
-			worldPoints[2] = GridToLocalPoint(gridRect.position + gridRect.size);
-			worldPoints[3] = GridToLocalPoint(gridRect.position + new Vector2(0, gridRect.size.y));
-			return worldPoints;
+			Vector2[] worldPoints = new Vector2[] {
+                GridToLocalPoint(gridRect.position),
+                GridToLocalPoint(gridRect.position + new Vector2(gridRect.size.x, 0)),
+                GridToLocalPoint(gridRect.position + gridRect.size),
+                GridToLocalPoint(gridRect.position + new Vector2(0, gridRect.size.y)),
+            };
+            return worldPoints;
 		}
 		
 		public Vector2[] NormalizedToLocalRect (Rect normalizedRect) {
-			Vector2[] worldPoints = new Vector2[4];
-			worldPoints[0] = NormalizedToLocalPoint(normalizedRect.position);
-			worldPoints[1] = NormalizedToLocalPoint(normalizedRect.position + new Vector2(normalizedRect.size.x, 0));
-			worldPoints[2] = NormalizedToLocalPoint(normalizedRect.position + normalizedRect.size);
-			worldPoints[3] = NormalizedToLocalPoint(normalizedRect.position + new Vector2(0, normalizedRect.size.y));
-			return worldPoints;
+			Vector2[] worldPoints = new Vector2[] {
+                NormalizedToLocalPoint(normalizedRect.position),
+                NormalizedToLocalPoint(normalizedRect.position + new Vector2(normalizedRect.size.x, 0)),
+                NormalizedToLocalPoint(normalizedRect.position + normalizedRect.size),
+                NormalizedToLocalPoint(normalizedRect.position + new Vector2(0, normalizedRect.size.y)),
+            };
+            return worldPoints;
 		}
 
 		public Vector3[] NormalizedToWorldRect (Rect normalizedRect) {
-			Vector3[] worldPoints = new Vector3[4];
-			worldPoints[0] = NormalizedToWorldPoint(normalizedRect.position);
-			worldPoints[1] = NormalizedToWorldPoint(normalizedRect.position + new Vector2(normalizedRect.size.x, 0));
-			worldPoints[2] = NormalizedToWorldPoint(normalizedRect.position + normalizedRect.size);
-			worldPoints[3] = NormalizedToWorldPoint(normalizedRect.position + new Vector2(0, normalizedRect.size.y));
-			return worldPoints;
+			Vector3[] worldPoints = new Vector3[] {
+                NormalizedToWorldPoint(normalizedRect.position),
+                NormalizedToWorldPoint(normalizedRect.position + new Vector2(normalizedRect.size.x, 0)),
+                NormalizedToWorldPoint(normalizedRect.position + normalizedRect.size),
+                NormalizedToWorldPoint(normalizedRect.position + new Vector2(0, normalizedRect.size.y)),
+            };
+            return worldPoints;
 		}
 
 		public void NormalizedToWorldRectNonAlloc (Rect normalizedRect, Vector3[] worldPoints) {
@@ -282,7 +286,7 @@ public class SquareGridRenderer : MonoBehaviour {
 		Vector2 _max = cellCenter.WorldToGridPosition(bounds.max);
 		Vector2Int max = new Vector2Int(Mathf.CeilToInt(_max.x), Mathf.CeilToInt(_max.y));
 
-		foreach(var vert in bounds.GetVertices()) {
+		foreach(var vert in BoundsVertices(bounds)) {
 			var gridVert = cellCenter.WorldToGridPosition(vert);
 			if(gridVert.x < min.x) min.x = Mathf.FloorToInt(gridVert.x);
 			if(gridVert.y < min.y) min.y = Mathf.FloorToInt(gridVert.y);
@@ -334,7 +338,7 @@ public class SquareGridRenderer : MonoBehaviour {
 		testPoint.x = Mathf.Clamp(chunkSpaceTarget.x, chunk.x-0.5f, chunk.x+0.5f);
 		testPoint.y = Mathf.Clamp(chunkSpaceTarget.y, chunk.y-0.5f, chunk.y+0.5f);
 		Vector3 pointPosition = cellCenter.GridToWorldPoint(testPoint);
-		return Vector3X.SqrDistanceAgainstDirection(worldSpaceTarget, pointPosition, transform.rotation * Vector3.forward);
+		return Vector3.ProjectOnPlane(pointPosition - worldSpaceTarget, (transform.rotation * Vector3.forward).normalized).sqrMagnitude;
 	}
 
 	public List<Vector2Int> OrderPointsByDistance (List<Vector2Int> points, Vector3 position) {
@@ -349,38 +353,45 @@ public class SquareGridRenderer : MonoBehaviour {
 	}
 
 	void OnDrawGizmos () {
-		if(!showGizmos) return;
-        
-		GizmosX.BeginColor(Color.white.WithAlpha(1f));
-        var bounds = edge.NormalizedToWorldRect(new Rect(0,0,1,1));
-		GizmosX.DrawWirePolygon(bounds);
-		GizmosX.EndColor();
+		if (!showGizmos) return;
 
-		GizmosX.BeginColor(Color.white.WithAlpha(0.25f));
-		for(int y = 1; y < gridSize.y; y++)
-            Gizmos.DrawLine(edge.GridToWorldPoint(new Vector2(0,y)), edge.GridToWorldPoint(new Vector2(gridSize.x,y)));
-        for(int x = 1; x < gridSize.x; x++)
-            Gizmos.DrawLine(edge.GridToWorldPoint(new Vector2(x,0)), edge.GridToWorldPoint(new Vector2(x,gridSize.y)));
-        
-		GizmosX.EndColor();
+		Gizmos.color = new Color(1f, 1f, 1f, 1f);
+		var bounds = edge.NormalizedToWorldRect(new Rect(0, 0, 1, 1));
+		for (int i = 0; i < bounds.Length; i++)
+			Gizmos.DrawLine(bounds[i], bounds[(i + 1) % bounds.Length]);
+
+		Gizmos.color = new Color(1f, 1f, 1f, 0.25f);
+		for (int y = 1; y < gridSize.y; y++)
+			Gizmos.DrawLine(edge.GridToWorldPoint(new Vector2(0, y)), edge.GridToWorldPoint(new Vector2(gridSize.x, y)));
+		for (int x = 1; x < gridSize.x; x++)
+			Gizmos.DrawLine(edge.GridToWorldPoint(new Vector2(x, 0)), edge.GridToWorldPoint(new Vector2(x, gridSize.y)));
 	}
 
 	#if UNITY_EDITOR
-	public void DrawHandles () {        
-		HandlesX.BeginColor(Color.white.WithAlpha(1f));
-        var bounds = edge.NormalizedToWorldRect(new Rect(0,0,1,1));
-		HandlesX.DrawWirePolygon(bounds);
-        // bounds = cellCenter.NormalizedRectToWorldRect(new Rect(0,0,1,1));
-		// HandlesX.DrawWirePolygon(bounds);
-		HandlesX.EndColor();
+	public void DrawHandles () {
+		UnityEditor.Handles.color = new Color(1f, 1f, 1f, 1f);
+		var bounds = edge.NormalizedToWorldRect(new Rect(0, 0, 1, 1));
+		for (int i = 0; i < bounds.Length; i++)
+			UnityEditor.Handles.DrawLine(bounds[i], bounds[(i + 1) % bounds.Length]);
 
-		HandlesX.BeginColor(Color.white.WithAlpha(0.25f));
-		for(int y = 1; y < gridSize.y; y++)
-            UnityEditor.Handles.DrawLine(edge.GridToWorldPoint(new Vector2(0,y)), edge.GridToWorldPoint(new Vector2(gridSize.x,y)));
-        for(int x = 1; x < gridSize.x; x++)
-            UnityEditor.Handles.DrawLine(edge.GridToWorldPoint(new Vector2(x,0)), edge.GridToWorldPoint(new Vector2(x,gridSize.y)));
-        
-		HandlesX.EndColor();
+		UnityEditor.Handles.color = new Color(1f, 1f, 1f, 0.25f);
+		for (int y = 1; y < gridSize.y; y++)
+			UnityEditor.Handles.DrawLine(edge.GridToWorldPoint(new Vector2(0, y)), edge.GridToWorldPoint(new Vector2(gridSize.x, y)));
+		for (int x = 1; x < gridSize.x; x++)
+			UnityEditor.Handles.DrawLine(edge.GridToWorldPoint(new Vector2(x, 0)), edge.GridToWorldPoint(new Vector2(x, gridSize.y)));
 	}
 	#endif
+
+	// The eight corners of a Bounds (formerly BoundsX.GetVertices).
+	static IEnumerable<Vector3> BoundsVertices (Bounds b) {
+		var min = b.min; var max = b.max;
+		yield return min;
+		yield return max;
+		yield return new Vector3(min.x, min.y, max.z);
+		yield return new Vector3(min.x, max.y, min.z);
+		yield return new Vector3(max.x, min.y, min.z);
+		yield return new Vector3(min.x, max.y, max.z);
+		yield return new Vector3(max.x, min.y, max.z);
+		yield return new Vector3(max.x, max.y, min.z);
+	}
 }
