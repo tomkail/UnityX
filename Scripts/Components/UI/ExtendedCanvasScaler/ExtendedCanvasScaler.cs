@@ -1,4 +1,6 @@
-﻿using UnityEditor;
+﻿#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace UnityEngine.UI {
     public class ExtendedCanvasScaler : CanvasScaler {
@@ -27,12 +29,27 @@ namespace UnityEngine.UI {
         }
 #endif
 
-        // This function is a copy-paste of this file 
-        // https://bitbucket.org/Unity-Technologies/ui/src/0155c39e05ca5d7dcc97d9974256ef83bc122586/UnityEngine.UI/UI/Core/Layout/CanvasScaler.cs
+        // Mirrors CanvasScaler.HandleScaleWithScreenSize from com.unity.ugui 2.5.0
+        // (Runtime/UI/Core/Layout/CanvasScaler.cs), with two additions layered on top:
+        // the camera-viewport override (m_useCameraSizeInsteadOfScreenSize) and scaleMultiplier.
+        // Re-sync this if the ugui package is upgraded.
         protected override void HandleScaleWithScreenSize() {
-            Vector2 screenSize = new Vector2(Screen.width, Screen.height);
-            if (m_useCameraSizeInsteadOfScreenSize && GetComponent<Canvas>().worldCamera != null) {
-                screenSize = GetComponent<Canvas>().worldCamera.pixelRect.size;
+            Canvas canvas = GetComponent<Canvas>();
+            Vector2 screenSize = canvas.renderingDisplaySize;
+
+            // Multiple display support only when not the main display. For display 0 the reported
+            // resolution is always the desktops resolution since its part of the display API,
+            // so we use the standard none multiple display method. (case 741751)
+            int displayIndex = canvas.targetDisplay;
+            if (displayIndex > 0 && displayIndex < Display.displays.Length) {
+                Display disp = Display.displays[displayIndex];
+                screenSize = new Vector2(disp.renderingWidth, disp.renderingHeight);
+            }
+
+            // ExtendedCanvasScaler: match the render camera's viewport rather than the display,
+            // e.g. a Screen-Space-Camera canvas whose camera uses a sub-viewport (split-screen, letterboxed).
+            if (m_useCameraSizeInsteadOfScreenSize && canvas.worldCamera != null) {
+                screenSize = canvas.worldCamera.pixelRect.size;
             }
 
             float scaleFactor = 0;

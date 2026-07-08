@@ -84,16 +84,26 @@ namespace UnityEngine.UI {
         
         // Deliberately re-implements ScrollRect's private CalculateOffset (Unity doesn't expose it publicly),
         // so this subclass can reuse the exact clamping logic. Kept out of necessity, not accidental duplication.
-        public Vector2 CalculateOffset() => InternalCalculateOffset(viewBounds, contentBounds);
-        internal static Vector2 InternalCalculateOffset(Bounds viewBounds, Bounds contentBounds) {
+        public Vector2 CalculateOffset() => CalculateOffset(Vector2.zero);
+        Vector2 CalculateOffset(Vector2 delta) {
+	        var _viewBounds = viewBounds;
+	        var _contentBounds = contentBounds;
+	        return InternalCalculateOffset(ref _viewBounds, ref _contentBounds, horizontal, vertical, movementType, ref delta);
+        }
+        // Faithful port of ScrollRect.InternalCalculateOffset (com.unity.ugui 2.5.0). The real method is
+        // `internal`, so it can't be called across the assembly boundary - hence copied here rather than
+        // reflected. Movement-type- and delta-aware, matching Unity's private CalculateOffset exactly.
+        internal static Vector2 InternalCalculateOffset(ref Bounds viewBounds, ref Bounds contentBounds, bool horizontal, bool vertical, MovementType movementType, ref Vector2 delta) {
 	        Vector2 offset = Vector2.zero;
-	        
+	        if (movementType == MovementType.Unrestricted)
+		        return offset;
+
 	        Vector2 min = contentBounds.min;
 	        Vector2 max = contentBounds.max;
 
-	        {
-		        // min.x += delta.x;
-		        // max.x += delta.x;
+	        if (horizontal) {
+		        min.x += delta.x;
+		        max.x += delta.x;
 
 		        float maxOffset = viewBounds.max.x - max.x;
 		        float minOffset = viewBounds.min.x - min.x;
@@ -104,10 +114,9 @@ namespace UnityEngine.UI {
 			        offset.x = maxOffset;
 	        }
 
-
-	        {
-		        // min.y += delta.y;
-		        // max.y += delta.y;
+	        if (vertical) {
+		        min.y += delta.y;
+		        max.y += delta.y;
 
 		        float maxOffset = viewBounds.max.y - max.y;
 		        float minOffset = viewBounds.min.y - min.y;
@@ -336,7 +345,6 @@ namespace UnityEngine.UI {
 			Type type = typeof(ScrollRect);
 			FieldInfo fieldInfo = type.GetField("m_PointerStartLocalCursor", BindingFlags.NonPublic | BindingFlags.Instance);
 			var m_PointerStartLocalCursor = (Vector2)fieldInfo.GetValue(this);
-			MethodInfo calculateOffsetMethodInfo = type.GetMethod("CalculateOffset", BindingFlags.NonPublic | BindingFlags.Instance);
 
 			if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(viewRect, eventData.position, eventData.pressEventCamera, out var localCursor))
 				return Vector2.zero;
@@ -346,7 +354,7 @@ namespace UnityEngine.UI {
 			var pointerDelta = localCursor - m_PointerStartLocalCursor;
 			Vector2 position = m_ContentStartPosition + pointerDelta;
 
-			return (Vector2)calculateOffsetMethodInfo.Invoke(this, new object[] {position - content.anchoredPosition});
+			return CalculateOffset(position - content.anchoredPosition);
 		}
 
 		protected override void OnDisable() {
