@@ -1,0 +1,19 @@
+{
+    "name": "UnityX.Region.Editor",
+    "rootNamespace": "",
+    "references": [
+        "UnityX.Region",
+        "UnityX.Geometry"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
