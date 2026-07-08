@@ -4,11 +4,7 @@ using UnityEngine;
 using UnityEditor;
 
 [CustomPropertyDrawer(typeof(AssetSaverAttribute))]
-public class AssetSaverDrawer : BaseAttributePropertyDrawer<AssetSaverAttribute> {
-
-	protected override bool IsSupported (SerializedProperty property) {
-		return property.propertyType == SerializedPropertyType.ObjectReference;
-    }
+public class AssetSaverDrawer : PropertyDrawer {
 
     public override float GetPropertyHeight (SerializedProperty property, GUIContent label) {
 		return base.GetPropertyHeight(property, label);
