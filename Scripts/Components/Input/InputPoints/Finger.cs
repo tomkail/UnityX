@@ -21,8 +21,10 @@ public class Finger : InputPoint {
         isFakeMouseFinger = true;
 		name = "Fake mouse finger";
 	}
-	public Finger(Touch _touch) : base (_touch.position) {
-		fingerId = _touch.fingerId;
+	// Ingests an Input System EnhancedTouch touch (identified by touchId) at a screen position.
+	// Kept framework-agnostic (int + Vector2) so this type doesn't reference the Input System namespace.
+	public Finger(int fingerId, Vector2 position) : base (position) {
+		this.fingerId = fingerId;
 		name = "Finger "+fingerId;
         Debug.Assert(fingerId >= 0, "Touch finger ID is "+fingerId);
 	}
