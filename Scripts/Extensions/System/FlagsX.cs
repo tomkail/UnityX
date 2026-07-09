@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 
 public static class FlagsX {	
 	/// <summary>
@@ -30,40 +29,23 @@ public static class FlagsX {
 		foreach(var flagValue in flagValues) flagsValue = SetSingle(flagsValue, flagValue);
 		return flagsValue;
 	}
+	// Set/Unset/SetFlagState work in signed-long space via Convert.ToInt64 + Enum.ToObject, same as
+	// Create below: it reads the real underlying value for any backing type and doesn't overflow on
+	// negative/high-bit members like `All = ~0` (a checked ulong cast throws OverflowException there).
 	public static T SetFlag<T>(this T value, T flag) where T : Enum {
-		var left = Caster<T, UInt64>.Cast(value);
-		var right = Caster<T, UInt64>.Cast(flag);
-		var result = left | right;
-		return Caster<ulong, T>.Cast(result);
+		return (T)Enum.ToObject(typeof(T), Convert.ToInt64(value) | Convert.ToInt64(flag));
 	}
-	
+
 	public static int Unset(int flagsValue, int flagValue) {
 		return flagsValue & ~flagValue;
 	}
-	
+
 	public static T UnsetFlag<T>(this T value, T flag) where T : Enum {
-		var left = Caster<T, UInt64>.Cast(value);
-		var right = Caster<T, UInt64>.Cast(flag);
-		var result = left & ~ right;
-		return Caster<ulong, T>.Cast(result);
+		return (T)Enum.ToObject(typeof(T), Convert.ToInt64(value) & ~Convert.ToInt64(flag));
 	}
 
 	public static T SetFlagState<T>(this T value, T flag, bool state) where T : Enum {
-		var left = Caster<T, UInt64>.Cast(value);
-		var right = Caster<T, UInt64>.Cast(flag);
-		var result = state ? left | right : left & ~right;
-		return Caster<ulong, T>.Cast(result);
-	}
-	
-	static class Caster<TSource, TTarget> {
-		public static readonly Func<TSource, TTarget> Cast = CreateConvertMethod();
-
-		private static Func<TSource, TTarget> CreateConvertMethod()
-		{
-			var p = Expression.Parameter(typeof(TSource));
-			var c = Expression.ConvertChecked(p, typeof(TTarget));
-			return Expression.Lambda<Func<TSource, TTarget>>(c, p).Compile();
-		}
+		return state ? value.SetFlag(flag) : value.UnsetFlag(flag);
 	}
 	
 	/// <summary>
@@ -109,7 +91,9 @@ public static class FlagsX {
 	}
 	
 	public static int LinearToFlagValue<T>(T flags) where T : Enum {
-		return LinearToFlagValue((int)(object)flags);
+		// Convert respects the enum's real underlying type; a plain (int)(object) unbox
+		// throws InvalidCastException for non-int-backed enums.
+		return LinearToFlagValue(Convert.ToInt32(flags));
 	}
 
 	public static bool Intersects (int flagsA, int flagsB) {
