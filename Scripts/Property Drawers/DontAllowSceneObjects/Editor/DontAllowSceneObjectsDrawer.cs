@@ -9,6 +9,7 @@ public class DontAllowSceneObjectsDrawer : BaseAttributePropertyDrawer<DontAllow
 
 		if (!IsSupported(property)) {
 			DrawNotSupportedGUI(position, property, label);
+			EditorGUI.EndProperty ();
 			return;
 		}
 

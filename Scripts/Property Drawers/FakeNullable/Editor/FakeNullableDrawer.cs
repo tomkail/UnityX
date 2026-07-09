@@ -30,15 +30,18 @@ public class FakeNullableDrawer : BaseAttributePropertyDrawer<FakeNullableAttrib
 
 		if (!IsSupported(property)) {
 			DrawNotSupportedGUI(position, property, label);
+			EditorGUI.EndProperty();
 			return;
 		}
 
 		SerializedProperty hasValueProperty = GetPropertyFromPath(property, attribute.boolBackingName);
 		if(hasValueProperty == null) {
 			EditorGUI.HelpBox(position, "No property was found at relative path "+attribute.boolBackingName, MessageType.Error);
+			EditorGUI.EndProperty();
 			return;
 		} else if (hasValueProperty.propertyType != SerializedPropertyType.Boolean) {
 			EditorGUI.HelpBox(position, "Property was found at relative path is not of type bool "+attribute.boolBackingName, MessageType.Error);
+			EditorGUI.EndProperty();
 			return;
 		}
 

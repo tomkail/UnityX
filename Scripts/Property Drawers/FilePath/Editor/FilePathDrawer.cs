@@ -2,15 +2,15 @@
 using UnityEditor;
 using System.IO;
 
-[CustomPropertyDrawer (typeof(FilePathAttribute))]
-class FilePathDrawer : BaseAttributePropertyDrawer<FilePathAttribute> {
+[CustomPropertyDrawer (typeof(FilePathFieldAttribute))]
+class FilePathDrawer : BaseAttributePropertyDrawer<FilePathFieldAttribute> {
 	const int buttonWidth = 22;
 
-	public static string FilePathLayout (string path, string label, FilePathAttribute.RelativeTo relativeTo, bool editable = true, bool removePrefixSlash = false, bool showPrevNextFileControls = false) {
+	public static string FilePathLayout (string path, string label, FilePathFieldAttribute.RelativeTo relativeTo, bool editable = true, bool removePrefixSlash = false, bool showPrevNextFileControls = false) {
 		return FilePathLayout(path, new GUIContent(label, null, Path.GetFileName(path)), relativeTo, editable, removePrefixSlash, showPrevNextFileControls);
 	}
 
-	public static string FilePathLayout (string path, GUIContent label, FilePathAttribute.RelativeTo relativeTo, bool editable = true, bool removePrefixSlash = false, bool showPrevNextFileControls = false) {
+	public static string FilePathLayout (string path, GUIContent label, FilePathFieldAttribute.RelativeTo relativeTo, bool editable = true, bool removePrefixSlash = false, bool showPrevNextFileControls = false) {
 		bool exists = FileExistsOrPathEmpty(path, relativeTo);
 		Color previousColor = GUI.backgroundColor;
         if(!exists) GUI.backgroundColor = Color.red;
@@ -44,11 +44,11 @@ class FilePathDrawer : BaseAttributePropertyDrawer<FilePathAttribute> {
 		return path;
 	}
 
-	public static string FilePath (Rect position, string path, string label, FilePathAttribute.RelativeTo relativeTo, bool editable = true, bool removePrefixSlash = false, bool showPrevNextFileControls = false) {
+	public static string FilePath (Rect position, string path, string label, FilePathFieldAttribute.RelativeTo relativeTo, bool editable = true, bool removePrefixSlash = false, bool showPrevNextFileControls = false) {
 		return FilePath(position, path, new GUIContent(label, null, Path.GetFileName(path)), relativeTo, editable, removePrefixSlash, showPrevNextFileControls);
 	}
 	
-	public static string FilePath (Rect position, string path, GUIContent label, FilePathAttribute.RelativeTo relativeTo, bool editable = true, bool removePrefixSlash = false, bool showPrevNextFileControls = false) {
+	public static string FilePath (Rect position, string path, GUIContent label, FilePathFieldAttribute.RelativeTo relativeTo, bool editable = true, bool removePrefixSlash = false, bool showPrevNextFileControls = false) {
 		bool exists = FileExistsOrPathEmpty(path, relativeTo);
 		Color previousColor = GUI.backgroundColor;
         if(!exists) GUI.backgroundColor = Color.red;
@@ -122,7 +122,7 @@ class FilePathDrawer : BaseAttributePropertyDrawer<FilePathAttribute> {
         }
     }
 
-	static string GetPath (string unityRelativePath, FilePathAttribute.RelativeTo relativeTo, bool removePrefixSlash = false) {
+	static string GetPath (string unityRelativePath, FilePathFieldAttribute.RelativeTo relativeTo, bool removePrefixSlash = false) {
 		var absolutePath = ToAbsolutePath(unityRelativePath, relativeTo);
 		absolutePath = EditorUtility.OpenFilePanel("Select File", absolutePath, "");
 		if(string.IsNullOrWhiteSpace(absolutePath)) return unityRelativePath;
@@ -132,7 +132,7 @@ class FilePathDrawer : BaseAttributePropertyDrawer<FilePathAttribute> {
 		return unityRelativePath;
 	}
 
-	static void RevealPathInFinder (string unityRelativePath, FilePathAttribute.RelativeTo relativeTo) {
+	static void RevealPathInFinder (string unityRelativePath, FilePathFieldAttribute.RelativeTo relativeTo) {
 		var absolutePath = ToAbsolutePath(unityRelativePath, relativeTo);
 		EditorUtility.RevealInFinder(Path.GetFullPath(absolutePath));
 	}
@@ -143,63 +143,65 @@ class FilePathDrawer : BaseAttributePropertyDrawer<FilePathAttribute> {
 			DrawNotSupportedGUI(position, property, label);
 			return;
 		}
+		label = EditorGUI.BeginProperty(position, label, property);
 		var newValue = FilePath(position, property.stringValue, label, attribute.relativeTo, true, false, attribute.showPrevNextFileControls);
 		if(property.stringValue != newValue) {
 			property.serializedObject.Update();
 			property.stringValue = newValue;
 			property.serializedObject.ApplyModifiedProperties();
 		}
+		EditorGUI.EndProperty();
 	}
 
 
-	static string RelativeToLabelText (FilePathAttribute.RelativeTo relativeTo) {
+	static string RelativeToLabelText (FilePathFieldAttribute.RelativeTo relativeTo) {
 		switch(relativeTo) {
-			case FilePathAttribute.RelativeTo.Assets:
+			case FilePathFieldAttribute.RelativeTo.Assets:
 				return "Assets";
-			case FilePathAttribute.RelativeTo.Resources:
+			case FilePathFieldAttribute.RelativeTo.Resources:
 				return "Resources";
-			case FilePathAttribute.RelativeTo.Project:
+			case FilePathFieldAttribute.RelativeTo.Project:
 				return "Project";
-			case FilePathAttribute.RelativeTo.PersistentDataPath:
+			case FilePathFieldAttribute.RelativeTo.PersistentDataPath:
 				return "Persistent Data";
-			case FilePathAttribute.RelativeTo.Root:
+			case FilePathFieldAttribute.RelativeTo.Root:
 				return "Root";
 			default:
 				return "?";
 		}
 	}
 
-	static string ToAbsolutePath (string localPath, FilePathAttribute.RelativeTo relativeTo) {
+	static string ToAbsolutePath (string localPath, FilePathFieldAttribute.RelativeTo relativeTo) {
 		switch(relativeTo) {
-			case FilePathAttribute.RelativeTo.Assets:
+			case FilePathFieldAttribute.RelativeTo.Assets:
 				return EditorApplicationX.UnityRelativeToAbsolutePath(localPath);
-			case FilePathAttribute.RelativeTo.Resources:
+			case FilePathFieldAttribute.RelativeTo.Resources:
 				return EditorApplicationX.ResourcesToAbsolutePath(localPath);
-			case FilePathAttribute.RelativeTo.Project:
+			case FilePathFieldAttribute.RelativeTo.Project:
 				return EditorApplicationX.ProjectToAbsolutePath(localPath);
-			case FilePathAttribute.RelativeTo.PersistentDataPath:
+			case FilePathFieldAttribute.RelativeTo.PersistentDataPath:
 				return EditorApplicationX.PersistentDataPathToAbsolutePath(localPath);
 			default:
 				return localPath;
 		}
 	}
 
-	static string FromAbsolutePath (string localPath, FilePathAttribute.RelativeTo relativeTo) {
+	static string FromAbsolutePath (string localPath, FilePathFieldAttribute.RelativeTo relativeTo) {
 		switch(relativeTo) {
-			case FilePathAttribute.RelativeTo.Assets:
+			case FilePathFieldAttribute.RelativeTo.Assets:
 				return EditorApplicationX.AbsoluteToUnityRelativePath(localPath);
-			case FilePathAttribute.RelativeTo.Resources:
+			case FilePathFieldAttribute.RelativeTo.Resources:
 				return EditorApplicationX.AbsoluteToResourcesPath(localPath);
-			case FilePathAttribute.RelativeTo.Project:
+			case FilePathFieldAttribute.RelativeTo.Project:
 				return EditorApplicationX.AbsoluteToProjectPath(localPath);
-			case FilePathAttribute.RelativeTo.PersistentDataPath:
+			case FilePathFieldAttribute.RelativeTo.PersistentDataPath:
 				return EditorApplicationX.AbsoluteToPersistentDataPath(localPath);
 			default:
 				return localPath;
 		}
 	}
 
-	static bool FileExistsOrPathEmpty (string localPath, FilePathAttribute.RelativeTo relativeTo) {
+	static bool FileExistsOrPathEmpty (string localPath, FilePathFieldAttribute.RelativeTo relativeTo) {
 		return string.IsNullOrWhiteSpace(localPath) || File.Exists(ToAbsolutePath(localPath, relativeTo));
 	}
 

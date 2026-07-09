@@ -11,9 +11,10 @@ public class MinMaxDrawer : BaseAttributePropertyDrawer<MinMaxAttribute> {
 			return;
 		}
 
+		label = EditorGUI.BeginProperty(rect, label, property);
 		EditorGUI.BeginChangeCheck();
 		Vector2 v2 = property.vector2Value;
-        
+
 		EditorGUI.MinMaxSlider(new Rect(rect.x, rect.y, rect.width, 12), new GUIContent(label), ref v2.x, ref v2.y, attribute.min,  attribute.max);
 		if(EditorGUIUtility.wideMode) {
 			rect.y += EditorGUIUtility.singleLineHeight;
@@ -28,6 +29,7 @@ public class MinMaxDrawer : BaseAttributePropertyDrawer<MinMaxAttribute> {
             }
 			property.vector2Value = new Vector2 (Mathf.Clamp(v2.x, attribute.min, v2.y), Mathf.Clamp(v2.y, v2.x, attribute.max));
         }
+		EditorGUI.EndProperty();
     }
 
 	protected override bool IsSupported(SerializedProperty property) {

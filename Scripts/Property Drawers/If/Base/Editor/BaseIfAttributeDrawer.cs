@@ -39,6 +39,7 @@ public abstract class BaseIfAttributeDrawer<T> : BaseAttributePropertyDrawer<T> 
 
 		if (!IsSupported(property)) {
 			DrawNotSupportedGUI(position, property, label);
+			EditorGUI.EndProperty();
 			return;
 		}
 

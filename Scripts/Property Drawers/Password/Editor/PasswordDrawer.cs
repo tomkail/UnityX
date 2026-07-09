@@ -24,11 +24,13 @@ public class PasswordDrawer : BaseAttributePropertyDrawer<PasswordAttribute> {
             password = password.Substring(0, maxLength);
         }
 
+		label = EditorGUI.BeginProperty(position, label, property);
 		if (!attribute.useMask) {
             property.stringValue = EditorGUI.TextField(position, label, password);
         } else {
             property.stringValue = EditorGUI.PasswordField(position, label, password);
         }
+		EditorGUI.EndProperty();
 
         if (IsValid(property)) {
             DrawHelpBox(position);

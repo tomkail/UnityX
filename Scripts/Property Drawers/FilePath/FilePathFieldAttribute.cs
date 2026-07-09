@@ -2,7 +2,7 @@
 using UnityEngine;
 
 [AttributeUsage(AttributeTargets.Field)]
-public class FilePathAttribute : PropertyAttribute {
+public class FilePathFieldAttribute : PropertyAttribute {
 
 	/// <summary>
 	/// If the path is relative to the assets folder. This is the format used by AssetDatabase.Load().
@@ -19,12 +19,12 @@ public class FilePathAttribute : PropertyAttribute {
 	}
 	public bool showPrevNextFileControls;
 	
-	public FilePathAttribute () {}
+	public FilePathFieldAttribute () {}
 	
-	public FilePathAttribute (RelativeTo relativeTo){
+	public FilePathFieldAttribute (RelativeTo relativeTo){
 		this.relativeTo = relativeTo;
 	}
-	public FilePathAttribute (RelativeTo relativeTo, bool allowScrolling){
+	public FilePathFieldAttribute (RelativeTo relativeTo, bool allowScrolling){
 		this.relativeTo = relativeTo;
 		showPrevNextFileControls = allowScrolling;
 	}

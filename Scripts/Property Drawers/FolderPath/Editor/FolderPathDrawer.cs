@@ -92,7 +92,10 @@ class FolderPathDrawer : BaseAttributePropertyDrawer<FolderPathAttribute> {
 			DrawNotSupportedGUI(position, property, label);
 			return;
 		}
-		property.stringValue = FolderPath(position, property.stringValue, label, attribute.relativeTo);
+		label = EditorGUI.BeginProperty(position, label, property);
+		var newValue = FolderPath(position, property.stringValue, label, attribute.relativeTo);
+		if(property.stringValue != newValue) property.stringValue = newValue;
+		EditorGUI.EndProperty();
 	}
 
 	protected override bool IsSupported(SerializedProperty property) {

@@ -17,7 +17,10 @@ public class ButtonDrawer : BaseAttributePropertyDrawer<ButtonAttribute> {
 				Rect valueRect = new Rect(position.x, position.y, position.width/2f, position.height);
 				Rect buttonRect = new Rect(position.x + position.width/2f, position.y, position.width/2f, position.height);
 
-				EditorGUI.PropertyField(valueRect, property, GUIContent.none);
+				// BeginProperty scopes only the value half; the button isn't a property edit.
+				var propertyLabel = EditorGUI.BeginProperty(valueRect, GUIContent.none, property);
+				EditorGUI.PropertyField(valueRect, property, propertyLabel);
+				EditorGUI.EndProperty();
 				if (GUI.Button(buttonRect, attribute.buttonName)) {
 					foreach(Object targetObject in property.serializedObject.targetObjects) {
 						System.Object _obj = ReflectionX.GetValueFromObject(targetObject, property.propertyPath.BeforeLast("."));

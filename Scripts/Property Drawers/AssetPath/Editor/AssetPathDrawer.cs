@@ -23,11 +23,14 @@ class AssetPathDrawer : BaseAttributePropertyDrawer<AssetPathAttribute> {
 			return;
 		}
 
+		label = EditorGUI.BeginProperty(position, label, property);
+
 		var currentPath = property.stringValue;
 		if(Application.isPlaying && attribute.isResourcePath && attribute.onlyLoadResourcePathsInEditMode) {
 			EditorGUI.BeginDisabledGroup(true);
 			EditorGUI.TextField(position, property.displayName, currentPath);
 			EditorGUI.EndDisabledGroup();
+			EditorGUI.EndProperty();
 			return;
 		}
 
@@ -66,6 +69,7 @@ class AssetPathDrawer : BaseAttributePropertyDrawer<AssetPathAttribute> {
 				var resourcesIdx = newPath.IndexOf(resourcesStr);
 				if( resourcesIdx == -1 ) {
 					Debug.LogError("Asset must be in a resources folder");
+					EditorGUI.EndProperty();
 					return;
 				}
 
@@ -80,6 +84,7 @@ class AssetPathDrawer : BaseAttributePropertyDrawer<AssetPathAttribute> {
 			property.stringValue = newPath;
 			property.serializedObject.ApplyModifiedProperties();
 		}
+		EditorGUI.EndProperty();
 	}
 
 	protected override bool IsSupported(SerializedProperty property) {

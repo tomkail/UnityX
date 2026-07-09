@@ -1,16 +1,11 @@
 using UnityEngine;
 using UnityEditor;
 using System;
-using System.Reflection;
 
+// Draws a string/int/float field as a popup whose options come from a sibling array property.
+// Stateless — options and selection are recomputed from the properties each OnGUI.
 [CustomPropertyDrawer(typeof(PropertyPopupAttribute))]
 public class PropertyPopupDrawer : BaseAttributePropertyDrawer<PropertyPopupAttribute> {
-
-	private Action<int> setValue;
-	private Func<string> getValue;
-	private Func<int, int> validateValue;
-
-	private string[] list = null;
 
 	protected override bool IsSupported (SerializedProperty property) {
 		return property.propertyType == SerializedPropertyType.String || property.propertyType == SerializedPropertyType.Integer || property.propertyType == SerializedPropertyType.Float;
@@ -23,78 +18,36 @@ public class PropertyPopupDrawer : BaseAttributePropertyDrawer<PropertyPopupAttr
 		}
 
 		var subProperty = SerializedPropertyX.FindPropertyRelative(property, attribute.relativePropertyPath);
-		if(subProperty != null) {
-			list = new string[subProperty.arraySize + (attribute.addDefault ? 1 : 0)];
-			if(attribute.addDefault) {
-				list[0] = "NONE";
-			}
-			for(int i = (attribute.addDefault ? 1 : 0); i < list.Length; i++) {
-				list[i] = subProperty.GetArrayElementAtIndex(i - (attribute.addDefault ? 1 : 0)).GetValue().ToString();
-			}
-
-			SetUp(property);
-			if (validateValue == null && setValue == null && getValue == null) {
-				EditorGUI.HelpBox(position, "Popup drawer error.", MessageType.Error);
-				return;
-			}
-			
-			int selectedIndex = list.IndexOf(getValue());
-			if(selectedIndex == -1) {
-				selectedIndex = 0;
-				setValue(selectedIndex);
-			}
-
-			for (int i = 0; i < list.Length; i++) {
-				selectedIndex = validateValue(i);
-				if (selectedIndex != 0)
-					break;
-			}
-			
-			EditorGUI.BeginChangeCheck();
-			selectedIndex = EditorGUI.Popup(position, label.text, selectedIndex, list);
-			if (EditorGUI.EndChangeCheck()) {
-				setValue(selectedIndex);
-			}
-		} else {
+		if(subProperty == null) {
 			EditorGUI.HelpBox(position, "No property found at path "+attribute.relativePropertyPath+"!", MessageType.Error);
+			return;
 		}
-	}
 
-	
-	void SetUp(SerializedProperty property) {
-		if (property.propertyType == SerializedPropertyType.String) {
-			validateValue = (index) => {
-				return property.stringValue == list[index] ? index : 0;
-			};
-			setValue = (index) => {
-				if(list.Length == 0 || attribute.addDefault && index == 0) property.stringValue = default(string);
-				else property.stringValue = list[index];
-			};
-			getValue = () => {
-				return property.stringValue;
-			};
-		} else if (property.propertyType == SerializedPropertyType.Integer) {
-			validateValue = (index) => {
-				return property.intValue == Convert.ToInt32(list[index]) ? index : 0;
-			};
-			setValue = (index) => {
-				if(list.Length == 0 || attribute.addDefault && index == 0) property.intValue = default(int);
-				else property.intValue = Convert.ToInt32(list[index]);
-			};
-			getValue = () => {
-				return property.intValue.ToString();
-			};
-		} else if (property.propertyType == SerializedPropertyType.Float) {
-			validateValue = (index) => {
-				return property.floatValue == Convert.ToSingle(list[index]) ? index : 0;
-			};
-			setValue = (index) => {
-				if(list.Length == 0 || attribute.addDefault && index == 0) property.floatValue = default(float);
-				else property.floatValue = Convert.ToSingle(list[index]);
-			};
-			getValue = () => {
-				return property.floatValue.ToString();
-			};
+		int offset = attribute.addDefault ? 1 : 0;
+		var list = new string[subProperty.arraySize + offset];
+		if(attribute.addDefault) list[0] = "NONE";
+		for(int i = offset; i < list.Length; i++) {
+			list[i] = subProperty.GetArrayElementAtIndex(i - offset).GetValue().ToString();
 		}
+
+		string current = property.propertyType switch {
+			SerializedPropertyType.String => property.stringValue,
+			SerializedPropertyType.Integer => property.intValue.ToString(),
+			_ => property.floatValue.ToString(),
+		};
+		int selectedIndex = Mathf.Max(0, Array.IndexOf(list, current));
+
+		label = EditorGUI.BeginProperty(position, label, property);
+		EditorGUI.BeginChangeCheck();
+		selectedIndex = EditorGUI.Popup(position, label.text, selectedIndex, list);
+		if (EditorGUI.EndChangeCheck()) {
+			bool setDefault = list.Length == 0 || (attribute.addDefault && selectedIndex == 0);
+			switch (property.propertyType) {
+				case SerializedPropertyType.String: property.stringValue = setDefault ? default : list[selectedIndex]; break;
+				case SerializedPropertyType.Integer: property.intValue = setDefault ? default : Convert.ToInt32(list[selectedIndex]); break;
+				default: property.floatValue = setDefault ? default : Convert.ToSingle(list[selectedIndex]); break;
+			}
+		}
+		EditorGUI.EndProperty();
 	}
 }

@@ -32,10 +32,12 @@ public class RegexDrawer : BaseAttributePropertyDrawer<RegexAttribute> {
 
     private void DrawTextField (Rect position, SerializedProperty prop, GUIContent label) {
         // Draw the text field control GUI.
+        label = EditorGUI.BeginProperty (position, label, prop);
         EditorGUI.BeginChangeCheck ();
         string val = EditorGUI.TextField (position, label, prop.stringValue);
         if (EditorGUI.EndChangeCheck ())
             prop.stringValue = val;
+        EditorGUI.EndProperty ();
     }
 
     private void DrawHelpBox (Rect position) {

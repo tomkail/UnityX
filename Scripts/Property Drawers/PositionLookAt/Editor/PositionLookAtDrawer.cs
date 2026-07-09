@@ -13,11 +13,14 @@ public class PositionLookAtDrawer : BaseAttributePropertyDrawer<PositionLookAtAt
 		var vector3Rect = new Rect(position.x, position.y, position.width - 40, position.height);
 		var buttonRect = new Rect(position.x + (position.width - 40), position.y, 40, position.height);
 
-
-		property.vector3Value = EditorGUI.Vector3Field(vector3Rect, label, property.vector3Value);
+		label = EditorGUI.BeginProperty(position, label, property);
+		EditorGUI.BeginChangeCheck();
+		var newValue = EditorGUI.Vector3Field(vector3Rect, label, property.vector3Value);
+		if (EditorGUI.EndChangeCheck()) property.vector3Value = newValue;
+		EditorGUI.EndProperty();
 
 		EditorGUI.BeginDisabledGroup(SceneView.lastActiveSceneView == null);
-		if (GUI.Button(buttonRect, new GUIContent(EditorGUIUtility.IconContent("animationvisibilitytoggleon").image, "Moves the scene view camera to the point"))) 
+		if (GUI.Button(buttonRect, new GUIContent(EditorGUIUtility.IconContent("animationvisibilitytoggleon").image, "Moves the scene view camera to the point")))
 			SceneView.lastActiveSceneView.LookAt(property.vector3Value, SceneView.lastActiveSceneView.rotation);
 		EditorGUI.EndDisabledGroup();
 		SerializedPropertyX.AddCopyPasteMenu(position, property);
