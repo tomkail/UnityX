@@ -1,0 +1,17 @@
+{
+    "name": "UnityX.SerializableCamera",
+    "rootNamespace": "",
+    "references": [
+        "UnityX.SerializableTransform",
+        "UnityX.CameraX"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

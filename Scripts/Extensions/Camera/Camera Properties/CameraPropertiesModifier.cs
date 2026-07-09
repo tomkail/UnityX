@@ -4,8 +4,8 @@ using UnityEngine;
 /// Modifies selected camera properties using a blend mode.
 /// </summary>
 [System.Serializable]
-public class CameraPropertiesModifier {
-	
+public class CameraPropertiesModifier : ICameraPropertiesModifier {
+
 	public enum Mode {
 		Additive,
 		Multiply,
@@ -18,6 +18,10 @@ public class CameraPropertiesModifier {
 	public Mode mode = Mode.Override;
 
 	public CameraProperties properties = new CameraProperties();
+
+	[UnityEngine.Tooltip("Blend strength when run as a queue modifier (0 = no effect, 1 = full). Also the " +
+	                     "value passed to ModifyWithStrength by the ICameraPropertiesModifier entry point.")]
+	public float strength = 1;
 
 	public CameraPropertiesModifier () {}
 	public CameraPropertiesModifier (CameraPropertiesModifier toClone) {
@@ -157,4 +161,9 @@ public class CameraPropertiesModifier {
 			}
 		}
 	}
+
+	// ICameraPropertiesModifier — lets this be dropped straight into a CameraPropertiesBuilderQueue / CameraRig
+	// (e.g. as an inspector-authored modifier), applying its per-axis blend at the serialized `strength`.
+	public void UpdateModifier (float deltaTime) {}
+	public void Modify (ref CameraProperties properties) => ModifyWithStrength(ref properties, strength);
 }

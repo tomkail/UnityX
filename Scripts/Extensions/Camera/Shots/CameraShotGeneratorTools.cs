@@ -130,7 +130,12 @@ public static class CameraShotGeneratorTools {
 	
 	static bool CreateCameraShot (CameraShotGeneratorProperties shotGeneratorProperties, ref SerializableCamera camera, out float distanceFromTarget) {
 		distanceFromTarget = 0;
-		
+
+		if(shotGeneratorProperties.pointCloud == null || shotGeneratorProperties.pointCloud.Count == 0) {
+			Debug.LogWarning("Cannot create camera shot because the point cloud is empty.");
+			return false;
+		}
+
 		if(!shotGeneratorProperties.isValid) {
 			shotGeneratorProperties.rotation = Quaternion.identity;
 			if(!shotGeneratorProperties.isValid) {
@@ -178,7 +183,11 @@ public static class CameraShotGeneratorTools {
 		camera.transform.position = r.center;
 		float closestPointCameraDistance = shotGeneratorProperties.pointCloud.Min(x => DistanceInDirection(x, shotGeneratorProperties.rotation * Vector3.forward));
 		camera.transform.Translate (Vector3.forward * closestPointCameraDistance - Vector3.forward * shotGeneratorProperties.orthographicDistanceFromNearestTarget, Space.Self);
-		r.size /= shotGeneratorProperties.framingRect.size;
+		// Component-wise divide, leaving a dimension unscaled if the framing rect is degenerate (0 width/height)
+		// rather than producing Infinity/NaN.
+		var framingSize = shotGeneratorProperties.framingRect.size;
+		r.size = new Vector2(framingSize.x != 0 ? r.size.x / framingSize.x : r.size.x,
+		                     framingSize.y != 0 ? r.size.y / framingSize.y : r.size.y);
 		camera.orthographicSize = CameraX.CalculateOrthographicSize(camera.aspect, r.size, shotGeneratorProperties.scalingMode) * (1f/shotGeneratorProperties.zoom);
 		camera.transform.Translate (new Vector2(camera.aspect, 1) * (Vector2.one * 0.5f-shotGeneratorProperties.framingRect.center) * (camera.orthographicSize * 2), Space.Self);
 	}
@@ -243,7 +252,7 @@ public static class CameraShotGeneratorTools {
 	}
 
 	public static Vector3 ClosestTargetInDirection (Vector3 forwardDirection, List<Vector3> points) {
-		//		return Vector3X.Average(points);
+		if(points == null || points.Count == 0) return Vector3.zero;
 		int index = 0;
 		float smallest = DistanceInDirection(points[index], forwardDirection);
 		for(int i = 1; i < points.Count; i++){
@@ -281,6 +290,7 @@ public static class CameraShotGeneratorTools {
 	}
 	
 	public static Rect CreateEncapsulating (params Vector2[] vectors) {
+		if(vectors == null || vectors.Length == 0) return new Rect();
 		Rect rect = new Rect(vectors[0].x, vectors[0].y, 0, 0);
 		for(int i = 1; i < vectors.Length; i++) {
 			var xMin = Mathf.Min (rect.xMin, vectors[i].x);

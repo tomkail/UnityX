@@ -1,0 +1,18 @@
+{
+    "name": "UnityX.CameraProperties",
+    "rootNamespace": "",
+    "references": [
+        "UnityX.SerializableCamera",
+        "UnityX.SerializableTransform",
+        "UnityX.Tween"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

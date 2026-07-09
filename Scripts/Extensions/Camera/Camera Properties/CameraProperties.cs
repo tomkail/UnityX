@@ -263,12 +263,16 @@ public struct CameraProperties {
 		properties.worldEulerAngles.x = LerpAngleUnclamped(start.worldEulerAngles.x, end.worldEulerAngles.x, lerp);
 		properties.worldEulerAngles.y = LerpAngleUnclamped(start.worldEulerAngles.y, end.worldEulerAngles.y, lerp);
 
-		var basePosition = Vector3.LerpUnclamped(start.basePosition, end.basePosition, lerp);
-		properties.targetPoint = basePosition + properties.rotation * Vector3.forward * properties.distance;
-
 		properties.localEulerAngles.x = LerpAngleUnclamped(start.localEulerAngles.x, end.localEulerAngles.x, lerp);
 		properties.localEulerAngles.y = LerpAngleUnclamped(start.localEulerAngles.y, end.localEulerAngles.y, lerp);
 		properties.localEulerAngles.z = LerpAngleUnclamped(start.localEulerAngles.z, end.localEulerAngles.z, lerp);
+
+		// targetPoint follows the world orbit (matching basePosition), independent of the local look-offset.
+		// Compute it from the world rotation explicitly rather than properties.rotation, which previously
+		// only gave the right answer because localEulerAngles happened to still be zero at this point.
+		var basePosition = Vector3.LerpUnclamped(start.basePosition, end.basePosition, lerp);
+		var worldRotation = properties.axis * Quaternion.Euler(properties.worldEulerAngles);
+		properties.targetPoint = basePosition + worldRotation * Vector3.forward * properties.distance;
 
 		properties.viewportOffset.x = Mathf.LerpUnclamped(start.viewportOffset.x, end.viewportOffset.x, lerp);
 		properties.viewportOffset.y = Mathf.LerpUnclamped(start.viewportOffset.y, end.viewportOffset.y, lerp);
@@ -363,17 +367,19 @@ public struct CameraProperties {
 	}
 
 	public static CameraProperties WeightedBlend(IEnumerable<CameraProperties> allProperties, IList<float> weights) {
-		// Normalise weights so they add up to 1.0
-		float totalWeight = weights.Sum();
-		for(int i=0; i<weights.Count; i++)
-			weights[i] = weights[i] / totalWeight;
-		
+		// Rather than normalising `weights` in place (which mutates the caller's list) or allocating a
+		// normalised copy (garbage), we sum the weights and divide the *linear* blends by that sum.
+		// Angle/quaternion/bool blends are scale-invariant, so they use the raw weights directly.
+		float totalWeight = 0;
+		for(int i = 0; i < weights.Count; i++) totalWeight += weights[i];
+		if(totalWeight == 0) return @default;
+
 		CameraProperties blended = new CameraProperties();
 
 		blended.axis = WeightedBlends.WeightedBlend(allProperties, p => p.axis, weights);
 
-		blended.targetPoint = WeightedBlends.WeightedBlend(allProperties, p => p.targetPoint, weights);
-		blended.distance = WeightedBlends.WeightedBlend(allProperties, p => p.distance, weights);
+		blended.targetPoint = WeightedBlends.WeightedBlend(allProperties, p => p.targetPoint, weights) / totalWeight;
+		blended.distance = WeightedBlends.WeightedBlend(allProperties, p => p.distance, weights) / totalWeight;
 
 		blended.worldEulerAngles.x = WeightedBlends.WeightedBlendAngle(allProperties, p => p.worldEulerAngles.x, weights);
 		blended.worldEulerAngles.y = WeightedBlends.WeightedBlendAngle(allProperties, p => p.worldEulerAngles.y, weights);
@@ -382,23 +388,21 @@ public struct CameraProperties {
 		blended.localEulerAngles.y = WeightedBlends.WeightedBlendAngle(allProperties, p => p.localEulerAngles.y, weights);
 		blended.localEulerAngles.z = WeightedBlends.WeightedBlendAngle(allProperties, p => p.localEulerAngles.z, weights);
 
-		blended.viewportOffset.x = WeightedBlends.WeightedBlend(allProperties, p => p.viewportOffset.x, weights);
-		blended.viewportOffset.y = WeightedBlends.WeightedBlend(allProperties, p => p.viewportOffset.y, weights);
+		blended.viewportOffset.x = WeightedBlends.WeightedBlend(allProperties, p => p.viewportOffset.x, weights) / totalWeight;
+		blended.viewportOffset.y = WeightedBlends.WeightedBlend(allProperties, p => p.viewportOffset.y, weights) / totalWeight;
 
-		blended.fieldOfView = WeightedBlends.WeightedBlend(allProperties, p => p.fieldOfView, weights);
+		blended.fieldOfView = WeightedBlends.WeightedBlend(allProperties, p => p.fieldOfView, weights) / totalWeight;
 
 		blended.orthographic = WeightedBlends.WeightedBlend(allProperties.Select(p => p.orthographic), weights);
-		blended.orthographicSize = WeightedBlends.WeightedBlend(allProperties, p => p.orthographicSize, weights);
+		blended.orthographicSize = WeightedBlends.WeightedBlend(allProperties, p => p.orthographicSize, weights) / totalWeight;
 
 		return blended;
 	}
 
 	public void Reset () {
-		targetPoint = Vector3.zero;
-		distance = 1;
-		viewportOffset.x = viewportOffset.y = worldEulerAngles.x = worldEulerAngles.y = localEulerAngles.x = localEulerAngles.y = localEulerAngles.z = 0;
-		fieldOfView = 60;
-		orthographicSize = 10;
+		// Reset to the same defaults as the constructor (which also resets axis + orthographic, and uses
+		// the shared SerializableCamera defaults) rather than a divergent hand-written set.
+		this = @default;
 	}
 
 	public void ApplyTo(ref SerializableCamera camera) {
@@ -420,12 +424,12 @@ public struct CameraProperties {
 	}
 
 	public bool IsValid () {
-		if(Vector3X.HasNaN(targetPoint)) return false;
-		if(QuaternionX.IsNaN(axis)) return false;
+		if(CameraInternal.HasNaN(targetPoint)) return false;
+		if(CameraInternal.IsNaN(axis)) return false;
 		if(float.IsNaN(distance) || distance < 0) return false;
-		if(Vector3X.HasNaN(worldEulerAngles)) return false;
-		if(Vector3X.HasNaN(localEulerAngles)) return false;
-		if(Vector3X.HasNaN(viewportOffset)) return false;
+		if(CameraInternal.HasNaN(worldEulerAngles)) return false;
+		if(CameraInternal.HasNaN(localEulerAngles)) return false;
+		if(CameraInternal.HasNaN(viewportOffset)) return false;
 		if(orthographic && (float.IsNaN(orthographicSize) || orthographicSize <= 0)) return false;
 		if(!orthographic && (float.IsNaN(fieldOfView) || fieldOfView <= 0)) return false;
 		return true;
@@ -495,7 +499,8 @@ public struct CameraProperties {
 			return WeightedBlend(
 				values, v => v, weights,
 				(Vector2 totalDirection, float angle, float weight) => totalDirection + weight * WithDegrees(angle),
-				totalDirection => Mathf.Atan2(-totalDirection.y, totalDirection.x) * Mathf.Rad2Deg
+				// WithDegrees encodes as (sin, cos), so the inverse is Atan2(x, y). (Atan2(-y, x) was off by 90°.)
+				totalDirection => Mathf.Atan2(totalDirection.x, totalDirection.y) * Mathf.Rad2Deg
 			);
 		}
 
@@ -503,7 +508,7 @@ public struct CameraProperties {
 			return WeightedBlend(
 				values, selector, weights,
 				(Vector2 totalDirection, float angle, float weight) => totalDirection + weight * WithDegrees(angle),
-				totalDirection => Mathf.Atan2(-totalDirection.y, totalDirection.x) * Mathf.Rad2Deg
+				totalDirection => Mathf.Atan2(totalDirection.x, totalDirection.y) * Mathf.Rad2Deg
 			);
 		}
 

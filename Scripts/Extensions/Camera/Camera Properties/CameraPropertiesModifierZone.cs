@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class CameraModifierZone : MonoBehaviour {
-    public static List<CameraModifierZone> all = new List<CameraModifierZone>();
+public class CameraPropertiesModifierZone : MonoBehaviour {
+    public static List<CameraPropertiesModifierZone> all = new List<CameraPropertiesModifierZone>();
     public Transform target;
     [SerializeField]
     bool testStrength = false;
