@@ -1618,8 +1618,8 @@ public class Polygon {
 
 		// Find the remaining point with the smallest Y value.
 		// if (there's a tie, take the one with the smaller X value.
-		Point best_pt = points[0];
-		foreach (Point pt in points)
+		Vector2 best_pt = points[0];
+		foreach (Vector2 pt in points)
 		{
 			if ((pt.y < best_pt.y) ||
 				((pt.y == best_pt.y) && (pt.x < best_pt.x)))
@@ -1645,7 +1645,7 @@ public class Polygon {
 			float best_angle = 3600;
 
 			// Search the rest of the points.
-			foreach (Point pt in points)
+			foreach (Vector2 pt in points)
 			{
 				float test_angle = AngleValue(X, Y, pt.x, pt.y);
 				if ((test_angle >= sweep_angle) &&

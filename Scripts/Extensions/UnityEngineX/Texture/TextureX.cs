@@ -102,10 +102,6 @@ public static class TextureX {
 	    colors.Fill(_color);
 	    return Create(width, height, colors, filterMode, textureFormat);
     }
-    public static Texture2D Create(Point _size, Color _color, FilterMode filterMode = FilterMode.Point, TextureFormat textureFormat = TextureFormat.ARGB32){
-	    return Create (_size.x, _size.y, _color, filterMode, textureFormat);
-    }
-	
     public static Texture2D Create(int width, int height, Color[] _array, FilterMode filterMode = FilterMode.Point, TextureFormat textureFormat = TextureFormat.ARGB32){
 	    if(width * height != _array.Length) {
 		    Debug.LogWarning("Cannot create color texture from color array because Size is ("+width+", "+height+") with area "+(width * height)+" and array size is "+_array.Length);
@@ -116,8 +112,5 @@ public static class TextureX {
 	    tmpTexture.filterMode = filterMode;
 	    tmpTexture.wrapMode = TextureWrapMode.Clamp;
 	    return tmpTexture;
-    }
-    public static Texture2D Create(Point _size, Color[] _array, FilterMode filterMode = FilterMode.Point, TextureFormat textureFormat = TextureFormat.ARGB32){
-	    return Create(_size.x, _size.y, _array, filterMode, textureFormat);
     }
 }
