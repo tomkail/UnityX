@@ -6,7 +6,8 @@ using UnityEngine.EventSystems;
 
 // Handles moving, scaling and rotating UI objects using multitouch.
 // Should be just about 1-1, as you'd expect on a touch screen, although because it applies deltas there's a bit of "slippage" if you manipulate the same object for a while/rapidly.
-// To test multitouch with a mouse in the editor, comment out the line marked "[multitouch-test]" in OnEndDrag.
+// Drag trackers are keyed by pointerId and add/remove is self-healing (a stale tracker is replaced on a fresh
+// begin, and removed on either OnEndDrag or OnPointerUp) so a missed end event can't leave a phantom finger.
 public class MultitouchDraggable : Selectable, IBeginDragHandler, IEndDragHandler, IDragHandler {
 	public RectTransform rectTransform => (RectTransform)transform;
 	[SerializeField]
@@ -68,7 +69,7 @@ public class MultitouchDraggable : Selectable, IBeginDragHandler, IEndDragHandle
 			var parentCanvas = GetComponentInParent<Canvas>();
 			if(parentCanvas == null) return;
 			var camera = parentCanvas.rootCanvas.worldCamera;
-			
+
 			if(dragInputs.Count == 1) {
 				RectTransformUtility.ScreenPointToWorldPointInRectangle(target, dragInputs[0].screenPos, camera, out Vector3 newWorldPos);
 				RectTransformUtility.ScreenPointToWorldPointInRectangle(target, dragInputs[0].lastScreenPos, camera, out Vector3 lastWorldPos);
@@ -115,7 +116,7 @@ public class MultitouchDraggable : Selectable, IBeginDragHandler, IEndDragHandle
 		base.OnPointerDown(eventData);
 		if (eventData.button != PointerEventData.InputButton.Left)
 			return;
-		
+
 		isPointerDown = true;
 	}
 	public override void OnPointerUp(PointerEventData eventData)
@@ -123,26 +124,23 @@ public class MultitouchDraggable : Selectable, IBeginDragHandler, IEndDragHandle
 		base.OnPointerUp(eventData);
 		if (eventData.button != PointerEventData.InputButton.Left)
 			return;
-		
+
 		isPointerDown = false;
+		// Belt-and-braces cleanup: drop this pointer's drag tracker here too. OnPointerUp is delivered to the
+		// press handler even in cases where OnEndDrag is not (e.g. a touch lifted mid-pinch), so without this a
+		// finger's tracker could linger and a later single-finger drag would behave like a two-finger
+		// pinch/rotate. Idempotent with OnEndDrag's removal.
+		RemoveDragInput(eventData.pointerId);
 	}
-	
+
 	public void OnBeginDrag(PointerEventData eventData) {
 		if (eventData.button != PointerEventData.InputButton.Left || !IsActive()) return;
-		
-		var dragInput = dragInputs.FirstOrDefault(x => x.pointerId == eventData.pointerId);
-		if(dragInput != null) {
-			#if UNITY_EDITOR
-			// This code path is used for testing in editor, where the second click is treated as a new input and the first is turned into a static input point.
-			dragInputs.RemoveRange(1,dragInputs.Count-1);
-			dragInput.pointerId = 0;
-			dragInputs.Add(new DragInput(eventData));
-			#else
-			Debug.LogWarning("Drag started but an input tracker for this pointer already exists!");
-			#endif
-		} else {
-			dragInputs.Add(new DragInput(eventData));
-		}
+
+		// If we already track this pointer, its previous drag never got a matching end (a missed
+		// OnEndDrag/OnPointerUp). A fresh begin for the same id proves the old tracker is stale, so replace it
+		// rather than leaving a duplicate that reads as an extra finger.
+		RemoveDragInput(eventData.pointerId);
+		dragInputs.Add(new DragInput(eventData));
 	}
 
 	public void OnDrag(PointerEventData eventData) {
@@ -150,7 +148,9 @@ public class MultitouchDraggable : Selectable, IBeginDragHandler, IEndDragHandle
 
 		var dragInput = dragInputs.FirstOrDefault(x => x.pointerId == eventData.pointerId);
 		if(dragInput == null) {
-			Debug.LogWarning("Drag occurred but input tracker was not found!");
+			// We missed this pointer's begin — start tracking it now (the DragInput seeds last == current, so
+			// there's no delta spike this frame) rather than dropping the finger.
+			dragInputs.Add(new DragInput(eventData));
 		} else {
 			dragInput.UpdateDrag(eventData);
 		}
@@ -158,15 +158,15 @@ public class MultitouchDraggable : Selectable, IBeginDragHandler, IEndDragHandle
 
 	public void OnEndDrag(PointerEventData eventData) {
 		if (eventData.button != PointerEventData.InputButton.Left || !IsActive()) return;
-		
+
 		isPointerDown = false;
-		var dragInput = dragInputs.FirstOrDefault(x => x.pointerId == eventData.pointerId);
-		if(dragInput != null) {
-			// [multitouch-test] Comment this out to fake multitouch in the editor (reuses this ended drag as the first of two fingers).
-			dragInputs.Remove(dragInput);
-		} else {
-			Debug.LogWarning("Drag ended but no input tracker found!");
-		}
+		// Idempotent with OnPointerUp's removal — whichever arrives first cleans up, the other is a no-op.
+		RemoveDragInput(eventData.pointerId);
+	}
+
+	void RemoveDragInput (int pointerId) {
+		// RemoveAll rather than "find first + remove" so a duplicate can never survive.
+		dragInputs.RemoveAll(x => x.pointerId == pointerId);
 	}
 
 

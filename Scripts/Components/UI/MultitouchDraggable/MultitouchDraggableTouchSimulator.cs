@@ -27,17 +27,17 @@ public class MultitouchDraggableTouchSimulator : MonoBehaviour {
         if(Input.GetMouseButton(0)) {
             RectTransformUtility.ScreenPointToWorldPointInRectangle(target, pivotFingerScreenPos, camera, out Vector3 worldPivotPos);
 
-            RectTransformX.ScreenPointToNormalizedPointInRectangle(target, pivotFingerScreenPos, camera, out Vector2 normalizedPivotFingerScreenPos);
+            MultitouchDraggableInternal.ScreenPointToNormalizedPointInRectangle(target, pivotFingerScreenPos, camera, out Vector2 normalizedPivotFingerScreenPos);
             var deltaAngle = Vector2.SignedAngle(Vector2.up, fingerPos-pivotFingerScreenPos) - Vector2.SignedAngle(Vector2.up, lastFingerScreenPos-pivotFingerScreenPos);
             target.RotateAround(worldPivotPos, new Vector3(0,0,1), deltaAngle);
             
-            RectTransformX.ScreenPointToNormalizedPointInRectangle(target, lastFingerScreenPos, camera, out Vector2 normalizedLastFingerPoint);
-            RectTransformX.ScreenPointToNormalizedPointInRectangle(target, fingerPos, camera, out Vector2 normalizedFingerPoint);
+            MultitouchDraggableInternal.ScreenPointToNormalizedPointInRectangle(target, lastFingerScreenPos, camera, out Vector2 normalizedLastFingerPoint);
+            MultitouchDraggableInternal.ScreenPointToNormalizedPointInRectangle(target, fingerPos, camera, out Vector2 normalizedFingerPoint);
             var lastDistanceFromPivot = Vector2.Distance(normalizedLastFingerPoint, normalizedPivotFingerScreenPos);
             var delta = SignedDistanceInDirection(normalizedFingerPoint, normalizedLastFingerPoint, normalizedPivotFingerScreenPos-normalizedFingerPoint);
             float SignedDistanceInDirection (Vector2 fromVector, Vector2 toVector, Vector2 direction) {
                 Vector2 normalizedDirection = direction.normalized;
-                return Vector2.Dot(Vector2X.FromTo(fromVector, toVector), normalizedDirection);
+                return Vector2.Dot(toVector - fromVector, normalizedDirection);
             }
             
             if(delta != 0 && lastDistanceFromPivot != 0) {
@@ -67,7 +67,7 @@ public class MultitouchDraggableTouchSimulator : MonoBehaviour {
     }
 
     void OnGUI () {
-        OnGUIX.DrawCircle(OnGUIX.ScreenToGUIPoint(pivotFingerScreenPos), 10, Color.white, 2);
-        OnGUIX.DrawCircle(OnGUIX.ScreenToGUIPoint(fingerPos), 10, Color.white, 2);
+        MultitouchDraggableInternal.DrawCircle(MultitouchDraggableInternal.ScreenToGUIPoint(pivotFingerScreenPos), 10, Color.white, 2);
+        MultitouchDraggableInternal.DrawCircle(MultitouchDraggableInternal.ScreenToGUIPoint(fingerPos), 10, Color.white, 2);
     }
 }
