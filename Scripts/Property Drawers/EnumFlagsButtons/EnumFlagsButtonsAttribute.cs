@@ -2,5 +2,5 @@
 using UnityEngine;
 
 [AttributeUsage(AttributeTargets.Field)]
-public class EnumFlagsButtonGroupAttribute : PropertyAttribute {
+public class EnumFlagsButtonsAttribute : PropertyAttribute {
 }

@@ -7,8 +7,8 @@ using UnityEditor;
 // Zero and composite members (e.g. Everything = A | B) are not given buttons — they read and
 // write implicitly through the bits they're made of. Values are masked to the enum's defined
 // bits on write, so undefined bits and ~0-style "Everything" values can't linger.
-[CustomPropertyDrawer(typeof(EnumFlagsButtonGroupAttribute))]
-class EnumFlagsButtonGroupDrawer : PropertyDrawer {
+[CustomPropertyDrawer(typeof(EnumFlagsButtonsAttribute))]
+class EnumFlagsButtonsDrawer : PropertyDrawer {
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
         // For a List<T>/T[] field, fieldInfo is the collection; unwrap to the element type.
         var type = fieldInfo.FieldType;
