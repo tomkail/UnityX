@@ -1,30 +1,22 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEditor;
-using System.Collections;
 
 [CustomPropertyDrawer(typeof(CompactMatrix4x4Attribute))]
 public class CompactMatrix4x4Drawer : PropertyDrawer {
-	bool showing = false;
+	// Matrix4x4 serializes as a Generic property, so the type string is the only cheap identity check.
+	const string matrixTypeName = "Matrix4x4f";
+
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
-		
-        // When the property is not Matrix4x4
-        if (property.type != "Matrix4x4f")
-        {
-//            position.height -= EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-//            EditorGUI.PropertyField(position, property, label, true);
+        if (property.type != matrixTypeName) {
 			EditorGUI.LabelField(position, label);
             position.x += 80;
-//			position.y += EditorGUIUtility.singleLineHeight;
             EditorGUI.HelpBox(position, "Attribute must be of type Matrix4x4.", MessageType.Warning);
             return;
         }
 
-        // Label
-        
-        //EditorGUI.LabelField(position, label);
-	
-		showing = EditorGUI.Foldout(new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight), showing, label);
-		if(showing) {
+		// Foldout state lives on the property, not the drawer — drawer instances are reused across list elements.
+		property.isExpanded = EditorGUI.Foldout(new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight), property.isExpanded, label);
+		if(property.isExpanded) {
 			position.height /= 5;
 			var attr = attribute as CompactMatrix4x4Attribute;
 			position.y += position.height;
@@ -54,14 +46,12 @@ public class CompactMatrix4x4Drawer : PropertyDrawer {
 				position.x -= position.width * 4;
 				position.y += position.height;
 			}
-		}        
+		}
     }
 
     public override float GetPropertyHeight(SerializedProperty property, GUIContent label) {
-        if (property.type == "Matrix4x4f")
-            if(showing)return EditorGUIUtility.singleLineHeight * 5;
-			else return base.GetPropertyHeight(property, label) + EditorGUIUtility.singleLineHeight;
-        else
-            return base.GetPropertyHeight(property, label) + EditorGUIUtility.singleLineHeight;
+        if (property.type == matrixTypeName && property.isExpanded)
+            return EditorGUIUtility.singleLineHeight * 5;
+        return base.GetPropertyHeight(property, label) + EditorGUIUtility.singleLineHeight;
     }
 }

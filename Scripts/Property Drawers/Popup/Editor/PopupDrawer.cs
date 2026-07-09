@@ -2,25 +2,11 @@ using UnityEngine;
 using UnityEditor;
 using System;
 
+// Draws a string/int/float field as a popup of the values given in the attribute.
+// Stateless: the previous version cached delegates closing over the first-seen SerializedProperty,
+// so on a list every element read from and wrote to element 0.
 [CustomPropertyDrawer(typeof(PopupAttribute))]
 public class PopupDrawer : BaseAttributePropertyDrawer<PopupAttribute> {
-
-	private Action<int> setValue;
-	private Func<string> getValue;
-	private Func<int, int> validateValue;
-
-	private string[] _list = null;
-	private string[] list {
-		get {
-			if (_list == null) {
-				_list = new string[attribute.list.Length];
-				for (int i = 0; i < attribute.list.Length; i++) {
-					_list[i] = attribute.list[i].ToString();
-				}
-			}
-			return _list;
-		}
-	}
 
 	protected override bool IsSupported (SerializedProperty property) {
 		return property.propertyType == SerializedPropertyType.String || property.propertyType == SerializedPropertyType.Float || property.propertyType == SerializedPropertyType.Integer;
@@ -32,71 +18,26 @@ public class PopupDrawer : BaseAttributePropertyDrawer<PopupAttribute> {
 			return;
 		}
 
-		//This line allows validate and setvalue functions to be cached, which is probably great for performance, but copies the attribute when used on the same object
-		if (validateValue == null && setValue == null && getValue == null)
-			SetUp(property);
+		var list = new string[attribute.list.Length];
+		for (int i = 0; i < list.Length; i++) list[i] = attribute.list[i].ToString();
 
-		if (validateValue == null && setValue == null && getValue == null) {
-			EditorGUI.HelpBox(position, "Popup drawer error.", MessageType.Error);
-			return;
-		}
+		string current = property.propertyType switch {
+			SerializedPropertyType.String => property.stringValue,
+			SerializedPropertyType.Integer => property.intValue.ToString(),
+			_ => property.floatValue.ToString(),
+		};
+		int selectedIndex = Mathf.Max(0, Array.IndexOf(list, current));
 
-		int selectedIndex = list.IndexOf(getValue());
-		if(selectedIndex == -1) {
-			selectedIndex = 0;
-			setValue(selectedIndex);
-		}
-
-		for (int i = 0; i < list.Length; i++) {
-			selectedIndex = validateValue(i);
-			if (selectedIndex != 0)
-				break;
-		}
-
+		label = EditorGUI.BeginProperty(position, label, property);
 		EditorGUI.BeginChangeCheck();
 		selectedIndex = EditorGUI.Popup(position, label.text, selectedIndex, list);
 		if (EditorGUI.EndChangeCheck()) {
-			setValue(selectedIndex);
+			switch (property.propertyType) {
+				case SerializedPropertyType.String: property.stringValue = list[selectedIndex]; break;
+				case SerializedPropertyType.Integer: property.intValue = Convert.ToInt32(list[selectedIndex]); break;
+				default: property.floatValue = Convert.ToSingle(list[selectedIndex]); break;
+			}
 		}
-	}
-
-	void SetUp(SerializedProperty property) {
-		if (property.propertyType == SerializedPropertyType.String) {
-			validateValue = (index) => {
-				return property.stringValue == list[index] ? index : 0;
-			};
-			setValue = (index) => {
-				property.stringValue = list[index];
-			};
-			getValue = () => {
-				return property.stringValue;
-			};
-		} else if (property.propertyType == SerializedPropertyType.Integer) {
-			validateValue = (index) => {
-				return property.intValue == Convert.ToInt32(list[index]) ? index : 0;
-			};
-			setValue = (index) => {
-				property.intValue = Convert.ToInt32(list[index]);
-			};
-			getValue = () => {
-				return property.intValue.ToString();
-			};
-		} else if (property.propertyType == SerializedPropertyType.Float) {
-			validateValue = (index) => {
-				return property.floatValue == Convert.ToSingle(list[index]) ? index : 0;
-			};
-			setValue = (index) => {
-				property.floatValue = Convert.ToSingle(list[index]);
-			};
-			getValue = () => {
-				return property.floatValue.ToString();
-			};
-		}
-	}
-
-	private Type variableType {
-		get {
-			return attribute.list[0].GetType();
-		}
+		EditorGUI.EndProperty();
 	}
 }

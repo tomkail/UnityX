@@ -7,12 +7,7 @@ using UnityEditor;
 public class AudioAssetSaverDrawer : BaseAttributePropertyDrawer<AudioAssetSaverAttribute> {
 
 	protected override bool IsSupported (SerializedProperty property) {
-		Debug.Log(property.type);
 		return property.propertyType == SerializedPropertyType.ObjectReference;
-    }
-
-    public override float GetPropertyHeight (SerializedProperty property, GUIContent label) {
-		return base.GetPropertyHeight(property, label);
     }
 
 	const int buttonWidth = 80;
@@ -28,9 +23,6 @@ public class AudioAssetSaverDrawer : BaseAttributePropertyDrawer<AudioAssetSaver
 		if(GUI.Button(buttonRect, "Save WAV")) {
 			var clip = property.objectReferenceValue as AudioClip;
 			var selectedAssetPath = GetPath(property);
-			// Type type = fieldInfo.FieldType;
-			// if(type.IsArray) type = type.GetElementType();
-			// else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>)) type = type.GetGenericArguments()[0];
 			SavWav.SaveAssetWithPrompt(clip, selectedAssetPath);
 		}
 		

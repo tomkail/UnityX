@@ -23,15 +23,10 @@ public class SetPropertyDrawer : BaseAttributePropertyDrawer<SetPropertyAttribut
 		EditorGUI.PropertyField(position, property, label, true);
 
 		if (EditorGUI.EndChangeCheck()) {
-			// When a SerializedProperty is modified the actual field does not have the current value set (i.e.  
-			// FieldInfo.GetValue() will return the prior value that was set) until after this OnGUI call has completed. 
-			// Therefore, we need to mark this property as dirty, so that it can be updated with a subsequent OnGUI event 
-			// (e.g. Repaint)
-			attribute.IsDirty = true;
-		} 
-		if (attribute.IsDirty) {
-			// Apply the modified serialized value BEFORE invoking the property setter. Until ApplyModifiedProperties runs,
-			// FieldInfo.GetValue() still returns the prior value, so the setter would otherwise observe the pre-change value.
+			// Apply the modified serialized value BEFORE invoking the property setter: until
+			// ApplyModifiedProperties runs, FieldInfo.GetValue() still returns the pre-change value.
+			// (The original deferred this to the next OnGUI via a dirty flag stored on the shared
+			// attribute instance — state that bled across every field using [SetProperty].)
 			property.serializedObject.ApplyModifiedProperties();
 
 			// The propertyPath may reference something that is a child field of a field on this Object, so it is necessary
@@ -49,7 +44,6 @@ public class SetPropertyDrawer : BaseAttributePropertyDrawer<SetPropertyAttribut
 				// SerializedPropertyType and use the correct accessor
 				pi.SetValue(parent, fieldInfo.GetValue(parent), null);
 			}
-			attribute.IsDirty = false;
 		}
 	}
 
