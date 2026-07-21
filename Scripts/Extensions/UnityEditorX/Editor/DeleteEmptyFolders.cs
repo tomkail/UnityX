@@ -28,19 +28,20 @@ public class DeleteEmptyFolders : AssetPostprocessor
 {
     const string MENU_NAME = "Tools/Empty Folder Tool/";
     const string ASSET_STRING = "Assets";
-    public class DeleteEmptyFoldersSettings : SerializedEditorSettings<DeleteEmptyFoldersSettings> {
+    [FilePath("UserSettings/DeleteEmptyFoldersSettings.asset", FilePathAttribute.Location.ProjectFolder)]
+    public class DeleteEmptyFoldersSettings : ScriptableSingleton<DeleteEmptyFoldersSettings> {
         public bool autoDelete = true;
         const string MENU_NAME_AUTO_DELETE = MENU_NAME + "Toggle Auto Delete";
-        
+
         [MenuItem(MENU_NAME_AUTO_DELETE)]
         private static void EnabledGUUI() {
-            DeleteEmptyFoldersSettings.Instance.autoDelete = !DeleteEmptyFoldersSettings.Instance.autoDelete;
-            DeleteEmptyFoldersSettings.Save();
-            if(DeleteEmptyFoldersSettings.Instance.autoDelete) DeleteEmptyFolders.RemoveEmptyFoldersFunc(false);
+            instance.autoDelete = !instance.autoDelete;
+            instance.Save(true);
+            if(instance.autoDelete) DeleteEmptyFolders.RemoveEmptyFoldersFunc(false);
         }
         [MenuItem (MENU_NAME_AUTO_DELETE, true)]
         public static bool EnabledGUUIValidate () {
-            Menu.SetChecked(MENU_NAME_AUTO_DELETE, DeleteEmptyFoldersSettings.Instance.autoDelete);
+            Menu.SetChecked(MENU_NAME_AUTO_DELETE, instance.autoDelete);
             return true;
         }
     }
@@ -50,7 +51,7 @@ public class DeleteEmptyFolders : AssetPostprocessor
     /// </summary>
     private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
     {
-        if (DeleteEmptyFoldersSettings.Instance.autoDelete)
+        if (DeleteEmptyFoldersSettings.instance.autoDelete)
         {
             DeleteEmptyDirectories(deletedAssets);
             DeleteEmptyDirectories(movedFromAssetPaths);
