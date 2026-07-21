@@ -1,12 +1,30 @@
 ﻿using UnityEngine;
 using UnityEditor;
+using UnityEditor.EditorTools;
 using System.Collections.Generic;
 using System.Linq;
+
+// Scene-view polygon editing for Region: shown in the Tools overlay while a Region is selected.
+[EditorTool("Edit Polygon", typeof(Region))]
+class RegionPolygonEditorTool : PolygonEditorTool {
+	protected override PolygonEditorInstance CreateInstance (Object target) {
+		var region = (Region)target;
+		return new PolygonEditorInstance(region.transform, region.offsetMatrix) {
+			undoTarget = region,
+			GetPolygon = () => region.polygon,
+			OnPolygonChanged = _ => region.OnPropertiesChanged(),
+		};
+	}
+
+	// Keep the editing plane in sync with the region.
+	protected override void UpdateInstance (Object target, PolygonEditorInstance instance) {
+		instance.offsetMatrix = ((Region)target).offsetMatrix;
+	}
+}
 
 [CustomEditor(typeof(Region)), CanEditMultipleObjects]
 public class RegionEditor : Editor {
 	Region data;
-	PolygonEditorInstance polygonEditorInstance;
 
 	public void OnEnable() {
 		if(target == null) {
@@ -18,27 +36,11 @@ public class RegionEditor : Editor {
 
 		Undo.undoRedoPerformed += HandleUndoRedoCallback;
 		SceneView.duringSceneGui += OnSceneView;
-
-		// Editing happens in the scene view while the "Edit Polygon" tool is active
-		// (Tools overlay, or the U shortcut).
-		polygonEditorInstance = new PolygonEditorInstance(data.transform, data.offsetMatrix) {
-			undoTarget = data,
-			GetPolygon = () => data.polygon,
-			OnPolygonChanged = _ => data.OnPropertiesChanged(),
-			DefaultPolygonFunc = () => new Vector2[] {
-				new Vector2(-0.5f, 0.5f),
-				new Vector2(0.5f, 0.5f),
-				new Vector2(0.5f, -0.5f),
-				new Vector2(-0.5f, -0.5f),
-			},
-		};
-		PolygonEditorTool.StartDrawing(this, polygonEditorInstance);
 	}
 
 	void OnDisable() {
 		Undo.undoRedoPerformed -= HandleUndoRedoCallback;
 		SceneView.duringSceneGui -= OnSceneView;
-		PolygonEditorTool.StopDrawing(this);
 	}
 
 	public override void OnInspectorGUI() {
@@ -67,9 +69,7 @@ public class RegionEditor : Editor {
 	}
 
 	void OnSceneGUI () {
-		// Keep the editing plane in sync; the polygon itself is edited by the Edit Polygon tool.
-		if(polygonEditorInstance != null) polygonEditorInstance.offsetMatrix = data.offsetMatrix;
-
+		// The polygon itself is edited by RegionPolygonEditorTool; this only draws the height handle.
 		if(!data.in2DMode && !PolygonEditorTool.editing) {
 			var worldPosition = data.transform.position;
 			var matrix = data.matrix;

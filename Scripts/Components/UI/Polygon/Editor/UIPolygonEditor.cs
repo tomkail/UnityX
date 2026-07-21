@@ -2,12 +2,32 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.AnimatedValues;
+using UnityEditor.EditorTools;
 using UnityEngine.UI;
 using UnityEngine.UI.Extensions;
 using UnityEditorInternal;
 
 namespace UnityEditor.UI
 {
+    // Scene-view polygon editing for UIPolygon: shown in the Tools overlay while one is selected.
+    // The offset matrix tracks the pixel-adjusted rect, so polygon space matches UI pixel space.
+    [EditorTool("Edit Polygon", typeof(UIPolygon))]
+    class UIPolygonEditorTool : PolygonEditorTool {
+        protected override PolygonEditorInstance CreateInstance (Object target) {
+            var uiPolygon = (UIPolygon)target;
+            return new PolygonEditorInstance(uiPolygon.transform, Matrix4x4.Translate(uiPolygon.GetPixelAdjustedRect().position)) {
+                snapInterval = 100,
+                undoTarget = uiPolygon,
+                GetPolygon = () => uiPolygon.polygon,
+                OnPolygonChanged = _ => uiPolygon.SetVerticesDirty(),
+            };
+        }
+
+        protected override void UpdateInstance (Object target, PolygonEditorInstance instance) {
+            instance.offsetMatrix = Matrix4x4.Translate(((UIPolygon)target).GetPixelAdjustedRect().position);
+        }
+    }
+
     /// <summary>
     /// Editor class used to edit UI Sprites.
     /// </summary>
@@ -19,7 +39,6 @@ namespace UnityEditor.UI
 		SerializedProperty polygon;
         // SerializedProperty centreIsBoundsCentre;
 		private ReorderableList pointsList;
-        PolygonEditorInstance polygonEditorInstance;
 
         #pragma warning disable
         protected UIPolygon data;
@@ -33,17 +52,6 @@ namespace UnityEditor.UI
 			polygon = serializedObject.FindProperty("_polygon");
             // centreIsBoundsCentre = serializedObject.FindProperty("centreIsBoundsCentre");
 
-            // Editing happens in the scene view while the "Edit Polygon" tool is active
-            // (Tools overlay, or the U shortcut). The offset matrix tracks the pixel-adjusted
-            // rect, so polygon space matches UI pixel space.
-            polygonEditorInstance = new PolygonEditorInstance(data.transform, Matrix4x4.Translate(data.GetPixelAdjustedRect().position)) {
-                snapInterval = 100,
-                undoTarget = data,
-                GetPolygon = () => data.polygon,
-                OnPolygonChanged = _ => data.SetVerticesDirty(),
-            };
-            PolygonEditorTool.StartDrawing(this, polygonEditorInstance);
-            data.RegisterDirtyLayoutCallback(OnGraphicChange);
 //			pointsList = new ReorderableList(serializedObject, points, true, true, true, true);
 //			pointsList.drawHeaderCallback = (Rect rect) => {
 //    			EditorGUI.LabelField(rect, "Points");
@@ -53,17 +61,6 @@ namespace UnityEditor.UI
 //    			rect.y += 2;
 //				EditorGUI.PropertyField(rect, element, GUIContent.none);
 //    		};
-        }
-
-        void OnDisable() {
-            PolygonEditorTool.StopDrawing(this);
-            if(data != null) data.UnregisterDirtyLayoutCallback(OnGraphicChange);
-        }
-
-
-        void OnGraphicChange () {
-            if(polygonEditorInstance != null && data != null)
-                polygonEditorInstance.offsetMatrix = Matrix4x4.Translate(data.GetPixelAdjustedRect().position);
         }
 
         protected void SetData () {

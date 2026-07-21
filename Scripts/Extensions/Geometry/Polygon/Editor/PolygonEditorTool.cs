@@ -1,13 +1,15 @@
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.EditorTools;
-using UnityEditor.ShortcutManagement;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-[EditorTool("Edit Polygon")]
-public class PolygonEditorTool : EditorTool {
+// Scene-view polygon editing. Abstract: each editable component declares its own tool subclass via
+// [EditorTool("Edit Polygon", typeof(SomeComponent))], so the button only appears in the Tools overlay
+// while a matching component is selected. Subclasses implement CreateInstance (and optionally
+// UpdateInstance) to describe how their component's polygon is edited.
+public abstract class PolygonEditorTool : EditorTool {
     const string iconPath = "Assets/UnityX/Scripts/Extensions/Geometry/Polygon/Editor/polygonEditorToolIcon.png";
 
     // Serialize this value to set a default value in the Inspector.
@@ -20,7 +22,7 @@ public class PolygonEditorTool : EditorTool {
     public static bool editable = true;
 	public static bool editing {
 		get {
-			return ToolManager.activeToolType == typeof(PolygonEditorTool);
+			return ToolManager.activeToolType != null && typeof(PolygonEditorTool).IsAssignableFrom(ToolManager.activeToolType);
 		}
 	}
 
@@ -102,37 +104,48 @@ public class PolygonEditorTool : EditorTool {
         get { return m_IconContent; }
     }
 
-    [Shortcut("Tools/Edit Polygon", KeyCode.U)]
-    private static void Shortcut()
-    {
-		// var polygonEditorTool = UnityEditor.EditorTools.EditorTool.FindObjectOfType<PolygonEditorTool>();
-		// if(polygonEditorTool != null && polygonEditorTool.IsAvailable())
-        	ToolManager.SetActiveTool<PolygonEditorTool>();
-    }
-    
-    static Dictionary<object, PolygonEditorInstance> drawActions = new Dictionary<object, PolygonEditorInstance>();
-	static Dictionary<PolygonEditorInstance, PolygonEditorInstanceHandler> instanceHandlers = new Dictionary<PolygonEditorInstance, PolygonEditorInstanceHandler>();
-	public static void StartDrawing (object key, PolygonEditorInstance handler) {
-        drawActions[key] = handler;
+    // Creates the editing wrapper for one selected component.
+    protected abstract PolygonEditorInstance CreateInstance (UnityEngine.Object target);
+    // Called every tool frame; override when the instance tracks mutable state (e.g. an offset matrix).
+    protected virtual void UpdateInstance (UnityEngine.Object target, PolygonEditorInstance instance) {}
+
+    readonly Dictionary<UnityEngine.Object, PolygonEditorInstance> instances = new Dictionary<UnityEngine.Object, PolygonEditorInstance>();
+	readonly Dictionary<PolygonEditorInstance, PolygonEditorInstanceHandler> instanceHandlers = new Dictionary<PolygonEditorInstance, PolygonEditorInstanceHandler>();
+
+	// One editing instance per selected target; `targets` comes from the selection via the
+	// subclass's [EditorTool] target type.
+	void SyncInstances () {
+		var currentTargets = new HashSet<UnityEngine.Object>(targets.Where(t => t != null));
+		var staleTargets = instances.Keys.Where(t => !currentTargets.Contains(t)).ToList();
+		foreach(var staleTarget in staleTargets) {
+			var instance = instances[staleTarget];
+			if(instance == hoveredInstance) hoveredInstance = null;
+			if(instance == activeInstance) activeInstance = null;
+			instances.Remove(staleTarget);
+		}
+		foreach(var target in currentTargets) {
+			PolygonEditorInstance instance;
+			if(!instances.TryGetValue(target, out instance)) instances[target] = instance = CreateInstance(target);
+			UpdateInstance(target, instance);
+		}
 	}
 
-	public static void StopDrawing (object key) {
-        PolygonEditorInstance editorInstance = null;
-		if(!drawActions.TryGetValue(key, out editorInstance)) {
-			Debug.LogWarning("Couldn't find draw action with key "+key);
-			return;
-		}
-		if(editorInstance == hoveredInstance) hoveredInstance = null;
-		if(editorInstance == activeInstance) activeInstance = null;
-		drawActions.Remove(key);
+	public override void OnWillBeDeactivated () {
+		StopEditingPoint();
+		StopMoving();
+		hoveredInstance = null;
+		instances.Clear();
+		instanceHandlers.Clear();
 	}
 
     public override void OnToolGUI(EditorWindow window) {
 		if(Event.current.isMouse) SceneView.RepaintAll();
 
+		SyncInstances();
+
 		List<PolygonEditorInstance> instancesEditorsToRemove = new List<PolygonEditorInstance>();
         foreach(var instanceHandler in instanceHandlers) {
-			if(!drawActions.Values.Contains(instanceHandler.Key) || !instanceHandler.Key.Valid) {
+			if(!instances.ContainsValue(instanceHandler.Key) || !instanceHandler.Key.Valid) {
 				instancesEditorsToRemove.Add(instanceHandler.Key);
 			}
 		}
@@ -140,7 +153,7 @@ public class PolygonEditorTool : EditorTool {
 			instanceHandlers.Remove(instanceToRemove);
 		}
 
-        foreach(var polygonEditorInstance in drawActions.Values) {
+        foreach(var polygonEditorInstance in instances.Values) {
 			if(!polygonEditorInstance.Valid) continue;
 			PolygonEditorInstanceHandler instanceHandler = null;
 			if(!instanceHandlers.TryGetValue(polygonEditorInstance, out instanceHandler)) {
