@@ -5,6 +5,21 @@ Goal: contained UnityX sub-systems that don't depend on the rest of UnityX get a
 portability is *visible and compiler-enforced*, as a step toward shipping them as UPM packages. Approach agreed:
 inline the few recurring helpers **per module** (self-contained folders), not a shared helper folder.
 
+### Status (as of 2026-07-21)
+**59 asmdefs** now under `Assets/UnityX/`. The rollout is well past the template stage. **Done:** Spring, Splines,
+Noises, NoiseSampler, Timers, Colors, Tween, Easer, Easing, Layout, Meshes, ViewAnimation, UIImposters, Versioning,
+StateMachines, ValuePicker, PropertyCurves, UI.GridLayout, SceneViewTools, **Geometry** (Tier 2 foundational),
+**Grid** (→ SquareGrid / SquareGridRenderer / CubeGridRenderer), **PolygonRenderer**, **Region**, **Islands**,
+**Camera** (→ CameraProperties / CameraShots / SerializableCamera / SerializableTransform / CameraX + Direct
+Manipulation Camera), **ScreenshotExporter**, **SLayouts**, **AssetSaver**, **MultitouchDraggable** + native
+**TrackpadMultitouch**, **CameraX** (first Core carve-out), **SceneManagement** (→ `UnityX.SceneManagement` +
+`.Editor`; inlined `MonoSingleton`, editor code consolidated under one `Editor/`). Plus non-packaging cleanup:
+`Undo History` → `Collections/History`, Icon system removed, Property Drawers modernised (enum drawers,
+FlagsX, ClampMin dropped), Input legacy code deleted, ExtendedCanvasScaler/ScrollRect modernised, and the Point →
+Vector2Int migration finished for all consumers outside `Geometry/Point`.
+**Still open (highest leverage):** the shared **Property Drawers** hub asmdef, the **Core** module
+(`UnityEngineX`/`Collections`/`System` → `UnityX.Core`), the core **Input** module, and **Text Effects**.
+
 ### Verdict key
 - ✅ **Portable** — zero UnityX deps; drop-in as-is (a required Unity *package* like UGUI/TMP is noted, not counted as a blocker).
 - 🟢 **Easy** — a few trivial helpers / one small self-contained file to inline or copy.
@@ -26,35 +41,35 @@ Latent issues found during analysis: (1) `IEnumerableX.Min/Max` silent binding i
 ### Extensions/ — feature modules
 | Module | Files | What it is | External deps | Verdict |
 |---|---|---|---|---|
-| Algorithms | 8 | Noise (Perlin/Simplex), Bezier, EasingFunction, AStar, UpscaleTools | none (shared/foundational) | ✅ |
+| Algorithms | 8 | Noise (Perlin/Simplex), Bezier, EasingFunction, AStar, UpscaleTools | none (shared/foundational) | ✅ — `Noise` → `UnityX.Noises`, `EasingFunction` → `UnityX.Easing` extracted |
 | Range | 3 | Serializable float/int `[min,max]` range structs + drawer | none (shared/foundational) | ✅ |
 | MeshBuilder | 4 | Growable vert/tri/uv/color buffers → baked `Mesh` | none | ✅ |
 | FlexLayout | 4 | Flexbox-style 1D layout solver + drawers | none (own namespace) | ✅ |
 | Serialized Scriptable Singleton | 1 | Generic SO persisted to EditorPrefs/PlayerPrefs | none | ✅ |
 | Regex | 1 | Regex pattern consts + cached matchers | none | ✅ |
 | MenuItems | 1 | Editor CONTEXT menu items for RectTransform rebuild | none | ✅ |
-| Geometry | 15 | Point/PointRect/Polygon/Line/Triangle + polygon editor tool | `Triangulator` (loose file, trivial) — shared/foundational | 🟢 |
+| Geometry | 15 | Point/PointRect/Polygon/Line/Triangle + polygon editor tool | `Triangulator` (loose file, trivial) — shared/foundational | ✅ **DONE** → `UnityX.Geometry` |
 | Spring | 5 | Physically-based spring (`Spring`, `SpringHandler`) + drawers | editor-only: `RoundTo`, `IEnumerableX.Min/Max` (~3 lines) | 🟢 |
 | Timer | 1 | Serializable event-driven stopwatch/countdown | `[Disable]` attr (drop) | 🟢 |
 | FSM | 3 | Generic finite state machine | `DebugX` (2), `[Disable]` (~5 lines) | 🟢 |
 | ValuePicker | 3 | Priority/blend value resolvers (Selector/Blender) | `DebugX.ListAsString` (1) | 🟢 |
 | Property Curve | 5 | Generic keyframed curve over arbitrary types | `IsBetween` (1); drop `PolygonPropertyCurve` leaf to shed Geometry | 🟢 |
-| NoiseSampler | 4 | fBm noise sampler + live-graph inspector | extract with `Algorithms/Noise`; ~20 editor lines | 🟢 |
+| NoiseSampler | 4 | fBm noise sampler + live-graph inspector | extract with `Algorithms/Noise`; ~20 editor lines | ✅ **DONE** → `UnityX.NoiseSampler` (+ `.Editor`) |
 | Spline System | 5 | Cubic-Bézier spline + scene handle editor | `Bezier` (~50 lines), editor `.ToList()` | 🟢 |
-| Easer | 15 | SmoothDamp/MoveTowards/spring easers for common types | `[Disable]`, `MathX.Sign`, `QuaternionX.SmoothDamp`, `Spring.Update` (~110 lines) | 🟢 |
+| Easer | 15 | SmoothDamp/MoveTowards/spring easers for common types | `[Disable]`, `MathX.Sign`, `QuaternionX.SmoothDamp`, `Spring.Update` (~110 lines) | ✅ **DONE** → `UnityX.Easer` |
 | Tween | 10 | Time-driven type tweens (Float/Vec/Color/…) | `Timer` (portable), `ColorX` (one tween) | 🟢 |
 | Version Control | 4 | Git branch/SHA reader + version SO + build stamp | `[Info]`, `[Disable]` attrs | 🟢 |
-| Undo History | 1 | Generic undo/redo stack | `IEnumerableX.IsNullOrEmpty` (1) | 🟢 |
+| ~~Undo History~~ | 1 | Generic undo/redo stack | — | ✅ **DONE** — moved + generalised into `Collections` as `History` |
 | Texture Transform Utils | 1 | Texture rotate/flip/transpose via Blit | needs `ApplyImageOrientation` shader asset | 🟢 |
 | Audio | 8 | Clip clone/trim, dB math, mic capture, WAV, FFT peer | `IsNullOrEmpty` (1), `BaseEditor` (editor); 6/8 standalone | 🟢 |
 | Text (core) | 2 | TMP size/line-balancing utils + `PrettyTextLayout` | `Best`, `IsNullOrEmpty`, `RectX.Encapsulating` (all trivial) | 🟢 |
 | Text Effects | 17 | TMP per-vertex/material effects framework (wobble/fader/gradient/…) | `ObjectX.DestroyAutomatic`, `ResetTransform`, `Range` struct, `GradientX.GradientType`, `MathX.Abs`, **missing `Color32.Compare`** | 🟢 |
 | Serializable Components | 2 | `SerializableTransform` (portable) + `SerializableCamera` | `SerializableCamera` needs `CameraX` frustum math | 🟢 |
 | GLDebug | 1 | Batched GL/Gizmo line drawing singleton | `MonoSingleton<T>` (~34 lines) + 2 shaders | 🟢 |
-| Grid | 22 | 2D/3D grid + typed maps + renderer + agents | copy `Point`+`PointRect` (~780 lines) + ~20 small helpers | 🟡 |
-| Structures | 7 | Point-cloud Shape/Structure + flood-fill island detectors | `Point`/`PointRect` + `TypeMap`→Grid; Island detectors nearly portable | 🟡 |
-| Scene Management | 9 | ScriptableObject scene-sets + additive runtime loader | `MonoSingleton`, `BaseEditor`, `EditorSceneManagerX` | 🟡 |
-| Camera | 9 | Orbit/framing camera-rig + shot generation | `SerializableCamera`+`SerializableTransform`+`CameraX` (~1300 lines) | 🔴 |
+| Grid | 22 | 2D/3D grid + typed maps + renderer + agents | copy `Point`+`PointRect` (~780 lines) + ~20 small helpers | ✅ **DONE** → `UnityX.SquareGrid` / `.SquareGridRenderer` / `.CubeGridRenderer` |
+| Structures | 7 | Point-cloud Shape/Structure + flood-fill island detectors | `Point`/`PointRect` + `TypeMap`→Grid; Island detectors nearly portable | 🟢 Island → `UnityX.Islands`; `GridShape` still loose |
+| Scene Management | 9 | ScriptableObject scene-sets + additive runtime loader | `MonoSingleton` (only real dep — now inlined) | ✅ **DONE** → `UnityX.SceneManagement` (+ `.Editor`) |
+| Camera | 9 | Orbit/framing camera-rig + shot generation | `SerializableCamera`+`SerializableTransform`+`CameraX` (~1300 lines) | ✅ **DONE** → `UnityX.CameraProperties`/`.CameraShots`/`.SerializableCamera`/`.CameraX` (+ Direct Manipulation Camera) |
 
 ### Extensions/ — loose utility files (directly in `Extensions/`)
 | File | What it is | External deps | Verdict |
@@ -83,9 +98,9 @@ Latent issues found during analysis: (1) `IEnumerableX.Min/Max` silent binding i
 | ChangeCheckers | 2 | Poll transform/GO changes → events | `SerializableTransform`, `BetterSendMessage` | 🟢 |
 | Events (TriggerListener) | 1 | Re-broadcast collision/trigger messages | `DebugX`, `HierarchyPath`, `LayerMask.Includes` | 🟢 |
 | Debugging (GUIGraph) | 1 | IMGUI oscilloscope grapher | `ColorX.WithAlpha` (1) | 🟢 |
-| PolygonRenderer | 7 | Build filled/outline mesh from a `Polygon` | Geometry package + MeshBuilder + trivial helpers | 🟡 |
-| Region | 2 | Polygonal region: containment/raycast/extrude mesh | Geometry package + `PolygonEditorTool` (editor) | 🟡 |
-| Input | 12 | Touch/mouse/keyboard abstraction + gestures | `MonoSingleton`, `RectX`, `Best`; `ScreenX` (heavy, 1 line) | 🟡 |
+| PolygonRenderer | 7 | Build filled/outline mesh from a `Polygon` | Geometry package + MeshBuilder + trivial helpers | ✅ **DONE** → `UnityX.PolygonRenderer` (+ `.Editor`) |
+| Region | 2 | Polygonal region: containment/raycast/extrude mesh | Geometry package + `PolygonEditorTool` (editor) | ✅ **DONE** → `UnityX.Region` (+ `.Editor`) |
+| Input | 12 | Touch/mouse/keyboard abstraction + gestures | `MonoSingleton`, `RectX`, `Best`; `ScreenX` (heavy, 1 line) | 🟡 legacy `InputX`/sim deleted, `Finger` decoupled; core not yet asmdef'd (MultitouchDraggable/TrackpadMultitouch are) |
 | Audio | 2 | Timescale/focus-aware AudioSource wrapper | `LogicBlender`, `FloatTween`, `DebugX`, `BaseEditor`, `EditorGUILayoutX` | 🟡 |
 
 ### Components/UI/ — widget collection (60 files, ~24 widgets)
@@ -94,25 +109,27 @@ mostly one-off `Vector2X`/`RectX`/`MathX`/`ColorX` calls and `BaseEditor` in 3 e
 Extended Button/Slider, ExtendedCanvasScaler, Outlines, UIGradient, CanvasWorldScaler, AbsoluteRectTransformController,
 CarouselUIView, EnforceImageAspectRatio, UIMonoBehaviour), and **most of the rest 🟢** (Draggable, ExtendedScrollRect,
 Grid Layout, Swipe View, RoundRect, Saturation/Background-Blur, WorldSpaceUIElement, InvisibleInteractable). The **🟡**
-exceptions: `Line`, `Polygon`, `RoundRectPolygonUI` (need the **Geometry** namespace), and `SLayout` (~2100-line
-in-house layout-animation framework — MEDIUM by *size*, coupling is just `RectX` + optional TMP + `BaseEditor`).
+exceptions: `Line`, `Polygon`, `RoundRectPolygonUI` (need the **Geometry** namespace, now available as `UnityX.Geometry`).
+**Done from this collection:** `SLayout` → `UnityX.SLayouts` (+ `.Editor`, optional TMP); `Grid Layout` → `UnityX.UI.GridLayout`;
+`MultitouchDraggable` → `UnityX.MultitouchDraggable`; `UI Imposter` → `UnityX.UIImposters`. `ExtendedCanvasScaler` +
+`ExtendedScrollRect` modernised (not asmdef'd).
 
 ### Editor Tools/ (editor-only)
 | Tool | Files | What it is | External deps | Verdict |
 |---|---|---|---|---|
 | Base Editor Class | 1 | `BaseEditor<T>` typed inspector base | none — shared/foundational | ✅ |
 | CameraUtilities | 1 | Window listing scene cameras | none | ✅ |
-| DetectLeaksWindow | 1 | Live object/asset census window | none | ✅ |
-| EditorTime | 1 | Editor deltaTime tracker → shader global | none | ✅ |
-| SceneView | 2 | Scene-GUI callback registrar + cull helpers | none | ✅ |
-| SerializedEditorSettings | 1 | Generic JSON-in-EditorPrefs settings | none | ✅ |
-| Transformer | 1 | Window to offset selected transforms | none | ✅ |
+| ~~DetectLeaksWindow~~ | ~~1~~ | ~~Live object/asset census window~~ | — | ❌ **REMOVED** — superseded by the Memory Profiler package |
+| EditorTime | 1 | Editor deltaTime tracker → shader global | none | 🟡 kept (no native equiv); **0 shader consumers here** |
+| SceneView | 2 | Scene-GUI callback registrar + cull helpers | none | ✅ → `UnityX.SceneViewTools` |
+| ~~SerializedEditorSettings~~ | ~~1~~ | ~~Generic JSON-in-EditorPrefs settings~~ | — | ❌ **REMOVED** — consumers migrated to `ScriptableSingleton<T>` + `[FilePath]` |
+| ~~Transformer~~ | ~~1~~ | ~~Window to offset selected transforms~~ | — | ❌ **REMOVED** (trivial; no native equiv but not worth keeping) |
 | CommentComponent | 2 | Editable note component | `BaseEditor` | 🟢 |
-| Icon | 5 | Assign gizmo/label icons to GameObjects | `BaseEditor` | 🟢 |
-| GameLayersClassGenerator | 1 | Codegen `GameLayers.cs` from layers | `ScriptAssetCreator` | 🟢 |
+| ~~Icon~~ | ~~5~~ | ~~Assign gizmo/label icons to GameObjects~~ | — | ❌ **REMOVED** (deleted) |
+| GameLayersClassGenerator | 1 | Codegen `GameLayers.cs` from layers | `ScriptAssetCreator` | 🟢 rewired: menu item + best-effort auto-sync on TagManager save (no load-time compile cost) |
 | Texture Creator | 1 | Window generating solid/gradient textures | `.Abs()` (1) | 🟢 |
 | FolderInspector | 2 | Custom inspector for folder assets | `EditorApplicationX`, `PathX` | 🟡 |
-| Screenshot Exporter | 7 | Screenshot capture/export pipeline | collection exts, `SystemInfoX`, `CoroutineHelper` | 🟡 |
+| Screenshot Exporter | 7 | Screenshot capture/export pipeline | collection exts, `SystemInfoX`, `CoroutineHelper` | ✅ **DONE** → `UnityX.ScreenshotExporter` (+ `.Editor`, self-contained) |
 
 ### Property Drawers/ (40 subfolders, 45 files) — 🟢 as a set
 Uniform pattern: a runtime `PropertyAttribute` + an editor-only `PropertyDrawer` (shared base in `Property Drawers/Editor/`).
@@ -156,7 +173,7 @@ a single monorepo of packages, split per-repo only if independent release cadenc
       (Editor-only asmdef → references the runtime one). Inlined `MathX.RoundTo` into the editor's `GraphGUI`
       (the `.Min`/`.Max` calls now bind to `System.Linq`, so no UnityX runtime dep remains). Added
       `using UnityX.Springs;` to the two struct consumers (`SwipeView`, `Easer/SmoothDamp/SpringDamper`).
-      Compiles clean. **Awaiting review before rollout.**
+      Compiles clean. **Reviewed & approved — rolled out across the modules below.**
 - [x] Modularised (namespace + asmdef(s), compiles clean; each runtime asmdef has empty `references` unless noted):
       - **Splines** — `Spline System/` → `UnityX.Splines` (+ `.Editor`). Inlined `Bezier` (internal); editor uses `System.Linq` for `.ToList()`.
       - **Noises** — `Algorithms/Noise/` → `UnityX.Noises`. Pluralised to avoid the `Noise` type/namespace clash. Moved `NoiseNormalization` enum here.
@@ -175,7 +192,26 @@ a single monorepo of packages, split per-repo only if independent release cadenc
       - **PropertyCurves** — `Property Curve/` → `UnityX.PropertyCurves` (pluralised; `PropertyCurve<T>` type). Inlined `IsBetween`; relocated unused `PolygonPropertyCurve` bridge to Assembly-CSharp (`Extensions/PropertyCurvePolygon/`).
       - **UI.GridLayout** — `Components/UI/Grid Layout/` → `UnityX.UI.GridLayout` (+ `.Editor`). Moved out of `namespace UnityEngine.UI` into `UnityX.UI`; renamed type `GridLayout`→`GridLayoutElement` (kills the `UnityEngine.GridLayout` Tilemap clash + editor alias); `.cs` renamed (meta GUID kept). Refs `UnityEngine.UI` (+ `UnityEditor.UI`). First of the 13 UI files to leave `UnityEngine.UI`.
       - **SceneViewTools** — `Editor Tools/SceneView/` → `UnityX.SceneViewTools` (runtime: `SceneViewUtility`, `#if UNITY_EDITOR` frustum-cull helpers) + `.Editor` (`SceneGUIDrawer`). Both empty-refs (no cross-ref; `SceneViewUtility` uses fully-qualified `UnityEditor.SceneView`). Named `SceneViewTools` not `SceneView` to avoid the `UnityEditor.SceneView` clash. Consumer `PositionHandleDrawer` gets `using UnityX.SceneViewTools.Editor`.
-      (Meshes/ViewAnimation/UIImposters/Versioning/StateMachines/ValuePicker: VERIFIED clean. PropertyCurves/UI.GridLayout/SceneViewTools + Point migration: edits done, verify pending — Unity MCP bridge down.)
+      (All of the above VERIFIED clean and committed — PropertyCurves/UI.GridLayout/SceneViewTools + the Point migration beachhead all confirmed after the MCP bridge came back.)
+- [x] **Second wave (2026-07-08 → 07-09) — foundational + Tier 3 modules packaged** (57 asmdefs total under `Assets/UnityX/` now):
+      - **Easing** — `Algorithms/Easing/` → `UnityX.Easing`. Extracted `EasingFunction` into its own asmdef.
+      - **Geometry** — `Extensions/Geometry/` → `UnityX.Geometry` (+ `Point/Editor`, `Polygon/Editor`), bundles the loose `Triangulator`. **Tier 2 foundational — this is what unlocked Grid / PolygonRenderer / Region / UI widgets.**
+      - **AssetSaver** — first Property Drawer carved out → `UnityX.AssetSaver` (+ `.Editor`), self-contained.
+      - **PolygonRenderer** — `Components/PolygonRenderer/` → `UnityX.PolygonRenderer` (+ `.Editor`). MeshCollider re-cooks after mesh rebuild.
+      - **Region** — `Components/Region/` → `UnityX.Region` (+ `.Editor`; editor references the Polygon editor).
+      - **Grid** — reorganised + square-specific types renamed, then split into `UnityX.SquareGrid` (core), `UnityX.SquareGridRenderer` (+ `.Editor`), and `UnityX.CubeGridRenderer` (reworked to transform-based 3D grid). Each sheds its Core deps.
+      - **Islands** — `Structures/Island/` → `UnityX.Islands` (Structures' `GridShape.cs` still loose).
+      - **ScreenshotExporter** — `Editor Tools/Screenshot Exporter/` → `UnityX.ScreenshotExporter` (+ `.Editor`); made self-contained by inlining its extension deps.
+      - **SLayouts** — `Components/UI/SLayout/` → `UnityX.SLayouts` (+ `.Editor`), optional TextMeshPro.
+      - **Camera** — split into asmdef modules: `UnityX.CameraProperties`, `UnityX.CameraShots`, `UnityX.SerializableCamera`, `UnityX.SerializableTransform`, and `UnityX.CameraX` (carved out of the UnityEngineX grab-bag). Builder queue reworked into a modifier stack. Added a new **Direct Manipulation Camera** module (`Extensions/Direct Manipulation Camera/`) + Touch Test scene.
+      - **MultitouchDraggable / TrackpadMultitouch** — new native `MultitouchSupport` plugin → `UnityX.TrackpadMultitouch` (+ `.Editor` + `.Tests`); `UnityX.MultitouchDraggable` (+ `.Editor`) module; phantom-finger fix; GameObject/UI create menus for Draggable + MultitouchDraggable.
+- [x] **Non-packaging cleanup done in the same period:**
+      - **Scene Management** modernised for Unity 6 (SceneReference, async, interfaces) — not yet asmdef'd.
+      - **Collections/History** — `Undo History/` moved into Collections and generalised as `History`.
+      - **Icon system removed** (was under Editor Tools).
+      - **Property Drawers** — rewrote enum button drawers for modern Unity, dropped `EnumButtonGroup`, renamed `EnumFlagsButtonGroup` → `EnumFlagsButtons`; fixed shared-state bugs; deleted `ClampMin`; `BeginProperty` pass; `FilePathField` rename; `FlagsX` negative/non-int enum fix.
+      - **Input** — deleted legacy `InputX` / `TouchInputSimulator`, decoupled `Finger` from legacy `Touch`.
+      - **ExtendedCanvasScaler & ExtendedScrollRect** modernised; `GridLayoutEditor` dead reflection removed.
 ### asmdef granularity — policy (not religious)
 An asmdef is a *boundary you actually need*, not "one per module". Make one only when the module is (a) a
 plausible standalone UPM **package**, (b) worth **compile-isolating** (changes often), or (c) a wall you want to
@@ -198,15 +234,15 @@ proliferation (e.g. all Property Drawers = one assembly, not one-per-drawer).
 - [~] Audio — `Extensions/Audio` (8, 3 ed) — DE-SCOPED for now: a heterogeneous utils grab-bag (WAV/mic/FFT/clip), not one cohesive feature. Revisit only if an "audio tools" package is actually wanted.
 
 **Tier 2 — foundational, unlock the rest (bigger, higher leverage):**
-- [ ] Geometry (15, 4 ed) → `UnityX.Geometry` (bundle the loose `Triangulator.cs`). Unlocks Grid, PolygonRenderer, Region, UI Line/Polygon.
-- [ ] Property Drawers (86, 44 ed) → one `UnityX.PropertyDrawers` (+ `.Editor`). Shared hub — lets modules *use* `[Disable]`/`[Info]` instead of dropping them.
-- [ ] Core: `UnityEngineX` + `Collections` + `System` → `UnityX.Core`; `UnityEditorX` → `UnityX.Core.Editor`. The dependency sink; removes the need to inline helpers per module.
+- [x] Geometry (15, 4 ed) → `UnityX.Geometry` — done (bundled `Triangulator.cs`; Point + Polygon editors as sub-asmdefs). Unlocked Grid, PolygonRenderer, Region, UI Line/Polygon.
+- [~] Property Drawers (86, 44 ed) → one `UnityX.PropertyDrawers` (+ `.Editor`). PARTIAL: `AssetSaver` extracted as its own module; enum drawers rewritten & cleaned up. Still want the *shared* hub asmdef so modules can *use* `[Disable]`/`[Info]` instead of dropping them.
+- [ ] Core: `UnityEngineX` + `Collections` + `System` → `UnityX.Core`; `UnityEditorX` → `UnityX.Core.Editor`. Still open — the dependency sink; removes the need to inline helpers per module. (First carve-out done: `CameraX` → `UnityX.CameraX`.)
 
 **Tier 3 — depend on Tier 2 (do after):**
-- [ ] Grid (22, 1 ed) — after Geometry.
-- [ ] PolygonRenderer (7, 3 ed) + Region (2) — after Geometry + MeshBuilder.
-- [ ] Structures (7) — after Geometry/Grid.
-- [ ] Input (12, 0 ed) — needs a home for `MonoSingleton` + `ScreenX`.
+- [x] Grid (22, 1 ed) — done. Reorganised + split into `UnityX.SquareGrid`, `UnityX.SquareGridRenderer` (+ `.Editor`), `UnityX.CubeGridRenderer`.
+- [x] PolygonRenderer (7, 3 ed) + Region (2) → `UnityX.PolygonRenderer` (+ `.Editor`) + `UnityX.Region` (+ `.Editor`) — done.
+- [~] Structures (7) — Island detectors packaged as `UnityX.Islands`; `GridShape.cs` still loose in Assembly-CSharp.
+- [ ] Input (12, 0 ed) — legacy `InputX`/`TouchInputSimulator` deleted and `Finger` decoupled from legacy `Touch`, but the core Input module still needs a home for `MonoSingleton` + `ScreenX` before it can be asmdef'd. (`MultitouchDraggable` + `TrackpadMultitouch` already are their own modules.)
 - [ ] Text Effects (17, 0 ed) — needs the `Color32.Compare` fix + `Range`/`GradientX`.
 
 ### Point → Vector2Int migration (in progress; keep `Point`, don't delete)
@@ -218,7 +254,10 @@ Point predates Vector2Int; migrating to Unity's type. Added implicit `Point`↔`
       extensions (`CardinalDirections`/`OrdinalDirections`/`CompassDirections` in `Vector2IntX`, offsets matching Point).
       Cascade check: only `TypeMap : Grid` subclasses it, nothing overrides the changed virtuals, and Grid's changed
       collection-returning methods have no external callers — so implicit conversions bridge consumers; should compile standalone.
-- [ ] Remaining ~35 files (TypeMap, GridRenderer, agents, Structures/Shape, scattered consumers). Migrate module-by-module.
+- [x] Remaining consumers migrated: the last `Point` consumers *outside* `Geometry/Point` were removed (commit db70e5d).
+      `Point` now lives contained under `UnityX.Geometry`'s `Point/` sub-asmdef; the only remaining references elsewhere
+      are the intentional `Point`↔`Vector2Int` bridge extensions in Core (`RectX`, `DebugX`, `Vector2IntX`, `TextureX`, …).
+      `Point` itself is kept (not deleted), as agreed.
 - [ ] Keep `PointRect` (→ `RectInt` is higher-friction: no `MinMaxRect`/`ToRect`, different semantics). Separate, later.
 - [ ] (Opportunistic) Supply the missing `Color32.Compare` helper used by the Text Effects framework.
 - [ ] Pre-existing unrelated error to resolve separately: `Grass/GrassComputeScript.cs` references `VectorFieldComponent.gridRenderer` which no longer exists (concurrent change to VectorFieldComponent).
