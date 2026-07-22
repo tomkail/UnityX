@@ -29,7 +29,7 @@ public class DeleteEmptyFolders : AssetPostprocessor
     const string MENU_NAME = "Tools/Empty Folder Tool/";
     const string ASSET_STRING = "Assets";
     [FilePath("UserSettings/DeleteEmptyFoldersSettings.asset", FilePathAttribute.Location.ProjectFolder)]
-    public class DeleteEmptyFoldersSettings : ScriptableSingleton<DeleteEmptyFoldersSettings> {
+    public class DeleteEmptyFoldersSettings : UnityEditor.ScriptableSingleton<DeleteEmptyFoldersSettings> {
         public bool autoDelete = true;
         const string MENU_NAME_AUTO_DELETE = MENU_NAME + "Toggle Auto Delete";
 

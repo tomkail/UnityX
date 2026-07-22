@@ -8,7 +8,7 @@ using UnityEditor.SceneManagement;
 public class SaveAllOnEnterPlayMode {
 	
 	[FilePath("UserSettings/SaveAllOnEnterPlayModeSettings.asset", FilePathAttribute.Location.ProjectFolder)]
-	public class SaveAllOnEnterPlayModeSettings : ScriptableSingleton<SaveAllOnEnterPlayModeSettings> {
+	public class SaveAllOnEnterPlayModeSettings : UnityEditor.ScriptableSingleton<SaveAllOnEnterPlayModeSettings> {
 		public bool enabled = true;
 		const string enabledPath = "Tools/Save On Enter Play Mode";
 		[MenuItem(enabledPath)]
