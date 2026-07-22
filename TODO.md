@@ -20,8 +20,11 @@ Vector2Int migration finished for all consumers outside `Geometry/Point`.
 **Core is done** (`UnityX.Core` + `UnityX.Core.Editor`; global namespace kept, autoReferenced — foundational
 `MonoSingleton`/`CoroutineHelper`/`PlayerLoopUtils` moved in). **Property Drawers hub is done**
 (`UnityX.PropertyDrawers` + `.Editor`; drawers consolidated into one Editor/). **Point/PointRect/Point3 removed**
-(helpers are now `Vector2Int`/`Vector3Int` extensions). **Still open:** the core **Input** module (now unblocked —
-`MonoSingleton` lives in Core) and **Text Effects** (needs `Color32.Compare` + `Range`/`GradientX`). ~62 asmdefs.
+(helpers are now `Vector2Int`/`Vector3Int` extensions). **Input** (`UnityX.Inputs`, pluralised to dodge the
+`UnityEngine.Input` clash, refs Core + UnityEngine.UI) and **Text Effects** (`UnityX.TextEffects`, refs Core +
+PropertyDrawers + TMP) are now **packaged** — the missing `Color32.Compare` helper was added to Core's `ColorX`, and
+the de-scoped `Range` struct + drawer were folded into `UnityX.Core` so Text Effects can reference it. That clears the
+last two Tier-3 modules. ~64 asmdefs.
 
 ### Folder structure (reorganised 2026-07-21 — by module)
 `Scripts/` was reorganised from the old *kind-of-thing* split (`Components` / `Extensions` / `Editor Tools` /
@@ -35,11 +38,11 @@ Scripts/
   PropertyDrawers/ the drawer set (AssetSaver module lives inside; → future UnityX.PropertyDrawers)
   Uncategorised/   not-yet-modularised code, grouped: Components/ (with UI/), Editor Tools/, Extensions/
 ```
-`Modules/` holds: CameraProperties, CameraShots, CameraX, Colors, CubeGridRenderer, Easer, Easing, Geometry, Islands,
-Layout, Meshes, MultitouchDraggable, NoiseSampler, Noises, PolygonRenderer, PropertyCurves, Region, SLayouts,
+`Modules/` holds: CameraProperties, CameraShots, CameraX, Colors, CubeGridRenderer, Easer, Easing, Geometry, Inputs,
+Islands, Layout, Meshes, MultitouchDraggable, NoiseSampler, Noises, PolygonRenderer, PropertyCurves, Region, SLayouts,
 SceneManagement, SceneViewTools, ScreenshotExporter, SerializableCamera, SerializableTransform, Splines, Springs,
-SquareGrid, SquareGridRenderer, StateMachines, Timers, Tween, UI.GridLayout, UIImposters, ValuePicker, Versioning,
-ViewAnimation. (TrackpadMultitouch stays under `Assets/UnityX/Plugins/` — it ships a native bundle.)
+SquareGrid, SquareGridRenderer, StateMachines, TextEffects, Timers, Tween, UI.GridLayout, UIImposters, ValuePicker,
+Versioning, ViewAnimation. (TrackpadMultitouch stays under `Assets/UnityX/Plugins/` — it ships a native bundle.)
 
 **Note:** the analysis tables below are still grouped under their *original* folder headings (`### Extensions/…`,
 `### Components/…`) — treat those headings as historical; the live location of any module is `Modules/<AsmdefName>`.
@@ -60,7 +63,7 @@ unlocks the most modules:
 - **The Geometry package** — `Point`/`PointRect`/`Polygon`/`Line`/`Triangulator` (`Extensions/Geometry/` + loose `Triangulator.cs`). Foundational for Grid, Structures, PolygonRenderer, Region, and 3 UI widgets.
 - **Small `UnityEngineX`/`Collections` helpers** — `MathX`, `RectX`, `TransformX`, `ColorX`, `DebugX`, `IEnumerableX.Min/Max/IsEmpty`, `ObjectX.DestroyAutomatic`. Each trivial to inline.
 
-Latent issues found during analysis: (1) `IEnumerableX.Min/Max` silent binding in editor drawers lacking `using System.Linq` (caused the empty-sequence crash fixed in NoiseSampler's `GraphGUI`); (2) `Color32.Compare` is referenced by the Text Effects framework but **not defined in this checkout** — a one-line helper is missing.
+Latent issues found during analysis: (1) `IEnumerableX.Min/Max` silent binding in editor drawers lacking `using System.Linq` (caused the empty-sequence crash fixed in NoiseSampler's `GraphGUI`); (2) `Color32.Compare` was referenced by the Text Effects framework but **not defined in this checkout** — ✅ now added as a one-line extension in Core's `ColorX`.
 
 ### Extensions/ — feature modules
 | Module | Files | What it is | External deps | Verdict |
@@ -250,7 +253,7 @@ proliferation (e.g. all Property Drawers = one assembly, not one-per-drawer).
 - [x] MeshBuilder (4, 0 ed) → `UnityX.Meshes` — done (+ 32-bit index buffer fix).
 - [x] ViewAnimator (2, 0 ed) → `UnityX.ViewAnimation` — done.
 - [x] UI Imposter (`Components/UI/UI Imposter/`, 3, 1 ed) → `UnityX.UIImposters` — done (refs UnityEngine.UI / UnityEditor.UI).
-- [~] Range — DE-SCOPED as a standalone module (it's a tiny serializable min/max struct + drawer, i.e. a value type, not a package). Leave in Assembly-CSharp / fold into a future `UnityX.Core`.
+- [x] Range — folded into `UnityX.Core` (`Range`/`RangeInt` → `Core/UnityEngineX/`, `RangeDrawer` → `Core.Editor`). It's a value type, not its own package; moving it into Core lets asmdef'd modules (Text Effects) use it while Assembly-CSharp consumers keep working (Core is autoReferenced).
 - [x] FSM (3, 0 ed) → `UnityX.StateMachines` — done (pluralised to avoid the `StateMachine` clash; DebugX→Debug.LogError, dropped `[Disable]`).
 - [x] ValuePicker (3, 0 ed) → `UnityX.ValuePicker` — done (inlined `DebugX.ListAsString`; consumer `AudioSourceManager`).
 - [x] Property Curve (5→4, 0 ed) → `UnityX.PropertyCurves` — done. Inlined `MathX.IsBetween` (exclusive range check); relocated the unused `PolygonPropertyCurve` (a PropertyCurve↔Geometry bridge, so it can't live in either empty-refs module) out to `Extensions/PropertyCurvePolygon/` in Assembly-CSharp.
@@ -266,8 +269,8 @@ proliferation (e.g. all Property Drawers = one assembly, not one-per-drawer).
 - [x] Grid (22, 1 ed) — done. Reorganised + split into `UnityX.SquareGrid`, `UnityX.SquareGridRenderer` (+ `.Editor`), `UnityX.CubeGridRenderer`.
 - [x] PolygonRenderer (7, 3 ed) + Region (2) → `UnityX.PolygonRenderer` (+ `.Editor`) + `UnityX.Region` (+ `.Editor`) — done.
 - [~] Structures (7) — Island detectors packaged as `UnityX.Islands`; `GridShape.cs` still loose in Assembly-CSharp.
-- [ ] Input (12, 0 ed) — **now unblocked:** `MonoSingleton` + `ScreenX` both live in `UnityX.Core`, so Input can asmdef as `UnityX.Input` referencing Core. Legacy `InputX`/`TouchInputSimulator` already deleted, `Finger` decoupled from legacy `Touch`. (`MultitouchDraggable` + `TrackpadMultitouch` already modules.)
-- [ ] Text Effects (17, 0 ed) — needs the `Color32.Compare` fix + `Range`/`GradientX`.
+- [x] Input (12, 0 ed) → `UnityX.Inputs` — DONE. Moved to `Modules/Inputs`; namespace **`UnityX.Inputs`** (pluralised: a `UnityX.Input` namespace would shadow `UnityEngine.Input`, which the module uses heavily). Refs `UnityX.Core` (`ScreenX`) + `UnityEngine.UI` (`EventSystems`). Consumers updated: Direct Manipulation Camera (×3) + `Boat Game/Player` get `using UnityX.Inputs;`.
+- [x] Text Effects (17, 0 ed) → `UnityX.TextEffects` — DONE. Moved to `Modules/TextEffects`; refs `UnityX.Core`, `UnityX.PropertyDrawers` (restores `[Button]`), `Unity.TextMeshPro`, `UnityEngine.UI`. `Color32.Compare` added to Core's `ColorX`; the `Range` struct + drawer folded into Core (below). No external consumers.
 
 ### Point → Vector2Int migration — ✅ DONE (structs removed)
 Point predated Vector2Int; fully migrated to Unity's type. `Point`, `PointRect` and `Point3` structs are **deleted**
@@ -285,5 +288,5 @@ recoverable from git history. The `UnityX.Geometry.Point.Editor` asmdef went wit
       Point files used them; the "bridge" refs in Core turned out to be comments / `FilterMode.Point` false-positives.
 - [x] `PointRect` and `Point3` deleted too (self-contained, unused). If `RectInt` helpers are wanted later, add them as
       `RectIntX` extensions rather than resurrecting `PointRect`.
-- [ ] (Opportunistic) Supply the missing `Color32.Compare` helper used by the Text Effects framework.
+- [x] Supplied the missing `Color32.Compare` helper (exact byte-wise equality extension in Core's `ColorX`) used by the Text Effects framework.
 - [ ] Pre-existing unrelated error to resolve separately: `Grass/GrassComputeScript.cs` references `VectorFieldComponent.gridRenderer` which no longer exists (concurrent change to VectorFieldComponent).
