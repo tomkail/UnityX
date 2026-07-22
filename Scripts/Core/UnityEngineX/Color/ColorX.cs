@@ -26,6 +26,11 @@ public static class ColorX {
 		);
 	}
 
+	// Exact component-wise equality for Color32 (byte channels), avoiding the float tolerance of Color's == operator.
+	public static bool Compare (this Color32 a, Color32 b) {
+		return a.r == b.r && a.g == b.g && a.b == b.b && a.a == b.a;
+	}
+
 	public static string ComponentToHex(float channel, bool toUpper = false) {
 		channel = Mathf.Clamp(channel, 0f, 1f);
 		int intValue = (int)(channel * 255);

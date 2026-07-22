@@ -1,0 +1,19 @@
+{
+    "name": "UnityX.TextEffects",
+    "rootNamespace": "UnityX.TextEffects",
+    "references": [
+        "UnityX.Core",
+        "UnityX.PropertyDrawers",
+        "Unity.TextMeshPro",
+        "UnityEngine.UI"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

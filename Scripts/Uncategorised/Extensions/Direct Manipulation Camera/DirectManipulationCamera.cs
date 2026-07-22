@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityX.Inputs;
 
 /// <summary>
 /// Direct-manipulation camera controller for a single ground plane. Drives a <see cref="CameraProperties"/>

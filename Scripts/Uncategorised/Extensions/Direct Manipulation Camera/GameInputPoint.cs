@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityX.Inputs;
 
 [System.Serializable]
 public class GameInputPoint {

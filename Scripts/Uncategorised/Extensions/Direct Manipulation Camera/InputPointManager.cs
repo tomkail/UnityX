@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using ETouch = UnityEngine.InputSystem.EnhancedTouch;
+using UnityX.Inputs;
 
 // Tracks all pointers (mouse + touches) and assigns them to an action type (camera, ui, etc).
 // Reads the Input System directly — touches via EnhancedTouch, mouse via a MouseInput driven each frame
