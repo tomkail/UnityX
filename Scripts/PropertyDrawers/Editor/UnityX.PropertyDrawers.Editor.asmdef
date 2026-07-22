@@ -1,0 +1,22 @@
+{
+    "name": "UnityX.PropertyDrawers.Editor",
+    "rootNamespace": "",
+    "references": [
+        "UnityX.PropertyDrawers",
+        "UnityX.Core",
+        "UnityX.Core.Editor",
+        "UnityX.SceneViewTools",
+        "UnityX.SceneViewTools.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
