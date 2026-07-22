@@ -20,6 +20,27 @@ Vector2Int migration finished for all consumers outside `Geometry/Point`.
 **Still open (highest leverage):** the shared **Property Drawers** hub asmdef, the **Core** module
 (`UnityEngineX`/`Collections`/`System` → `UnityX.Core`), the core **Input** module, and **Text Effects**.
 
+### Folder structure (reorganised 2026-07-21 — by module)
+`Scripts/` was reorganised from the old *kind-of-thing* split (`Components` / `Extensions` / `Editor Tools` /
+`Property Drawers`) to a *by-module* layout that matches the packaging goal. All moves were pure `git mv` preserving
+`.meta` GUIDs, and asmdef references are by-name, so nothing re-linked.
+
+```
+Scripts/
+  Core/            UnityEngineX, UnityEditorX, System, Collections   (the grab-bags → future UnityX.Core)
+  Modules/         every packaged module, one folder per asmdef, folder name == asmdef name minus "UnityX."
+  PropertyDrawers/ the drawer set (AssetSaver module lives inside; → future UnityX.PropertyDrawers)
+  Uncategorised/   not-yet-modularised code, grouped: Components/ (with UI/), Editor Tools/, Extensions/
+```
+`Modules/` holds: CameraProperties, CameraShots, CameraX, Colors, CubeGridRenderer, Easer, Easing, Geometry, Islands,
+Layout, Meshes, MultitouchDraggable, NoiseSampler, Noises, PolygonRenderer, PropertyCurves, Region, SLayouts,
+SceneManagement, SceneViewTools, ScreenshotExporter, SerializableCamera, SerializableTransform, Splines, Springs,
+SquareGrid, SquareGridRenderer, StateMachines, Timers, Tween, UI.GridLayout, UIImposters, ValuePicker, Versioning,
+ViewAnimation. (TrackpadMultitouch stays under `Assets/UnityX/Plugins/` — it ships a native bundle.)
+
+**Note:** the analysis tables below are still grouped under their *original* folder headings (`### Extensions/…`,
+`### Components/…`) — treat those headings as historical; the live location of any module is `Modules/<AsmdefName>`.
+
 ### Verdict key
 - ✅ **Portable** — zero UnityX deps; drop-in as-is (a required Unity *package* like UGUI/TMP is noted, not counted as a blocker).
 - 🟢 **Easy** — a few trivial helpers / one small self-contained file to inline or copy.
