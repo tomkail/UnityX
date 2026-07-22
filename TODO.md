@@ -17,8 +17,11 @@ Manipulation Camera), **ScreenshotExporter**, **SLayouts**, **AssetSaver**, **Mu
 `Undo History` → `Collections/History`, Icon system removed, Property Drawers modernised (enum drawers,
 FlagsX, ClampMin dropped), Input legacy code deleted, ExtendedCanvasScaler/ScrollRect modernised, and the Point →
 Vector2Int migration finished for all consumers outside `Geometry/Point`.
-**Still open (highest leverage):** the shared **Property Drawers** hub asmdef, the **Core** module
-(`UnityEngineX`/`Collections`/`System` → `UnityX.Core`), the core **Input** module, and **Text Effects**.
+**Core is done** (`UnityX.Core` + `UnityX.Core.Editor`; global namespace kept, autoReferenced — foundational
+`MonoSingleton`/`CoroutineHelper`/`PlayerLoopUtils` moved in). **Property Drawers hub is done**
+(`UnityX.PropertyDrawers` + `.Editor`; drawers consolidated into one Editor/). **Point/PointRect/Point3 removed**
+(helpers are now `Vector2Int`/`Vector3Int` extensions). **Still open:** the core **Input** module (now unblocked —
+`MonoSingleton` lives in Core) and **Text Effects** (needs `Color32.Compare` + `Range`/`GradientX`). ~62 asmdefs.
 
 ### Folder structure (reorganised 2026-07-21 — by module)
 `Scripts/` was reorganised from the old *kind-of-thing* split (`Components` / `Extensions` / `Editor Tools` /
@@ -256,29 +259,31 @@ proliferation (e.g. all Property Drawers = one assembly, not one-per-drawer).
 
 **Tier 2 — foundational, unlock the rest (bigger, higher leverage):**
 - [x] Geometry (15, 4 ed) → `UnityX.Geometry` — done (bundled `Triangulator.cs`; Point + Polygon editors as sub-asmdefs). Unlocked Grid, PolygonRenderer, Region, UI Line/Polygon.
-- [~] Property Drawers (86, 44 ed) → one `UnityX.PropertyDrawers` (+ `.Editor`). PARTIAL: `AssetSaver` extracted as its own module; enum drawers rewritten & cleaned up. Still want the *shared* hub asmdef so modules can *use* `[Disable]`/`[Info]` instead of dropping them.
-- [ ] Core: `UnityEngineX` + `Collections` + `System` → `UnityX.Core`; `UnityEditorX` → `UnityX.Core.Editor`. Still open — the dependency sink; removes the need to inline helpers per module. (First carve-out done: `CameraX` → `UnityX.CameraX`.)
+- [x] Property Drawers (86, 44 ed) → `UnityX.PropertyDrawers` (+ `.Editor`) — DONE. Consolidated the 40 scattered per-drawer Editor/ folders into one. `AssetSaver` stays its own nested module; `AudioAssetSaver` moved out to the Audio grab-bag (needs `SavWav`). Editor asmdef references Core / Core.Editor / SceneViewTools. **Next step to realise the benefit:** have modules reference it and restore `[Disable]`/`[Info]` instead of the dropped versions.
+- [x] Core: `UnityEngineX` + `Collections` + `System` → `UnityX.Core`; `UnityEditorX` → `UnityX.Core.Editor` — DONE. Global namespace kept (autoReferenced), so no consumer churn. Moved `MonoSingleton`/`CoroutineHelper`/`PlayerLoopUtils` in; removed dead Triangulator-using gizmo helpers. Core references `UnityX.Colors` (HSLColor) + `UnityEngine.UI` (ImageX) — slightly inverted deps that could be tidied later. (Earlier carve-out: `CameraX` → `UnityX.CameraX`.)
 
 **Tier 3 — depend on Tier 2 (do after):**
 - [x] Grid (22, 1 ed) — done. Reorganised + split into `UnityX.SquareGrid`, `UnityX.SquareGridRenderer` (+ `.Editor`), `UnityX.CubeGridRenderer`.
 - [x] PolygonRenderer (7, 3 ed) + Region (2) → `UnityX.PolygonRenderer` (+ `.Editor`) + `UnityX.Region` (+ `.Editor`) — done.
 - [~] Structures (7) — Island detectors packaged as `UnityX.Islands`; `GridShape.cs` still loose in Assembly-CSharp.
-- [ ] Input (12, 0 ed) — legacy `InputX`/`TouchInputSimulator` deleted and `Finger` decoupled from legacy `Touch`, but the core Input module still needs a home for `MonoSingleton` + `ScreenX` before it can be asmdef'd. (`MultitouchDraggable` + `TrackpadMultitouch` already are their own modules.)
+- [ ] Input (12, 0 ed) — **now unblocked:** `MonoSingleton` + `ScreenX` both live in `UnityX.Core`, so Input can asmdef as `UnityX.Input` referencing Core. Legacy `InputX`/`TouchInputSimulator` already deleted, `Finger` decoupled from legacy `Touch`. (`MultitouchDraggable` + `TrackpadMultitouch` already modules.)
 - [ ] Text Effects (17, 0 ed) — needs the `Color32.Compare` fix + `Range`/`GradientX`.
 
-### Point → Vector2Int migration (in progress; keep `Point`, don't delete)
-Point predates Vector2Int; migrating to Unity's type. Added implicit `Point`↔`Vector2Int` conversions + a
-`Vector2Int.Area()` extension (`UnityEngineX/Vector2IntX.cs`) so code migrates incrementally (mixed code compiles).
+### Point → Vector2Int migration — ✅ DONE (structs removed)
+Point predated Vector2Int; fully migrated to Unity's type. `Point`, `PointRect` and `Point3` structs are **deleted**
+(they had no consumers left outside their own files). Their useful conveniences live as extensions in Core's
+`Vector2IntX`/`Vector3IntX` (`Area`, `Cardinal`/`Ordinal`/`CompassDirections`, `ManhattanDistance`,
+`DiagonalDistance`). Niche grid-cell helpers (ring/corner generators, PointRect rect math) had zero users — dropped,
+recoverable from git history. The `UnityX.Geometry.Point.Editor` asmdef went with them.
 - [x] Beachhead: `Grid.size` (`Point`→`Vector2Int`, serialized field — identical {x,y} layout) + `size.area`→`size.Area()`
       in Grid.cs and the inheriting TypeMap.cs. **Verify serialization survives on a real Grid asset before proceeding.**
 - [x] `Grid.cs` fully migrated off Point (only `PointRect` remains — kept type). Added `Vector2Int` direction
       extensions (`CardinalDirections`/`OrdinalDirections`/`CompassDirections` in `Vector2IntX`, offsets matching Point).
       Cascade check: only `TypeMap : Grid` subclasses it, nothing overrides the changed virtuals, and Grid's changed
       collection-returning methods have no external callers — so implicit conversions bridge consumers; should compile standalone.
-- [x] Remaining consumers migrated: the last `Point` consumers *outside* `Geometry/Point` were removed (commit db70e5d).
-      `Point` now lives contained under `UnityX.Geometry`'s `Point/` sub-asmdef; the only remaining references elsewhere
-      are the intentional `Point`↔`Vector2Int` bridge extensions in Core (`RectX`, `DebugX`, `Vector2IntX`, `TextureX`, …).
-      `Point` itself is kept (not deleted), as agreed.
-- [ ] Keep `PointRect` (→ `RectInt` is higher-friction: no `MinMaxRect`/`ToRect`, different semantics). Separate, later.
+- [x] Remaining consumers migrated (commit db70e5d), then the structs themselves **deleted** — no code outside the
+      Point files used them; the "bridge" refs in Core turned out to be comments / `FilterMode.Point` false-positives.
+- [x] `PointRect` and `Point3` deleted too (self-contained, unused). If `RectInt` helpers are wanted later, add them as
+      `RectIntX` extensions rather than resurrecting `PointRect`.
 - [ ] (Opportunistic) Supply the missing `Color32.Compare` helper used by the Text Effects framework.
 - [ ] Pre-existing unrelated error to resolve separately: `Grass/GrassComputeScript.cs` references `VectorFieldComponent.gridRenderer` which no longer exists (concurrent change to VectorFieldComponent).
