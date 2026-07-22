@@ -268,7 +268,7 @@ proliferation (e.g. all Property Drawers = one assembly, not one-per-drawer).
 **Tier 3 — depend on Tier 2 (do after):**
 - [x] Grid (22, 1 ed) — done. Reorganised + split into `UnityX.SquareGrid`, `UnityX.SquareGridRenderer` (+ `.Editor`), `UnityX.CubeGridRenderer`.
 - [x] PolygonRenderer (7, 3 ed) + Region (2) → `UnityX.PolygonRenderer` (+ `.Editor`) + `UnityX.Region` (+ `.Editor`) — done.
-- [~] Structures (7) — Island detectors packaged as `UnityX.Islands`; `GridShape.cs` still loose in Assembly-CSharp.
+- [x] Structures (7) — Island detectors packaged as `UnityX.Islands`. `GridShape.cs` is deliberately left loose in Assembly-CSharp (a single-file utility — per the asmdef-granularity policy, not worth its own assembly; fold into Core only if a consumer ever needs it from an asmdef). Considered settled, not open work.
 - [x] Input (12, 0 ed) → `UnityX.Inputs` — DONE. Moved to `Modules/Inputs`; namespace **`UnityX.Inputs`** (pluralised: a `UnityX.Input` namespace would shadow `UnityEngine.Input`, which the module uses heavily). Refs `UnityX.Core` (`ScreenX`) + `UnityEngine.UI` (`EventSystems`). Consumers updated: Direct Manipulation Camera (×3) + `Boat Game/Player` get `using UnityX.Inputs;`.
 - [x] Text Effects (17, 0 ed) → `UnityX.TextEffects` — DONE. Moved to `Modules/TextEffects`; refs `UnityX.Core`, `UnityX.PropertyDrawers` (restores `[Button]`), `Unity.TextMeshPro`, `UnityEngine.UI`. `Color32.Compare` added to Core's `ColorX`; the `Range` struct + drawer folded into Core (below). No external consumers.
 
@@ -289,4 +289,4 @@ recoverable from git history. The `UnityX.Geometry.Point.Editor` asmdef went wit
 - [x] `PointRect` and `Point3` deleted too (self-contained, unused). If `RectInt` helpers are wanted later, add them as
       `RectIntX` extensions rather than resurrecting `PointRect`.
 - [x] Supplied the missing `Color32.Compare` helper (exact byte-wise equality extension in Core's `ColorX`) used by the Text Effects framework.
-- [ ] Pre-existing unrelated error to resolve separately: `Grass/GrassComputeScript.cs` references `VectorFieldComponent.gridRenderer` which no longer exists (concurrent change to VectorFieldComponent).
+- [x] Pre-existing unrelated error (`Grass/GrassComputeScript.cs` → removed `VectorFieldComponent.gridRenderer`) — resolved by a concurrent Vector Fields change; the reference is gone and the project compiles clean.
