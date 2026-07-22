@@ -7,6 +7,16 @@ public static class Vector2IntX {
 		return v.x * v.y;
 	}
 
+	// Grid (taxicab) distance: steps along axes only. (Point.ManhattanDistance)
+	public static int ManhattanDistance (this Vector2Int a, Vector2Int b) {
+		return Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y);
+	}
+
+	// Chebyshev distance: steps allowing diagonals. (Point.DiagonalDistance)
+	public static int DiagonalDistance (this Vector2Int a, Vector2Int b) {
+		return Mathf.Max(Mathf.Abs(a.x - b.x), Mathf.Abs(a.y - b.y));
+	}
+
 	// Neighbour offsets, matching Point's ordering exactly so grid behaviour is unchanged.
 	static readonly Vector2Int[] cardinalOffsets = {
 		new Vector2Int(0, 1), new Vector2Int(1, 0), new Vector2Int(0, -1), new Vector2Int(-1, 0)
