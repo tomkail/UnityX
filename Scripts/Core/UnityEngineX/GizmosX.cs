@@ -88,42 +88,9 @@ public static class GizmosX {
 
     
 
-	public static Mesh CreatePolygonMesh (Vector2[] points, bool doubleSided = false) {
-		var mesh = CreateMesh();
-
-		var tris = new List<int>();
-		Triangulator.GenerateIndices(points, tris);
-		if(doubleSided) {
-			var doubleVerts = new Vector3[points.Length * 2];
-			for(int i = 0; i < points.Length; i++) doubleVerts[i] = doubleVerts[i+points.Length] = points[i];
-
-			var doubleTris = new int[tris.Count * 2];
-			int triLengthMinusOne = tris.Count-1;
-			for(int i = 0; i < tris.Count; i++) {
-				doubleTris[i] = tris[i];
-				doubleTris[i+tris.Count] = tris[triLengthMinusOne - i] + points.Length;
-			}
-			mesh.vertices = doubleVerts;
-			mesh.triangles = doubleTris;
-		} else {
-			mesh.vertices = points.Select(v => new Vector3(v.x, v.y, 0)).ToArray();
-			mesh.SetTriangles(tris, 0);
-		}
-
-		mesh.RecalculateNormals();
-		return mesh;
-	}
-
-	public static void DrawPolygon (Vector2[] points, bool doubleSided = false) {
-		var mesh = CreatePolygonMesh(points, doubleSided);
-		if(mesh.vertexCount > 0 && mesh.normals.Length > 0)
-			Gizmos.DrawMesh(mesh);
-	}
-	public static void DrawPolygon (Vector3 position, Quaternion rotation, Vector3 scale, Vector2[] points, bool doubleSided = false) {
-		BeginMatrix(Matrix4x4.TRS(position, rotation, scale));
-		DrawPolygon(points, doubleSided);
-		EndMatrix();
-	}
+	// Filled-polygon gizmo helpers (CreatePolygonMesh / DrawPolygon) were removed: they were unused and their
+	// Triangulator dependency reached into the Geometry module, which the Core assembly must not depend on.
+	// Recoverable from git history; if needed again they belong in UnityX.Geometry, not Core.
 
 	public static void DrawWirePolygon (Vector3 position, Quaternion rotation, IList<Vector2> points) {
 		for(int i = 0; i < points.Count; i++) {
@@ -143,42 +110,8 @@ public static class GizmosX {
 		}
 	}
 
-	public static void DrawExtrudedPolygon (Vector2[] points, float depth) {
-		if(points == null || points.Length == 0) return;
-		Vector3 aLow, aHigh, bLow, bHigh = Vector3.zero;
-		int i = 0;
-		var depthOffset = Vector3.forward * depth * 0.5f;
-		var localPolyPos = (Vector3)points[i];
-		aLow = -depthOffset + localPolyPos;
-		aHigh = depthOffset + localPolyPos;
-		for(i = 0; i <= points.Length; i++) {
-			localPolyPos = points[i % points.Length];
-			bLow = -depthOffset + localPolyPos;
-			bHigh = depthOffset + localPolyPos;
-			DrawPlane(aLow, bLow, aHigh, bHigh, true);
-			aLow = bLow;
-			aHigh = bHigh;
-		}
-
-		var mesh = CreatePolygonMesh(points, true);
-		if(mesh.vertexCount > 0 && mesh.normals.Length > 0) {
-			var cachedMatrix = Gizmos.matrix;
-			Gizmos.matrix = Gizmos.matrix * Matrix4x4.TRS(-depthOffset, Quaternion.identity, Vector3.one);
-			Gizmos.DrawMesh(mesh);
-
-			Gizmos.matrix = Gizmos.matrix * Matrix4x4.TRS(depthOffset, Quaternion.identity, Vector3.one);
-			Gizmos.DrawMesh(mesh);
-			Gizmos.matrix = cachedMatrix;
-		}
-	}
+	// DrawExtrudedPolygon also removed with the filled-polygon helpers above (unused; Triangulator/Geometry dep).
 	
-	public static void DrawExtrudedPolygon (Vector3 position, Quaternion rotation, Vector3 scale, Vector2[] points, float depth) {
-		if(points == null || points.Length == 0) return;
-		BeginMatrix(Matrix4x4.TRS(position, rotation, scale));
-		DrawExtrudedPolygon(points, depth);
-		EndMatrix();
-	}
-
 	static void DrawExtrudedWirePolygon (Vector2[] points, float depth) {
 		if(points == null || points.Length == 0) return;
 		Vector3 aLow, aHigh, bLow, bHigh = Vector3.zero;
