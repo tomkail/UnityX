@@ -199,7 +199,7 @@ def cmd_sync(a):
 
 def package_index(pkgs):
     """Per package: the asset GUIDs it contains and the top-level type names its scripts declare."""
-    guids, types = {}, {}
+    guids, types, namespaces = {}, {}, {}
     for n in pkgs:
         for dirpath, _, files in os.walk(os.path.join(PACKAGES_DIR, n)):
             for f in files:
@@ -213,20 +213,26 @@ def package_index(pkgs):
                     with open(path, errors="ignore") as fh:
                         decls = re.findall(r"^([ \t]*)(?:public |internal )?(?:static |abstract |sealed |partial )*"
                                            r"(?:class|struct|enum|interface)\s+(\w+)", fh.read(), re.M)
-                    # Top-level types only: nested ones (e.g. an enum inside a class) have generic names.
-                    top = min((len(i.expandtabs(4)) for i, _ in decls), default=0)
-                    for indent, t in decls:
-                        if len(indent.expandtabs(4)) == top:
-                            types.setdefault(t, set()).add(n)
+                    for ns in re.findall(r"^\s*namespace\s+([\w.]+)", open(path, errors="ignore").read(), re.M):
+                        namespaces.setdefault(ns, set()).add(n)
+                    # Only global-namespace, top-level types: namespaced ones are found through their `using`,
+                    # and nested ones (e.g. an enum inside a class) have names too generic to match on.
+                    if not re.search(r"^\s*namespace\s", open(path, errors="ignore").read(), re.M):
+                        for indent, t in decls:
+                            if indent == "":
+                                types.setdefault(t, set()).add(n)
     # A type name declared by more than one package can't point at a single one.
-    return guids, {t: next(iter(p)) for t, p in types.items() if len(p) == 1}
+    unique = lambda d: {k: next(iter(v)) for k, v in d.items() if len(v) == 1}
+    return guids, unique(types), unique(namespaces)
 
 
 def cmd_scan(a):
     pkgs = load_packages()
     project = find_project(a.project)
-    have = set(closure(pkgs, [n for n in installed(read_manifest(project)) if n in pkgs]))
-    guids, types = package_index(pkgs)
+    listed = [n for n in installed(read_manifest(project)) if n in pkgs]
+    have = set(closure(pkgs, listed))
+    used = set()  # installed packages the project references directly
+    guids, types, namespaces = package_index(pkgs)
     found = {}  # package -> list of reasons
     decl = re.compile(r"\b(?:class|struct|enum|interface)\s+(\w+)")
     own_types = set()  # names the project declares itself (e.g. a plugin's type that shares a UnityX name)
@@ -243,14 +249,34 @@ def cmd_scan(a):
             if f.endswith(asset_ext):
                 with open(path, errors="ignore") as fh:
                     for g in set(re.findall(r"[0-9a-f]{32}", fh.read())):
-                        if g in guids and guids[g] not in have:
+                        if g in guids and guids[g] in have:
+                            used.add(guids[g])
+                        elif g in guids:
                             found.setdefault(guids[g], []).append(f"asset reference in {rel}")
             elif f.endswith(".cs"):
                 with open(path, errors="ignore") as fh:
-                    code = re.sub(r"//.*|/\*.*?\*/|\"(?:\\.|[^\"\\])*\"", "", fh.read(), flags=re.S)
+                    raw = fh.read()
+                code = re.sub(r"//[^\n]*|/\*.*?\*/|\"(?:\\.|[^\"\\\n])*\"", "", raw, flags=re.S)
+                for ns in set(re.findall(r"^\s*using\s+(UnityX[\w.]*)\s*;", code, re.M)):
+                    if ns in namespaces:
+                        if namespaces[ns] in have:
+                            used.add(namespaces[ns])
+                        else:
+                            found.setdefault(namespaces[ns], []).append(f"using {ns} in {rel}")
                 for w in set(re.findall(r"\b[A-Z]\w+", code)):
+                    if w in types and types[w] in have:
+                        used.add(types[w])
                     if w in types and types[w] not in have and w not in own_types:
                         found.setdefault(types[w], []).append(f"{w} in {rel}")
+    # Installed packages nothing references, directly or via another package that is referenced.
+    needed = set(closure(pkgs, sorted(used)))
+    unused = sorted(n for n in listed if n not in needed)
+    if unused:
+        print("Installed but apparently unused (nothing in Assets references them or needs them):")
+        print("  " + ", ".join(short(n) for n in unused))
+        print("  Remove with:  unityx remove " + " ".join(short(n) for n in unused))
+        print("  (Check first if you use them only via reflection, Resources or string names.)")
+        print()
     if not found:
         print("Nothing missing: every UnityX package this project references is installed.")
         return
@@ -261,7 +287,7 @@ def cmd_scan(a):
             print(f"      {r}")
         if len(set(reasons)) > 3:
             print(f"      ... and {len(set(reasons)) - 3} more")
-    print("Type-name matches can be false positives; asset references are certain.")
+    print("Asset references and `using UnityX...` are certain; bare type-name matches are hints.")
     print("Add them with:  unityx add " + " ".join(short(n) for n in sorted(found)))
 
 
