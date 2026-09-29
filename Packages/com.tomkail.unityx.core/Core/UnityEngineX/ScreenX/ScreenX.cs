@@ -10,7 +10,9 @@ using Screen = UnityEngine.Device.Screen;
 /// <summary>
 /// Manages screen properties. Static [InitializeOnLoad] class — not a MonoBehaviour, so no GameObject is required.
 /// </summary>
+#if UNITY_EDITOR
 [InitializeOnLoad]
+#endif
 public class ScreenX {
 
 	public const float inchesToCentimeters = 2.54f;

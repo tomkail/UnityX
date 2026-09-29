@@ -78,4 +78,6 @@ The repo is itself a Unity project: open it in Unity 6 and every package is embe
 - **Adding a module:** create `Packages/com.tomkail.unityx.<name>/` with a `package.json` (copy one) and the module
   folder with its asmdef(s). Reference other UnityX assemblies **by name**, not GUID.
 - **After changing asmdef references:** `Tools/unityx gen-deps` rewrites every `package.json` `dependencies`.
+- **Before pushing:** `Tools/unityx check` (with this project closed in Unity) compiles every package in the Editor
+  *and* for a player build, which catches editor-only API used outside `#if UNITY_EDITOR`.
 - **Releasing:** all packages share one version. `Tools/unityx set-version 2.1.0`, commit, `git tag v2.1.0`, push tags.

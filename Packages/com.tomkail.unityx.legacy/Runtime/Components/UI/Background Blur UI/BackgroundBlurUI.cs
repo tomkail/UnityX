@@ -91,11 +91,13 @@ public class BackgroundBlurUI : UIBehaviour {
         initialized = false;
     }
 
+#if UNITY_EDITOR
     protected override void OnValidate() {
         blurRadius = Mathf.Clamp(blurRadius, 0, maxBlurRadius);
         
         _isDirty = true;
     }
+#endif
 
     void LateUpdate () {
         if(!initialized) {

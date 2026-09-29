@@ -20,6 +20,8 @@ Consumer commands (run from anywhere inside a Unity project, or pass --project):
 Maintainer commands (run inside the UnityX repo):
   unityx gen-deps                    regenerate every package.json "dependencies" from the asmdef references
   unityx set-version <x.y.z>         set the (shared) version of every package
+  unityx check                       compile every package in the Editor and for a player build (needs Unity
+                                     installed via the Hub, and this project closed in the Editor)
 """
 import argparse, json, os, re, subprocess, sys
 from collections import OrderedDict
@@ -273,6 +275,36 @@ def cmd_set_version(a):
     cmd_gen_deps(a)
 
 
+def find_unity():
+    with open(os.path.join(UNITYX_ROOT, "ProjectSettings", "ProjectVersion.txt")) as f:
+        version = re.search(r"m_EditorVersion: (\S+)", f.read()).group(1)
+    for path in (f"/Applications/Unity/Hub/Editor/{version}/Unity.app/Contents/MacOS/Unity",
+                 f"C:/Program Files/Unity/Hub/Editor/{version}/Editor/Unity.exe",
+                 os.path.expanduser(f"~/Unity/Hub/Editor/{version}/Editor/Unity")):
+        if os.path.isfile(path):
+            return path
+    sys.exit(f"unityx: Unity {version} not found in the default Hub location")
+
+
+def cmd_check(a):
+    unity = find_unity()
+    log = os.path.join(UNITYX_ROOT, "Logs", "unityx-check.log")
+    os.makedirs(os.path.dirname(log), exist_ok=True)
+    print("Compiling (editor + player)... this can take a few minutes on a fresh Library.")
+    code = subprocess.run([unity, "-batchmode", "-nographics", "-projectPath", UNITYX_ROOT,
+                           "-executeMethod", "PlayerCompileCheck.Run", "-logFile", log]).returncode
+    with open(log, errors="ignore") as f:
+        text = f.read()
+    errors = sorted(set(re.findall(r"^.*error CS\d+.*$", text, re.M)))
+    for e in errors:
+        print(e)
+    if "another Unity instance is running" in text:
+        sys.exit("unityx: the UnityX project is open in the Editor — close it and re-run")
+    if code != 0 or errors or "PLAYERCOMPILE" not in text:
+        sys.exit(f"unityx: check FAILED ({len(errors)} error(s)); full log: {log}")
+    print("OK — every package compiles in the Editor and for a player build.")
+
+
 def main():
     ap = argparse.ArgumentParser(prog="unityx", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--project", default=os.getcwd(), help="Unity project path (default: current directory)")
@@ -285,6 +317,7 @@ def main():
     sub.add_parser("update").set_defaults(fn=cmd_update)
     sub.add_parser("gen-deps").set_defaults(fn=cmd_gen_deps)
     p = sub.add_parser("set-version"); p.add_argument("version"); p.set_defaults(fn=cmd_set_version)
+    sub.add_parser("check").set_defaults(fn=cmd_check)
     a = ap.parse_args()
     a.fn(a)
 
