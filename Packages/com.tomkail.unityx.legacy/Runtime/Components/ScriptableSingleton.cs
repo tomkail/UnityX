@@ -20,6 +20,15 @@ public abstract class ScriptableSingleton<T> : ScriptableObject where T : Script
 		}
 	}
 
+	// Like Instance, but returns null instead of creating a default (and logging a warning)
+	// when no asset exists — useful during OnValidate / asset import when the singleton may not be loaded yet.
+	public static T InstanceIfExists {
+		get {
+			if(_Instance == null) _Instance = FindInResources(typeof(T).Name);
+			return _Instance;
+		}
+	}
+
 	// Should use OnEnable and OnDisable rather than OnDestroy
 	// http://answers.unity3d.com/questions/639852/does-unity-call-destroy-on-a-scriptableobject-that.html
 	protected virtual void OnEnable() {
