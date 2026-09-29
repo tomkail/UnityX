@@ -70,5 +70,48 @@ namespace UnityX.Geometry {
 			DrawPolygon(points, doubleSided);
 			Gizmos.matrix = cachedMatrix;
 		}
+
+		// A solid prism: the polygon extruded along local z, centred on z = 0. Editor only, like CreatePolygonMesh.
+		public static void DrawExtrudedPolygon (Vector2[] points, float depth) {
+			#if UNITY_EDITOR
+			if(points == null || points.Length == 0) return;
+			var depthOffset = Vector3.forward * depth * 0.5f;
+			var sides = new Mesh { name = "Polygon Gizmo Temp Mesh" };
+			meshes.Add(sides);
+			var verts = new Vector3[points.Length * 4];
+			var tris = new int[points.Length * 12];
+			for(int i = 0; i < points.Length; i++) {
+				Vector3 a = points[i];
+				Vector3 b = points[(i + 1) % points.Length];
+				int v = i * 4, t = i * 12;
+				verts[v] = a - depthOffset;
+				verts[v+1] = b - depthOffset;
+				verts[v+2] = a + depthOffset;
+				verts[v+3] = b + depthOffset;
+				// Both windings, so the sides are visible from inside and out
+				tris[t] = v; tris[t+1] = v+1; tris[t+2] = v+2;
+				tris[t+3] = v+1; tris[t+4] = v+3; tris[t+5] = v+2;
+				tris[t+6] = v+2; tris[t+7] = v+1; tris[t+8] = v;
+				tris[t+9] = v+2; tris[t+10] = v+3; tris[t+11] = v+1;
+			}
+			sides.vertices = verts;
+			sides.triangles = tris;
+			sides.RecalculateNormals();
+			Gizmos.DrawMesh(sides);
+
+			var cap = CreatePolygonMesh(points, true);
+			if(cap != null && cap.vertexCount > 0 && cap.normals.Length > 0) {
+				Gizmos.DrawMesh(cap, -depthOffset);
+				Gizmos.DrawMesh(cap, depthOffset);
+			}
+			#endif
+		}
+
+		public static void DrawExtrudedPolygon (Vector3 position, Quaternion rotation, Vector3 scale, Vector2[] points, float depth) {
+			var cachedMatrix = Gizmos.matrix;
+			Gizmos.matrix = Matrix4x4.TRS(position, rotation, scale);
+			DrawExtrudedPolygon(points, depth);
+			Gizmos.matrix = cachedMatrix;
+		}
 	}
 }

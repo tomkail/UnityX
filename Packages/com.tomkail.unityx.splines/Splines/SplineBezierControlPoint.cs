@@ -8,8 +8,9 @@ namespace UnityX.Splines {
             Out = 1
         }
 
-        public readonly DirectionSign directionSign;
-        public readonly float distance;
+        // Not readonly: Unity doesn't serialize readonly fields, so they'd silently drop every spline's control points.
+        public DirectionSign directionSign;
+        public float distance;
 
         public static SplineBezierControlPoint In(float distance) => new (DirectionSign.In, distance);
         public static SplineBezierControlPoint InAuto(Vector3 position, Vector3 otherPosition, float normalizedControlPointDistance = 0.25f) => new (DirectionSign.In, GetAutoDistance(DirectionSign.In, position, otherPosition, normalizedControlPointDistance));

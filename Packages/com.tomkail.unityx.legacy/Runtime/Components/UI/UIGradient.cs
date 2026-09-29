@@ -43,6 +43,10 @@ namespace UnityEngine.UI.Extensions
         float _zoom = 1f;
 
         [SerializeField]
+        [Tooltip("Reverses the gradient's direction.")]
+        bool _flipped;
+
+        [SerializeField]
         Gradient _effectGradient = new() { colorKeys = new[] { new GradientColorKey(Color.black, 0), new GradientColorKey(Color.white, 1) } };
 
         #region Properties
@@ -101,6 +105,14 @@ namespace UnityEngine.UI.Extensions
                 graphic.SetVerticesDirty();
             }
         }
+
+        public bool Flipped {
+            get => _flipped;
+            set {
+                _flipped = value;
+                graphic.SetVerticesDirty();
+            }
+        }
         #endregion
 
         public void SetKeys (GradientColorKey[] colorKeys, GradientAlphaKey[] alphaKeys) {
@@ -109,11 +121,14 @@ namespace UnityEngine.UI.Extensions
         }
 
         List<UIVertex> _vertexList = new();
+        // The gradient ModifyMesh samples: _effectGradient, reversed if flipped.
+        Gradient _appliedGradient;
         public override void ModifyMesh(VertexHelper helper) {
             if (!IsActive() || helper.currentVertCount == 0)
                 return;
 
             helper.GetUIVertexStream(_vertexList);
+            _appliedGradient = _flipped ? _effectGradient.Reverse() : _effectGradient;
 
             int nCount = _vertexList.Count;
             switch (GradientType) {
@@ -141,7 +156,7 @@ namespace UnityEngine.UI.Extensions
                         UIVertex vertex = new UIVertex();
                         for (int i = 0; i < helper.currentVertCount; i++) {
                             helper.PopulateUIVertex(ref vertex, i);
-                            vertex.color = BlendColor(vertex.color, EffectGradient.Evaluate((GetPosition(vertex) - min) * width - offset));
+                            vertex.color = BlendColor(vertex.color, _appliedGradient.Evaluate((GetPosition(vertex) - min) * width - offset));
                             helper.SetUIVertex(vertex, i);
                         }
                     }
@@ -174,7 +189,7 @@ namespace UnityEngine.UI.Extensions
                         for (int i = 0; i < helper.currentVertCount; i++) {
                             helper.PopulateUIVertex(ref vertex, i);
 
-                            vertex.color = BlendColor(vertex.color, EffectGradient.Evaluate(
+                            vertex.color = BlendColor(vertex.color, _appliedGradient.Evaluate(
                                 Vector3.Distance(vertex.position, center) * height - Offset));
 
                             helper.SetUIVertex(vertex, i);
@@ -226,7 +241,7 @@ namespace UnityEngine.UI.Extensions
 
                             float dx = (vertex.position.x - bounds.center.x) * width;
                             float dy = (vertex.position.y - bounds.center.y) * height;
-                            vertex.color = BlendColor(vertex.color, EffectGradient.Evaluate(
+                            vertex.color = BlendColor(vertex.color, _appliedGradient.Evaluate(
                                 Mathf.Sqrt(dx * dx + dy * dy) * 2f - Offset));
 
                             helper.SetUIVertex(vertex, i);
@@ -408,13 +423,13 @@ namespace UnityEngine.UI.Extensions
             var startBoundary = zoomOffset - offset;
             var endBoundary = (1 - zoomOffset) - offset;
 
-            foreach (var color in EffectGradient.colorKeys) {
+            foreach (var color in _appliedGradient.colorKeys) {
                 if (color.time >= endBoundary)
                     break;
                 if (color.time > startBoundary)
                     stops.Add((color.time - startBoundary) * Zoom);
             }
-            foreach (var alpha in EffectGradient.alphaKeys) {
+            foreach (var alpha in _appliedGradient.alphaKeys) {
                 if (alpha.time >= endBoundary)
                     break;
                 if (alpha.time > startBoundary)

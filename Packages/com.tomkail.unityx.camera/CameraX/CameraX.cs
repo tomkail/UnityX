@@ -41,6 +41,19 @@ public static class CameraX {
 		return camera.WorldToViewportPoint(Vector2.zero) - camera.WorldToViewportPoint(vector);
 	}
 
+	// The viewport-space rect that encloses all 8 corners of the bounds.
+	public static Rect WorldToViewportRect (this Camera camera, Bounds worldBounds) {
+		var corners = GetVerticesFromBounds(worldBounds);
+		Vector2 min = camera.WorldToViewportPoint(corners[0]);
+		Vector2 max = min;
+		for(int i = 1; i < corners.Length; i++) {
+			Vector2 point = camera.WorldToViewportPoint(corners[i]);
+			min = Vector2.Min(min, point);
+			max = Vector2.Max(max, point);
+		}
+		return Rect.MinMaxRect(min.x, min.y, max.x, max.y);
+	}
+
 	public static Rect WorldToViewportRect (this Camera camera, Rect worldRect, float distance) {
 		Vector3 worldTopLeft = camera.WorldToViewportPoint(new Vector3(worldRect.x, worldRect.y, distance));
 		Vector3 worldBottomRight = camera.WorldToViewportPoint(new Vector3(worldRect.x + worldRect.width, worldRect.y + worldRect.height, distance));
