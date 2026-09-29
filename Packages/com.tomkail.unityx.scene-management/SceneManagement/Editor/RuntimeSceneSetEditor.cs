@@ -37,8 +37,8 @@ namespace UnityX.SceneManagement.Editor {
 				var element = scenesList.serializedProperty.GetArrayElementAtIndex(index);
 				rect.y += 2;
 				rect.height = EditorGUIUtility.singleLineHeight;
-				// The last row is tinted: that scene becomes the active scene when the set is loaded.
-				if (index == scenesList.count - 1) {
+				// The row for the scene that becomes active when the set loads is tinted.
+				if (element.FindPropertyRelative("scenePath").stringValue == data.GetActiveScenePath()) {
 					Color savedColor = GUI.color;
 					GUI.color = new Color(1f, 0.7f, 0.7f, 1);
 					EditorGUI.PropertyField(rect, element, GUIContent.none);
@@ -51,10 +51,40 @@ namespace UnityX.SceneManagement.Editor {
 			// path (via its drawer and RuntimeSceneSet.OnValidate).
 		}
 
+		// Picks the active scene from every scene in the set's hierarchy (nested sets included).
+		// Option 0 is "use the last scene", stored as an empty reference.
+		void DrawActiveScenePopup () {
+			var paths = data.AllScenePaths();
+			if (paths.Count == 0) return;
+			var activeScene = serializedObject.FindProperty("activeScene");
+			var sceneAsset = activeScene.FindPropertyRelative("sceneAsset");
+			var scenePath = activeScene.FindPropertyRelative("scenePath");
+
+			var options = new GUIContent[paths.Count + 1];
+			options[0] = new GUIContent("Last scene (" + System.IO.Path.GetFileNameWithoutExtension(paths[paths.Count - 1]) + ")");
+			for (int i = 0; i < paths.Count; i++)
+				options[i + 1] = new GUIContent(System.IO.Path.GetFileNameWithoutExtension(paths[i]), paths[i]);
+
+			int current = string.IsNullOrEmpty(scenePath.stringValue) ? 0 : paths.IndexOf(scenePath.stringValue) + 1;
+			if (current == 0 && !string.IsNullOrEmpty(scenePath.stringValue))
+				EditorGUILayout.HelpBox("The chosen active scene (" + scenePath.stringValue + ") isn't in this set any more, so the last scene is used.", MessageType.Warning);
+
+			EditorGUI.showMixedValue = activeScene.hasMultipleDifferentValues;
+			EditorGUI.BeginChangeCheck();
+			int picked = EditorGUILayout.Popup(new GUIContent("Active Scene", "Scene made active when this set loads (lighting, newly created objects, etc.)."), current, options);
+			EditorGUI.showMixedValue = false;
+			if (EditorGUI.EndChangeCheck()) {
+				string path = picked == 0 ? string.Empty : paths[picked - 1];
+				scenePath.stringValue = path;
+				sceneAsset.objectReferenceValue = picked == 0 ? null : AssetDatabase.LoadAssetAtPath<SceneAsset>(path);
+			}
+		}
+
 		public override void OnInspectorGUI() {
 			serializedObject.Update();
 			setList.DoLayoutList();
 			scenesList.DoLayoutList();
+			DrawActiveScenePopup();
 			serializedObject.ApplyModifiedProperties();
 
 			if (!data.IsIncludedInBuildSettings()) {

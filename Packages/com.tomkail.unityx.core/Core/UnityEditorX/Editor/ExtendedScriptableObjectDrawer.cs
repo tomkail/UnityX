@@ -17,6 +17,31 @@ using Object = UnityEngine.Object;
 /// </summary>
 [CustomPropertyDrawer(typeof(ScriptableObject), true)]
 public class ExtendedScriptableObjectDrawer : PropertyDrawer {
+	// One SerializedObject per inline-drawn asset, reused across repaints. Foldout (isExpanded) state lives on
+	// the SerializedObject, so creating a fresh one every OnGUI made nested foldouts snap shut on the next
+	// repaint — they could never be opened. Cleared on selection change so the cache doesn't grow.
+	static readonly Dictionary<Object, SerializedObject> serializedObjectCache = new Dictionary<Object, SerializedObject>();
+
+	static ExtendedScriptableObjectDrawer () {
+		Selection.selectionChanged += ClearCache;
+		AssemblyReloadEvents.beforeAssemblyReload += ClearCache;
+	}
+
+	static void ClearCache () {
+		foreach (var so in serializedObjectCache.Values) so?.Dispose();
+		serializedObjectCache.Clear();
+	}
+
+	static SerializedObject GetSerializedObject (Object target) {
+		if (!serializedObjectCache.TryGetValue(target, out var so) || so == null || so.targetObject == null) {
+			so = new SerializedObject(target);
+			serializedObjectCache[target] = so;
+		} else {
+			so.Update();
+		}
+		return so;
+	}
+
 	
 	public override float GetPropertyHeight (SerializedProperty property, GUIContent label) {
 		float totalHeight = EditorGUIUtility.singleLineHeight;
@@ -26,7 +51,7 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 		if(property.isExpanded) {
 			var data = property.objectReferenceValue as ScriptableObject;
 			if( data == null ) return EditorGUIUtility.singleLineHeight;
-			SerializedObject serializedObject = new SerializedObject(data);
+			SerializedObject serializedObject = GetSerializedObject(data);
 			SerializedProperty prop = serializedObject.GetIterator();
 			if (prop.NextVisible(true)) {
 				do {
@@ -39,7 +64,6 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 			}
 			// Add a tiny bit of height if open for the background
 			totalHeight += EditorGUIUtility.standardVerticalSpacing;
-			serializedObject.Dispose();
 		}
 		return totalHeight;
 	}
@@ -97,7 +121,7 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 				GUI.Box(new Rect(0, position.y + EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing - 1, Screen.width, position.height - EditorGUIUtility.singleLineHeight - EditorGUIUtility.standardVerticalSpacing), "");
 
 				EditorGUI.indentLevel++;
-				SerializedObject serializedObject = new SerializedObject(data);
+				SerializedObject serializedObject = GetSerializedObject(data);
 				
 				// Iterate over all the values and draw them
 				SerializedProperty prop = serializedObject.GetIterator();
@@ -114,7 +138,6 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 				}
 				if (GUI.changed)
 					serializedObject.ApplyModifiedProperties();
-				serializedObject.Dispose();
 				EditorGUI.indentLevel--;
 			}
 		} else {
@@ -189,7 +212,7 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 		EditorGUI.indentLevel++;
 		EditorGUILayout.BeginVertical(GUI.skin.box);
 
-		var serializedObject = new SerializedObject(objectReferenceValue);
+		var serializedObject = GetSerializedObject(objectReferenceValue);
 		// Iterate over all the values and draw them
 		SerializedProperty prop = serializedObject.GetIterator();
 		if (prop.NextVisible(true)) {
@@ -202,7 +225,6 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 		}
 		if (GUI.changed)
 			serializedObject.ApplyModifiedProperties();
-		serializedObject.Dispose();
 		EditorGUILayout.EndVertical();
 		EditorGUI.indentLevel--;
 	}
@@ -276,13 +298,12 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 
 	static bool AreAnySubPropertiesVisible(SerializedProperty property) {
 		var data = (ScriptableObject)property.objectReferenceValue;
-		SerializedObject serializedObject = new SerializedObject(data);
+		SerializedObject serializedObject = GetSerializedObject(data);
 		SerializedProperty prop = serializedObject.GetIterator();
 		while (prop.NextVisible(true)) {
 			if (prop.name == "m_Script") continue;
 			return true; //if theres any visible property other than m_script
 		}
-		serializedObject.Dispose();
 		return false;
 	}
 }

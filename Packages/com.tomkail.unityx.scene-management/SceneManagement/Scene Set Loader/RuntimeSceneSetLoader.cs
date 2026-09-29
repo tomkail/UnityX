@@ -176,13 +176,11 @@ namespace UnityX.SceneManagement {
 	    /// </summary>
 		private void OnCompleteLoadQueue (RuntimeSceneSetLoadTask lastLoadTask) {
 			if (!lastLoadTask.cancelled && (lastLoadTask.sceneLoadMode == LoadTaskMode.LoadAdditive || lastLoadTask.sceneLoadMode == LoadTaskMode.LoadSingle)) {
-				// Sets the active scene to be the last scene in the last setup to be loaded. 
-				// This defines the lighting and some other properties.
-				// Consider defining which scene this is in the scene set down the line.
+				// Sets the active scene (which defines lighting and some other properties) to the last loaded
+				// set's active scene: its activeScene if set, otherwise its last scene.
 				if(lastLoadTask.sceneSet != null && lastLoadTask.sceneLoadMode == LoadTaskMode.LoadSingle) {
-					var lastPath = lastLoadTask.sceneSet.AllScenePaths().Last();
-					var activeScene = SceneManager.GetSceneByPath(lastPath);
-					SceneManager.SetActiveScene(activeScene);
+					var activePath = lastLoadTask.sceneSet.GetActiveScenePath();
+					if(activePath != null) SceneManager.SetActiveScene(SceneManager.GetSceneByPath(activePath));
 				}
 
 				if (OnCompleteTaskQueue != null) OnCompleteTaskQueue(lastLoadTask);

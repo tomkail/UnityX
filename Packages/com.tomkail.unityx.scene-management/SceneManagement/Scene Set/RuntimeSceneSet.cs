@@ -19,16 +19,34 @@ namespace UnityX.SceneManagement {
 		/// </summary>
 		public SceneReference[] scenes;
 
+		/// <summary>
+		/// The scene made active (lighting, new objects, etc.) when this set loads. May be any scene in the
+		/// set's hierarchy, including nested sets. Leave empty to use the last scene.
+		/// </summary>
+		[Tooltip("Scene made active when this set loads. Leave empty to use the last scene.")]
+		public SceneReference activeScene;
+
 		#if UNITY_EDITOR
 		// Keep each reference's cached path in sync with its SceneAsset (handles renamed/moved scenes).
 		void OnValidate () {
-			if (scenes == null) return;
-			bool changed = false;
-			for (int i = 0; i < scenes.Length; i++)
-				if (scenes[i].RefreshPath()) changed = true;
+			bool changed = activeScene.RefreshPath();
+			if (scenes != null)
+				for (int i = 0; i < scenes.Length; i++)
+					if (scenes[i].RefreshPath()) changed = true;
 			if (changed) EditorUtility.SetDirty(this);
 		}
 		#endif
+
+		/// <summary>
+		/// The path of the scene that becomes active when this set loads: activeScene if it's set and part of
+		/// this set's hierarchy, otherwise the last scene. Null if the set has no scenes.
+		/// </summary>
+		public string GetActiveScenePath () {
+			List<string> paths = AllScenePaths();
+			if (paths.Count == 0) return null;
+			if (activeScene.isValid && paths.Contains(activeScene.path)) return activeScene.path;
+			return paths[paths.Count - 1];
+		}
 
 		/// <summary>
 		/// Calls the method named methodName on every MonoBehaviour in each scene in this set.
@@ -171,8 +189,10 @@ namespace UnityX.SceneManagement {
 		public void LoadInEditor () {
 			var sceneSetup = ToSceneSetup();
 			if (sceneSetup.Length == 0) return;
-			// RestoreSceneManagerSetup requires exactly one active scene; the last scene in the set is the active one.
-			sceneSetup[sceneSetup.Length - 1].isActive = true;
+			// RestoreSceneManagerSetup requires exactly one active scene.
+			string activePath = GetActiveScenePath();
+			int activeIndex = System.Array.FindIndex(sceneSetup, s => s.path == activePath);
+			sceneSetup[activeIndex >= 0 ? activeIndex : sceneSetup.Length - 1].isActive = true;
 			EditorSceneManager.RestoreSceneManagerSetup(sceneSetup);
 		}
 		#endif
