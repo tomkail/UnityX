@@ -263,7 +263,11 @@ def cmd_scan(a):
                             used.add(namespaces[ns])
                         else:
                             found.setdefault(namespaces[ns], []).append(f"using {ns} in {rel}")
-                for w in set(re.findall(r"\b[A-Z]\w+", code)):
+                # Bare identifiers, but not member accesses (`string.Join`, `x.Region`), which otherwise match
+                # package type names; fully qualified `UnityX.A.Type` names contribute their last segment.
+                words = set(re.findall(r"(?<![\w.])[A-Z]\w+", code))
+                words.update(q.rsplit(".", 1)[1] for q in re.findall(r"\bUnityX(?:\.\w+)+", code))
+                for w in words:
                     if w in types and types[w] in have:
                         used.add(types[w])
                     if w in types and types[w] not in have and w not in own_types:
