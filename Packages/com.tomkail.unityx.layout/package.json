@@ -1,0 +1,13 @@
+{
+  "name": "com.tomkail.unityx.layout",
+  "version": "2.0.0",
+  "displayName": "UnityX Layout",
+  "description": "Flexbox-style layout calculation (FlexLayout).",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {}
+}

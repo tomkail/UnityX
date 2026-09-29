@@ -1,0 +1,15 @@
+{
+  "name": "com.tomkail.unityx.property-drawers",
+  "version": "2.0.0",
+  "displayName": "UnityX Property Drawers",
+  "description": "Inspector attributes and drawers ([Disable], [Button], [VisibleIf], [OnChange], [AssetSaver] and more).",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.tomkail.unityx.core": "2.0.0"
+  }
+}

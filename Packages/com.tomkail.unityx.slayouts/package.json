@@ -1,0 +1,16 @@
+{
+  "name": "com.tomkail.unityx.slayouts",
+  "version": "2.0.0",
+  "displayName": "UnityX SLayouts",
+  "description": "Animated, code-driven UI layout.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.tomkail.unityx.easing": "2.0.0",
+    "com.unity.ugui": "2.0.0"
+  }
+}

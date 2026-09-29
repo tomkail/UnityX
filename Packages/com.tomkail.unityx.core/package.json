@@ -1,0 +1,15 @@
+{
+  "name": "com.tomkail.unityx.core",
+  "version": "2.0.0",
+  "displayName": "UnityX Core",
+  "description": "Foundational extension methods and utilities for UnityEngine/UnityEditor/System/collections, colour helpers, and scene-view drawing tools.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.unity.ugui": "2.0.0"
+  }
+}

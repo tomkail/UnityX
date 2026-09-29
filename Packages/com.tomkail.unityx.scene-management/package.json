@@ -1,0 +1,13 @@
+{
+  "name": "com.tomkail.unityx.scene-management",
+  "version": "2.0.0",
+  "displayName": "UnityX Scene Management",
+  "description": "Additive scene loading/management helpers.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {}
+}

@@ -1,0 +1,16 @@
+{
+  "name": "com.tomkail.unityx.polygon-renderer",
+  "version": "2.0.0",
+  "displayName": "UnityX Polygon Renderer",
+  "description": "Builds filled/outline meshes from polygons.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.tomkail.unityx.geometry": "2.0.0",
+    "com.tomkail.unityx.property-drawers": "2.0.0"
+  }
+}

@@ -34,3 +34,12 @@ ehthumbs.db
 Thumbs.db
 Thumbs.db.meta
 *_hcm.swatch
+# ============ #
+# Unity 6 / IDE #
+# ============ #
+UserSettings/
+MemoryCaptures/
+.vscode/
+.idea/
+*.slnx
+Tools/__pycache__/

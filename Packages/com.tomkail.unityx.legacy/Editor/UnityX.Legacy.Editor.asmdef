@@ -1,0 +1,30 @@
+{
+    "name": "UnityX.Legacy.Editor",
+    "rootNamespace": "",
+    "references": [
+        "UnityX.Legacy",
+        "UnityX.Core",
+        "UnityX.Core.Editor",
+        "UnityX.Colors",
+        "UnityX.PropertyDrawers",
+        "UnityX.PropertyDrawers.Editor",
+        "UnityX.Geometry",
+        "UnityX.Inputs",
+        "UnityX.SLayouts",
+        "UnityEngine.UI",
+        "UnityEditor.UI",
+        "Unity.TextMeshPro",
+        "UnityX.Geometry.Polygon.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

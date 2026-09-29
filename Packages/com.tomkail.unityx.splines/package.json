@@ -1,0 +1,13 @@
+{
+  "name": "com.tomkail.unityx.splines",
+  "version": "2.0.0",
+  "displayName": "UnityX Splines",
+  "description": "Bezier splines with a scene editor.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {}
+}

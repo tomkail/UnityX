@@ -1,0 +1,16 @@
+{
+  "name": "com.tomkail.unityx.tween",
+  "version": "2.0.0",
+  "displayName": "UnityX Tween",
+  "description": "Lightweight tweening for common types, plus the ViewAnimation animator.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.tomkail.unityx.core": "2.0.0",
+    "com.tomkail.unityx.timers": "2.0.0"
+  }
+}

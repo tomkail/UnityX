@@ -1,0 +1,17 @@
+{
+  "name": "com.tomkail.unityx.text-effects",
+  "version": "2.0.0",
+  "displayName": "UnityX Text Effects",
+  "description": "TextMeshPro per-character text effects.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.tomkail.unityx.core": "2.0.0",
+    "com.tomkail.unityx.property-drawers": "2.0.0",
+    "com.unity.ugui": "2.0.0"
+  }
+}

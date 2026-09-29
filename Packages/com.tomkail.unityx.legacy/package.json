@@ -1,0 +1,31 @@
+{
+  "name": "com.tomkail.unityx.legacy",
+  "version": "2.0.0",
+  "displayName": "UnityX Legacy (unsorted)",
+  "description": "Not-yet-modularised UnityX code (UI components, editor tools, audio, grid maps, misc). Unsorted and may change; pull modules out of here over time.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.tomkail.unityx.camera": "2.0.0",
+    "com.tomkail.unityx.camera-properties": "2.0.0",
+    "com.tomkail.unityx.core": "2.0.0",
+    "com.tomkail.unityx.easing": "2.0.0",
+    "com.tomkail.unityx.geometry": "2.0.0",
+    "com.tomkail.unityx.grid": "2.0.0",
+    "com.tomkail.unityx.inputs": "2.0.0",
+    "com.tomkail.unityx.islands": "2.0.0",
+    "com.tomkail.unityx.property-curves": "2.0.0",
+    "com.tomkail.unityx.property-drawers": "2.0.0",
+    "com.tomkail.unityx.region": "2.0.0",
+    "com.tomkail.unityx.slayouts": "2.0.0",
+    "com.tomkail.unityx.springs": "2.0.0",
+    "com.tomkail.unityx.tween": "2.0.0",
+    "com.tomkail.unityx.value-picker": "2.0.0",
+    "com.unity.inputsystem": "1.7.0",
+    "com.unity.ugui": "2.0.0"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "com.tomkail.unityx.multitouch-draggable",
+  "version": "2.0.0",
+  "displayName": "UnityX Multitouch Draggable",
+  "description": "Multi-touch drag/pinch/rotate for objects.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.unity.ugui": "2.0.0"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "com.tomkail.unityx.trackpad-multitouch",
+  "version": "2.0.0",
+  "displayName": "UnityX Trackpad Multitouch",
+  "description": "Native macOS trackpad multi-touch input (Input System).",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.unity.inputsystem": "1.7.0"
+  }
+}

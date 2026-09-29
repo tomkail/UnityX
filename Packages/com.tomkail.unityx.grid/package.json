@@ -1,0 +1,13 @@
+{
+  "name": "com.tomkail.unityx.grid",
+  "version": "2.0.0",
+  "displayName": "UnityX Grid",
+  "description": "Square grid maths plus square and cube grid renderers.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {}
+}

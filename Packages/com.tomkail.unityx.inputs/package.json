@@ -1,0 +1,16 @@
+{
+  "name": "com.tomkail.unityx.inputs",
+  "version": "2.0.0",
+  "displayName": "UnityX Inputs",
+  "description": "Pointer/touch input helpers.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.tomkail.unityx.core": "2.0.0",
+    "com.unity.ugui": "2.0.0"
+  }
+}

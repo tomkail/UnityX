@@ -1,0 +1,48 @@
+{
+  "motion": {
+    "packages": [
+      "springs",
+      "easer",
+      "easing",
+      "timers",
+      "tween",
+      "property-curves"
+    ]
+  },
+  "camera-all": {
+    "packages": [
+      "camera",
+      "camera-properties"
+    ]
+  },
+  "geometry-all": {
+    "packages": [
+      "geometry",
+      "polygon-renderer",
+      "region",
+      "islands"
+    ]
+  },
+  "ui": {
+    "packages": [
+      "layout",
+      "slayouts",
+      "ui-grid-layout",
+      "ui-imposters",
+      "text-effects"
+    ]
+  },
+  "input": {
+    "packages": [
+      "inputs",
+      "multitouch-draggable",
+      "trackpad-multitouch"
+    ]
+  },
+  "editor-tools": {
+    "packages": [
+      "screenshot-exporter",
+      "versioning"
+    ]
+  }
+}

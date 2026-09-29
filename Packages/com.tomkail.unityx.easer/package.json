@@ -1,0 +1,15 @@
+{
+  "name": "com.tomkail.unityx.easer",
+  "version": "2.0.0",
+  "displayName": "UnityX Easer",
+  "description": "Value easing/smoothing over time for common Unity types, spring-driven or curve-driven.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.tomkail.unityx.springs": "2.0.0"
+  }
+}

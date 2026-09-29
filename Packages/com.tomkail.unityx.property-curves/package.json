@@ -1,0 +1,13 @@
+{
+  "name": "com.tomkail.unityx.property-curves",
+  "version": "2.0.0",
+  "displayName": "UnityX Property Curves",
+  "description": "Generic keyframed curves over any type (colours, quaternions, ...).",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {}
+}

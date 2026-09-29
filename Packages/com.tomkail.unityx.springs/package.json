@@ -1,0 +1,13 @@
+{
+  "name": "com.tomkail.unityx.springs",
+  "version": "2.0.0",
+  "displayName": "UnityX Springs",
+  "description": "Damped spring simulation with inspector presets and graphing.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {}
+}

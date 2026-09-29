@@ -1,24 +1,256 @@
 {
   "dependencies": {
-    "com.unity.collab-proxy": {
-      "version": "1.15.4",
+    "com.tomkail.unityx.camera": {
+      "version": "file:com.tomkail.unityx.camera",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.tomkail.unityx.camera-properties": {
+      "version": "file:com.tomkail.unityx.camera-properties",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.tomkail.unityx.camera": "2.0.0",
+        "com.tomkail.unityx.tween": "2.0.0"
+      }
+    },
+    "com.tomkail.unityx.core": {
+      "version": "file:com.tomkail.unityx.core",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.ugui": "2.0.0"
+      }
+    },
+    "com.tomkail.unityx.easer": {
+      "version": "file:com.tomkail.unityx.easer",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.tomkail.unityx.springs": "2.0.0"
+      }
+    },
+    "com.tomkail.unityx.easing": {
+      "version": "file:com.tomkail.unityx.easing",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.tomkail.unityx.geometry": {
+      "version": "file:com.tomkail.unityx.geometry",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.tomkail.unityx.grid": {
+      "version": "file:com.tomkail.unityx.grid",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.tomkail.unityx.inputs": {
+      "version": "file:com.tomkail.unityx.inputs",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.tomkail.unityx.core": "2.0.0",
+        "com.unity.ugui": "2.0.0"
+      }
+    },
+    "com.tomkail.unityx.islands": {
+      "version": "file:com.tomkail.unityx.islands",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.tomkail.unityx.layout": {
+      "version": "file:com.tomkail.unityx.layout",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.tomkail.unityx.legacy": {
+      "version": "file:com.tomkail.unityx.legacy",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.tomkail.unityx.core": "2.0.0",
+        "com.tomkail.unityx.geometry": "2.0.0",
+        "com.tomkail.unityx.grid": "2.0.0",
+        "com.tomkail.unityx.inputs": "2.0.0",
+        "com.tomkail.unityx.islands": "2.0.0",
+        "com.tomkail.unityx.property-curves": "2.0.0",
+        "com.tomkail.unityx.property-drawers": "2.0.0",
+        "com.tomkail.unityx.slayouts": "2.0.0",
+        "com.tomkail.unityx.springs": "2.0.0",
+        "com.tomkail.unityx.tween": "2.0.0",
+        "com.tomkail.unityx.value-picker": "2.0.0",
+        "com.unity.ugui": "2.0.0"
+      }
+    },
+    "com.tomkail.unityx.multitouch-draggable": {
+      "version": "file:com.tomkail.unityx.multitouch-draggable",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.ugui": "2.0.0"
+      }
+    },
+    "com.tomkail.unityx.noise": {
+      "version": "file:com.tomkail.unityx.noise",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.tomkail.unityx.polygon-renderer": {
+      "version": "file:com.tomkail.unityx.polygon-renderer",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.tomkail.unityx.geometry": "2.0.0",
+        "com.tomkail.unityx.property-drawers": "2.0.0"
+      }
+    },
+    "com.tomkail.unityx.property-curves": {
+      "version": "file:com.tomkail.unityx.property-curves",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.tomkail.unityx.property-drawers": {
+      "version": "file:com.tomkail.unityx.property-drawers",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.tomkail.unityx.core": "2.0.0"
+      }
+    },
+    "com.tomkail.unityx.region": {
+      "version": "file:com.tomkail.unityx.region",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.tomkail.unityx.geometry": "2.0.0"
+      }
+    },
+    "com.tomkail.unityx.scene-management": {
+      "version": "file:com.tomkail.unityx.scene-management",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.tomkail.unityx.screenshot-exporter": {
+      "version": "file:com.tomkail.unityx.screenshot-exporter",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.tomkail.unityx.slayouts": {
+      "version": "file:com.tomkail.unityx.slayouts",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.tomkail.unityx.easing": "2.0.0",
+        "com.unity.ugui": "2.0.0"
+      }
+    },
+    "com.tomkail.unityx.splines": {
+      "version": "file:com.tomkail.unityx.splines",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.tomkail.unityx.springs": {
+      "version": "file:com.tomkail.unityx.springs",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.tomkail.unityx.state-machines": {
+      "version": "file:com.tomkail.unityx.state-machines",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.tomkail.unityx.text-effects": {
+      "version": "file:com.tomkail.unityx.text-effects",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.tomkail.unityx.core": "2.0.0",
+        "com.tomkail.unityx.property-drawers": "2.0.0",
+        "com.unity.ugui": "2.0.0"
+      }
+    },
+    "com.tomkail.unityx.timers": {
+      "version": "file:com.tomkail.unityx.timers",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.tomkail.unityx.trackpad-multitouch": {
+      "version": "file:com.tomkail.unityx.trackpad-multitouch",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.inputsystem": "1.7.0"
+      }
+    },
+    "com.tomkail.unityx.tween": {
+      "version": "file:com.tomkail.unityx.tween",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.tomkail.unityx.core": "2.0.0",
+        "com.tomkail.unityx.timers": "2.0.0"
+      }
+    },
+    "com.tomkail.unityx.ui-grid-layout": {
+      "version": "file:com.tomkail.unityx.ui-grid-layout",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.ugui": "2.0.0"
+      }
+    },
+    "com.tomkail.unityx.ui-imposters": {
+      "version": "file:com.tomkail.unityx.ui-imposters",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.ugui": "2.0.0"
+      }
+    },
+    "com.tomkail.unityx.value-picker": {
+      "version": "file:com.tomkail.unityx.value-picker",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.tomkail.unityx.versioning": {
+      "version": "file:com.tomkail.unityx.versioning",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.unity.ai.navigation": {
+      "version": "2.0.13",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.unity.nuget.newtonsoft-json": "2.0.0",
-        "com.unity.services.core": "1.0.1"
+        "com.unity.modules.ai": "1.0.0"
       },
       "url": "https://packages.unity.com"
     },
     "com.unity.ext.nunit": {
-      "version": "1.0.6",
+      "version": "2.1.0",
       "depth": 1,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://packages.unity.com"
+      "source": "builtin",
+      "dependencies": {}
     },
     "com.unity.ide.rider": {
-      "version": "3.0.7",
+      "version": "3.0.40",
       "depth": 0,
       "source": "registry",
       "dependencies": {
@@ -27,76 +259,65 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.visualstudio": {
-      "version": "2.0.12",
+      "version": "2.0.27",
       "depth": 0,
       "source": "registry",
       "dependencies": {
-        "com.unity.test-framework": "1.1.9"
+        "com.unity.test-framework": "1.1.33"
       },
       "url": "https://packages.unity.com"
     },
-    "com.unity.ide.vscode": {
-      "version": "1.2.4",
+    "com.unity.inputsystem": {
+      "version": "1.19.0",
       "depth": 0,
       "source": "registry",
-      "dependencies": {},
+      "dependencies": {
+        "com.unity.modules.uielements": "1.0.0"
+      },
       "url": "https://packages.unity.com"
     },
-    "com.unity.nuget.newtonsoft-json": {
-      "version": "2.0.0",
-      "depth": 1,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://packages.unity.com"
-    },
-    "com.unity.services.core": {
+    "com.unity.multiplayer.center": {
       "version": "1.0.1",
-      "depth": 1,
-      "source": "registry",
+      "depth": 0,
+      "source": "builtin",
       "dependencies": {
-        "com.unity.modules.unitywebrequest": "1.0.0"
-      },
-      "url": "https://packages.unity.com"
+        "com.unity.modules.uielements": "1.0.0"
+      }
     },
     "com.unity.test-framework": {
-      "version": "1.1.29",
+      "version": "1.7.0",
       "depth": 0,
-      "source": "registry",
+      "source": "builtin",
       "dependencies": {
-        "com.unity.ext.nunit": "1.0.6",
+        "com.unity.ext.nunit": "2.1.0",
         "com.unity.modules.imgui": "1.0.0",
         "com.unity.modules.jsonserialize": "1.0.0"
-      },
-      "url": "https://packages.unity.com"
-    },
-    "com.unity.textmeshpro": {
-      "version": "3.0.6",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.ugui": "1.0.0"
-      },
-      "url": "https://packages.unity.com"
-    },
-    "com.unity.timeline": {
-      "version": "1.6.3",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.modules.director": "1.0.0",
-        "com.unity.modules.animation": "1.0.0",
-        "com.unity.modules.audio": "1.0.0",
-        "com.unity.modules.particlesystem": "1.0.0"
-      },
-      "url": "https://packages.unity.com"
+      }
     },
     "com.unity.ugui": {
-      "version": "1.0.0",
+      "version": "2.5.0",
       "depth": 0,
       "source": "builtin",
       "dependencies": {
         "com.unity.modules.ui": "1.0.0",
-        "com.unity.modules.imgui": "1.0.0"
+        "com.unity.modules.imgui": "1.0.0",
+        "com.unity.modules.audio": "1.0.0",
+        "com.unity.modules.physics2d": "1.0.0",
+        "com.unity.modules.physics": "1.0.0"
+      }
+    },
+    "com.unity.modules.accessibility": {
+      "version": "1.0.0",
+      "depth": 0,
+      "source": "builtin",
+      "dependencies": {}
+    },
+    "com.unity.modules.adaptiveperformance": {
+      "version": "1.0.0",
+      "depth": 0,
+      "source": "builtin",
+      "dependencies": {
+        "com.unity.modules.subsystems": "1.0.0"
       }
     },
     "com.unity.modules.ai": {
@@ -109,7 +330,9 @@
       "version": "1.0.0",
       "depth": 0,
       "source": "builtin",
-      "dependencies": {}
+      "dependencies": {
+        "com.unity.modules.jsonserialize": "1.0.0"
+      }
     },
     "com.unity.modules.animation": {
       "version": "1.0.0",
@@ -146,6 +369,12 @@
         "com.unity.modules.animation": "1.0.0"
       }
     },
+    "com.unity.modules.hierarchycore": {
+      "version": "1.0.0",
+      "depth": 1,
+      "source": "builtin",
+      "dependencies": {}
+    },
     "com.unity.modules.imageconversion": {
       "version": "1.0.0",
       "depth": 0,
@@ -177,6 +406,14 @@
       "dependencies": {}
     },
     "com.unity.modules.physics2d": {
+      "version": "1.0.0",
+      "depth": 0,
+      "source": "builtin",
+      "dependencies": {
+        "com.unity.modules.physicscore2d": "1.0.0"
+      }
+    },
+    "com.unity.modules.physicscore2d": {
       "version": "1.0.0",
       "depth": 0,
       "source": "builtin",
@@ -235,17 +472,9 @@
         "com.unity.modules.ui": "1.0.0",
         "com.unity.modules.imgui": "1.0.0",
         "com.unity.modules.jsonserialize": "1.0.0",
-        "com.unity.modules.uielementsnative": "1.0.0"
-      }
-    },
-    "com.unity.modules.uielementsnative": {
-      "version": "1.0.0",
-      "depth": 1,
-      "source": "builtin",
-      "dependencies": {
-        "com.unity.modules.ui": "1.0.0",
-        "com.unity.modules.imgui": "1.0.0",
-        "com.unity.modules.jsonserialize": "1.0.0"
+        "com.unity.modules.hierarchycore": "1.0.0",
+        "com.unity.modules.physics": "1.0.0",
+        "com.unity.modules.animation": "1.0.0"
       }
     },
     "com.unity.modules.umbra": {
@@ -309,6 +538,16 @@
         "com.unity.modules.imageconversion": "1.0.0"
       }
     },
+    "com.unity.modules.vectorgraphics": {
+      "version": "1.0.0",
+      "depth": 0,
+      "source": "builtin",
+      "dependencies": {
+        "com.unity.modules.uielements": "1.0.0",
+        "com.unity.modules.imageconversion": "1.0.0",
+        "com.unity.modules.imgui": "1.0.0"
+      }
+    },
     "com.unity.modules.vehicles": {
       "version": "1.0.0",
       "depth": 0,
@@ -325,16 +564,6 @@
         "com.unity.modules.audio": "1.0.0",
         "com.unity.modules.ui": "1.0.0",
         "com.unity.modules.unitywebrequest": "1.0.0"
-      }
-    },
-    "com.unity.modules.vr": {
-      "version": "1.0.0",
-      "depth": 0,
-      "source": "builtin",
-      "dependencies": {
-        "com.unity.modules.jsonserialize": "1.0.0",
-        "com.unity.modules.physics": "1.0.0",
-        "com.unity.modules.xr": "1.0.0"
       }
     },
     "com.unity.modules.wind": {

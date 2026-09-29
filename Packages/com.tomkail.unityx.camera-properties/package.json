@@ -1,0 +1,16 @@
+{
+  "name": "com.tomkail.unityx.camera-properties",
+  "version": "2.0.0",
+  "displayName": "UnityX Camera Properties",
+  "description": "Blendable camera property stacks with modifiers and tweened transitions.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.tomkail.unityx.camera": "2.0.0",
+    "com.tomkail.unityx.tween": "2.0.0"
+  }
+}

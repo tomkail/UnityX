@@ -1,0 +1,13 @@
+{
+  "name": "com.tomkail.unityx.screenshot-exporter",
+  "version": "2.0.0",
+  "displayName": "UnityX Screenshot Exporter",
+  "description": "Capture cameras to arbitrary-resolution screenshots, with an editor exporter.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {}
+}

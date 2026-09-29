@@ -1,0 +1,13 @@
+{
+  "name": "com.tomkail.unityx.timers",
+  "version": "2.0.0",
+  "displayName": "UnityX Timers",
+  "description": "Simple serializable timer with an inspector drawer.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {}
+}

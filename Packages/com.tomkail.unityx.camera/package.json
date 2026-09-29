@@ -1,0 +1,13 @@
+{
+  "name": "com.tomkail.unityx.camera",
+  "version": "2.0.0",
+  "displayName": "UnityX Camera",
+  "description": "Camera extensions, serializable camera/transform snapshots, and camera shots.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {}
+}

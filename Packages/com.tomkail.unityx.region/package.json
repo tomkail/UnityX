@@ -1,0 +1,15 @@
+{
+  "name": "com.tomkail.unityx.region",
+  "version": "2.0.0",
+  "displayName": "UnityX Region",
+  "description": "Polygonal regions with containment, raycasting and extruded meshes, plus a scene editor.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.tomkail.unityx.geometry": "2.0.0"
+  }
+}
