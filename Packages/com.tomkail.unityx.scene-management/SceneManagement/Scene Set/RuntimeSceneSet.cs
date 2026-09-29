@@ -171,8 +171,9 @@ namespace UnityX.SceneManagement {
 		public void LoadInEditor () {
 			var sceneSetup = ToSceneSetup();
 			if (sceneSetup.Length == 0) return;
+			// RestoreSceneManagerSetup requires exactly one active scene; the last scene in the set is the active one.
+			sceneSetup[sceneSetup.Length - 1].isActive = true;
 			EditorSceneManager.RestoreSceneManagerSetup(sceneSetup);
-			SceneManager.SetActiveScene(SceneManager.GetSceneAt(sceneSetup.Length - 1));
 		}
 		#endif
 	}

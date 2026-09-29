@@ -37,7 +37,7 @@ namespace UnityX.SceneManagement.Editor {
 				var element = scenesList.serializedProperty.GetArrayElementAtIndex(index);
 				rect.y += 2;
 				rect.height = EditorGUIUtility.singleLineHeight;
-				// The last (newest) row is tinted to hint it is the just-added slot.
+				// The last row is tinted: that scene becomes the active scene when the set is loaded.
 				if (index == scenesList.count - 1) {
 					Color savedColor = GUI.color;
 					GUI.color = new Color(1f, 0.7f, 0.7f, 1);
