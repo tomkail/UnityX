@@ -1,0 +1,29 @@
+{
+    "name": "UnityX.SLayouts",
+    "rootNamespace": "UnityX.SLayouts",
+    "references": [
+        "UnityEngine.UI",
+        "Unity.TextMeshPro",
+        "UnityX.Easing"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.ugui",
+            "expression": "2.0.0",
+            "define": "TMP_PRESENT"
+        },
+        {
+            "name": "com.unity.textmeshpro",
+            "expression": "1.0.0",
+            "define": "TMP_PRESENT"
+        }
+    ],
+    "noEngineReferences": false
+}

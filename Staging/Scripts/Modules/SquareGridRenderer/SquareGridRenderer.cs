@@ -1,0 +1,397 @@
+using UnityEngine;
+using System.Collections.Generic;
+using System.Linq;
+
+[ExecuteAlways]
+public class SquareGridRenderer : MonoBehaviour {
+    public event System.Action<SquareGridRenderer> OnRefresh;
+	public Plane floorPlane => new(-transform.forward, transform.position);
+	public SquareGridRendererModeModule modeModule;
+	public bool scaleWithGridSize = true;
+
+	[SerializeField]
+    Vector2Int _gridSize;
+	public Vector2Int gridSize {
+		get => _gridSize;
+		set {
+			if(_gridSize == value) return;
+            _gridSize = value;
+            Refresh();
+		}
+	}
+	public Vector3 cellSize => scaleWithGridSize ? Vector3.one : new Vector3(1f/gridSize.x, 1f/gridSize.y, 1f/gridSize.y);
+	
+	public bool showGizmos;
+	
+	GridCenterConversion _cellCenter;
+	public GridCenterConversion cellCenter {
+        get {
+            if(_cellCenter == null) Refresh();
+            return _cellCenter;
+        } private set => _cellCenter = value;
+	}
+	GridEdgeConversion _edge;
+
+	public GridEdgeConversion edge {
+        get {
+            if(_edge == null) Refresh();
+            return _edge;
+        } private set => _edge = value;
+	}
+
+	void OnEnable () {
+		Refresh();
+	}
+	void Update () {
+		if (transform.hasChanged) {
+            transform.hasChanged = false;
+            Refresh();
+        }
+	}
+    
+	public void Refresh () {
+		cellCenter = new GridCenterConversion(this);
+		edge = new GridEdgeConversion(this);
+        if(OnRefresh != null) OnRefresh(this);
+	}
+	
+	public Vector2 CenterPositionToEdgePosition (Vector2 centerPoint) {
+		return centerPoint+new Vector2(0.5f, 0.5f);
+	}
+
+	public Vector2 EdgePositionToCenterPosition (Vector2 edgePoint) {
+		return edgePoint-new Vector2(0.5f, 0.5f);
+	}
+
+    [System.Serializable]
+	public class GridCenterConversion : GridConversion {
+		public override Vector2Int gridSize => gridRenderer.gridSize;
+
+		public override Matrix4x4 gridToLocalMatrix {
+			get {
+                if(!_gridToLocalMatrixSet) {
+	                _gridToLocalMatrix = gridRenderer.modeModule.GetGridToLocalMatrix(gridRenderer.cellSize, gridRenderer.gridSize);
+                    Vector3 halfCellOffset = new Vector3(0.5f, 0.5f, 0);
+                    _gridToLocalMatrix *= Matrix4x4.TRS(halfCellOffset, Quaternion.identity, Vector3.one);
+                    _gridToLocalMatrixSet = true;
+                }
+                return _gridToLocalMatrix;
+			}
+		}
+		public GridCenterConversion (SquareGridRenderer gridRenderer) : base (gridRenderer) {}
+	}
+
+    [System.Serializable]
+	public class GridEdgeConversion : GridConversion {
+		public override Vector2Int gridSize => gridRenderer.gridSize+Vector2Int.one;
+
+		public override Matrix4x4 gridToLocalMatrix {
+			get {
+                if(!_gridToLocalMatrixSet) {
+	                _gridToLocalMatrix = gridRenderer.modeModule.GetGridToLocalMatrix(gridRenderer.cellSize, gridRenderer.gridSize);
+                    _gridToLocalMatrixSet = true;
+                }
+                return _gridToLocalMatrix;
+			}
+		}
+		public GridEdgeConversion (SquareGridRenderer gridRenderer) : base (gridRenderer) {}
+	}
+        
+	[System.Serializable]
+	public abstract class GridConversion {
+		protected SquareGridRenderer gridRenderer;
+		public abstract Vector2Int gridSize {get;}
+		protected Transform transform => gridRenderer.transform;
+
+        protected bool _gridToLocalMatrixSet = false;
+        protected Matrix4x4 _gridToLocalMatrix = Matrix4x4.identity;
+		public abstract Matrix4x4 gridToLocalMatrix {get;}
+	
+        protected bool _normalizedToGridMatrixSet = false;
+    	Matrix4x4 _normalizedToGridMatrix = Matrix4x4.identity;
+		public Matrix4x4 normalizedToGridMatrix {
+            get {
+                Debug.Assert(gridRenderer != null);
+                if(!_normalizedToGridMatrixSet) {
+                    var scale = new Vector3(gridSize.x-1, gridSize.y-1, 1);
+                    _normalizedToGridMatrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, scale);
+                    _normalizedToGridMatrixSet = true;
+                }
+                return _normalizedToGridMatrix;
+            }
+        }
+        public Matrix4x4 gridToNormalizedMatrix => normalizedToGridMatrix.inverse;
+
+        protected bool _normalizedToLocalMatrixSet = false;
+        Matrix4x4 _normalizedToLocalMatrix = Matrix4x4.identity;
+		public Matrix4x4 normalizedToLocalMatrix {
+			get {
+                if(!_normalizedToLocalMatrixSet) {
+				    _normalizedToLocalMatrix = gridToLocalMatrix * normalizedToGridMatrix;
+                    _normalizedToLocalMatrixSet = true;
+                }
+                return _normalizedToLocalMatrix;
+            }
+		}
+
+
+        protected bool _gridToWorldMatrixSet = false;
+        Matrix4x4 _gridToWorldMatrix = Matrix4x4.identity;
+        public Matrix4x4 gridToWorldMatrix {
+			get {
+                if(!_gridToWorldMatrixSet) {
+                    _gridToWorldMatrix = transform.localToWorldMatrix * gridToLocalMatrix;
+                    _gridToWorldMatrixSet = true;
+                }
+				return _gridToWorldMatrix;
+			}
+		}
+
+        protected bool _normalizedToWorldMatrixSet = false;
+        Matrix4x4 _normalizedToWorldMatrix = Matrix4x4.identity;
+		public Matrix4x4 normalizedToWorldMatrix {
+			get {
+                if(!_normalizedToWorldMatrixSet) {
+                    _normalizedToWorldMatrix = transform.localToWorldMatrix * normalizedToLocalMatrix;
+                    _normalizedToWorldMatrixSet = true;
+                }
+				return _normalizedToWorldMatrix;
+			}
+		}
+
+		public GridConversion (SquareGridRenderer gridRenderer) {
+			this.gridRenderer = gridRenderer;
+		}
+
+		public Vector2 WorldToGridPosition (Vector3 worldPosition) {
+			return gridToWorldMatrix.inverse.MultiplyPoint3x4(worldPosition);
+		}
+		
+		public Vector2 LocalToNormalizedPosition (Vector3 worldPosition) {
+			return normalizedToLocalMatrix.inverse.MultiplyPoint3x4(worldPosition);
+		}
+
+		public Vector2 WorldToNormalizedPosition (Vector3 worldPosition) {
+			return normalizedToWorldMatrix.inverse.MultiplyPoint3x4(worldPosition);
+		}
+
+
+		public Vector3 GridToLocalPoint (Vector2 gridPosition) {
+			return gridToLocalMatrix.MultiplyPoint3x4(gridPosition);
+		}
+		
+		public Vector3 GridToWorldPoint (Vector2 gridPosition) {
+			return gridToWorldMatrix.MultiplyPoint3x4(gridPosition);
+		}
+
+		public Vector3 NormalizedToLocalPoint (Vector2 normalizedPosition) {
+			return normalizedToLocalMatrix.MultiplyPoint3x4(normalizedPosition);
+		}
+		
+		public Vector3 NormalizedToWorldPoint (Vector2 normalizedPosition) {
+			return normalizedToWorldMatrix.MultiplyPoint3x4(normalizedPosition);
+		}
+
+		public virtual Vector2 NormalizedToGridPosition (Vector2 normalizedPosition){
+			return SquareGrid.NormalizedToGridPosition(normalizedPosition, gridSize);
+		}
+
+		public virtual Vector2 GridToNormalizedPosition (Vector2 normalizedPosition){
+			return SquareGrid.GridToNormalizedPosition(normalizedPosition, gridSize);
+		}
+		
+
+		public Vector3 WorldToGridVector (Vector3 worldVector) {
+			return gridToWorldMatrix.inverse.MultiplyVector(worldVector);
+		}
+		public Vector3 LocalVectorToGridVector (Vector3 worldVector) {
+			return gridToLocalMatrix.inverse.MultiplyVector(worldVector);
+		}
+		public Vector3 GridToWorldVector (Vector2 gridVector) {
+			return gridToWorldMatrix.MultiplyVector(gridVector);
+		}
+		public Vector3 GridToLocalVector (Vector2 gridVector) {
+			return gridToLocalMatrix.MultiplyVector(gridVector);
+		}
+
+		public Vector3 NormalizedToWorldVector (Vector2 normalizedVector) {
+			var gridVector = NormalizedToGridPosition(normalizedVector);
+			return GridToWorldVector(gridVector);
+		}
+		public Vector2 WorldToNormalizedVector (Vector3 worldVector) {
+			var gridVector = WorldToGridVector(worldVector);
+			return GridToNormalizedPosition(gridVector);
+		}
+
+
+		public Vector3[] GridToWorldRect (Rect gridRect) {
+			Vector3[] worldPoints = new Vector3[] {
+                GridToWorldPoint(gridRect.position),
+                GridToWorldPoint(gridRect.position + new Vector2(gridRect.size.x, 0)),
+                GridToWorldPoint(gridRect.position + gridRect.size),
+                GridToWorldPoint(gridRect.position + new Vector2(0, gridRect.size.y)),
+            };
+            return worldPoints;
+		}
+		public void GridToWorldRectNonAlloc (Rect gridRect, ref Vector3[] worldPoints) {
+			if(worldPoints == null || worldPoints.Length != 4)
+				worldPoints = new Vector3[4];
+			worldPoints[0] = GridToWorldPoint(gridRect.position);
+			worldPoints[1] = GridToWorldPoint(gridRect.position + new Vector2(gridRect.size.x, 0));
+			worldPoints[2] = GridToWorldPoint(gridRect.position + gridRect.size);
+			worldPoints[3] = GridToWorldPoint(gridRect.position + new Vector2(0, gridRect.size.y));
+		}
+
+		public Vector2[] GridToLocalRect (Rect gridRect) {
+			Vector2[] worldPoints = new Vector2[] {
+                GridToLocalPoint(gridRect.position),
+                GridToLocalPoint(gridRect.position + new Vector2(gridRect.size.x, 0)),
+                GridToLocalPoint(gridRect.position + gridRect.size),
+                GridToLocalPoint(gridRect.position + new Vector2(0, gridRect.size.y)),
+            };
+            return worldPoints;
+		}
+		
+		public Vector2[] NormalizedToLocalRect (Rect normalizedRect) {
+			Vector2[] worldPoints = new Vector2[] {
+                NormalizedToLocalPoint(normalizedRect.position),
+                NormalizedToLocalPoint(normalizedRect.position + new Vector2(normalizedRect.size.x, 0)),
+                NormalizedToLocalPoint(normalizedRect.position + normalizedRect.size),
+                NormalizedToLocalPoint(normalizedRect.position + new Vector2(0, normalizedRect.size.y)),
+            };
+            return worldPoints;
+		}
+
+		public Vector3[] NormalizedToWorldRect (Rect normalizedRect) {
+			Vector3[] worldPoints = new Vector3[] {
+                NormalizedToWorldPoint(normalizedRect.position),
+                NormalizedToWorldPoint(normalizedRect.position + new Vector2(normalizedRect.size.x, 0)),
+                NormalizedToWorldPoint(normalizedRect.position + normalizedRect.size),
+                NormalizedToWorldPoint(normalizedRect.position + new Vector2(0, normalizedRect.size.y)),
+            };
+            return worldPoints;
+		}
+
+		public void NormalizedToWorldRectNonAlloc (Rect normalizedRect, Vector3[] worldPoints) {
+			worldPoints[0] = NormalizedToWorldPoint(normalizedRect.position);
+			worldPoints[1] = NormalizedToWorldPoint(normalizedRect.position + new Vector2(normalizedRect.size.x, 0));
+			worldPoints[2] = NormalizedToWorldPoint(normalizedRect.position + normalizedRect.size);
+			worldPoints[3] = NormalizedToWorldPoint(normalizedRect.position + new Vector2(0, normalizedRect.size.y));
+		}
+	}
+
+	public IEnumerable<Vector2Int> GetPointsInWorldBounds (Bounds bounds, bool clamped = true) {
+		Vector2 _min = cellCenter.WorldToGridPosition(bounds.min);
+		Vector2Int min = new Vector2Int(Mathf.FloorToInt(_min.x), Mathf.FloorToInt(_min.y));
+		Vector2 _max = cellCenter.WorldToGridPosition(bounds.max);
+		Vector2Int max = new Vector2Int(Mathf.CeilToInt(_max.x), Mathf.CeilToInt(_max.y));
+
+		foreach(var vert in BoundsVertices(bounds)) {
+			var gridVert = cellCenter.WorldToGridPosition(vert);
+			if(gridVert.x < min.x) min.x = Mathf.FloorToInt(gridVert.x);
+			if(gridVert.y < min.y) min.y = Mathf.FloorToInt(gridVert.y);
+			if(gridVert.x > max.x) max.x = Mathf.CeilToInt(gridVert.x);
+			if(gridVert.y > max.y) max.y = Mathf.CeilToInt(gridVert.y);
+		}
+		if (clamped) {
+			min.x = Mathf.Max(min.x, 0);
+			min.y = Mathf.Max(min.y, 0);
+			max.x = Mathf.Min(max.x, gridSize.x);
+			max.y = Mathf.Min(max.y, gridSize.y);
+		}
+		var pointRect = new RectInt(min.x, min.y, max.x - min.x, max.y - min.y);
+
+		foreach(var point in pointRect.allPositionsWithin) {
+			yield return point;
+		}
+	}
+
+	public IEnumerable<Vector2Int> GetPointsInRadius (Vector3 circleCenter, float radius, bool clampToGrid) {
+		var chunkSample = cellCenter.WorldToGridPosition(circleCenter);
+
+		Vector2 _start = edge.WorldToGridPosition(circleCenter - Vector3.one * radius);
+		Vector2Int start = new Vector2Int(Mathf.FloorToInt(_start.x), Mathf.FloorToInt(_start.y));
+		Vector2 _end = edge.WorldToGridPosition(circleCenter + Vector3.one * radius);
+		Vector2Int end = new Vector2Int(Mathf.CeilToInt(_end.x)+1, Mathf.CeilToInt(_end.y)+1);
+		
+		if(clampToGrid) {
+			start.x = Mathf.Clamp(start.x, 0, gridSize.x);
+			start.y = Mathf.Clamp(start.y, 0, gridSize.y);
+			end.x = Mathf.Clamp(end.x, 0, gridSize.x);
+			end.y = Mathf.Clamp(end.y, 0, gridSize.y);
+		}
+		if(start.x == end.x || start.y == end.y) yield break;
+		float radiusSquared = radius * radius;
+		for (int x = start.x; x < end.x; x++) {
+			for (int y = start.y; y < end.y; y++) {
+				var point = new Vector2Int(x,y);
+				var distance = GetSqrDistanceToChunk(chunkSample, circleCenter, point);
+				if (distance <= radiusSquared) {
+					yield return new Vector2Int(x,y);
+				}
+			}
+		}
+	}
+
+	float GetSqrDistanceToChunk (Vector2 chunkSpaceTarget, Vector3 worldSpaceTarget, Vector2Int chunk) {
+		Vector2 testPoint = Vector2.zero;
+		testPoint.x = Mathf.Clamp(chunkSpaceTarget.x, chunk.x-0.5f, chunk.x+0.5f);
+		testPoint.y = Mathf.Clamp(chunkSpaceTarget.y, chunk.y-0.5f, chunk.y+0.5f);
+		Vector3 pointPosition = cellCenter.GridToWorldPoint(testPoint);
+		return Vector3.ProjectOnPlane(pointPosition - worldSpaceTarget, (transform.rotation * Vector3.forward).normalized).sqrMagnitude;
+	}
+
+	public List<Vector2Int> OrderPointsByDistance (List<Vector2Int> points, Vector3 position) {
+		var chunkSample = cellCenter.WorldToGridPosition(position);
+		return points.OrderBy(x => GetSqrDistanceToChunk(chunkSample, position, x)).ToList();
+	}
+
+	public Vector3 ScreenToFloorPoint (Ray ray) {
+		float distance;
+		floorPlane.Raycast(ray, out distance);
+		return ray.GetPoint(distance);
+	}
+
+	void OnDrawGizmos () {
+		if (!showGizmos) return;
+
+		Gizmos.color = new Color(1f, 1f, 1f, 1f);
+		var bounds = edge.NormalizedToWorldRect(new Rect(0, 0, 1, 1));
+		for (int i = 0; i < bounds.Length; i++)
+			Gizmos.DrawLine(bounds[i], bounds[(i + 1) % bounds.Length]);
+
+		Gizmos.color = new Color(1f, 1f, 1f, 0.25f);
+		for (int y = 1; y < gridSize.y; y++)
+			Gizmos.DrawLine(edge.GridToWorldPoint(new Vector2(0, y)), edge.GridToWorldPoint(new Vector2(gridSize.x, y)));
+		for (int x = 1; x < gridSize.x; x++)
+			Gizmos.DrawLine(edge.GridToWorldPoint(new Vector2(x, 0)), edge.GridToWorldPoint(new Vector2(x, gridSize.y)));
+	}
+
+	#if UNITY_EDITOR
+	public void DrawHandles () {
+		UnityEditor.Handles.color = new Color(1f, 1f, 1f, 1f);
+		var bounds = edge.NormalizedToWorldRect(new Rect(0, 0, 1, 1));
+		for (int i = 0; i < bounds.Length; i++)
+			UnityEditor.Handles.DrawLine(bounds[i], bounds[(i + 1) % bounds.Length]);
+
+		UnityEditor.Handles.color = new Color(1f, 1f, 1f, 0.25f);
+		for (int y = 1; y < gridSize.y; y++)
+			UnityEditor.Handles.DrawLine(edge.GridToWorldPoint(new Vector2(0, y)), edge.GridToWorldPoint(new Vector2(gridSize.x, y)));
+		for (int x = 1; x < gridSize.x; x++)
+			UnityEditor.Handles.DrawLine(edge.GridToWorldPoint(new Vector2(x, 0)), edge.GridToWorldPoint(new Vector2(x, gridSize.y)));
+	}
+	#endif
+
+	// The eight corners of a Bounds.
+	static IEnumerable<Vector3> BoundsVertices (Bounds b) {
+		var min = b.min; var max = b.max;
+		yield return min;
+		yield return max;
+		yield return new Vector3(min.x, min.y, max.z);
+		yield return new Vector3(min.x, max.y, min.z);
+		yield return new Vector3(max.x, min.y, min.z);
+		yield return new Vector3(min.x, max.y, max.z);
+		yield return new Vector3(max.x, min.y, max.z);
+		yield return new Vector3(max.x, max.y, min.z);
+	}
+}

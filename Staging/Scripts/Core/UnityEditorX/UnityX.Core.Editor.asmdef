@@ -1,0 +1,19 @@
+{
+    "name": "UnityX.Core.Editor",
+    "rootNamespace": "",
+    "references": [
+        "UnityX.Core",
+        "UnityX.Colors"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

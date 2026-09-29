@@ -1,0 +1,17 @@
+{
+    "name": "UnityX.Inputs",
+    "rootNamespace": "UnityX.Inputs",
+    "references": [
+        "UnityX.Core",
+        "UnityEngine.UI"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

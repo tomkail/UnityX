@@ -1,0 +1,391 @@
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+/// <summary>
+/// Simple struct for specifying a range between two floats.
+/// Has a property drawer for easy inspectorisification
+/// </summary>
+[Serializable]
+public struct Range : IEquatable<Range> {
+	public float min;
+	public float max;
+	
+	public float mid => 0.5f*(min+max);
+	public float length => max - min;
+	public Range negated => new(-max, -min);
+	
+	public static readonly Range infinity = new(float.NegativeInfinity, float.PositiveInfinity);
+	public static readonly Range zero = default;
+
+	public Range(float min, float max) {
+		this.min = min;
+		this.max = max;
+	}
+
+	public static Range Centered(float mid, float width) => new(mid-0.5f*width, mid+0.5f*width);
+
+	public static Range Auto(float x0, float x1) {
+		return new Range(Mathf.Min(x0, x1), Mathf.Max(x0, x1));
+	}
+
+	/// <summary>
+	/// Creates a new Range that encapsulates a set of float values (min..max).
+	/// </summary>
+	/// <param name="points">The values to encapsulate.</param>
+	public static Range CreateEncapsulating (params float[] points) {
+		return CreateEncapsulating((IEnumerable<float>)points);
+	}
+	
+	/// <summary>
+	/// Creates a new Range that encapsulates a set of float values (min..max).
+	/// </summary>
+	/// <param name="points">The values to encapsulate.</param>
+	public static Range CreateEncapsulating (IEnumerable<float> points) {
+		using var enumerator = points.GetEnumerator();
+		enumerator.MoveNext();
+		float xMin = enumerator.Current;
+		float xMax = enumerator.Current;
+		while(enumerator.MoveNext()) {
+			var value = enumerator.Current;
+			xMin = Mathf.Min (xMin, value);
+			xMax = Mathf.Max (xMax, value);
+		}
+		return new Range (xMin, xMax);
+	}
+
+	public static Range CreateEncapsulating (params Range[] ranges) {
+		return CreateEncapsulating((IEnumerable<Range>)ranges);
+	}
+    
+	public static Range CreateEncapsulating (IEnumerable<Range> ranges) {
+		using var enumerator = ranges.GetEnumerator();
+		enumerator.MoveNext();
+		Range rect = enumerator.Current;
+		while(enumerator.MoveNext())
+			rect = rect.ExpandedToInclude(enumerator.Current);
+		return rect;
+	}
+	
+	public float Random() {
+		return UnityEngine.Random.Range(min, max);
+	}
+
+	// Higher iterations creates a steeper central spike
+	// 1 = flat (standard random numbers)
+	// 2 = triangular
+	// 3 = soft squidgy middle (good balance?)
+	// 4 = bit sharper
+	// 8 = much sharper, ~2x as high central peak as triangular
+	public float RandomBell(int iterations = 3) {
+		float val = 0;
+		for(int i=0; i<iterations; i++) {
+			val += UnityEngine.Random.Range(min, max);
+		}
+		val /= iterations;
+		return val;
+	}
+
+	public float Lerp(float t) {
+		return Mathf.Lerp(min, max, t);
+	}
+
+	public float LerpUnclamped(float t) {
+		return Mathf.LerpUnclamped(min, max, t);
+	}
+
+	public float InverseLerp(float val) {
+		return Mathf.InverseLerp(min, max, val);
+	}
+
+	public float Clamp(float val) {
+		return Mathf.Clamp(val, min, max);
+	}
+
+	public Range ExpandedToInclude (float valueToInclude) {
+		if (valueToInclude < min) return new Range(valueToInclude, max);
+		else if (valueToInclude > max) return new Range(min, valueToInclude);
+		else return this;
+	}
+	
+	public Range ExpandedToInclude (Range valueToInclude) {
+		return ExpandedToInclude(valueToInclude.min).ExpandedToInclude(valueToInclude.max);
+	}
+	
+	public Range ShrunkToExclude (float truncationValue, int directionToShrinkFrom) {
+		// Only shrink if the value is strictly inside the range — otherwise there's nothing to exclude.
+		if (truncationValue > min && truncationValue < max) {
+			if (directionToShrinkFrom == -1) {
+				return new Range(truncationValue, max);
+			} else if (directionToShrinkFrom == 1) {
+				return new Range(min, truncationValue);
+			} else {
+				Debug.LogWarning("directionToShrinkFrom must be -1 or 1, but is set to "+directionToShrinkFrom);
+			}
+		}
+		return this;
+	}
+	
+	public Range ExpandedFromPivot (float expansion, float pivot) {
+		return new Range(min - expansion * pivot, max + expansion * (1-pivot));
+	}
+
+
+	// If a point is contained in the range
+	public bool Contains(float x, bool startInclusive = true, bool endInclusive = true) => (startInclusive ? min <= x : min < x) && (endInclusive ? max >= x : max > x);
+
+	// If another range is entirely contained by this range
+	public bool Contains(Range other, bool startInclusive = true, bool endInclusive = true) => (startInclusive ? min <= other.min : min < other.min) && (endInclusive ? max >= other.max : max > other.max);
+
+	// If there's any intersection between this and another range
+	// not( completely on either side of other range )
+	public bool Intersects(Range other, bool startInclusive = true, bool endInclusive = true) {
+		return (startInclusive ? min <= other.max : min < other.max) && (endInclusive ? max >= other.min : max > other.min) ||
+		       (startInclusive ? other.min <= max : other.min < max) && (endInclusive ? other.max >= min : other.max > min);
+	}
+
+	// The shared range between this range and another
+	public Range Intersection (Range otherRange) {
+		return Intersection(this, otherRange);
+	}
+	
+	public static Range Intersection (Range a, Range b) {
+		var intersectionMin = Math.Max (a.min, b.min);
+		var intersectionMax = Math.Min (a.max, b.max);
+		return new Range(intersectionMin, intersectionMax);
+	}
+
+	// The magnitude of the shared range between this range and another
+	public float GetAmountIncludedByRange (Range otherRange) {
+		return Mathf.Max(Mathf.Min(otherRange.max, max) - Mathf.Max(otherRange.min, min), 0);
+	}
+	
+	public List<Range> RemoveRange(Range rangeToRemove, bool startInclusive = true, bool endInclusive = true) {
+		List<Range> newRanges = new List<Range>();
+
+		if (!Intersects(rangeToRemove, startInclusive, endInclusive)) {
+			newRanges.Add(this);
+			return newRanges;
+		}
+		
+		// Clamp the removed range to our bounds so the emitted sub-ranges can never invert, even if
+		// rangeToRemove extends past [min,max] (behaviour is unchanged for an already-contained range).
+		var removeMin = Mathf.Clamp(rangeToRemove.min, min, max);
+		var removeMax = Mathf.Clamp(rangeToRemove.max, min, max);
+		if (startInclusive ? removeMin > min : removeMin >= min) newRanges.Add(new Range(min, removeMin));
+		if (endInclusive ? removeMax < max : removeMax <= max) newRanges.Add(new Range(removeMax, max));
+
+		return newRanges;
+	}
+
+	// NOTE: the semantics of SignedDistance are unclear — review whether it's still needed.
+	public static float SignedDistance (Range rangeA, Range rangeB) {
+		if (rangeB.Contains(rangeA.mid)) {
+			return -rangeA.length * 0.5f;
+		}
+		return Mathf.Min(rangeA.SignedDistance(rangeB.min), rangeA.SignedDistance(rangeB.max));
+	}
+	
+	// The signed distance from the point to the edges of the range. If the point is inside the range values are negative; else positive.
+	public float SignedDistance (float x) {
+		return (Contains(x) ? -1 : 1) * Mathf.Min(Mathf.Abs(x - min), Mathf.Abs(x - max));
+	}
+	
+	public float SignedDistanceFromMin (float x) {
+		return (Contains(x) ? -1 : 1) * Mathf.Abs(x - min);
+	}
+	
+	public float SignedDistanceFromMax (float x) {
+		return (Contains(x) ? -1 : 1) * Mathf.Abs(x - max);
+	}
+
+	// The normalized magnitude of the shared range between this range and another, relative to the length of this range
+	public float GetNormalizedAmountIncludedByRange (Range otherRange) {
+		if(otherRange.length <= 0) return 1; 
+		return GetAmountIncludedByRange(otherRange) / length;
+	}
+
+
+
+
+	public static Range FromVector2(Vector2 vector) {
+		return new Range(vector.x, vector.y);
+	}
+
+	public static Vector2 ToVector2(Range range) {
+		return new Vector2(range.min, range.max);
+	}
+
+	public Vector2 ToVector2() {
+		return ToVector2(this);
+	}
+
+	public static Range Add(Range left, Range right){
+		return new Range(left.min+right.min, left.max+right.max);
+	}
+
+	public static Range Add(Range left, float right){
+		return new Range(left.min+right, left.max+right);
+	}
+
+	public static Range Add(float left, Range right){
+		return new Range(left+right.min, left+right.max);
+	}
+
+
+	public static Range Subtract(Range left, Range right){
+		return new Range(left.min-right.min, left.max-right.max);
+	}
+
+	public static Range Subtract(Range left, float right){
+		return new Range(left.min-right, left.max-right);
+	}
+
+	public static Range Subtract(float left, Range right){
+		return new Range(left-right.min, left-right.max);
+	}
+
+
+	public static Range Multiply(Range left, Range right){
+		return new Range(left.min*right.min, left.max*right.max);
+	}
+
+	public static Range Multiply(Range left, float right){
+		return new Range(left.min*right, left.max*right);
+	}
+
+	public static Range Multiply(float left, Range right){
+		return new Range(left*right.min, left*right.max);
+	}
+
+
+	public static Range Divide(Range left, Range right){
+		return new Range(left.min/right.min, left.max/right.max);
+	}
+
+	public static Range Divide(Range left, float right){
+		return new Range(left.min/right, left.max/right);
+	}
+
+	public static Range Divide(float left, Range right){
+		return new Range(left/right.min, left/right.max);
+	}
+
+	public override bool Equals(object obj) {
+		return obj is Range other && Equals(other);
+	}
+
+	public bool Equals(Range p) {
+		return min == p.min && max == p.max;
+	}
+
+	public override int GetHashCode() {
+		unchecked // Overflow is fine, just wrap
+		{
+			int hash = 27;
+			hash = hash * 31 + min.GetHashCode();
+			hash = hash * 31 + max.GetHashCode();
+			return hash;
+		}
+	}
+
+	public static bool operator == (Range left, Range right) {
+		return left.Equals(right);
+	}
+
+	public static bool operator != (Range left, Range right) {
+		return !(left == right);
+	}
+	
+
+	public static Range operator +(Range left, Range right) {
+		return Add(left, right);
+	}
+
+	public static Range operator +(Vector2 left, Range right) {
+		return Add(left, right);
+	}
+
+	public static Range operator +(Range left, Vector2 right) {
+		return Add(left, right);
+	}
+
+	public static Range operator +(Range left, float right) {
+		return Add(left, right);
+	}
+
+	public static Range operator +(float left, Range right) {
+		return Add(left, right);
+	}
+
+	public static Range operator -(Range left) {
+		return new Range(-left.min, -left.max);
+	}
+
+	public static Range operator -(Range left, Range right) {
+		return Subtract(left, right);
+	}
+
+	public static Range operator -(Vector2 left, Range right) {
+		return Subtract(left, right);
+	}
+
+	public static Range operator -(Range left, Vector2 right) {
+		return Subtract(left, right);
+	}
+
+	public static Range operator -(Range left, float right) {
+		return Subtract(left, right);
+	}
+
+	public static Range operator -(float left, Range right) {
+		return Subtract(left, right);
+	}
+
+
+	public static Range operator *(Range left, Range right) {
+		return Multiply(left, right);
+	}
+
+	public static Range operator *(Vector2 left, Range right) {
+		return Multiply(left, right);
+	}
+
+	public static Range operator *(Range left, Vector2 right) {
+		return Multiply(left, right);
+	}
+	
+	public static Range operator *(Range left, float right) {
+		return Multiply(left, right);
+	}
+
+
+	public static Range operator /(Range left, Range right) {
+		return Divide(left, right);
+	}
+
+	public static Range operator /(Vector2 left, Range right) {
+		return Divide(left, right);
+	}
+
+	public static Range operator /(Range left, Vector2 right) {
+		return Divide(left, right);
+	}
+	
+	public static Range operator /(Range left, float right) {
+		return Divide(left, right);
+	}
+
+	public static implicit operator Range(Vector2 src) {
+		return FromVector2(src);
+	}
+	
+	public static implicit operator Vector2(Range src) {
+		return src.ToVector2();
+	}
+
+	
+	public override string ToString() {
+		return $"[{min:N1} to {max:N1}]";
+	}
+}

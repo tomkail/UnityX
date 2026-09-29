@@ -1,0 +1,81 @@
+﻿#if UNITY_EDITOR
+// https://github.com/LMNRY/SetProperty
+// Copyright (c) 2014 Luminary LLC
+// Licensed under The MIT License (See LICENSE for full text)
+using UnityEngine;
+using UnityEditor;
+using System;
+using System.Collections;
+using System.Reflection;
+
+[CustomPropertyDrawer(typeof(SetPropertyAttribute))]
+public class SetPropertyDrawer : BaseAttributePropertyDrawer<SetPropertyAttribute>
+{
+
+	protected override bool IsSupported (SerializedProperty property) {
+		return true;
+	}
+
+	public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+	{
+		// Rely on the default inspector GUI
+		EditorGUI.BeginChangeCheck ();
+		EditorGUI.PropertyField(position, property, label, true);
+
+		if (EditorGUI.EndChangeCheck()) {
+			// Apply the modified serialized value BEFORE invoking the property setter: until
+			// ApplyModifiedProperties runs, FieldInfo.GetValue() still returns the pre-change value.
+			// (The original deferred this to the next OnGUI via a dirty flag stored on the shared
+			// attribute instance — state that bled across every field using [SetProperty].)
+			property.serializedObject.ApplyModifiedProperties();
+
+			// The propertyPath may reference something that is a child field of a field on this Object, so it is necessary
+			// to find which object is the actual parent before attempting to set the property with the current value.
+			object parent = GetParentObjectOfProperty(property.propertyPath, property.serializedObject.targetObject);
+			Type type = parent.GetType();
+			PropertyInfo pi = GetProperty(type);
+			if (pi == null)
+			{
+				Debug.LogError("Invalid property name: " + attribute.Name + "\nCheck your [SetProperty] attribute");
+			}
+			else
+			{
+				// Use FieldInfo instead of the SerializedProperty accessors as we'd have to deal with every
+				// SerializedPropertyType and use the correct accessor
+				pi.SetValue(parent, fieldInfo.GetValue(parent), null);
+			}
+		}
+	}
+
+	// Cache the resolved PropertyInfo so we don't re-fetch it (via reflection) on every dirty frame.
+	// Key on both the type AND attribute.Name, since a drawer instance can be reused across fields.
+	private PropertyInfo cachedPropertyInfo;
+	private Type cachedPropertyInfoType;
+	private string cachedPropertyName;
+	private PropertyInfo GetProperty(Type type) {
+		if (cachedPropertyInfoType != type || cachedPropertyName != attribute.Name) {
+			// Include NonPublic so a private/protected property backing a [SetProperty] field is found.
+			cachedPropertyInfo = type.GetProperty(attribute.Name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+			cachedPropertyInfoType = type;
+			cachedPropertyName = attribute.Name;
+		}
+		return cachedPropertyInfo;
+	}
+
+	private object GetParentObjectOfProperty(string path, object obj) {
+		string[] fields = path.Split('.');
+		// We've finally arrived at the final object that contains the property
+		if (fields.Length == 1) return obj;
+		// We may have to walk public or private fields along the chain to finding our container object, so we have to allow for both
+		FieldInfo fi = obj.GetType().GetField(fields[0], BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+		obj = fi.GetValue(obj);
+		
+		// Keep searching for our object that contains the property
+		return GetParentObjectOfProperty(string.Join(".", fields, 1, fields.Length - 1), obj);
+	}
+
+	public override float GetPropertyHeight(SerializedProperty property, GUIContent label) {
+		return EditorGUI.GetPropertyHeight(property);
+	}
+}
+#endif
