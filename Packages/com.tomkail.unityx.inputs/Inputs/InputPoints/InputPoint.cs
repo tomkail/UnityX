@@ -40,6 +40,10 @@ public class InputPoint {
     }
 	
 	public float lerpedMovement;
+
+	// A point becomes Moving once lerpedMovement (smoothed pixels moved per frame) exceeds this.
+	// Was 5 while UpdateDeltaMovement double-counted movement (~2.5x at 60fps); 2 keeps that feel now it doesn't.
+	public static float movingThreshold = 2f;
 	
 	public bool isOnScreen = true;
 
@@ -81,7 +85,7 @@ public class InputPoint {
 				state = InputPointState.Stationary;
 			}
 
-			if(lerpedMovement > 5f) {
+			if(lerpedMovement > movingThreshold) {
 				state = InputPointState.Moving;
 			} else {
 				if(state != InputPointState.Started) {
