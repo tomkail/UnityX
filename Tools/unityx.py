@@ -16,6 +16,8 @@ Consumer commands (run from anywhere inside a Unity project, or pass --project):
   unityx sync                        re-add any missing dependencies and fix manifest paths
   unityx status                      installed packages + how far the UnityX checkout is behind origin
   unityx update                      pull the latest UnityX into the submodule, then sync
+  unityx scan                        suggest packages the project uses but hasn't installed (from asset GUID
+                                     references and C# type names) — run after updating, or when migrating
 
 Maintainer commands (run inside the UnityX repo):
   unityx gen-deps                    regenerate every package.json "dependencies" from the asmdef references
@@ -195,6 +197,74 @@ def cmd_sync(a):
     print("In sync." + (" Added missing dependencies: " + ", ".join(short(n) for n in added) if added else ""))
 
 
+def package_index(pkgs):
+    """Per package: the asset GUIDs it contains and the top-level type names its scripts declare."""
+    guids, types = {}, {}
+    for n in pkgs:
+        for dirpath, _, files in os.walk(os.path.join(PACKAGES_DIR, n)):
+            for f in files:
+                path = os.path.join(dirpath, f)
+                if f.endswith(".meta") and not os.path.isdir(path[:-5]):
+                    with open(path, errors="ignore") as fh:
+                        m = re.search(r"^guid: ([0-9a-f]{32})", fh.read(), re.M)
+                    if m:
+                        guids[m.group(1)] = n
+                elif f.endswith(".cs"):
+                    with open(path, errors="ignore") as fh:
+                        decls = re.findall(r"^([ \t]*)(?:public |internal )?(?:static |abstract |sealed |partial )*"
+                                           r"(?:class|struct|enum|interface)\s+(\w+)", fh.read(), re.M)
+                    # Top-level types only: nested ones (e.g. an enum inside a class) have generic names.
+                    top = min((len(i.expandtabs(4)) for i, _ in decls), default=0)
+                    for indent, t in decls:
+                        if len(indent.expandtabs(4)) == top:
+                            types.setdefault(t, set()).add(n)
+    # A type name declared by more than one package can't point at a single one.
+    return guids, {t: next(iter(p)) for t, p in types.items() if len(p) == 1}
+
+
+def cmd_scan(a):
+    pkgs = load_packages()
+    project = find_project(a.project)
+    have = set(closure(pkgs, [n for n in installed(read_manifest(project)) if n in pkgs]))
+    guids, types = package_index(pkgs)
+    found = {}  # package -> list of reasons
+    decl = re.compile(r"\b(?:class|struct|enum|interface)\s+(\w+)")
+    own_types = set()  # names the project declares itself (e.g. a plugin's type that shares a UnityX name)
+    for dirpath, _, files in os.walk(os.path.join(project, "Assets")):
+        for f in files:
+            if f.endswith(".cs"):
+                with open(os.path.join(dirpath, f), errors="ignore") as fh:
+                    own_types.update(decl.findall(fh.read()))
+    asset_ext = (".unity", ".prefab", ".asset", ".mat", ".asmdef", ".controller", ".anim", ".playable")
+    for dirpath, dirnames, files in os.walk(os.path.join(project, "Assets")):
+        for f in files:
+            path = os.path.join(dirpath, f)
+            rel = os.path.relpath(path, project)
+            if f.endswith(asset_ext):
+                with open(path, errors="ignore") as fh:
+                    for g in set(re.findall(r"[0-9a-f]{32}", fh.read())):
+                        if g in guids and guids[g] not in have:
+                            found.setdefault(guids[g], []).append(f"asset reference in {rel}")
+            elif f.endswith(".cs"):
+                with open(path, errors="ignore") as fh:
+                    code = re.sub(r"//.*|/\*.*?\*/|\"(?:\\.|[^\"\\])*\"", "", fh.read(), flags=re.S)
+                for w in set(re.findall(r"\b[A-Z]\w+", code)):
+                    if w in types and types[w] not in have and w not in own_types:
+                        found.setdefault(types[w], []).append(f"{w} in {rel}")
+    if not found:
+        print("Nothing missing: every UnityX package this project references is installed.")
+        return
+    print("Packages this project seems to use but doesn't have:")
+    for n, reasons in sorted(found.items()):
+        print(f"  {short(n)}")
+        for r in sorted(set(reasons))[:3]:
+            print(f"      {r}")
+        if len(set(reasons)) > 3:
+            print(f"      ... and {len(set(reasons)) - 3} more")
+    print("Type-name matches can be false positives; asset references are certain.")
+    print("Add them with:  unityx add " + " ".join(short(n) for n in sorted(found)))
+
+
 def git(*args, check=True):
     return subprocess.run(["git", "-C", UNITYX_ROOT, *args], capture_output=True, text=True, check=check).stdout.strip()
 
@@ -307,14 +377,19 @@ def cmd_check(a):
 
 def main():
     ap = argparse.ArgumentParser(prog="unityx", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--project", default=argparse.SUPPRESS, help="Unity project path (default: current directory)")
     ap.add_argument("--project", default=os.getcwd(), help="Unity project path (default: current directory)")
     sub = ap.add_subparsers(dest="cmd", required=True)
+    _add_parser = sub.add_parser
+    sub.add_parser = lambda *args, **kw: _add_parser(*args, parents=[common], **kw)
     sub.add_parser("list").set_defaults(fn=cmd_list)
     p = sub.add_parser("add"); p.add_argument("packages", nargs="+"); p.set_defaults(fn=cmd_add)
     p = sub.add_parser("remove"); p.add_argument("packages", nargs="+"); p.set_defaults(fn=cmd_remove)
     sub.add_parser("sync").set_defaults(fn=cmd_sync)
     sub.add_parser("status").set_defaults(fn=cmd_status)
     sub.add_parser("update").set_defaults(fn=cmd_update)
+    sub.add_parser("scan").set_defaults(fn=cmd_scan)
     sub.add_parser("gen-deps").set_defaults(fn=cmd_gen_deps)
     p = sub.add_parser("set-version"); p.add_argument("version"); p.set_defaults(fn=cmd_set_version)
     sub.add_parser("check").set_defaults(fn=cmd_check)

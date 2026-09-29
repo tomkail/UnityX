@@ -9,7 +9,8 @@ and dependencies. Dependencies between packages are declared in each `package.js
 references; see *Maintaining* below).
 
 `legacy` holds code that hasn't been modularised yet. It's unsorted, depends on most of the other packages, and things
-will move out of it over time — prefer the focused packages where possible.
+will move out of it over time — prefer the focused packages where possible. When something moves out of legacy,
+projects that relied on it need the new package: run `unityx scan` after `unityx update`.
 
 Themes are presets that add a group of packages at once (`Tools/themes.json`): `motion`, `camera-all`, `geometry-all`,
 `ui`, `input`, `editor-tools`.
@@ -41,6 +42,7 @@ Cloning a project that uses UnityX: `git clone --recursive …`, or `git submodu
 | `unityx sync` | Re-add missing dependencies, fix paths (run after pulling UnityX changes that add dependencies) |
 | `unityx status` | Installed packages; how far the UnityX checkout is behind/ahead of `origin/master` |
 | `unityx update` | Pull the latest UnityX into the submodule, then `sync` |
+| `unityx scan` | Suggest packages the project uses but hasn't installed (asset GUID references are certain; C# type-name matches are hints) |
 
 Run them from inside the Unity project (or pass `--project <path>`).
 

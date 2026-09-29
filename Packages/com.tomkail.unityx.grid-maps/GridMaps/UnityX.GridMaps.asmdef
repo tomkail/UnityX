@@ -1,18 +1,15 @@
 {
-    "name": "UnityX.Legacy",
+    "name": "UnityX.GridMaps",
     "rootNamespace": "",
     "references": [
         "UnityX.Core",
-        "UnityX.Colors",
-        "UnityX.PropertyDrawers",
         "UnityX.Geometry",
-        "UnityX.Springs",
-        "UnityX.SLayouts",
-        "UnityX.Easing",
-        "UnityX.PropertyCurves",
-        "UnityX.SerializableTransform",
-        "UnityEngine.UI",
-        "Unity.TextMeshPro"
+        "UnityX.SquareGrid",
+        "UnityX.SquareGridRenderer",
+        "UnityX.CubeGridRenderer",
+        "UnityX.PropertyDrawers",
+        "UnityX.AssetSaver",
+        "UnityX.Islands"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

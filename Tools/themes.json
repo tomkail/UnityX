@@ -12,7 +12,8 @@
   "camera-all": {
     "packages": [
       "camera",
-      "camera-properties"
+      "camera-properties",
+      "direct-manipulation-camera"
     ]
   },
   "geometry-all": {
@@ -20,7 +21,8 @@
       "geometry",
       "polygon-renderer",
       "region",
-      "islands"
+      "islands",
+      "grid-maps"
     ]
   },
   "ui": {
@@ -29,7 +31,8 @@
       "slayouts",
       "ui-grid-layout",
       "ui-imposters",
-      "text-effects"
+      "text-effects",
+      "ui-shapes"
     ]
   },
   "input": {

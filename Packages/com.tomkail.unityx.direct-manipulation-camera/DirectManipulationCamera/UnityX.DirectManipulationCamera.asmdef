@@ -1,18 +1,17 @@
 {
-    "name": "UnityX.Legacy",
+    "name": "UnityX.DirectManipulationCamera",
     "rootNamespace": "",
     "references": [
         "UnityX.Core",
-        "UnityX.Colors",
-        "UnityX.PropertyDrawers",
-        "UnityX.Geometry",
-        "UnityX.Springs",
-        "UnityX.SLayouts",
-        "UnityX.Easing",
-        "UnityX.PropertyCurves",
+        "UnityX.CameraX",
+        "UnityX.CameraProperties",
+        "UnityX.CameraShots",
+        "UnityX.SerializableCamera",
         "UnityX.SerializableTransform",
-        "UnityEngine.UI",
-        "Unity.TextMeshPro"
+        "UnityX.Region",
+        "UnityX.Geometry",
+        "UnityX.Inputs",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

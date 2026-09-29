@@ -1,20 +1,18 @@
 {
-    "name": "UnityX.Legacy",
+    "name": "UnityX.UIShapes.Editor",
     "rootNamespace": "",
     "references": [
+        "UnityX.UIShapes",
         "UnityX.Core",
-        "UnityX.Colors",
-        "UnityX.PropertyDrawers",
+        "UnityX.Core.Editor",
         "UnityX.Geometry",
-        "UnityX.Springs",
-        "UnityX.SLayouts",
-        "UnityX.Easing",
-        "UnityX.PropertyCurves",
-        "UnityX.SerializableTransform",
+        "UnityX.Geometry.Polygon.Editor",
         "UnityEngine.UI",
-        "Unity.TextMeshPro"
+        "UnityEditor.UI"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

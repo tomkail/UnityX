@@ -1,0 +1,19 @@
+{
+  "name": "com.tomkail.unityx.audio",
+  "version": "2.0.0",
+  "displayName": "UnityX Audio",
+  "description": "Audio helpers: pooled AudioSource manager, clip utilities, WAV saving, microphone recording, spectrum (AudioPeer).",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.tomkail.unityx.core": "2.0.0",
+    "com.tomkail.unityx.property-drawers": "2.0.0",
+    "com.tomkail.unityx.timers": "2.0.0",
+    "com.tomkail.unityx.tween": "2.0.0",
+    "com.tomkail.unityx.value-picker": "2.0.0"
+  }
+}

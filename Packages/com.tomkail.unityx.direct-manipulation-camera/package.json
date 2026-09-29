@@ -1,0 +1,21 @@
+{
+  "name": "com.tomkail.unityx.direct-manipulation-camera",
+  "version": "2.0.0",
+  "displayName": "UnityX Direct Manipulation Camera",
+  "description": "Touch/mouse direct-manipulation camera (pan/pinch/rotate) built on camera properties, with an Input System pointer manager.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.tomkail.unityx.camera": "2.0.0",
+    "com.tomkail.unityx.camera-properties": "2.0.0",
+    "com.tomkail.unityx.core": "2.0.0",
+    "com.tomkail.unityx.geometry": "2.0.0",
+    "com.tomkail.unityx.inputs": "2.0.0",
+    "com.tomkail.unityx.region": "2.0.0",
+    "com.unity.inputsystem": "1.7.0"
+  }
+}

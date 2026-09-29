@@ -1,18 +1,12 @@
 {
-    "name": "UnityX.Legacy",
+    "name": "UnityX.Audio",
     "rootNamespace": "",
     "references": [
         "UnityX.Core",
-        "UnityX.Colors",
         "UnityX.PropertyDrawers",
-        "UnityX.Geometry",
-        "UnityX.Springs",
-        "UnityX.SLayouts",
-        "UnityX.Easing",
-        "UnityX.PropertyCurves",
-        "UnityX.SerializableTransform",
-        "UnityEngine.UI",
-        "Unity.TextMeshPro"
+        "UnityX.ValuePicker",
+        "UnityX.Tween",
+        "UnityX.Timers"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

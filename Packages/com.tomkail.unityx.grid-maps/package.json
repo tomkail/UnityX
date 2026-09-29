@@ -1,0 +1,19 @@
+{
+  "name": "com.tomkail.unityx.grid-maps",
+  "version": "2.0.0",
+  "displayName": "UnityX Grid Maps",
+  "description": "Typed 2D/3D grid data maps (TypeMap, ColorMap, HeightMap, Grid3D...), grid agents, and GridShape.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.tomkail.unityx.core": "2.0.0",
+    "com.tomkail.unityx.geometry": "2.0.0",
+    "com.tomkail.unityx.grid": "2.0.0",
+    "com.tomkail.unityx.islands": "2.0.0",
+    "com.tomkail.unityx.property-drawers": "2.0.0"
+  }
+}
