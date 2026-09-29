@@ -1,5 +1,7 @@
 using System;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 
 // Can be thought of as a singleton reference to a scriptable object, loaded/saved to EditorPrefs (PlayerPrefs at runtime) rather than serialized to the inspector.

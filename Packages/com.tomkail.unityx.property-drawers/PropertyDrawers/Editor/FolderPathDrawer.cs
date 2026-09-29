@@ -3,7 +3,7 @@ using UnityEditor;
 using System.IO;
 
 [CustomPropertyDrawer (typeof(FolderPathAttribute))]
-class FolderPathDrawer : BaseAttributePropertyDrawer<FolderPathAttribute> {
+public class FolderPathDrawer : BaseAttributePropertyDrawer<FolderPathAttribute> {
 	const int buttonWidth = 22;
 
 	public static string FolderPathLayout (string path, string label, FolderPathAttribute.RelativeTo relativeTo, bool editable = true, bool removePrefixSlash = false) {

@@ -104,7 +104,7 @@ public abstract class PolygonEditorTool : EditorTool {
         get { return m_IconContent; }
     }
 
-    // Creates the editing wrapper for one selected component.
+    // Creates the editing wrapper for one selected component. Return null to leave that target uneditable.
     protected abstract PolygonEditorInstance CreateInstance (UnityEngine.Object target);
     // Called every tool frame; override when the instance tracks mutable state (e.g. an offset matrix).
     protected virtual void UpdateInstance (UnityEngine.Object target, PolygonEditorInstance instance) {}
@@ -125,7 +125,11 @@ public abstract class PolygonEditorTool : EditorTool {
 		}
 		foreach(var target in currentTargets) {
 			PolygonEditorInstance instance;
-			if(!instances.TryGetValue(target, out instance)) instances[target] = instance = CreateInstance(target);
+			if(!instances.TryGetValue(target, out instance)) {
+				instance = CreateInstance(target);
+				if(instance == null) continue; // target opted out of editing
+				instances[target] = instance;
+			}
 			UpdateInstance(target, instance);
 		}
 	}
