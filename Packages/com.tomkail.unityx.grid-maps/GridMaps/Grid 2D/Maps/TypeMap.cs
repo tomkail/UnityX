@@ -29,7 +29,12 @@ public class TypeMap<T> : SquareGrid, IEnumerable<TypeMapCellInfo<T>> {
 		values = new T[_map.values.Length];
 		System.Array.Copy(_map.values, values, _map.values.Length);
 	}
-	
+
+	// SquareGrid.Resize only changes the size; the values array has to follow it.
+	public override void Resize(Vector2Int size) {
+		Resize(size, Vector2Int.zero);
+	}
+
 	public virtual void Clear() {
 		values = new T[size.Area()];
 	}
