@@ -22,7 +22,7 @@ using UnityX.Inputs;
 public class DirectManipulationCamera : MonoBehaviour, ICameraPropertiesModifier {
 	public DirectManipulationCameraSettings settings;
 
-	public new Camera camera;
+	public Camera camera;
 	public Transform floorPlaneTransform;
 	public Plane floorPlane {
 		get {
