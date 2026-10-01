@@ -12,6 +12,14 @@
         "com.tomkail.unityx.value-picker": "2.0.0"
       }
     },
+    "com.tomkail.unityx.aws-build-pipeline": {
+      "version": "file:com.tomkail.unityx.aws-build-pipeline",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.tomkail.unityx.versioning": "2.0.0"
+      }
+    },
     "com.tomkail.unityx.camera": {
       "version": "file:com.tomkail.unityx.camera",
       "depth": 0,

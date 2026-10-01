@@ -1,0 +1,21 @@
+{
+    "name": "UnityX.AWSBuildPipeline.Editor",
+    "rootNamespace": "UnityX.AWSBuildPipeline.Editor",
+    "references": [
+        "UnityX.AWSBuildPipeline"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "AWSSDK.Core.dll",
+        "AWSSDK.S3.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

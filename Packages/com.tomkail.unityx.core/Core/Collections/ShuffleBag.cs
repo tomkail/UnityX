@@ -1,17 +1,20 @@
 using UnityEngine;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
-[System.Serializable]
+// Serialization: Unity uses [SerializeField]. For other serializers the BCL [DataContract]/[DataMember] attributes
+// (no serializer dependency) persist {"_sourceItems":[..], "_items":[..], "shuffle":bool}; Newtonsoft honours them.
+[System.Serializable, DataContract]
 public class ShuffleBag<T> {
-	[SerializeField]
+	[SerializeField, DataMember(Name = "_sourceItems", Order = 0)]
 	private List<T> _sourceItems = new List<T>();
 	public ReadOnlyCollection<T> sourceItems {
 		get {
 			return _sourceItems.AsReadOnly();
 		}
 	}
-	[SerializeField]
+	[SerializeField, DataMember(Name = "_items", Order = 1)]
 	private List<T> _items = new List<T>();
 	public ReadOnlyCollection<T> items {
 		get {
@@ -19,7 +22,11 @@ public class ShuffleBag<T> {
 		}
 	}
 
+	[DataMember(Name = "shuffle", Order = 2)]
 	public bool shuffle = true;
+
+	// For deserializers, which need a parameterless constructor when there are several.
+	public ShuffleBag () {}
 
 	public ShuffleBag (List<T> sourceItems, bool shuffle = true) {
 		Debug.Assert(sourceItems != null && sourceItems.Count > 0);
