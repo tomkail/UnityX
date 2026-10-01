@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Runtime.Serialization;
 
 namespace UnityX.Geometry {
 
@@ -7,8 +8,13 @@ namespace UnityX.Geometry {
 	/// Regular polygon.
 	/// </summary>
 	[System.Serializable]
+	[DataContract]
 	public class RegularPolygon {
+		// For deserializers, which need a parameterless constructor when there are several.
+		public RegularPolygon () {}
+
 	
+		[SerializeField, DataMember(Name = "numVertices")]
 		private int numVertices;
 		public int NumVertices {
 			get {
@@ -19,8 +25,11 @@ namespace UnityX.Geometry {
 			}
 		}
 
+		[DataMember(Name = "rotation")]
 		public float rotation = 0f;
+		[DataMember(Name = "radius")]
 		public float radius = 0.5f;
+		[DataMember(Name = "offset")]
 		public Vector2 offset = Vector2.zero;
 		
 		public RegularPolygon (int numVertices) {

@@ -3,20 +3,26 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityX.Islands;
+using System.Runtime.Serialization;
 
 // A set of grid cells (a square-grid shape, e.g. a tetromino). The cells are the topology; the
 // value this type adds over a bare list is the cached geometry — bounds/center/cellBounds — which
 // is why it stays concrete on Vector2Int. Hex shapes would be their own concrete type (their
 // bounds depend on hex orientation/size/origin), reusing the generic CreateRandomContiguous below.
 [Serializable]
+[DataContract]
 public class GridShape {
 	// "points" was the field name when this was Shape (List<Point>), which serialised the same x/y pairs.
+	[DataMember(Name = "cells")]
 	[SerializeField, UnityEngine.Serialization.FormerlySerializedAs("points")] List<Vector2Int> cells;
 	public IReadOnlyList<Vector2Int> Cells => cells;
 
 	// Cached geometry, recomputed whenever the cells change (see Recompute).
+	[DataMember(Name = "bounds")]
 	public Rect bounds;          // float bounds of the cells (each cell treated as a unit point)
+	[DataMember(Name = "center")]
 	public Vector2 center;       // centre of bounds
+	[DataMember(Name = "cellBounds")]
 	public RectInt cellBounds;   // integer bounding box of the cells
 
 	public GridShape () {

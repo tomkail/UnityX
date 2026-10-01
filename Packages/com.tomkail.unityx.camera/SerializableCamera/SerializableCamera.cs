@@ -1,11 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 /// <summary>
 /// Mimics the data setup of a Unity Camera
 /// Used for performing operations on the transform and properties of a camera without actually needing a camera.
 /// </summary>
 [System.Serializable]
+[DataContract]
 public struct SerializableCamera  {
 	public const bool defaultOrthographic = false;
 	public const float defaultFieldOfView = 60;
@@ -15,6 +17,7 @@ public struct SerializableCamera  {
 	public const float defaultFarClipPlane = 1000;
 	public static readonly Rect defaultRect = new Rect(0,0,1,1);
 
+	[DataMember(Name = "transform")]
 	public SerializableTransform transform;
 	
 	public Vector3 position {
@@ -60,6 +63,7 @@ public struct SerializableCamera  {
     
 
 	[SerializeField]
+    [DataMember(Name = "_orthographic")]
     bool _orthographic;
     public bool orthographic {
         get => _orthographic;
@@ -72,6 +76,7 @@ public struct SerializableCamera  {
 
 
 	[SerializeField]
+    [DataMember(Name = "_orthographicSize")]
     float _orthographicSize;
     public float orthographicSize {
         get => _orthographicSize;
@@ -84,6 +89,7 @@ public struct SerializableCamera  {
 
 
 	[SerializeField]
+    [DataMember(Name = "_fieldOfView")]
     float _fieldOfView;
     public float fieldOfView {
         get => _fieldOfView;
@@ -95,6 +101,7 @@ public struct SerializableCamera  {
     }
 
 	[SerializeField]
+    [DataMember(Name = "_nearClipPlane")]
     float _nearClipPlane;
     public float nearClipPlane {
         get => _nearClipPlane;
@@ -106,6 +113,7 @@ public struct SerializableCamera  {
     }
 
 	[SerializeField]
+    [DataMember(Name = "_farClipPlane")]
     float _farClipPlane;
     public float farClipPlane {
         get => _farClipPlane;
@@ -117,7 +125,9 @@ public struct SerializableCamera  {
     }
 	
     // This allows using a custom screen instead of the game view. If true, you must supply values to customScreenParams; 
+    [DataMember(Name = "useCustomScreen")]
     public bool useCustomScreen;
+    [DataMember(Name = "customScreenParams")]
     public ScreenParams customScreenParams;
 
     public ScreenParams screenParams {

@@ -1,12 +1,18 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace UnityX.Splines {
 	public delegate void OnSplineChangeEvent(Spline spline);
 
 	[System.Serializable]
+	[DataContract]
 	public class Spline {
+		// For deserializers, which need a parameterless constructor when there are several.
+		public Spline () {}
+
 		const float defaultQuality = 25;
+		[DataMember(Name = "quality")]
 		public float quality = defaultQuality;
 		public Vector3 GetPointAtArcLength (float arcLength) {
 			return GetCurveAtArcLength(arcLength).GetPointAtArcLength(arcLength);
@@ -33,7 +39,9 @@ namespace UnityX.Splines {
 			return localToWorldMatrix.MultiplyVector(GetDirectionAtArcLength(arcLength));
 		}
 
+		[DataMember(Name = "bezierPoints")]
 		public SplineBezierPoint[] bezierPoints;
+		[DataMember(Name = "curves")]
 		public SplineBezierCurve[] curves;
 
 		public float length {
@@ -49,6 +57,7 @@ namespace UnityX.Splines {
 				return curves[curves.Length-1].endArcLength;
 			}
 		}
+		[DataMember(Name = "bounds")]
 		public Bounds bounds;
 
 		public Spline(params SplineBezierPoint[] bezierPoints) {

@@ -1,11 +1,13 @@
 using UnityEngine;
 using System;
+using System.Runtime.Serialization;
 
 namespace UnityX.Timers {
 	/// <summary>
 	/// Timer class.
 	/// </summary>
 	[Serializable]
+	[DataContract]
 	public class Timer {
 
 		public enum State {
@@ -13,13 +15,18 @@ namespace UnityX.Timers {
 			Playing
 		}
 
+		[DataMember(Name = "state")]
 		public State state = State.Stopped;
 
+		[DataMember(Name = "currentTime")]
 		public float currentTime = 0f;
+		[DataMember(Name = "useTargetTime")]
 		public bool useTargetTime = true;
+		[DataMember(Name = "stopOnReachingTarget")]
 		public bool stopOnReachingTarget = true;
 
 		[SerializeField]
+		[DataMember(Name = "_targetTime")]
 		private float _targetTime = 0f;
 		public float targetTime {
 			get => _targetTime;
@@ -34,8 +41,11 @@ namespace UnityX.Timers {
 
 		public bool isComplete => remainingTime <= 0.0f;
 
+		[DataMember(Name = "currentRepeats")]
 		public int currentRepeats = 0;
+		[DataMember(Name = "targetRepeats")]
 		public int targetRepeats = 1;
+		[DataMember(Name = "repeatForever")]
 		public bool repeatForever = false;
 
 		// Used for quickly obtaining normalized time

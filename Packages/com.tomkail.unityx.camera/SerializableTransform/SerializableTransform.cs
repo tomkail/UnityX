@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
+using System.Runtime.Serialization;
 
 /// <summary>
 /// Serializable implementation of transform class. 
 /// Useful when doing Transform math without the need for a transform.
 /// </summary>
 [System.Serializable]
+[DataContract]
 public struct SerializableTransform {
 	public static SerializableTransform identity => new(Vector3.zero, Quaternion.identity, Vector3.one);
 
@@ -165,6 +167,7 @@ public struct SerializableTransform {
 	}
 
 	[SerializeField]
+	[DataMember(Name = "_position")]
 	private Vector3 _position;
 	public Vector3 position
 	{
@@ -181,6 +184,7 @@ public struct SerializableTransform {
 
 
 	[SerializeField]
+	[DataMember(Name = "_rotation")]
 	private Quaternion _rotation;
 	public Quaternion rotation
 	{
@@ -202,6 +206,7 @@ public struct SerializableTransform {
 	}
 
 	[SerializeField]
+	[DataMember(Name = "_localScale")]
 	private Vector3 _localScale;
 	public Vector3 localScale
 	{
