@@ -1,14 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Runtime.Serialization;
 
 /// <summary>
 /// Simple struct for specifying a range between two floats.
 /// Has a property drawer for easy inspectorisification
 /// </summary>
 [Serializable]
+[DataContract]
 public struct Range : IEquatable<Range> {
+	[DataMember(Name = "min")]
 	public float min;
+	[DataMember(Name = "max")]
 	public float max;
 	
 	public float mid => 0.5f*(min+max);

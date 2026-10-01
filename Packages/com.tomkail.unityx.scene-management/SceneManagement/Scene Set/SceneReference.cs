@@ -2,6 +2,7 @@ using UnityEngine;
 using System.IO;
 #if UNITY_EDITOR
 using UnityEditor;
+using System.Runtime.Serialization;
 #endif
 
 namespace UnityX.SceneManagement {
@@ -14,12 +15,14 @@ namespace UnityX.SceneManagement {
 	// on serialize (see RuntimeSceneSet.OnBeforeSerialize) — so moving or renaming the .unity file keeps
 	// the reference correct without any global asset-postprocessor.
 	[System.Serializable]
+	[DataContract]
 	public struct SceneReference {
 		#if UNITY_EDITOR
 		// Editor-only asset reference (GUID-based, so it survives moves/renames). Stripped from builds.
 		[SerializeField] SceneAsset sceneAsset;
 		#endif
 		// The cached asset path, e.g. "Assets/Scenes/Main.unity". This is what ships and is used at runtime.
+		[DataMember(Name = "scenePath")]
 		[SerializeField] string scenePath;
 
 		public string path => scenePath;

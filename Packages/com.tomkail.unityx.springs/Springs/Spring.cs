@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using System.Runtime.Serialization;
 
 namespace UnityX.Springs {
     // A representation of a spring’s motion, heavily inspired by Apple's Spring API.
@@ -8,6 +9,7 @@ namespace UnityX.Springs {
     // - as having a duration (represented by the "response" variable) and a damping ratio (which is defined as 1-bounce and vice-versa)
     // Overdamped springs are not fully supported. The following functions have not been properly tested for them, and if they are treated as eventually settling is inconsistent.  
     [Serializable]
+    [DataContract]
     public struct Spring {
         #region Presets
         // A spring with a predefined duration and higher amount of bounce.
@@ -32,6 +34,7 @@ namespace UnityX.Springs {
         // More info on their API (borrowed for this) at https://developer.apple.com/documentation/swiftui/spring
 
         // Stiffness expressed as a duration in seconds: the period of one oscillation (or, for fully damped springs, roughly the time to come to rest).
+        [DataMember(Name = "_response")]
         [SerializeField] float _response;
         public float response {
             get => _response;
@@ -41,6 +44,7 @@ namespace UnityX.Springs {
 
         // The amount of drag applied, as a fraction of the amount needed to produce critical damping.
         // 0 will oscillate forever and 1 will be "fully damped".
+        [DataMember(Name = "_dampingRatio")]
         [SerializeField] float _dampingRatio;
         public float dampingRatio {
             get => _dampingRatio;
@@ -52,16 +56,19 @@ namespace UnityX.Springs {
 
 
         // Springs can also be represented by their physical properties, which can be derived from response and dampingRatio
+        [DataMember(Name = "_mass")]
         [SerializeField] float _mass;
         public float mass {
             get => _mass;
             private set => _mass = value;
         }
+        [DataMember(Name = "_stiffness")]
         [SerializeField] float _stiffness;
         public float stiffness {
             get => _stiffness;
             private set => _stiffness = value;
         }
+        [DataMember(Name = "_damping")]
         [SerializeField] float _damping;
         public float damping {
             get => _damping;
@@ -71,6 +78,7 @@ namespace UnityX.Springs {
         public float settlingDuration => SettlingDuration(0,1,0,mass,stiffness,damping,epsilon);
 
         // Epsilon determines the value of the settling time calculation.
+        [DataMember(Name = "_epsilon")]
         [SerializeField] float _epsilon;
         public float epsilon {
             get => _epsilon;

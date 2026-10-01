@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
 /// <summary>
 /// A sphere that is defined by a center and a radius. This is one of the simpler volumes and collision checks
@@ -9,11 +10,13 @@ using System.Linq;
 /// The algorithm for generating the sphere is an implemention of Welzl's minimum-volume sphere algorithm.
 /// </summary>
 [System.Serializable]
+[DataContract]
 public sealed class BoundingSphere {
 	
 	/// <summary>
 	/// Center of the bounding volume, this is common to all bounding volumes.
 	/// </summary>
+	[SerializeField, DataMember(Name = "m_center")]
 	private Vector3 m_center;
 	
 	/// <summary>
@@ -28,6 +31,7 @@ public sealed class BoundingSphere {
 		}
 	}
 	
+	[SerializeField, DataMember(Name = "m_radius")]
 	private float m_radius;
 	
 	//For welzl calculations

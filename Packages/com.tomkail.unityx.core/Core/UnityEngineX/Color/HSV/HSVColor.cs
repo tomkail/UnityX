@@ -1,12 +1,21 @@
 ﻿using System;
 using UnityEngine;
 using Object = System.Object;
+using System.Runtime.Serialization;
 
 [Serializable]
+[DataContract]
 public class HSVColor {
+	// For deserializers, which need a parameterless constructor when there are several.
+	public HSVColor () {}
+
+	[DataMember(Name = "h")]
 	public float h;
+	[DataMember(Name = "s")]
 	public float s;
+	[DataMember(Name = "v")]
 	public float v;
+	[DataMember(Name = "a")]
 	public float a;
 
 	public HSVColor(float h, float s, float v, float a) {
