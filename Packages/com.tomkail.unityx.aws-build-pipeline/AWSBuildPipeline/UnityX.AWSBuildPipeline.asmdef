@@ -1,0 +1,16 @@
+{
+    "name": "UnityX.AWSBuildPipeline",
+    "rootNamespace": "UnityX.AWSBuildPipeline",
+    "references": [
+        "UnityX.Versioning"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
