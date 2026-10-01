@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Runtime.Serialization;
 
 namespace UnityX.Geometry {
 
@@ -11,8 +12,13 @@ namespace UnityX.Geometry {
 	/// http://en.wikipedia.org/wiki/Star_polygon
 	/// http://en.wikipedia.org/wiki/Schl%C3%A4fli_symbol
 	/// </summary>
+	[DataContract]
 	public class StarPolygon {
+		// For deserializers, which need a parameterless constructor when there are several.
+		public StarPolygon () {}
+
 		
+		[SerializeField, DataMember(Name = "numVertices")]
 		private int numVertices;
 		public int NumVertices {
 			get {
@@ -23,6 +29,7 @@ namespace UnityX.Geometry {
 			}
 		}
 		
+		[SerializeField, DataMember(Name = "skip")]
 		private int skip;
 		public int Skip {
 			get {
@@ -33,9 +40,13 @@ namespace UnityX.Geometry {
 			}
 		}
 		
+		[DataMember(Name = "rotation")]
 		public float rotation = 0f;
+		[DataMember(Name = "radius")]
 		public float radius = 0.5f;
+		[DataMember(Name = "concaveRadius")]
 		public float concaveRadius;
+		[DataMember(Name = "offset")]
 		public Vector2 offset = Vector2.zero;
 		
 		public StarPolygon (int numVertices, int skip) {

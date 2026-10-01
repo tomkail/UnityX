@@ -1,14 +1,20 @@
 ﻿using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 [System.Serializable]
+[DataContract]
 public class Polygon {
+	// For deserializers, which need a parameterless constructor when there are several.
+	public Polygon () : this(new Vector2[0]) {}
+
 	
 	/// <summary>
 	/// The vertices.
 	/// </summary>
 	[SerializeField]
+	[DataMember(Name = "_vertices")]
 	Vector2[] _vertices;
 	public Vector2[] vertices {
 		get {

@@ -1,19 +1,26 @@
 using System;
 using UnityEngine;
+using System.Runtime.Serialization;
 
 namespace UnityX.Springs {
     [Serializable]
+    [DataContract]
     public class SpringHandler {
+        [DataMember(Name = "_spring")]
         [SerializeField] Spring _spring = Spring.snappy;
         public Spring spring {
             get => _spring;
             set => _spring = value;
         }
 
+        [DataMember(Name = "time")]
         public float time;
 
+        [DataMember(Name = "startValue")]
         public float startValue;
+        [DataMember(Name = "endValue")]
         public float endValue;
+        [DataMember(Name = "initialVelocity")]
         public float initialVelocity;
 
         public float value => Spring.Value(startValue, endValue, initialVelocity, time, spring.mass, spring.stiffness, spring.damping);
@@ -24,7 +31,8 @@ namespace UnityX.Springs {
 
         Action<float> onChange;
 
-        SpringHandler() {
+        // Public so deserializers can use it (they need a parameterless constructor when there are several).
+        public SpringHandler() {
             _spring = Spring.snappy;
         }
 
