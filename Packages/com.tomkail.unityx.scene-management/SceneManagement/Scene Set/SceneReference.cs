@@ -32,6 +32,12 @@ namespace UnityX.SceneManagement {
 			this.scenePath = sceneAsset != null ? AssetDatabase.GetAssetPath(sceneAsset) : string.Empty;
 		}
 
+		// From already-known values, without touching the AssetDatabase (so it's safe during deserialization).
+		internal SceneReference (SceneAsset sceneAsset, string scenePath) {
+			this.sceneAsset = sceneAsset;
+			this.scenePath = scenePath ?? string.Empty;
+		}
+
 		// Re-cache the path from the assigned SceneAsset. Called by the owner's OnBeforeSerialize so a
 		// moved/renamed scene stays correct. Returns true if the path changed.
 		public bool RefreshPath () {
@@ -39,6 +45,10 @@ namespace UnityX.SceneManagement {
 			if (newPath == scenePath) return false;
 			scenePath = newPath;
 			return true;
+		}
+		#else
+		internal SceneReference (string scenePath) {
+			this.scenePath = scenePath ?? string.Empty;
 		}
 		#endif
 

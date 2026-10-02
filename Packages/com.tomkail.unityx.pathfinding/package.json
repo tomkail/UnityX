@@ -1,0 +1,13 @@
+{
+  "name": "com.tomkail.unityx.pathfinding",
+  "version": "2.0.0",
+  "displayName": "UnityX Pathfinding",
+  "description": "Generic A* pathfinding over any graph element type (explicit or lazily-evaluated graphs).",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {}
+}

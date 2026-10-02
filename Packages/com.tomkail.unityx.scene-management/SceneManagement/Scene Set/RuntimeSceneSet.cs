@@ -10,7 +10,7 @@ using System.Linq;
 namespace UnityX.SceneManagement {
 
 	[CreateAssetMenu(fileName = "New Scene Set", menuName = "Scene Set", order = 1000)]
-	public class RuntimeSceneSet : ScriptableObject {
+	public class RuntimeSceneSet : ScriptableObject, ISerializationCallbackReceiver {
 		public RuntimeSceneSet[] sets;
 
 		/// <summary>
@@ -25,6 +25,34 @@ namespace UnityX.SceneManagement {
 		/// </summary>
 		[Tooltip("Scene made active when this set loads. Leave empty to use the last scene.")]
 		public SceneReference activeScene;
+
+		// The pre-SceneReference format kept a scene's asset and path in two parallel arrays. Assets saved in
+		// that format are moved into `scenes` when they're loaded (OnAfterDeserialize), so they keep working in
+		// the editor and in builds; once the asset is saved again these stay empty.
+		#if UNITY_EDITOR
+		[SerializeField, HideInInspector] SceneAsset[] sceneAssets;
+		#endif
+		[SerializeField, HideInInspector] string[] scenePaths;
+
+		void ISerializationCallbackReceiver.OnBeforeSerialize () {}
+
+		void ISerializationCallbackReceiver.OnAfterDeserialize () {
+			if (scenePaths == null || scenePaths.Length == 0) return;
+			if (scenes == null || scenes.Length == 0) {
+				scenes = new SceneReference[scenePaths.Length];
+				for (int i = 0; i < scenePaths.Length; i++) {
+					#if UNITY_EDITOR
+					scenes[i] = new SceneReference(sceneAssets != null && i < sceneAssets.Length ? sceneAssets[i] : null, scenePaths[i]);
+					#else
+					scenes[i] = new SceneReference(scenePaths[i]);
+					#endif
+				}
+			}
+			scenePaths = null;
+			#if UNITY_EDITOR
+			sceneAssets = null;
+			#endif
+		}
 
 		#if UNITY_EDITOR
 		// Keep each reference's cached path in sync with its SceneAsset (handles renamed/moved scenes).
