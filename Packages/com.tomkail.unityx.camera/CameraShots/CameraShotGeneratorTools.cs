@@ -124,7 +124,7 @@ public static class CameraShotGeneratorTools {
 		return camera;
 	}
 
-	static bool CreateCameraShot (CameraShotGeneratorProperties shotGeneratorProperties, ref SerializableCamera camera) {
+	public static bool CreateCameraShot (CameraShotGeneratorProperties shotGeneratorProperties, ref SerializableCamera camera) {
 		return CreateCameraShot(shotGeneratorProperties, ref camera, out float distance);
 	}
 	

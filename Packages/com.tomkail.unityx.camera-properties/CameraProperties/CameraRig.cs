@@ -19,7 +19,7 @@ using UnityEngine;
 /// </summary>
 [RequireComponent(typeof(Camera))]
 public class CameraRig : MonoBehaviour {
-    public new Camera camera;
+    public Camera camera;
 
     [Header("Seeding")]
     [Tooltip("Seed the working properties from this transform on Start. Off if you set them yourself first.")]

@@ -1,0 +1,15 @@
+{
+  "name": "com.tomkail.unityx.aws-build-pipeline",
+  "version": "2.0.0",
+  "displayName": "UnityX AWS Build Pipeline",
+  "description": "Editor window (Build > Build Pipeline) that builds the player, stamps a BuildInfo asset, and uploads the build to an S3 bucket. WebGL builds are uploaded playable; other platforms are zipped. Bundles the AWS SDK for .NET v4 (editor only).",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.tomkail.unityx.versioning": "2.0.0"
+  }
+}

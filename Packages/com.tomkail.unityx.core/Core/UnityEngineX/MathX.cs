@@ -628,14 +628,16 @@ public static class MathX {
 	
 	// Returns the interpolated index of a target number within an ordered list. 
 	// If the target falls between two numbers, it calculates the index based on relative distances.
-	// If the target is outside the range, it extrapolates using the scale of the closest two numbers.
-	public static float FindIndexPosition(IList<float> list, float target) {
+	// If the target is outside the range, it extrapolates using the scale of the closest two numbers,
+	// or, when extrapolate is false, clamps to the first/last index.
+	public static float FindIndexPosition(IList<float> list, float target, bool extrapolate = true) {
 		if (list.Count == 0) return 0;
 		// A single element (or empty) list has no neighbours to interpolate against, so the only valid index is 0.
 		if (list.Count == 1) return 0;
         
 		// Check if the target is less than the first element
 		if (target < list[0]) {
+			if (!extrapolate) return 0;
 			var diff = list[1] - list[0];
 			var offset = (target - list[0]) / diff;
 			return offset; // It's below the first element, so it will be a negative index
@@ -643,6 +645,7 @@ public static class MathX {
 
 		// Check if the target is greater than the last element
 		if (target > list[^1]) {
+			if (!extrapolate) return list.Count - 1;
 			var diff = list[^1] - list[^2];
 			var offset = (target - list[^1]) / diff;
 			return list.Count - 1 + offset; // The last index is Count - 1, so we add the offset to it

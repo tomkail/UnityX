@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 public static class TextureX {
 	public static byte[] GetTextureBytesUsingFormatFromPath (Texture2D texture, string path, int jpegQuality = 75) {
@@ -26,13 +27,15 @@ public static class TextureX {
     /// <param name="src">Source texture to scale.</param>
     /// <param name="width">Destination texture width.</param>
     /// <param name="height">Destination texture height.</param>
-    public static Texture2D CopyWithSizeScaled(this Texture src, int width, int height) {
+    /// <param name="textureFormat">Format of the returned texture. RGBA32 matches Color32, e.g. for AsyncGPUReadback.GetData&lt;Color32&gt;.</param>
+    /// <param name="mipChain">Whether the returned texture has mipmaps.</param>
+    public static Texture2D CopyWithSizeScaled(this Texture src, int width, int height, TextureFormat textureFormat = TextureFormat.RGBA32, bool mipChain = false) {
         Rect texR = new Rect(0,0,width,height);
         RenderTexture previous = RenderTexture.active;
         RenderTexture rtt = GPUScale(src,width,height);
         try {
             //Get rendered data back to a new texture (rtt is still the active RenderTexture)
-            Texture2D result = new Texture2D(width, height, TextureFormat.ARGB32, true);
+            Texture2D result = new Texture2D(width, height, textureFormat, mipChain);
             result.Reinitialize(width, height);
             result.ReadPixels(texR,0,0,true);
             return result;
@@ -64,8 +67,10 @@ public static class TextureX {
     }
     
     static RenderTexture GPUScale(Texture src, int width, int height, int depth = 0) {
-	    //Using RTT for best quality and performance
-	    RenderTexture rtt = RenderTexture.GetTemporary(width, height, depth);
+	    //Using RTT for best quality and performance. Keep the source's format where possible so linear data
+	    //(depth, motion vectors, etc.) isn't sRGB-encoded or truncated on the way through.
+	    var graphicsFormat = SystemInfo.IsFormatSupported(src.graphicsFormat, GraphicsFormatUsage.Render) ? src.graphicsFormat : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
+	    RenderTexture rtt = RenderTexture.GetTemporary(width, height, depth, graphicsFormat);
 
 	    //Set the RTT in order to render to it
 	    Graphics.SetRenderTarget(rtt);

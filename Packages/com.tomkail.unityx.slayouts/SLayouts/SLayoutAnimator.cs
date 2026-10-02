@@ -19,6 +19,18 @@ namespace UnityX.SLayouts {
 	/// </summary>
 	public sealed class SLayoutAnimator : MonoBehaviour
 	{
+		// Set while the application quits so that SLayouts disabled during shutdown don't create a new
+		// instance ("Some objects were not cleaned up when closing the scene").
+		public static bool quitting { get; private set; }
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		static void QuittingReset() {
+			quitting = false;
+			Application.quitting -= OnApplicationQuitting;
+			Application.quitting += OnApplicationQuitting;
+		}
+		static void OnApplicationQuitting() => quitting = true;
+
 		#if UNITY_EDITOR
 	    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
 	    public static void CompileReset() {
@@ -28,6 +40,8 @@ namespace UnityX.SLayouts {
 	    }
     
 	    static void PlayModeStateChanged (UnityEditor.PlayModeStateChange playModeStateChange) {
+			// Application.quitting also fires when leaving play mode; edit mode may use the animator again.
+			if(playModeStateChange == UnityEditor.PlayModeStateChange.EnteredEditMode) quitting = false;
 			DestroyInstance();
 	    }
 	
@@ -107,6 +121,7 @@ namespace UnityX.SLayouts {
 		public static SLayoutAnimator instance {
 			get {
 				if( _instance == null ) {
+					if(quitting) return null;
 					#if UNITY_EDITOR
 					// If we're between modes, then just exit out!
 					if(!UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode && UnityEditor.EditorApplication.isPlaying) 

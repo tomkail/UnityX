@@ -29,7 +29,12 @@ public class TypeMap3D<T> : Grid3D, IEnumerable<TypeMap3DCellInfo<T>> {
 		values = new T[_map.values.Length];
 		System.Array.Copy(_map.values, values, _map.values.Length);
 	}
-	
+
+	// Grid3D.Resize only changes the size; the values array has to follow it.
+	public override void Resize(Vector3Int size) {
+		Resize(size, Vector3Int.zero);
+	}
+
 	public virtual void Clear() {
 		values = new T[size.Area()];
 	}
