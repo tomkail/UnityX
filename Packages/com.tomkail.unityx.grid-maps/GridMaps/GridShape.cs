@@ -10,7 +10,8 @@ using UnityX.Islands;
 // bounds depend on hex orientation/size/origin), reusing the generic CreateRandomContiguous below.
 [Serializable]
 public class GridShape {
-	[SerializeField] List<Vector2Int> cells;
+	// "points" was the field name when this was Shape (List<Point>), which serialised the same x/y pairs.
+	[SerializeField, UnityEngine.Serialization.FormerlySerializedAs("points")] List<Vector2Int> cells;
 	public IReadOnlyList<Vector2Int> Cells => cells;
 
 	// Cached geometry, recomputed whenever the cells change (see Recompute).
