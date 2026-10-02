@@ -11,6 +11,7 @@
         "UnityX.Easing",
         "UnityX.PropertyCurves",
         "UnityX.SerializableTransform",
+        "UnityX.Pathfinding",
         "UnityEngine.UI",
         "Unity.TextMeshPro"
     ],

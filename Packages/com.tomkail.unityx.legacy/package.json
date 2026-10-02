@@ -14,6 +14,7 @@
     "com.tomkail.unityx.core": "2.0.0",
     "com.tomkail.unityx.easing": "2.0.0",
     "com.tomkail.unityx.geometry": "2.0.0",
+    "com.tomkail.unityx.pathfinding": "2.0.0",
     "com.tomkail.unityx.property-curves": "2.0.0",
     "com.tomkail.unityx.property-drawers": "2.0.0",
     "com.tomkail.unityx.slayouts": "2.0.0",

@@ -258,11 +258,19 @@ def cmd_scan(a):
                     raw = fh.read()
                 code = re.sub(r"//[^\n]*|/\*.*?\*/|\"(?:\\.|[^\"\\\n])*\"", "", raw, flags=re.S)
                 # Any namespace a package declares (UnityX.*, but also e.g. Utils.Algorithms), except Unity's and
-                # System's own, which some packages extend (UnityEngine.UI) and most projects use anyway.
-                # Also fully qualified uses without a `using` (`Utils.Algorithms.AStar<T>`).
-                usings = set(re.findall(r"^\s*using\s+([\w.]+)\s*;", code, re.M))
-                usings.update(ns for ns in namespaces if not ns.startswith("UnityX")
-                              and re.search(r"(?<![\w.])" + re.escape(ns) + r"\.[A-Za-z_]", code))
+                # System's own, which some packages extend (UnityEngine.UI) and most projects use anyway. Counts
+                # `using` (incl. `using static` and aliases, whose target may be a type inside the namespace) and
+                # fully qualified uses (`Utils.Algorithms.AStar<T>`), but not the project's own `namespace` lines.
+                refs = re.sub(r"^\s*namespace\s+[\w.]+", "", code, flags=re.M)
+                usings = set()
+                for target in re.findall(r"^\s*(?:global\s+)?using\s+(?:static\s+)?(?:\w+\s*=\s*)?([\w.]+)", refs, re.M):
+                    parts = target.split(".")
+                    for i in range(len(parts), 0, -1):  # longest declared prefix
+                        if ".".join(parts[:i]) in namespaces:
+                            usings.add(".".join(parts[:i]))
+                            break
+                usings.update(ns for ns in namespaces
+                              if re.search(r"(?<![\w.])" + re.escape(ns) + r"\.[A-Za-z_]", refs))
                 for ns in usings:
                     if re.match(r"(UnityEngine|UnityEditor|System)(\.|$)", ns):
                         continue
@@ -270,7 +278,7 @@ def cmd_scan(a):
                         if namespaces[ns] in have:
                             used.add(namespaces[ns])
                         else:
-                            found.setdefault(namespaces[ns], []).append(f"using {ns} in {rel}")
+                            found.setdefault(namespaces[ns], []).append(f"{ns} in {rel}")
                 # Bare identifiers, but not member accesses (`string.Join`, `x.Region`), which otherwise match
                 # package type names; fully qualified `UnityX.A.Type` names contribute their last segment.
                 words = set(re.findall(r"(?<![\w.])[A-Z]\w+", code))

@@ -38,6 +38,14 @@ namespace UnityX.SceneManagement {
 			this.scenePath = scenePath ?? string.Empty;
 		}
 
+		// A path with no asset (e.g. migrated from data that only had the path): look the asset up, so the
+		// following RefreshPath keeps the path rather than clearing it. Returns true if the asset was found.
+		public bool ResolveAssetFromPath () {
+			if (sceneAsset != null || string.IsNullOrEmpty(scenePath)) return false;
+			sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath);
+			return sceneAsset != null;
+		}
+
 		// Re-cache the path from the assigned SceneAsset. Called by the owner's OnBeforeSerialize so a
 		// moved/renamed scene stays correct. Returns true if the path changed.
 		public bool RefreshPath () {

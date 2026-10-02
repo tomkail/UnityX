@@ -37,14 +37,22 @@ namespace UnityX.SceneManagement {
 		void ISerializationCallbackReceiver.OnBeforeSerialize () {}
 
 		void ISerializationCallbackReceiver.OnAfterDeserialize () {
-			if (scenePaths == null || scenePaths.Length == 0) return;
+			int pathCount = scenePaths != null ? scenePaths.Length : 0;
+			int count = pathCount;
+			#if UNITY_EDITOR
+			if (sceneAssets != null && sceneAssets.Length > count) count = sceneAssets.Length;
+			#endif
+			if (count == 0) return;
+			// Take every entry from either array (they should match, but a stale one mustn't drop scenes). A
+			// missing path is filled from the asset, and a missing asset from the path, in OnValidate.
 			if (scenes == null || scenes.Length == 0) {
-				scenes = new SceneReference[scenePaths.Length];
-				for (int i = 0; i < scenePaths.Length; i++) {
+				scenes = new SceneReference[count];
+				for (int i = 0; i < count; i++) {
+					string path = i < pathCount ? scenePaths[i] : null;
 					#if UNITY_EDITOR
-					scenes[i] = new SceneReference(sceneAssets != null && i < sceneAssets.Length ? sceneAssets[i] : null, scenePaths[i]);
+					scenes[i] = new SceneReference(sceneAssets != null && i < sceneAssets.Length ? sceneAssets[i] : null, path);
 					#else
-					scenes[i] = new SceneReference(scenePaths[i]);
+					scenes[i] = new SceneReference(path);
 					#endif
 				}
 			}
@@ -57,10 +65,10 @@ namespace UnityX.SceneManagement {
 		#if UNITY_EDITOR
 		// Keep each reference's cached path in sync with its SceneAsset (handles renamed/moved scenes).
 		void OnValidate () {
-			bool changed = activeScene.RefreshPath();
+			bool changed = activeScene.ResolveAssetFromPath() | activeScene.RefreshPath();
 			if (scenes != null)
 				for (int i = 0; i < scenes.Length; i++)
-					if (scenes[i].RefreshPath()) changed = true;
+					if (scenes[i].ResolveAssetFromPath() | scenes[i].RefreshPath()) changed = true;
 			if (changed) EditorUtility.SetDirty(this);
 		}
 		#endif
