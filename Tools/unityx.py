@@ -257,7 +257,15 @@ def cmd_scan(a):
                 with open(path, errors="ignore") as fh:
                     raw = fh.read()
                 code = re.sub(r"//[^\n]*|/\*.*?\*/|\"(?:\\.|[^\"\\\n])*\"", "", raw, flags=re.S)
-                for ns in set(re.findall(r"^\s*using\s+(UnityX[\w.]*)\s*;", code, re.M)):
+                # Any namespace a package declares (UnityX.*, but also e.g. Utils.Algorithms), except Unity's and
+                # System's own, which some packages extend (UnityEngine.UI) and most projects use anyway.
+                # Also fully qualified uses without a `using` (`Utils.Algorithms.AStar<T>`).
+                usings = set(re.findall(r"^\s*using\s+([\w.]+)\s*;", code, re.M))
+                usings.update(ns for ns in namespaces if not ns.startswith("UnityX")
+                              and re.search(r"(?<![\w.])" + re.escape(ns) + r"\.[A-Za-z_]", code))
+                for ns in usings:
+                    if re.match(r"(UnityEngine|UnityEditor|System)(\.|$)", ns):
+                        continue
                     if ns in namespaces:
                         if namespaces[ns] in have:
                             used.add(namespaces[ns])
@@ -291,7 +299,7 @@ def cmd_scan(a):
             print(f"      {r}")
         if len(set(reasons)) > 3:
             print(f"      ... and {len(set(reasons)) - 3} more")
-    print("Asset references and `using UnityX...` are certain; bare type-name matches are hints.")
+    print("Asset references and package namespaces (`using UnityX...`) are certain; bare type-name matches are hints.")
     print("Add them with:  unityx add " + " ".join(short(n) for n in sorted(found)))
 
 
