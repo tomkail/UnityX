@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Linear Gradient Add
+  m_Shader: {fileID: 4800000, guid: 3a3b8d07adf65e14abf12f1737491bdd, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Floats:
+    - _Degrees: 0
+    - _EndDistance: 1
+    - _InnerDistance: 0
+    - _OuterDistance: 0.5
+    - _Power: 3
+    - _StartDistance: 0
+    m_Colors:
+    - _EndColor: {r: 1, g: 1, b: 1, a: 0}
+    - _InnerColor: {r: 1, g: 1, b: 1, a: 1}
+    - _InnerColour: {r: 0, g: 0, b: 0, a: 0}
+    - _InnerDistance: {r: 1, g: 1, b: 1, a: 1}
+    - _OuterColor: {r: 1, g: 1, b: 1, a: 0}
+    - _OuterColour: {r: 0, g: 0, b: 0, a: 0.627451}
+    - _OuterDistance: {r: 1, g: 1, b: 1, a: 1}
+    - _StartColor: {r: 1, g: 1, b: 1, a: 1}
