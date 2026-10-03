@@ -33,7 +33,7 @@ namespace UnityX.HexGrid {
 	    WorldSpaceHexGrid _grid;
 	    public WorldSpaceHexGrid grid {
 	        get {
-	            if(_grid == null) grid = GetGrid();
+	            if(_grid == null && canResolveGrid) grid = GetGrid();
 	            return _grid;
 	        } private set {
 	            #if UNITY_EDITOR
@@ -49,6 +49,12 @@ namespace UnityX.HexGrid {
 	            #endif
 	        }
 	    }
+
+	    // Whether a missing grid may be looked up with GetGrid(). Always allowed in the editor; in play mode only
+	    // while resolveGridInPlayMode is true. Override it to false when play mode must use exactly the serialized
+	    // grid, e.g. when GetGrid() depends on level data that can disagree with what was authored.
+	    protected virtual bool resolveGridInPlayMode => true;
+	    bool canResolveGrid => resolveGridInPlayMode || !Application.isPlaying;
 
 	    // The cell coordinate is the authoritative data; the transform is derived from it. _hasCoord distinguishes
 	    // "authored on a cell" from "freshly added / migrated from an older scene", where we seed the coord from
@@ -90,7 +96,8 @@ namespace UnityX.HexGrid {
 	    // know). Override to add project find modes such as a global singleton, then fall back to base.GetGrid().
 	    protected virtual WorldSpaceHexGrid GetGrid () {
 	        if(gridFindMode == GridFindMode.Parent) {
-	            return GetComponentInParent<WorldSpaceHexGrid>();
+	            // includeInactive: an object under an inactive parent still belongs to that parent's grid.
+	            return GetComponentInParent<WorldSpaceHexGrid>(true);
 	        }
 	        return null;
 	    }
@@ -98,7 +105,6 @@ namespace UnityX.HexGrid {
 	    // Seed the authoritative coord/direction from the current transform the first time we have a grid.
 	    void EnsureCoordInitialized () {
 	        if(_hasCoord) return;
-	        if(grid == null) grid = GetGrid();
 	        if(grid == null) return;
 	        _coord = grid.WorldToAxial(transform.position);
 	        _directionIndex = HexCoord.ClosestDirectionIndex(grid.RotationToHexCoordDirection(transform.rotation));
@@ -119,7 +125,6 @@ namespace UnityX.HexGrid {
 	    }
 
 	    void ApplyToTransform () {
-	        if(grid == null) grid = GetGrid();
 	        if(grid == null) {
 	            Debug.LogWarning("No grid!", this);
 	            return;
@@ -156,8 +161,10 @@ namespace UnityX.HexGrid {
 	    public void SetPosition (HexCoord coord) {
 	        SnapToCoord(coord);
 	    }
+	    // A negative direction index means "no facing" (e.g. data migrated from a snap that had no grid): zero, not a wrapped direction.
 	    public HexCoord GetDirection () {
-	        return HexCoord.Direction(GetDirectionIndex());
+	        var index = GetDirectionIndex();
+	        return index < 0 ? HexCoord.zero : HexCoord.Direction(index);
 	    }
 	    public int GetDirectionIndex () {
 	        if(!_hasCoord) EnsureCoordInitialized();

@@ -28,25 +28,29 @@ static class GridChangeReapplier {
 	static void OnChangesPublished (ref ObjectChangeEventStream stream) {
 		if(Application.isPlaying) return;
 
-		bool gridChanged = false;
+		// The objects carrying the changed grids. A grid object can itself be a tile on another grid (a room
+		// snapped onto a world grid): the user is moving that tile on purpose, so it is left where they put it.
+		var changedObjects = new System.Collections.Generic.HashSet<GameObject>();
 		for(int i = 0; i < stream.length; i++) {
 			if(stream.GetEventType(i) != ObjectChangeKind.ChangeGameObjectOrComponentProperties) continue;
 			stream.GetChangeGameObjectOrComponentPropertiesEvent(i, out var data);
 			var obj = EditorUtility.EntityIdToObject(data.entityId);
-			if(AffectsGrid(obj)) {
-				gridChanged = true;
-				break;
-			}
+			if(AffectsGrid(obj)) changedObjects.Add(((Component)obj).gameObject);
 		}
-		if(!gridChanged) return;
+		if(changedObjects.Count == 0) return;
 
 		var tiles = Object.FindObjectsByType<HexGridSnap>(FindObjectsInactive.Include);
 		foreach(var tile in tiles) {
 			if(tile == null) continue;
+			if(changedObjects.Contains(tile.gameObject)) continue;
+			if(tile.grid == null) continue;
 			if(UnityEditor.SceneManagement.PrefabStageUtility.GetPrefabStage(tile.gameObject) != null) continue;
-			Undo.RecordObject(tile.transform, "Reapply Tile To Grid");
+			var t = tile.transform;
+			var before = (t.position, t.rotation);
+			Undo.RecordObject(t, "Reapply Tile To Grid");
 			tile.ReapplyFromStoredCoord();
-			EditorUtility.SetDirty(tile.transform);
+			// Only dirty what actually moved, so editing one grid doesn't mark every scene with tiles as changed.
+			if((t.position, t.rotation) != before) EditorUtility.SetDirty(t);
 		}
 	}
 
