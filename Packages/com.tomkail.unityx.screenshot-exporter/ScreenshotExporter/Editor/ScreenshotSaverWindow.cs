@@ -317,22 +317,28 @@ public class ScreenshotSaverWindow : EditorWindow {
 		return names;
 	}
 
-	void SetScreenWidthAndHeightFromEditorGameViewViaReflection(ref int screenHeight, ref int screenWidth) {
+	// Editor internals, looked up once. GameView.GetMainGameView no longer exists; the main view now comes from
+	// PlayModeView (which also declares targetSize), and may be the Device Simulator rather than a Game view.
+	static readonly System.Type gameViewType = typeof(EditorWindow).Assembly.GetType("UnityEditor.GameView");
+	static readonly System.Type playModeViewType = typeof(EditorWindow).Assembly.GetType("UnityEditor.PlayModeView");
+	static readonly System.Reflection.MethodInfo getMainPlayModeView = playModeViewType?.GetMethod("GetMainPlayModeView", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+	static readonly System.Reflection.PropertyInfo targetSizeProperty = playModeViewType?.GetProperty("targetSize", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+	// Leaves the values unchanged if the Game view or its internals can't be found.
+	void SetScreenWidthAndHeightFromEditorGameViewViaReflection(ref int screenWidth, ref int screenHeight) {
 		var gameView = GetMainGameView();
-		var prop = gameView.GetType().GetProperty("targetSize", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+		if(gameView == null || targetSizeProperty == null) return;
 
-		var gvsize = prop.GetValue(gameView, new object[0]{});
-		var gvSizeType = gvsize.GetType();
-
-		screenHeight = (int)((Single)gvSizeType.GetField("x", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance).GetValue(gvsize));
-		screenWidth = (int)((Single)gvSizeType.GetField("y", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance).GetValue(gvsize));
+		var gvsize = (Vector2)targetSizeProperty.GetValue(gameView);
+		screenWidth = (int)gvsize.x;
+		screenHeight = (int)gvsize.y;
 	}
 
-	UnityEditor.EditorWindow GetMainGameView() {
-		System.Type T = System.Type.GetType("UnityEditor.GameView,UnityEditor");
-		System.Reflection.MethodInfo GetMainGameView = T.GetMethod("GetMainGameView",System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-		System.Object Res = GetMainGameView.Invoke(null,null);
-		return (UnityEditor.EditorWindow)Res;
+	static UnityEditor.EditorWindow GetMainGameView() {
+		if(gameViewType == null) return null;
+		if(getMainPlayModeView?.Invoke(null, null) is EditorWindow main && gameViewType.IsInstanceOfType(main)) return main;
+		var gameViews = Resources.FindObjectsOfTypeAll(gameViewType);
+		return gameViews.Length > 0 ? (EditorWindow)gameViews[0] : null;
 	}
 
 	private void DrawResolutionPanel () {

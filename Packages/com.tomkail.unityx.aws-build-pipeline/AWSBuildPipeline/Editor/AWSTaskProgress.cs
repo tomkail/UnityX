@@ -9,7 +9,8 @@ namespace UnityX.AWSBuildPipeline.Editor {
 
         public AWSTaskProgress() {
             this.progress = 0;
-            this.cancellationTokenSource = new CancellationTokenSource();
+            // Linked so a code reload also cancels this task (see AWSUtils.reloadToken).
+            this.cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(AWSUtils.reloadToken);
         }
     }
 }

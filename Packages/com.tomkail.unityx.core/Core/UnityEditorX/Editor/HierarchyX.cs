@@ -9,9 +9,14 @@ using UnityEditor;
 public static class HierarchyX {
 	[MenuItem("Tools/Hierarchy/Collapse All")]
 	public static void CollapseHierarchyView() {
-		var svhType = Type.GetType("UnityEditor.SceneHierarchyWindow, UnityEditor");
-		var hierarchies = (IEnumerable)svhType.GetMethod("GetAllSceneHierarchyWindows", BindingFlags.Public | BindingFlags.Static).Invoke(null, null);
-		var setExpandedRecursiveMethod = svhType.GetMethod("SetExpandedRecursive", BindingFlags.Public | BindingFlags.Instance);
+		var svhType = typeof(EditorWindow).Assembly.GetType("UnityEditor.SceneHierarchyWindow");
+		var getAllMethod = svhType?.GetMethod("GetAllSceneHierarchyWindows", BindingFlags.Public | BindingFlags.Static);
+		var setExpandedRecursiveMethod = svhType?.GetMethod("SetExpandedRecursive", BindingFlags.Public | BindingFlags.Instance);
+		if (getAllMethod == null || setExpandedRecursiveMethod == null) {
+			Debug.LogWarning("Collapse All: SceneHierarchyWindow internals weren't found in this Unity version.");
+			return;
+		}
+		var hierarchies = (IEnumerable)getAllMethod.Invoke(null, null);
 
 		// SceneHierarchyWindow.SetExpandedRecursive keys the hierarchy tree by the legacy int instance id, and
 		// Unity offers no lossless EntityId->int conversion (a hash code isn't unique, so it wouldn't match a

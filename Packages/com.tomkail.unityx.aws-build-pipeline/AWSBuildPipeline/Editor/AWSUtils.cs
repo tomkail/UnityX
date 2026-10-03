@@ -21,6 +21,7 @@ namespace UnityX.AWSBuildPipeline.Editor {
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
+    using UnityEditor;
     using UnityEngine;
 
     // Note on AWS SDK v4: collections on responses are null rather than empty when there's nothing in them,
@@ -32,6 +33,24 @@ namespace UnityX.AWSBuildPipeline.Editor {
 
         static string AsFolderPrefix(string keyPrefix) => keyPrefix.TrimEnd('/') + "/";
 
+        // Cancelled just before a code reload. In-flight requests otherwise keep the old assembly alive and resume its
+        // code after the reload (domain reload used to tear them down). Every request here passes this token.
+        static CancellationTokenSource reloadCancellation = new CancellationTokenSource();
+        public static CancellationToken reloadToken => reloadCancellation.Token;
+
+        [InitializeOnLoadMethod]
+        static void SubscribeEditorEvents() {
+            AssemblyReloadEvents.beforeAssemblyReload -= CancelPendingRequests;
+            AssemblyReloadEvents.beforeAssemblyReload += CancelPendingRequests;
+        }
+
+        static void CancelPendingRequests() {
+            AssemblyReloadEvents.beforeAssemblyReload -= CancelPendingRequests;
+            var cancelled = reloadCancellation;
+            reloadCancellation = new CancellationTokenSource();
+            cancelled.Cancel();
+        }
+
         // Deletes all objects under a folder, recursively.
         public static async Task DeleteDirectoryAsync(IAmazonS3 s3Client, string bucketName, string keyPrefix) {
             var listRequest = new ListObjectsV2Request {
@@ -41,12 +60,12 @@ namespace UnityX.AWSBuildPipeline.Editor {
             ListObjectsV2Response response;
             do {
                 // Each page holds at most 1000 keys, which is also the most DeleteObjects accepts.
-                response = await s3Client.ListObjectsV2Async(listRequest);
+                response = await s3Client.ListObjectsV2Async(listRequest, reloadToken);
                 if (response.S3Objects != null && response.S3Objects.Count > 0) {
                     await s3Client.DeleteObjectsAsync(new DeleteObjectsRequest {
                         BucketName = bucketName,
                         Objects = response.S3Objects.Select(o => new KeyVersion { Key = o.Key }).ToList()
-                    });
+                    }, reloadToken);
                 }
                 listRequest.ContinuationToken = response.NextContinuationToken;
             } while (response.IsTruncated == true);
@@ -63,14 +82,14 @@ namespace UnityX.AWSBuildPipeline.Editor {
                 };
                 ListObjectsV2Response response;
                 do {
-                    response = await s3Client.ListObjectsV2Async(listRequest, CancellationToken.None);
+                    response = await s3Client.ListObjectsV2Async(listRequest, reloadToken);
                     if (response.S3Objects != null) {
                         await ForEachThrottled(response.S3Objects, obj => s3Client.CopyObjectAsync(new CopyObjectRequest {
                             SourceBucket = sourceBucket,
                             SourceKey = obj.Key,
                             DestinationBucket = destinationBucket,
                             DestinationKey = destinationKey + obj.Key.Substring(sourceKey.Length)
-                        }));
+                        }, reloadToken));
                     }
                     listRequest.ContinuationToken = response.NextContinuationToken;
                 } while (response.IsTruncated == true);
@@ -124,8 +143,9 @@ namespace UnityX.AWSBuildPipeline.Editor {
                 response = await s3Client.GetObjectMetadataAsync(new GetObjectMetadataRequest {
                     BucketName = bucketName,
                     Key = fileStatus.relativePath
-                });
+                }, reloadToken);
             } catch (AmazonS3Exception e) when (e.StatusCode == HttpStatusCode.NotFound) {
+            } catch (OperationCanceledException) {
             } catch (Exception e) {
                 // Treated as missing, so the file gets uploaded again (and the upload reports anything that's really wrong).
                 Debug.LogError("Couldn't check " + fileStatus.relativePath + " on the server: " + e.Message);
@@ -158,8 +178,10 @@ namespace UnityX.AWSBuildPipeline.Editor {
                 await s3Client.DeleteObjectAsync(new DeleteObjectRequest {
                     BucketName = target.bucketName,
                     Key = fileStatus.relativePath
-                });
+                }, reloadToken);
                 fileStatus.status = ServerHostedFileStatus.Status.NotUploaded;
+            } catch (OperationCanceledException) {
+                fileStatus.status = ServerHostedFileStatus.Status.Unknown;
             } catch (Exception e) {
                 fileStatus.status = ServerHostedFileStatus.Status.Unknown;
                 Debug.LogError("Couldn't delete " + fileStatus.relativePath + " from the server: " + e.Message);
@@ -218,6 +240,8 @@ namespace UnityX.AWSBuildPipeline.Editor {
 
                 await transferUtility.UploadAsync(transferUtilityRequest, fileStatus.uploadTaskProgress.cancellationTokenSource.Token);
                 fileStatus.status = ServerHostedFileStatus.Status.Uploaded;
+            } catch (OperationCanceledException) {
+                fileStatus.status = ServerHostedFileStatus.Status.NotUploaded;
             } catch (Exception e) {
                 fileStatus.status = ServerHostedFileStatus.Status.NotUploaded;
                 Debug.LogError("Couldn't upload " + fileStatus.relativePath + ": " + e.Message);
@@ -230,7 +254,7 @@ namespace UnityX.AWSBuildPipeline.Editor {
         static async Task ForEachThrottled<T>(IEnumerable<T> items, Func<T, Task> action) {
             using (var semaphore = new SemaphoreSlim(maxSimultaneousRequests)) {
                 await Task.WhenAll(items.Select(async item => {
-                    await semaphore.WaitAsync();
+                    await semaphore.WaitAsync(reloadToken);
                     try {
                         await action(item);
                     } finally {

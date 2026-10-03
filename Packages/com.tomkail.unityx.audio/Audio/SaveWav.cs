@@ -110,7 +110,8 @@ public static class SavWav {
 
 	static void ConvertAndWrite(FileStream fileStream, AudioClip clip) {
 
-		var samples = new float[clip.samples];
+		// clip.samples is per channel; GetData fills interleaved samples for every channel, which the header declares.
+		var samples = new float[clip.samples * clip.channels];
 
 		clip.GetData(samples, 0);
 
@@ -124,7 +125,8 @@ public static class SavWav {
 		int rescaleFactor = 32767; //to convert float to Int16
 
 		for (int i = 0; i<samples.Length; i++) {
-			intData[i] = (short) (samples[i] * rescaleFactor);
+			// Clamp first: out-of-range float->short casts wrap on Mono but saturate on CoreCLR, so clipped audio differed.
+			intData[i] = (short) (Math.Clamp(samples[i], -1f, 1f) * rescaleFactor);
 			Byte[] byteArr = new Byte[2];
 			byteArr = BitConverter.GetBytes(intData[i]);
 			byteArr.CopyTo(bytesData, i * 2);

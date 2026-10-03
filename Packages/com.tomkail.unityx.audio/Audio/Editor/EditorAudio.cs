@@ -4,26 +4,23 @@ using System;
 using System.Reflection;
  
 public static class EditorAudio {
-    static Type audioUtilType {
-        get {
-            Assembly unityEditorAssembly = typeof(AudioImporter).Assembly;
-            return unityEditorAssembly.GetType("UnityEditor.AudioUtil");
-        }
-    }
+    // AudioUtil is internal, so these are looked up once and null-checked in case a Unity version renames them.
     // https://github.com/Unity-Technologies/UnityCsReference/blob/master/Editor/Mono/Audio/Bindings/AudioUtil.bindings.cs
+    static readonly Type audioUtilType = typeof(AudioImporter).Assembly.GetType("UnityEditor.AudioUtil");
+    static readonly MethodInfo playPreviewClip = audioUtilType?.GetMethod("PlayPreviewClip", BindingFlags.Static | BindingFlags.Public, null, new Type[] {typeof(AudioClip), typeof(int), typeof(bool)}, null);
+    static readonly MethodInfo stopAllPreviewClips = audioUtilType?.GetMethod("StopAllPreviewClips", BindingFlags.Static | BindingFlags.Public, null, Type.EmptyTypes, null);
+    static readonly MethodInfo isPreviewClipPlaying = audioUtilType?.GetMethod("IsPreviewClipPlaying", BindingFlags.Static | BindingFlags.Public, null, Type.EmptyTypes, null);
+
     public static void PlayClip(AudioClip clip, int startSample = 0, bool loop = false) {
-        if(clip == null) return;
-        MethodInfo method = audioUtilType.GetMethod("PlayPreviewClip", BindingFlags.Static | BindingFlags.Public, null, new Type[] {typeof(AudioClip), typeof(int), typeof(bool)}, null);
-        method.Invoke(null, new object[] { clip, startSample, loop });
+        if(clip == null || playPreviewClip == null) return;
+        playPreviewClip.Invoke(null, new object[] { clip, startSample, loop });
     }
  
     public static void StopAllClips() {
-        MethodInfo method = audioUtilType.GetMethod("StopAllPreviewClips", BindingFlags.Static | BindingFlags.Public, null, new Type[] {}, null);
-        method.Invoke( null, new object[] { });
+        stopAllPreviewClips?.Invoke(null, null);
     }
     
     public static bool IsPreviewClipPlaying() {
-        MethodInfo method = audioUtilType.GetMethod("IsPreviewClipPlaying", BindingFlags.Static | BindingFlags.Public, null, new Type[] {}, null);
-        return (bool)method.Invoke( null, new object[] { });
+        return isPreviewClipPlaying != null && (bool)isPreviewClipPlaying.Invoke(null, null);
     }
 }

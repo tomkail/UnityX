@@ -83,6 +83,8 @@ All need: named handler, `-=` before `+=`, and unsubscribe on `AssemblyReloadEve
 
 ## 4. Other runtime differences
 
+**Done:** HashString (FNV-1a), SaveWav (clamp; also fixed stereo exports writing only half the samples), ConsoleX, EditorWindowX, HierarchyX, AWS cancellation on reload, and cached/null-checked reflection in EditorAudio, ExtendedScrollRect and ScreenshotSaverWindow. Checking the 6000.5 editor DLLs showed `UnityEditorInternal.LogEntries` and `GameView.GetMainGameView` no longer exist, so ConsoleX.Clear, EditorWindowX.GetMainGameView and the screenshot window's "Game View" resolution were already broken. **Still to verify on 6.8 (needs the editor):** ShortCallstack output, trackpad `.bundle` loading, noise bit-exactness.
+
 | Location | Problem | Fix |
 |---|---|---|
 | core `MathX.cs:473` `HashString` | `string.GetHashCode()` is randomized per process on CoreCLR, so the documented "deterministic" result breaks. No callers in repo, but it's public API | stable hash (FNV-1a) |
