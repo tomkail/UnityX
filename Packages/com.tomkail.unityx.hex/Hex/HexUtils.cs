@@ -17,6 +17,19 @@ namespace UnityX.HexGrid {
 	        var deltaDirection = dirIndex2 - dirIndex1;
 			return Util.Mod(deltaDirection + 3, 6) - 3;
 	    }
+	    // Signed difference between fractional direction indices, wrapped into -3..3.
+	    public static float SignedDeltaDirection (float dirIndex1, float dirIndex2) {
+	        return Mathf.Repeat(dirIndex2 - dirIndex1 + 3, 6) - 3;
+	    }
+	    // Of the given directions, the signed delta from dirIndex1 with the largest magnitude.
+	    public static int LargestSignedDeltaDirection (int dirIndex1, IEnumerable<int> dirIndexes) {
+	        var best = 0;
+	        foreach(var dirIndex2 in dirIndexes) {
+	            var delta = SignedDeltaDirection(dirIndex1, dirIndex2);
+	            if(Mathf.Abs(delta) > Mathf.Abs(best)) best = delta;
+	        }
+	        return best;
+	    }
 	    public static int RotateTowards (int currentDirectionIndex, int targetDirectionIndex, int maxRotationSteps) {
 	        var deltaDirection = SignedDeltaDirection(currentDirectionIndex, targetDirectionIndex);
 	        // Normalize so the result is always a valid 0..5 direction index rather than leaking out of range.

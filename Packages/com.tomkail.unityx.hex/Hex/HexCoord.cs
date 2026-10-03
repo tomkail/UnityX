@@ -458,6 +458,9 @@ public partial struct HexCoord : IEquatable<HexCoord> {
 	static public Vector2 HexLerp(HexCoord a, HexCoord b, float t) {
 		return Vector2.Lerp((Vector2)a, (Vector2)b, t);
     }
+	static public Vector2 HexLerpUnclamped(HexCoord a, HexCoord b, float t) {
+		return Vector2.LerpUnclamped((Vector2)a, (Vector2)b, t);
+    }
 
 
 	public static HexCoord[] GetPointsOnLine (HexCoord direction, int startLineDistance, int endLineDistance) {
@@ -655,6 +658,18 @@ public partial struct HexCoord : IEquatable<HexCoord> {
 		foreach(var direction in GetClosestDirections(a,b)) {
 			yield return ClosestDirectionIndex(direction);
 		}
+	}
+	// The closest direction index from a to b as a float: halfway between two indices when b lies exactly between
+	// them (e.g. 0.5), or the single index otherwise. Result is in 0..6.
+	public static float GetClosestDirectionIndexFloat (HexCoord a, HexCoord b) {
+		if(a == b) return 0;
+		// Average around the circle: a plain average of 0 and 5 gives 2.5, the opposite side of the hex.
+		// Each index is measured relative to the first, wrapped into -3..3, then the result is wrapped into 0..6.
+		var indices = GetClosestDirections(a,b).Select(direction => ClosestDirectionIndex(direction)).ToList();
+		var reference = indices[0];
+		var meanOffset = indices.Average(index => (float)(NormalizeRotationIndex(index - reference + 3) - 3));
+		var result = reference + meanOffset;
+		return result < 0 ? result + 6 : result;
 	}
 	public static int GetClosestDirectionIndex (HexCoord a, HexCoord b) {
 		return ClosestDirectionIndex(GetClosestDirection(a,b));
