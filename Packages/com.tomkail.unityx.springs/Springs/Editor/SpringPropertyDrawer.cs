@@ -213,8 +213,8 @@ namespace UnityX.Springs.Editor {
 
 			GUIStyle labelStyle => EditorStyles.centeredGreyMiniLabel;
 
-			static int scaleHeight = 14;
-			static int scaleMargin = 2;
+			const int scaleHeight = 14;
+			const int scaleMargin = 2;
 			public bool showHoverTooltip;
 
 			// Create a new graph GUI for the given curve and sets the rect of the graph to the range of the curve
@@ -303,9 +303,9 @@ namespace UnityX.Springs.Editor {
 				return new Rect(centerX - sizeX * 0.5f, centerY - sizeY * 0.5f, sizeX, sizeY);
 			}
 
-			static Vector3 offset = new(0, -0.5f, 0); // Compensate for line width	
-			static Matrix4x4 guiTransMat = Matrix4x4.TRS(offset, Quaternion.identity, Vector3.one);
-			static Matrix4x4 guiTransMatInv = Matrix4x4.TRS(-offset, Quaternion.identity, Vector3.one);
+			static readonly Vector3 offset = new(0, -0.5f, 0); // Compensate for line width	
+			static readonly Matrix4x4 guiTransMat = Matrix4x4.TRS(offset, Quaternion.identity, Vector3.one);
+			static readonly Matrix4x4 guiTransMatInv = Matrix4x4.TRS(-offset, Quaternion.identity, Vector3.one);
 			public static void DrawLine(Vector2 pointA, Vector2 pointB, Color color, float width) {
 				if(width <= 0 || pointA == pointB || color.a == 0) return;
 

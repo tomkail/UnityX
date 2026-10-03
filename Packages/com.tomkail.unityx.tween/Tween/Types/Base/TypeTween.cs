@@ -48,7 +48,10 @@ namespace UnityX.Tween {
 		// Cached default linear easing curve, shared to avoid allocating a new AnimationCurve
 		// on every default Tween(). Only ever passed by reference and READ (evaluated) within
 		// this class — never mutated in place — so sharing a single instance is safe.
-		static readonly AnimationCurve defaultLinearCurve = AnimationCurve.Linear(0, 0, 1, 1);
+		// Created on first use rather than in a static initializer: CoreCLR runs static constructors lazily and
+		// possibly off the main thread, and AnimationCurve is a native object.
+		static AnimationCurve _defaultLinearCurve;
+		static AnimationCurve defaultLinearCurve => _defaultLinearCurve ??= AnimationCurve.Linear(0, 0, 1, 1);
 
 		public TypeTween () {
 			Init();

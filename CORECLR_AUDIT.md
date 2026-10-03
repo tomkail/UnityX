@@ -49,6 +49,15 @@ Each of these breaks on the second play session without domain reload.
 
 ## 2. Static state — Medium/Low
 
+**Done**, with these exceptions:
+- **UIImposterRenderer**: no change needed. It already destroys its camera and canvas after every render.
+- **SAnimatedProperty pool, TempList, editor-only SelectionX and EditorSceneManagerX events**: no change. The pool clears entries before reuse and only holds this assembly's types. The editor events are meant to live as long as the editor.
+- **EditorGUIX label widths**: left alone. It's editor GUI state with no play-session lifetime.
+
+Also fixed:
+- `Region.activeRegions` was never populated, so `GetRegionAtPosition`/`GetRegionsAtPosition` always returned nothing. Regions now register in OnEnable/OnDisable.
+- TypeTween's shared linear curve is now created on first use rather than in a static initializer.
+
 - **ScriptableObject singletons with a `CreateInstance` fallback** keep the fallback (and its runtime mutations) across sessions and ignore a real asset added later: legacy `ScriptableSingleton.cs:7` (generic), aws `BuildInfo.cs:11`, versioning `CurrentVersionSO.cs:5`.
 - **SLayoutAnimator.cs:48**: `DestroyInstance()` should also null `_instance`.
 - **Registries**, self-balancing via OnEnable/OnDisable (cheap insurance): camera-properties `CameraPropertiesModifierZone.cs:5` (also make readonly), trackpad `TrackpadTouchProvider.cs:76`, `SAnimatedProperty.cs:76` pool. region `Region.cs:18` `activeRegions` is never added to, so it's dead code.

@@ -396,9 +396,9 @@ public partial struct HexCoord : IEquatable<HexCoord> {
 	
 
 	// return values of turns() method
-	public static int LEFT = 1;
-	public static int RIGHT = -1;
-	public static int STRAIGHT = 0;
+	public const int LEFT = 1;
+	public const int RIGHT = -1;
+	public const int STRAIGHT = 0;
    
 	// returns one of the 3 above constants, depending on whether the
 	// three vertices constitute a left turn or a right turn.

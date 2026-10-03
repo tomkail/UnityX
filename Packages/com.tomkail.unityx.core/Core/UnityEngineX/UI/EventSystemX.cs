@@ -7,7 +7,10 @@ public static class EventSystemX {
 	static List<RaycastResult> staticResults;
 	public static RaycastResult Raycast (Vector2 screenPos) {
 		RaycastAllNonAlloc (screenPos, ref staticResults);
-		return staticResults.FirstOrDefault();
+		var result = staticResults.FirstOrDefault();
+		// Don't keep references to hit objects between calls.
+		staticResults.Clear();
+		return result;
 	}
 	
 	public static RaycastResult Raycast (Vector2 screenPos, LayerMask layerMask) {

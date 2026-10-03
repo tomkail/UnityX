@@ -311,6 +311,8 @@ namespace UnityX.Splines {
 			float bestT = 0;
 			foreach(var curve in curvesToTry)
 				GetBestCurve(position, curve, ref bestCurve, ref bestDistance, ref bestPoint, ref bestT);
+			// Don't keep this spline's curves alive between calls.
+			curvesToTry.Clear();
 			return EstimateArcLengthAlongCurve(position, bestCurve, bestT, clampAtStart, clampAtEnd);
 		}
 

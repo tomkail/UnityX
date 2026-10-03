@@ -5,8 +5,20 @@ public abstract class ScriptableSingleton<T> : ScriptableObject where T : Script
 		return Resources.Load<T>(assetName);
 	}
 	static T _Instance;
+
+	// Without domain reload a default instance made by CreateInstance (and its runtime changes) would survive into the
+	// next play session and hide an asset added since. Generic classes can't use [RuntimeInitializeOnLoadMethod], so
+	// compare session ids; a Resources asset is simply loaded again.
+	static int _session;
+	static void ResetIfNewSession () {
+		if(_session == PlaySession.id) return;
+		_session = PlaySession.id;
+		_Instance = null;
+	}
+
 	public static T Instance {
 		get {
+			ResetIfNewSession();
 			if(_Instance == null) _Instance = FindInResources(typeof(T).Name);
 // #if UNITY_EDITOR
 // 			if(_Instance == null) _Instance = AssetDatabaseX.LoadAssetOfType<T>();
@@ -24,6 +36,7 @@ public abstract class ScriptableSingleton<T> : ScriptableObject where T : Script
 	// when no asset exists — useful during OnValidate / asset import when the singleton may not be loaded yet.
 	public static T InstanceIfExists {
 		get {
+			ResetIfNewSession();
 			if(_Instance == null) _Instance = FindInResources(typeof(T).Name);
 			return _Instance;
 		}
@@ -32,6 +45,7 @@ public abstract class ScriptableSingleton<T> : ScriptableObject where T : Script
 	// Should use OnEnable and OnDisable rather than OnDestroy
 	// http://answers.unity3d.com/questions/639852/does-unity-call-destroy-on-a-scriptableobject-that.html
 	protected virtual void OnEnable() {
+		ResetIfNewSession();
 		if( _Instance == null )
 			_Instance = (T)this;
 	}

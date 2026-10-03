@@ -33,6 +33,8 @@ public static class CanvasGroupX {
 
             t = t.parent;
         }
+        // Don't keep references to these components between calls.
+        m_CanvasGroupCache.Clear();
         return groupAllowInteraction;
     }
 
@@ -57,6 +59,8 @@ public static class CanvasGroupX {
 
             t = t.parent;
         }
+        // Don't keep references to these components between calls.
+        m_CanvasGroupCache.Clear();
         return groupAlpha;
     }
 }

@@ -50,6 +50,8 @@ namespace UnityX.SLayouts {
 	            if(Application.isPlaying) UnityEngine.Object.Destroy(_instance.gameObject);
 	            else UnityEngine.Object.DestroyImmediate(_instance.gameObject);
 	        }
+			// Don't rely on OnDestroy: a destroyed wrapper left here would still be a live managed reference.
+			_instance = null;
 		}
 	    #endif
 

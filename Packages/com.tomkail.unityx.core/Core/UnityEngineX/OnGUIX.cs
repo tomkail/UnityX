@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class OnGUIX : MonoBehaviour {
 
-	public static Stack<Matrix4x4> matrices = new();
-	public static Stack<Color> colors = new();
-	public static Stack<Color> contentColors = new();
-	public static Stack<Color> backgroundColors = new();
+	public static readonly Stack<Matrix4x4> matrices = new();
+	public static readonly Stack<Color> colors = new();
+	public static readonly Stack<Color> contentColors = new();
+	public static readonly Stack<Color> backgroundColors = new();
 
 	public static void BeginMatrix (Matrix4x4 matrix) {
 		matrices.Push(GUI.matrix);
@@ -161,6 +161,11 @@ public class OnGUIX : MonoBehaviour {
 	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
 	static void ResetStatics () {
 		drawActions.Clear();
+		// Entries left by a Begin without its End (e.g. after an exception) would otherwise carry over.
+		matrices.Clear();
+		colors.Clear();
+		contentColors.Clear();
+		backgroundColors.Clear();
 	}
 	public static void StartDrawing (object obj, Action drawAction) {
 		if(drawActions.ContainsKey(obj)) drawActions[obj] = drawAction;

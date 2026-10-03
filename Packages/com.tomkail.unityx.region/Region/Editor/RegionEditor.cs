@@ -239,5 +239,17 @@ public class RegionEditor : Editor {
 		meshes.Clear();
 	}
 
-	static List<Mesh> meshes = new List<Mesh>();
+	static readonly List<Mesh> meshes = new List<Mesh>();
+
+	// Nothing will destroy meshes still waiting for a scene view draw once this code is reloaded.
+	[InitializeOnLoadMethod]
+	static void SubscribeEditorEvents () {
+		AssemblyReloadEvents.beforeAssemblyReload -= DestroyPendingMeshes;
+		AssemblyReloadEvents.beforeAssemblyReload += DestroyPendingMeshes;
+	}
+
+	static void DestroyPendingMeshes () {
+		AssemblyReloadEvents.beforeAssemblyReload -= DestroyPendingMeshes;
+		OnSceneView(null);
+	}
 }

@@ -43,7 +43,14 @@ public class InputPoint {
 
 	// A point becomes Moving once lerpedMovement (smoothed pixels moved per frame) exceeds this.
 	// Was 5 while UpdateDeltaMovement double-counted movement (~2.5x at 60fps); 2 keeps that feel now it doesn't.
-	public static float movingThreshold = 2f;
+	public const float defaultMovingThreshold = 2f;
+	public static float movingThreshold = defaultMovingThreshold;
+
+	// Tunable at runtime; without domain reload a changed value would carry into the next play session.
+	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+	static void ResetStatics () {
+		movingThreshold = defaultMovingThreshold;
+	}
 	
 	public bool isOnScreen = true;
 

@@ -4,13 +4,13 @@ namespace UnityX.Noises {
 	// copied and modified from http://webstaff.itn.liu.se/~stegu/simplexnoise/simplexnoise.pdf
 
 	public static class SimplexNoise {  // Simplex noise in 2D, 3D and 4D
-		private static int[][] grad3 = {
+		private static readonly int[][] grad3 = {
 			 new[] {1,1,0}, new[] {-1,1,0}, new[] {1,-1,0}, new[] {-1,-1,0},
 			 new[] {1,0,1}, new[] {-1,0,1}, new[] {1,0,-1}, new[] {-1,0,-1},
 			 new[] {0,1,1}, new[] {0,-1,1}, new[] {0,1,-1}, new[] {0,-1,-1}
 		};
 
-		private static int[][] grad4 = {
+		private static readonly int[][] grad4 = {
 			 new[] {0,1,1,1},  new[] {0,1,1,-1},  new[] {0,1,-1,1},  new[] {0,1,-1,-1},
 			 new[] {0,-1,1,1}, new[] {0,-1,1,-1}, new[] {0,-1,-1,1}, new[] {0,-1,-1,-1},
 			 new[] {1,0,1,1},  new[] {1,0,1,-1},  new[] {1,0,-1,1},  new[] {1,0,-1,-1},
@@ -21,7 +21,7 @@ namespace UnityX.Noises {
 			 new[] {-1,1,1,0}, new[] {-1,1,-1,0}, new[] {-1,-1,1,0}, new[] {-1,-1,-1,0}
 		};
 
-		private static int[] p = {151,160,137,91,90,15,
+		private static readonly int[] p = {151,160,137,91,90,15,
 		131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,
 		190, 6,148,247,120,234,75,0,26,197,62,94,252,219,203,117,35,11,32,57,177,33,
 		88,237,149,56,87,174,20,125,136,171,168, 68,175,74,165,71,134,139,48,27,166,
@@ -36,11 +36,11 @@ namespace UnityX.Noises {
 		138,236,205,93,222,114,67,29,24,72,243,141,128,195,78,66,215,61,156,180};
 
 		// To remove the need for index wrapping, double the permutation table length
-		private static int[] perm = new int[512];
+		private static readonly int[] perm = new int[512];
 		static SimplexNoise() { for(int i=0; i<512; i++) perm[i]=p[i & 255]; }
 		// A lookup table to traverse the simplex around a given point in 4D.
 		// Details can be found where this table is used, in the 4D noise method.
-		private static int[][] simplex = {
+		private static readonly int[][] simplex = {
 		new[] {0,1,2,3}, new[] {0,1,3,2}, new[] {0,0,0,0}, new[] {0,2,3,1}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {1,2,3,0},
 		new[] {0,2,1,3}, new[] {0,0,0,0}, new[] {0,3,1,2}, new[] {0,3,2,1}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {1,3,2,0},
 		new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {0,0,0,0}, new[] {0,0,0,0},

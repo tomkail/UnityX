@@ -59,7 +59,14 @@ public static class GizmosX {
 		#endif
 	}
 
-	static Stack<Color> colors = new();
+	static readonly Stack<Color> colors = new();
+
+	// Entries left by a Begin without its End (e.g. after an exception) would otherwise carry into the next play session.
+	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+	static void ResetStacks () {
+		colors.Clear();
+		matrices.Clear();
+	}
 
 	public static void BeginColor (Color color) {
 		colors.Push(Gizmos.color);
@@ -70,7 +77,7 @@ public static class GizmosX {
 		Gizmos.color = colors.Pop();	
 	}
 
-	static Stack<Matrix4x4> matrices = new();
+	static readonly Stack<Matrix4x4> matrices = new();
 	public static void BeginMatrix (Matrix4x4 matrix) {
 		matrices.Push(Gizmos.matrix);
 		Gizmos.matrix = matrix;

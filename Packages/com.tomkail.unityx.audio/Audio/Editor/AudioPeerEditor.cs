@@ -3,7 +3,7 @@ using UnityEditor;
 
 [CustomEditor(typeof(AudioPeer)), CanEditMultipleObjects]
 public class AudioPeerEditor : BaseEditor<AudioPeer> {
-	public static string editorPrefsKey = "Audio Peer Editor Visualization Mode";
+	public const string editorPrefsKey = "Audio Peer Editor Visualization Mode";
 	static AudioPeerEditorDrawerSettings settings = new AudioPeerEditorDrawerSettings();
 	public class AudioPeerEditorDrawerSettings {
 		public VisualisationMode visualisationMode;

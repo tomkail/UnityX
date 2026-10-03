@@ -13,7 +13,7 @@ public struct SerializableCamera  {
 	public const float defaultAspectRatio = 1;
 	public const float defaultNearClipPlane = 0.01f;
 	public const float defaultFarClipPlane = 1000;
-	public static Rect defaultRect = new Rect(0,0,1,1);
+	public static readonly Rect defaultRect = new Rect(0,0,1,1);
 
 	public SerializableTransform transform;
 	

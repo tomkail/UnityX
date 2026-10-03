@@ -4,7 +4,13 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 
 public static class RandomX {
-	public static Stack<Random.State> seeds = new();
+	public static readonly Stack<Random.State> seeds = new();
+
+	// Entries left by a BeginSeed without its EndSeed (e.g. after an exception) would otherwise carry into the next play session.
+	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+	static void ResetStatics () {
+		seeds.Clear();
+	}
 	public static void BeginSeed (int seed) {
 		seeds.Push(Random.state);
         Random.InitState(seed);

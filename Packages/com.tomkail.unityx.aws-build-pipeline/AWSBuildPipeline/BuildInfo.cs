@@ -9,6 +9,13 @@ namespace UnityX.AWSBuildPipeline {
     // Lives at Resources/BuildInfo.asset in the project.
     public class BuildInfo : ScriptableObject {
         private static BuildInfo _Instance;
+
+        // Without domain reload a default instance made by CreateInstance would survive into the next play session and
+        // hide an asset added since. A Resources asset is simply loaded again.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStatics() {
+            _Instance = null;
+        }
         public static BuildInfo Instance {
             get {
                 if(_Instance == null) _Instance = Resources.Load<BuildInfo>(typeof(BuildInfo).Name);

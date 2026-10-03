@@ -15,7 +15,14 @@ public class Region : MonoBehaviour {
 		}
 	}
 	#endif
-	public static List<Region> activeRegions = new List<Region>();
+	// Enabled regions, for GetRegionAtPosition/GetRegionsAtPosition.
+	public static readonly List<Region> activeRegions = new List<Region>();
+
+	// Without domain reload, a region that skipped OnDisable would stay registered into the next play session.
+	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+	static void ResetStatics () {
+		activeRegions.Clear();
+	}
 	public static Region GetRegionAtPosition (Vector3 position) {
 		foreach(Region region in activeRegions) {
 			if(region.ContainsPoint(position))
@@ -224,8 +231,13 @@ public class Region : MonoBehaviour {
 	public System.Action<Region> OnChange;
 
 	void OnEnable () {
+		activeRegions.Add(this);
 		if(rebuildPropertiesOnEnable)
 			OnPropertiesChanged();
+	}
+
+	void OnDisable () {
+		activeRegions.Remove(this);
 	}
 
 	private void Reset () {

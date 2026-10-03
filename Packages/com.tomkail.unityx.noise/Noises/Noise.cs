@@ -10,24 +10,24 @@ namespace UnityX.Noises {
 
 	public static class Noise {
 
-		public static NoiseMethod[] valueMethods = {
+		public static readonly NoiseMethod[] valueMethods = {
 			Value1D,
 			Value2D,
 			Value3D
 		};
 
-		public static NoiseMethod[] perlinMethods = {
+		public static readonly NoiseMethod[] perlinMethods = {
 			Perlin1D,
 			Perlin2D,
 			Perlin3D
 		};
 
-		public static NoiseMethod[][] methods = {
+		public static readonly NoiseMethod[][] methods = {
 			valueMethods,
 			perlinMethods
 		};
 
-		private static int[] hash = {
+		private static readonly int[] hash = {
 			151,160,137, 91, 90, 15,131, 13,201, 95, 96, 53,194,233,  7,225,
 			140, 36,103, 30, 69,142,  8, 99, 37,240, 21, 10, 23,190,  6,148,
 			247,120,234, 75,  0, 26,197, 62, 94,252,219,203,117, 35, 11, 32,
@@ -65,13 +65,13 @@ namespace UnityX.Noises {
 
 		private const int hashMask = 255;
 
-		private static float[] gradients1D = {
+		private static readonly float[] gradients1D = {
 			1f, -1f
 		};
 
 		private const int gradientsMask1D = 1;
 
-		private static Vector2[] gradients2D = {
+		private static readonly Vector2[] gradients2D = {
 			new( 1f, 0f),
 			new(-1f, 0f),
 			new( 0f, 1f),
@@ -84,7 +84,7 @@ namespace UnityX.Noises {
 
 		private const int gradientsMask2D = 7;
 
-		private static Vector3[] gradients3D = {
+		private static readonly Vector3[] gradients3D = {
 			new( 1f, 1f, 0f),
 			new(-1f, 1f, 0f),
 			new( 1f,-1f, 0f),
@@ -122,7 +122,7 @@ namespace UnityX.Noises {
 			return 30f * t * t * (t * (t - 2f) + 1f);
 		}
 
-		private static float sqr2 = Mathf.Sqrt(2f);
+		private static readonly float sqr2 = Mathf.Sqrt(2f);
 
 		public static NoiseSample Value1D (Vector3 point, float frequency) {
 			point *= frequency;

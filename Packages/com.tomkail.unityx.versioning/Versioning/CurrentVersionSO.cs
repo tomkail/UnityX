@@ -3,6 +3,13 @@ using UnityEngine;
 namespace UnityX.Versioning {
     public class CurrentVersionSO : ScriptableObject {
         private static CurrentVersionSO _Instance;
+
+        // Without domain reload a default instance made by CreateInstance would survive into the next play session and
+        // hide an asset added since. A Resources asset is simply loaded again.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStatics() {
+            _Instance = null;
+        }
         public static CurrentVersionSO Instance {
             get {
                 if(_Instance == null) _Instance = Resources.Load<CurrentVersionSO>(typeof(CurrentVersionSO).Name);

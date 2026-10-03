@@ -75,6 +75,12 @@ public class TrackpadTouchProvider : MonoBehaviour {
     /// <summary>Most-recently-enabled provider, for convenient access. Null when none is running.</summary>
     public static TrackpadTouchProvider active { get; private set; }
 
+    // Without domain reload a provider that skipped OnDisable would still be "active" in the next play session.
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetStatics() {
+        active = null;
+    }
+
     /// <summary>One live trackpad contact with everything the sensor reports.</summary>
     public struct TrackpadTouch {
         public int globalId;         // stable, unique across both trackpads

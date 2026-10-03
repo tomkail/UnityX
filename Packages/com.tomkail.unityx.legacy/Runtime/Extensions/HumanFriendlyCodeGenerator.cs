@@ -8,7 +8,7 @@ public static class HumanFriendlyCodeGenerator {
     const int defaultCodeLength = 5;
     // A list of characters that are visually distinct from each other.
     // Omits certain characters such as all lower case characters and I and 1 (which can be confused)
-    static char[] easilyRecognisableCharacters = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '2', '3', '4', '5', '6', '7', '8', '9'};
+    static readonly char[] easilyRecognisableCharacters = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '2', '3', '4', '5', '6', '7', '8', '9'};
 	
     // Generates a human readable code with the default number of digits and valid characters.
     public static string Generate () => Generate(defaultCodeLength, easilyRecognisableCharacters);
