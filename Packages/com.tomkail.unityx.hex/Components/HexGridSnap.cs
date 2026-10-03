@@ -161,8 +161,10 @@ namespace UnityX.HexGrid {
 	    public void SetPosition (HexCoord coord) {
 	        SnapToCoord(coord);
 	    }
+	    // A negative direction index means "no facing" (e.g. data migrated from a snap that had no grid): zero, not a wrapped direction.
 	    public HexCoord GetDirection () {
-	        return HexCoord.Direction(GetDirectionIndex());
+	        var index = GetDirectionIndex();
+	        return index < 0 ? HexCoord.zero : HexCoord.Direction(index);
 	    }
 	    public int GetDirectionIndex () {
 	        if(!_hasCoord) EnsureCoordInitialized();
