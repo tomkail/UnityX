@@ -1,0 +1,22 @@
+{
+    "name": "UnityX.ExtrudedPolygon.Editor",
+    "rootNamespace": "",
+    "references": [
+        "UnityX.ExtrudedPolygon",
+        "UnityX.Core",
+        "UnityX.Core.Editor",
+        "UnityX.Geometry",
+        "UnityX.Geometry.Polygon.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
