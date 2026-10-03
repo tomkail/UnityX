@@ -122,42 +122,55 @@ public class ScreenshotCapturer {
 
         capturingScreenshot = true;
 
-		yield return new WaitForEndOfFrame();
-		
-		RenderTexture rt = new RenderTexture(properties.width, properties.height, 24, RenderTextureFormat.ARGB32);
-		
-		Canvas.ForceUpdateCanvases();
+		RenderTexture rt = null;
+		SavedCameraProperties[] savedProperties = null;
+		int savedCount = 0;
+		RenderTexture savedActiveRenderTexture = null;
+		bool swappedActiveRenderTexture = false;
+		Texture2D screenshot;
+		// The finally restores cameras and RenderTexture.active and clears capturingScreenshot if rendering throws.
+		// (It doesn't run if the runner is destroyed mid-capture; ResetStatics covers the flag for that case.)
+		try {
+			yield return new WaitForEndOfFrame();
 
-		SavedCameraProperties[] savedProperties = new SavedCameraProperties[_cameras.Count];
-		for (int i = 0; i < _cameras.Count; i++) {
-			Camera cam = _cameras [i];
-			savedProperties[i] = new SavedCameraProperties(cam);
-			if (!savedProperties[i].enabled)
-				continue;
-			cam.targetTexture = rt;
-			cam.enabled = false;
-			cam.Render ();
-			cam.enabled = true;
-			cam.targetTexture = null;
+			// A camera may have been destroyed while waiting for the end of the frame.
+			_cameras.RemoveAll(c => c == null);
+
+			rt = new RenderTexture(properties.width, properties.height, 24, RenderTextureFormat.ARGB32);
+			
+			Canvas.ForceUpdateCanvases();
+
+			savedProperties = new SavedCameraProperties[_cameras.Count];
+			for (int i = 0; i < _cameras.Count; i++) {
+				Camera cam = _cameras [i];
+				savedProperties[i] = new SavedCameraProperties(cam);
+				savedCount = i + 1;
+				if (!savedProperties[i].enabled)
+					continue;
+				cam.targetTexture = rt;
+				cam.enabled = false;
+				cam.Render ();
+				cam.enabled = true;
+				cam.targetTexture = null;
+			}
+
+			savedActiveRenderTexture = RenderTexture.active;
+			swappedActiveRenderTexture = true;
+			RenderTexture.active = rt;
+			
+			screenshot = new Texture2D(properties.width, properties.height, ScreenshotSaverTextureFormatUtils.ToTextureFormat(properties.textureFormat), false);
+			screenshot.ReadPixels(new Rect(0, 0, properties.width, properties.height), 0, 0);
+		} finally {
+			for (int i = 0; i < savedCount; i++) {
+				if (_cameras[i] != null) savedProperties[i].ApplyTo(_cameras[i]);
+			}
+			if (swappedActiveRenderTexture) RenderTexture.active = savedActiveRenderTexture;
+			if (rt != null) {
+				rt.Release();
+				MonoBehaviour.Destroy(rt);
+			}
+			capturingScreenshot = false;
 		}
-
-		for (int i = 0; i < _cameras.Count; i++) {
-			savedProperties[i].ApplyTo(_cameras[i]);
-		}
-
-		RenderTexture savedActiveRenderTexture = RenderTexture.active;
-		RenderTexture.active = rt;
-		
-		Texture2D screenshot = new Texture2D(properties.width, properties.height, ScreenshotSaverTextureFormatUtils.ToTextureFormat(properties.textureFormat), false);
-		screenshot.ReadPixels(new Rect(0, 0, properties.width, properties.height), 0, 0);
-
-		RenderTexture.active = savedActiveRenderTexture;
-
-		rt.Release();
-		MonoBehaviour.Destroy(rt);
-		rt = null;
-
-		capturingScreenshot = false;
         
 		if(properties.onComplete != null) properties.onComplete(screenshot);
 		if(OnCompleteScreenshotCapture != null) {

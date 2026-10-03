@@ -10,6 +10,19 @@ using UnityEngine;
 public class TrackpadTouchProviderEditor : Editor {
     static Texture2D _dot;
     static GUIStyle _bannerStyle;
+
+    // _dot is HideAndDontSave, so nothing destroys it when this code is reloaded.
+    [InitializeOnLoadMethod]
+    static void SubscribeEditorEvents() {
+        AssemblyReloadEvents.beforeAssemblyReload -= DestroyDot;
+        AssemblyReloadEvents.beforeAssemblyReload += DestroyDot;
+    }
+
+    static void DestroyDot() {
+        AssemblyReloadEvents.beforeAssemblyReload -= DestroyDot;
+        if (_dot != null) DestroyImmediate(_dot);
+        _dot = null;
+    }
     bool _showTouchData = true;
 
     // A plain style (not derived from EditorStyles) so it carries no hover/active state — the banner

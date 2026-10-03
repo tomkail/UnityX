@@ -54,6 +54,12 @@ public class PrettyTextLayout : MonoBehaviour {
 
     void OnDisable() {
         textMeshPro.UnregisterDirtyLayoutCallback(LayoutDirty);
+#if UNITY_EDITOR
+        // Drop a pending refresh, so a disabled component doesn't leave a callback queued on the editor (which would
+        // also keep this assembly alive across a code reload).
+        UnityEditor.EditorApplication.update -= DelayedCallbackRefresh;
+        refreshing = false;
+#endif
         if (textMeshPro.margin != Vector4.zero) {
             textMeshPro.margin = Vector4.zero;
             #if UNITY_EDITOR

@@ -147,19 +147,22 @@ public class ScreenX {
 	/// </summary>
 	static int lastHeight;
 	
-	static ScreenX () {
+	// Initialized from EditorInitialize and ResetStatics rather than a static constructor, which CoreCLR runs lazily
+	// (and possibly off the main thread) on first touch, where the Screen APIs can't be called.
+	static void RefreshScreenState () {
 		StoreWidthAndHeight();
 		CalculateScreenSizeProperties();
 		lastScreenOrientation = Screen.orientation;
 	}
 
-	// Installed explicitly rather than from the static constructor, which CoreCLR runs lazily (and possibly off the main
-	// thread) on first touch. Builds from the current loop so other packages' systems survive, and replaces any existing
-	// ScreenX entry so re-running is safe.
+	// Builds from the current loop so other packages' systems survive, and replaces any existing ScreenX entry so
+	// re-running is safe.
 	static void AddToPlayerLoop () {
 		PlayerLoopSystem playerLoop = PlayerLoop.GetCurrentPlayerLoop();
 		PlayerLoopUtils.RemoveFromPlayerLoop(typeof(ScreenX), ref playerLoop);
-		Debug.Assert(PlayerLoopUtils.AddToPlayerLoop(Update, typeof(ScreenX), ref playerLoop, typeof(PreUpdate.NewInputUpdate), PlayerLoopUtils.AddMode.End));
+		// Not inside Debug.Assert: that call is compiled out without UNITY_ASSERTIONS, which would skip the insertion.
+		bool added = PlayerLoopUtils.AddToPlayerLoop(Update, typeof(ScreenX), ref playerLoop, typeof(PreUpdate.NewInputUpdate), PlayerLoopUtils.AddMode.End);
+		Debug.Assert(added, "ScreenX couldn't find PreUpdate.NewInputUpdate in the player loop.");
 		PlayerLoop.SetPlayerLoop(playerLoop);
 	}
 
@@ -172,6 +175,7 @@ public class ScreenX {
 	#if UNITY_EDITOR
 	[InitializeOnLoadMethod]
 	static void EditorInitialize () {
+		RefreshScreenState();
 		AddToPlayerLoop();
 		// After a code reload the new ScreenX is a different type, so remove our entry while this code can still find it.
 		AssemblyReloadEvents.beforeAssemblyReload -= OnBeforeAssemblyReload;
@@ -193,9 +197,7 @@ public class ScreenX {
 		OnOrientationChange = null;
 		usingCustomDPI = false;
 		customDPI = defaultDPI;
-		StoreWidthAndHeight();
-		CalculateScreenSizeProperties();
-		lastScreenOrientation = Screen.orientation;
+		RefreshScreenState();
 		AddToPlayerLoop();
 	}
 

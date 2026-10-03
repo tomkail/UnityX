@@ -40,6 +40,22 @@ public class GLDebug : MonoSingleton<GLDebug> {
         }
     }
 
+	#if UNITY_EDITOR
+	// The materials are HideAndDontSave, so nothing destroys them when the code that owns them is reloaded.
+	[UnityEditor.InitializeOnLoadMethod]
+	static void SubscribeEditorEvents () {
+		UnityEditor.AssemblyReloadEvents.beforeAssemblyReload -= DestroyMaterials;
+		UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += DestroyMaterials;
+	}
+
+	static void DestroyMaterials () {
+		UnityEditor.AssemblyReloadEvents.beforeAssemblyReload -= DestroyMaterials;
+		if(_matZOn != null) DestroyImmediate(_matZOn);
+		if(_matZOff != null) DestroyImmediate(_matZOff);
+		_matZOn = _matZOff = null;
+	}
+	#endif
+
 	private static Material _matZOn;
 	private static Material matZOn {
 		get {

@@ -34,8 +34,9 @@ namespace UnityX.AWSBuildPipeline.Editor {
         static string AsFolderPrefix(string keyPrefix) => keyPrefix.TrimEnd('/') + "/";
 
         // Cancelled just before a code reload, so in-flight requests don't keep the old assembly alive and resume its
-        // code after the reload. Every request here passes this token.
-        static CancellationTokenSource reloadCancellation = new CancellationTokenSource();
+        // code after the reload. Every request here passes this token. It stays cancelled: the reloaded assembly gets
+        // its own, and this one's continuations must not pick up a fresh token.
+        static readonly CancellationTokenSource reloadCancellation = new CancellationTokenSource();
         public static CancellationToken reloadToken => reloadCancellation.Token;
 
         [InitializeOnLoadMethod]
@@ -46,9 +47,7 @@ namespace UnityX.AWSBuildPipeline.Editor {
 
         static void CancelPendingRequests() {
             AssemblyReloadEvents.beforeAssemblyReload -= CancelPendingRequests;
-            var cancelled = reloadCancellation;
-            reloadCancellation = new CancellationTokenSource();
-            cancelled.Cancel();
+            reloadCancellation.Cancel();
         }
 
         // Deletes all objects under a folder, recursively.

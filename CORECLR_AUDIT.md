@@ -51,7 +51,9 @@ Each of these breaks on the second play session without domain reload.
 
 **Done**, with these exceptions:
 - **UIImposterRenderer**: no change needed. It already destroys its camera and canvas after every render.
-- **SAnimatedProperty pool, TempList, editor-only SelectionX and EditorSceneManagerX events**: no change. The pool clears entries before reuse and only holds this assembly's types. The editor events are meant to live as long as the editor.
+- **SAnimatedProperty pool, editor-only SelectionX and EditorSceneManagerX events**: no change. The pool clears entries before reuse and only holds this assembly's types. The editor events are meant to live as long as the editor.
+- **TempList**: left alone. Its two buffers per type keep their last contents (and so their references) until reused. They can't be cleared after use because the caller still holds the returned list.
+- **RoundRect's shared material**: left alone. Destroying it before a reload would break live components until they next re-run setup; one material per reload is the cost.
 - **EditorGUIX label widths**: left alone. It's editor GUI state with no play-session lifetime.
 
 Also fixed:
@@ -114,3 +116,28 @@ All need: named handler, `-=` before `+=`, and unsubscribe on `AssemblyReloadEve
 - legacy `HumanFriendlyCodeGenerator.cs:43`: `GenerateSeeded` overwrites the seeded bytes with crypto randomness, so it's never reproducible. Line 21 `GetInt32(0, Length - 1)` treats the exclusive upper bound as inclusive, so the last allowed character is never chosen.
 - trackpad `TrackpadTouchProvider.cs:140,166`: `TP_Stop()` is called even when `TP_Start()` failed, which unbalances the process-wide native refcount.
 - `MonoSingleton` exists in both core and scene-management.
+
+---
+
+## Caveat: scene reload
+
+The per-session resets assume the scene reloads when you enter play mode, so objects run `OnEnable` again and re-register. That's Unity's default, and the guide says scene reload will likely stay an option. If you also turn scene reload off, objects already in the open scene don't re-run `OnEnable`, so they drop out of the cleared registries: `CameraPropertiesModifierZone.all`, `Region.activeRegions`, `GUIDrawer`/`OnGUIX` draw actions, and event subscribers on `ScreenX` and `ScreenshotCapturer`. Keep scene reload on, or move those registrations to explicit initialization.
+
+## Independent review (Codex)
+
+After the work above, Codex (OpenAI) did a read-only audit of `b197b1a..HEAD`. Every finding was checked against the source; all twelve held up. What was done with each:
+
+| # | Finding | Outcome |
+|---|---|---|
+| 1 | `SerializedScriptableSingleton.Save()` after a session reset saved `null`, overwriting stored settings with `""` | Fixed: `Save()` does nothing when nothing is loaded |
+| 2 | `ScreenX` inserted itself into the player loop inside `Debug.Assert`, which is compiled out without `UNITY_ASSERTIONS`, so builds without assertions never updated screen state (existing bug) | Fixed: insertion happens outside the assert. `PlayerLoopUtils`' usage comment showed the same mistake and is fixed too |
+| 3 | AWS reload cancellation swapped in a fresh token, so old-assembly continuations could pick it up and carry on | Fixed: the token stays cancelled; the reloaded assembly has its own |
+| 4 | `SLayoutAnimator` left `Application.quitting` and `playModeStateChanged` subscribed across code reloads | Fixed: unsubscribed on `beforeAssemblyReload` |
+| 5 | `PlayerLoopUtils.AddToPlayerLoop` prepend kept the shifted system's sub-systems and callbacks in slot 0 (existing bug) | Fixed: writes a fresh `PlayerLoopSystem` |
+| 6 | `MonoInstancer`'s edit-mode cache only invalidated if a subclass called `CompileReset`, and its hooks lacked reload cleanup | Fixed: edit-mode `OnEnable`/`OnDisable` mark the cache stale, and `CompileReset` hooks unsubscribe before reload |
+| 7 | `SerializedScriptableSingleton` reset its prefs key and `OnCreateOrLoad` subscribers per session, dropping editor configuration | Fixed: only the instance resets per session |
+| 8 | `ScreenX`'s static constructor still called Screen APIs | Fixed: moved to explicit editor/runtime initialization |
+| 9 | Screenshot capture had the session reset but not the promised `try/finally` | Fixed: cameras, `RenderTexture.active`, the temporary RT and the busy flag are restored in `finally`; destroyed cameras are dropped after the wait |
+| 10 | `HideAndDontSave` resources in GLDebug, RoundRect and TrackpadTouchProviderEditor leak on code reload | Fixed for GLDebug and the trackpad inspector. RoundRect left as is (see section 2) |
+| 11 | The TempList exemption overstated things | Doc corrected (section 2) |
+| 12 | PrettyTextLayout and GameLayersAutoSync callbacks queued at reload time | PrettyTextLayout drops its pending callback in `OnDisable`. GameLayersAutoSync's `delayCall` is one-shot and removes itself, so no change |

@@ -15,6 +15,17 @@ public abstract class MonoInstancer<T> : MonoBehaviour where T : MonoInstancer<T
         UnityEditor.EditorApplication.hierarchyChanged += InvalidateCache;
         UnityEditor.SceneManagement.EditorSceneManager.sceneOpened -= SceneOpened;
         UnityEditor.SceneManagement.EditorSceneManager.sceneOpened += SceneOpened;
+        UnityEditor.AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
+        UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += UnsubscribeEditorEvents;
+    }
+
+    // Editor events outlive script assemblies, so unsubscribe before a code reload or the old handlers keep firing
+    // alongside the new ones.
+    static void UnsubscribeEditorEvents () {
+        UnityEditor.EditorApplication.playModeStateChanged -= PlayModeStateChanged;
+        UnityEditor.EditorApplication.hierarchyChanged -= InvalidateCache;
+        UnityEditor.SceneManagement.EditorSceneManager.sceneOpened -= SceneOpened;
+        UnityEditor.AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
     }
 
     static void PlayModeStateChanged (UnityEditor.PlayModeStateChange change) {
@@ -75,13 +86,19 @@ public abstract class MonoInstancer<T> : MonoBehaviour where T : MonoInstancer<T
     protected virtual void OnEnable () {
 #if UNITY_EDITOR
         // Don't add OnEnable in editor, because we're using Object.FindObjectsOfType already.
-        if(!Application.isPlaying)
+        // Do mark the edit-mode cache stale, so it's rebuilt on the next `all` without needing CompileReset's hooks.
+        if(!Application.isPlaying) {
+            _upToDate = false;
             return;
+        }
 #endif
         ResetIfStale();
         _all.Add((T)this);
     }
     protected virtual void OnDisable () {
         _all.Remove((T)this);
+#if UNITY_EDITOR
+        if(!Application.isPlaying) _upToDate = false;
+#endif
     }
 }
