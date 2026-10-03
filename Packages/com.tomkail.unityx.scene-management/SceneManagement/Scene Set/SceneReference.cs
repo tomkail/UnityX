@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.IO;
+using System.Runtime.Serialization;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif

@@ -22,7 +22,8 @@
       "polygon-renderer",
       "region",
       "islands",
-      "grid-maps"
+      "grid-maps",
+      "hex"
     ]
   },
   "ui": {

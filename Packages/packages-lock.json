@@ -95,6 +95,12 @@
         "com.tomkail.unityx.property-drawers": "2.0.0"
       }
     },
+    "com.tomkail.unityx.hex": {
+      "version": "file:com.tomkail.unityx.hex",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.tomkail.unityx.inputs": {
       "version": "file:com.tomkail.unityx.inputs",
       "depth": 0,
