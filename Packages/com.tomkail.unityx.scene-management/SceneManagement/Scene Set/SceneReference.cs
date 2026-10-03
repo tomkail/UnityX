@@ -1,8 +1,8 @@
 using UnityEngine;
 using System.IO;
+using System.Runtime.Serialization;
 #if UNITY_EDITOR
 using UnityEditor;
-using System.Runtime.Serialization;
 #endif
 
 namespace UnityX.SceneManagement {

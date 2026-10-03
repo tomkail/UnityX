@@ -1,0 +1,16 @@
+{
+    "name": "UnityX.HexGrid.Components",
+    "rootNamespace": "UnityX.HexGrid",
+    "references": [
+        "UnityX.HexGrid"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

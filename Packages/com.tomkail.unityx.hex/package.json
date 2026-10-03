@@ -1,0 +1,13 @@
+{
+  "name": "com.tomkail.unityx.hex",
+  "version": "2.0.0",
+  "displayName": "UnityX Hex",
+  "description": "Axial hex grid coordinates, edges and vertices, plus components that snap objects to a Unity hexagon Grid.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {}
+}
