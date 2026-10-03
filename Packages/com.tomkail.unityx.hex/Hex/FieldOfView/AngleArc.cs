@@ -6,6 +6,7 @@ namespace UnityX.HexGrid {
 	// crosses 0/360 is stored as two ranges.
 	[System.Serializable]
 	public class AngleArc {
+		[Tooltip("Covered ranges in degrees as (from, to), each within 0..360 with from <= to.")]
 		public List<Vector2> ranges = new List<Vector2>();
 
 		// An arc `fieldOfView` degrees wide, centred on `direction`.

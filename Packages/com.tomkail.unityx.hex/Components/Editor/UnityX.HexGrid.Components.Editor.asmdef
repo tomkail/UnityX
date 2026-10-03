@@ -3,7 +3,8 @@
     "rootNamespace": "UnityX.HexGrid",
     "references": [
         "UnityX.HexGrid",
-        "UnityX.HexGrid.Components"
+        "UnityX.HexGrid.Components",
+        "UnityX.HexGrid.Editor"
     ],
     "includePlatforms": [
         "Editor"

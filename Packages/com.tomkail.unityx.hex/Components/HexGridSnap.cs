@@ -15,7 +15,9 @@ namespace UnityX.HexGrid {
 	// See the game's SnapToGrid subclass for the Sea-Rising versions of these.
 	[ExecuteInEditMode]
 	public class HexGridSnap : MonoBehaviour {
+	    [Tooltip("Place the transform on the stored cell's centre.")]
 	    public bool position = true;
+	    [Tooltip("Rotate the transform to face the stored direction.")]
 	    public bool rotation = true;
 
 	    public enum GridFindMode {
@@ -23,10 +25,11 @@ namespace UnityX.HexGrid {
 	        Parent,
 	        Manual
 	    }
+	    [Tooltip("How the grid is found. Parent: the nearest WorldSpaceHexGrid on this object or its parents. Manual: the grid assigned below. Master: resolved by a project subclass (override GetGrid).")]
 	    public GridFindMode gridFindMode;
 
 	    [Space]
-	    [SerializeField]
+	    [SerializeField, Tooltip("The WorldSpaceHexGrid this object snaps to. Assign it in Manual mode; other modes fill it in.")]
 	    WorldSpaceHexGrid _grid;
 	    public WorldSpaceHexGrid grid {
 	        get {
