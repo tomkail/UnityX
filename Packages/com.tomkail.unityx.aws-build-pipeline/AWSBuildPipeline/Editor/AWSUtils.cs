@@ -33,8 +33,8 @@ namespace UnityX.AWSBuildPipeline.Editor {
 
         static string AsFolderPrefix(string keyPrefix) => keyPrefix.TrimEnd('/') + "/";
 
-        // Cancelled just before a code reload. In-flight requests otherwise keep the old assembly alive and resume its
-        // code after the reload (domain reload used to tear them down). Every request here passes this token.
+        // Cancelled just before a code reload, so in-flight requests don't keep the old assembly alive and resume its
+        // code after the reload. Every request here passes this token.
         static CancellationTokenSource reloadCancellation = new CancellationTokenSource();
         public static CancellationToken reloadToken => reloadCancellation.Token;
 

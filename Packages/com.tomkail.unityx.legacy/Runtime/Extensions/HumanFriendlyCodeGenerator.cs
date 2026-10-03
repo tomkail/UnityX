@@ -34,8 +34,7 @@ public static class HumanFriendlyCodeGenerator {
         Random seededRandom = new Random(seed);
 
         for (int i = 0; i < numCharacters; i++) {
-            // Draw straight from the seeded generator. This used to fill the bytes from RandomNumberGenerator, which
-            // overwrote the seeded value, so the result was never reproducible.
+            // Draw only from the seeded generator so the same seed always gives the same code.
             sb.Append(allowedCharacters[seededRandom.Next(allowedCharacters.Length)]);
         }
 

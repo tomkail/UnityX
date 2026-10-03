@@ -15,8 +15,8 @@ using System.Collections;
 		static readonly System.Type gameViewType = typeof(EditorWindow).Assembly.GetType("UnityEditor.GameView");
 		static readonly System.Reflection.MethodInfo getMainPlayModeView = typeof(EditorWindow).Assembly.GetType("UnityEditor.PlayModeView")?.GetMethod("GetMainPlayModeView", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
 
-		// Returns null if no Game view is open. GameView.GetMainGameView no longer exists; the main view now comes from
-		// PlayModeView, which may be the Device Simulator rather than a Game view, so fall back to any open Game view.
+		// Returns null if no Game view is open. The main play mode view may be the Device Simulator rather than a Game view,
+		// so fall back to any open Game view.
 		public static EditorWindow GetMainGameView() {
 			if(gameViewType == null) return null;
 			if(getMainPlayModeView?.Invoke(null, null) is EditorWindow main && gameViewType.IsInstanceOfType(main)) return main;

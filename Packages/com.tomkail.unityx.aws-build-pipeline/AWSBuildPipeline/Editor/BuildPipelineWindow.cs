@@ -18,8 +18,8 @@ namespace UnityX.AWSBuildPipeline.Editor {
 
         static bool runningPipeline;
 
-        // If a reload interrupts PerformBuild mid-await its finally never runs. Domain reload used to clear the flag;
-        // do it explicitly so the window doesn't stay disabled until the editor restarts.
+        // If a reload interrupts PerformBuild mid-await its finally never runs, so clear the flag on load or the window
+        // stays disabled until the editor restarts.
         [InitializeOnLoadMethod]
         static void ResetRunningPipeline() {
             runningPipeline = false;

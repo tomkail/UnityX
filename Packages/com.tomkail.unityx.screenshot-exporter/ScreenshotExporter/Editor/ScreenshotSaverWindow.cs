@@ -201,8 +201,8 @@ public class ScreenshotSaverWindow : EditorWindow {
 		window.TryLoadProperties();
 	}
 	
-	// Subscribed here rather than in the constructor, which runs on every construction/deserialization and never
-	// unsubscribed, so GameUpdate piled up and kept closed windows alive.
+	// Paired with OnDisable so GameUpdate is subscribed once while the window is open, and closed windows aren't kept alive.
+	// Not done in a constructor, which also runs on deserialization.
 	void OnEnable () {
 		Instance = this;
 		EditorApplication.update -= GameUpdate;
@@ -317,8 +317,8 @@ public class ScreenshotSaverWindow : EditorWindow {
 		return names;
 	}
 
-	// Editor internals, looked up once. GameView.GetMainGameView no longer exists; the main view now comes from
-	// PlayModeView (which also declares targetSize), and may be the Device Simulator rather than a Game view.
+	// Editor internals, looked up once. The main view comes from PlayModeView (which also declares targetSize), and may
+	// be the Device Simulator rather than a Game view.
 	static readonly System.Type gameViewType = typeof(EditorWindow).Assembly.GetType("UnityEditor.GameView");
 	static readonly System.Type playModeViewType = typeof(EditorWindow).Assembly.GetType("UnityEditor.PlayModeView");
 	static readonly System.Reflection.MethodInfo getMainPlayModeView = playModeViewType?.GetMethod("GetMainPlayModeView", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);

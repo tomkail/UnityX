@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEditor;
 
 public class SmartEditorWindow : EditorWindow {
-	// Per window: these used to be static, so every window (of every subclass) shared one flag and only the first subscribed.
+	// Per window, so every open window subscribes and tracks its own visibility.
 	bool _subscribed;
 	public bool subscribed {get{return _subscribed;}}
 

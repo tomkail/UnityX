@@ -190,8 +190,8 @@ public static object GetValueFromObject(object obj, string propertyPath, Type t)
 
 
 	// Nabbed from ReflectionUtils that comes with Unity ImageEffects. I'd like to unify this in with the code above sometime
-	// Keyed by type rather than the source instance: the result only depends on the type, and keying by instance kept every
-	// object ever passed in alive (including destroyed UnityEngine.Objects).
+	// Keyed by type: the result only depends on the type, and keying by the source instance would keep every object ever
+	// passed in alive (including destroyed UnityEngine.Objects).
 	static readonly Dictionary<(Type, string), FieldInfo> s_FieldInfoFromPaths = new();
 
 	public static FieldInfo GetFieldInfoFromPath(object source, string path)

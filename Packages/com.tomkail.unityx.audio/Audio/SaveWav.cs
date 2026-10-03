@@ -125,7 +125,7 @@ public static class SavWav {
 		int rescaleFactor = 32767; //to convert float to Int16
 
 		for (int i = 0; i<samples.Length; i++) {
-			// Clamp first: out-of-range float->short casts wrap on Mono but saturate on CoreCLR, so clipped audio differed.
+			// Clamp first: out-of-range float->short casts wrap on Mono but saturate on CoreCLR.
 			intData[i] = (short) (Math.Clamp(samples[i], -1f, 1f) * rescaleFactor);
 			Byte[] byteArr = new Byte[2];
 			byteArr = BitConverter.GetBytes(intData[i]);
