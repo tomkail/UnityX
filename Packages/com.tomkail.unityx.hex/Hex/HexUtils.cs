@@ -28,14 +28,7 @@ namespace UnityX.HexGrid {
 	    }
 
 	    public static List<HexCoord> OffsetRectPoints (RectInt gridSize) {
-	        List<HexCoord> hexCoords = new List<HexCoord>();
-	        for (int r = gridSize.yMin; r < gridSize.yMax; r++) {
-	            for (int q = gridSize.xMin; q < gridSize.xMax; q++) {
-	                var hex = HexCoord.OffsetToAxial(q, r);
-	                hexCoords.Add(hex);
-	            }
-	        }
-	        return hexCoords;
+	        return new List<HexCoord>(HexShapes.Rectangle(gridSize));
 	    }
 
 	    public static IEnumerable<HexCoord> HexagonPoints (int circumference) {
