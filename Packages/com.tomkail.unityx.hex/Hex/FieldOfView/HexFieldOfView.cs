@@ -99,23 +99,30 @@ namespace UnityX.HexGrid {
 				RemoveRangeFromRanges(ranges, arc.ranges[i]);
 		}
 
+		// Rebuilds the open ranges without `range`. Every surviving range, touched or not, must stay over a degree wide,
+		// so a removal also drops slivers elsewhere: a zero-width ray (HasLineOfSight) is lost as soon as any blocker
+		// reaches it, even one that only grazes it within OverlapsRange's tolerance.
 		static void RemoveRangeFromRanges (List<Vector2> ranges, Vector2 range) {
 			var removeStart = range.x;
 			var removeEnd = range.y;
-			for (int i = ranges.Count - 1; i >= 0; i--) {
+			var count = ranges.Count;
+			for (int i = 0; i < count; i++) {
 				var start = ranges[i].x;
 				var end = ranges[i].y;
-				if (removeStart > end || removeEnd < start) continue;
-				ranges.RemoveAt(i);
-				// Keep whatever survives either side of the removed span, dropping slivers.
-				if (removeStart > start) AddIfValid(ranges, i, new Vector2(start, removeStart));
-				if (removeEnd < end) AddIfValid(ranges, i, new Vector2(removeEnd, end));
+				if (removeStart > end || removeEnd < start) {
+					AddIfValid(ranges, new Vector2(start, end));
+				} else {
+					// Keep whatever survives either side of the removed span.
+					if (removeStart > start) AddIfValid(ranges, new Vector2(start, removeStart));
+					if (removeEnd < end) AddIfValid(ranges, new Vector2(removeEnd, end));
+				}
 			}
+			ranges.RemoveRange(0, count);
 		}
 
 		// Ranges under a degree wide are dropped, so near-touching blockers close the gap between them.
-		static void AddIfValid (List<Vector2> ranges, int index, Vector2 range) {
-			if (range.y - range.x > 1) ranges.Insert(index, range);
+		static void AddIfValid (List<Vector2> ranges, Vector2 range) {
+			if (range.y - range.x > 1) ranges.Add(range);
 		}
 
 		// Min and max angle of a hexagon (scaled by `hexSize`; 0 means just its centre) seen from `originPosition`,
