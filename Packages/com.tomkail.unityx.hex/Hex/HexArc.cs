@@ -10,9 +10,11 @@ namespace UnityX.HexGrid {
 	[Serializable, DataContract]
 	public struct HexArc : IEquatable<HexArc> {
 		[DataMember(Order = 0)]
+		[UnityEngine.Tooltip("The first direction covered (0..5; other values wrap).")]
 		public int initialDirectionIndex;
 		// Number of directions covered, signed by the direction of travel. 0 covers nothing.
 		[DataMember(Order = 1)]
+		[UnityEngine.Tooltip("How many directions are covered. Positive runs toward higher indices (counter-clockwise), negative toward lower, 0 covers nothing.")]
 		public int signedSteps;
 
 		public int arcLength => Math.Abs(signedSteps);

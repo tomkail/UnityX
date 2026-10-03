@@ -9,6 +9,7 @@ namespace UnityX.HexGrid {
 [RequireComponent(typeof(UnityEngine.Grid))]
 [DisallowMultipleComponent]
 public class WorldSpaceHexGrid : MonoBehaviour {
+    [Tooltip("The UnityEngine.Grid this wraps; normally the one on this GameObject. Must use the Hexagon cell layout.")]
     public UnityEngine.Grid grid;
 
     // Orientation of the grid plane in world space as a proper (right-handed) frame:

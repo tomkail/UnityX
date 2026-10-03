@@ -15,9 +15,13 @@ public class HexTester : MonoBehaviour {
 	public WorldSpaceHexGrid grid;
 
 	[Header("Draw")]
+	[Tooltip("Outline the six neighbouring cells.")]
 	public bool drawNeighbours = false;
+	[Tooltip("Label the cell with its coordinate.")]
 	public bool labelCoord = true;
+	[Tooltip("Label corners c0..c5.")]
 	public bool labelCorners = true;
+	[Tooltip("Label edge midpoints e0..e5.")]
 	public bool labelEdges = true;
 	[Tooltip("Mark the corner and edge closest to this object's position, with a line from the cell centre to " +
 	         "each (tests GetCornerPosition / GetEdgePosition).")]
@@ -28,6 +32,7 @@ public class HexTester : MonoBehaviour {
 	public bool drawNeighbourVectors = false;
 	[Tooltip("Measure distance (and, if adjacent, direction index) from the inspected cell to this target cell.")]
 	public bool measureToTarget = false;
+	[Tooltip("The cell to measure to.")]
 	public HexCoord target;
 
 	[Header("Colours")]
