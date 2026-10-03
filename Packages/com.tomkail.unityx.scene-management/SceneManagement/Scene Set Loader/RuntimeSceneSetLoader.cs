@@ -48,6 +48,12 @@ namespace UnityX.SceneManagement {
     
 	    public static Func<List<RuntimeSceneSet>> GetLoadedSceneSets;
 
+	    // Without domain reload the delegate (and whatever it captured) would survive into the next play session.
+	    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+	    static void ResetStatics () {
+	        GetLoadedSceneSets = null;
+	    }
+
 		public bool loading {
 			get {
 				return currentLevelSetLoadTask != null;

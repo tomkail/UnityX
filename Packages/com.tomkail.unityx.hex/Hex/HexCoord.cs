@@ -1102,6 +1102,17 @@ public partial struct HexCoord : IEquatable<HexCoord> {
 	}
 	public static Action<Layout> OnChangeOffsetLayout;
 
+	// Without domain reload the layout and its subscribers would survive into the next play session.
+	// Nested class because [RuntimeInitializeOnLoadMethod] is only documented for classes, and HexCoord is a struct.
+	static class StaticsReset {
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		static void ResetStatics () {
+			_offsetLayout = Layout.OddR;
+			OnChangeOffsetLayout = null;
+			_cornersCache = null;
+		}
+	}
+
 	public static Orientation LayoutToOrientation(Layout layout) {
 		switch (layout) {
 		case Layout.OddR: 

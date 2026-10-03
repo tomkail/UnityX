@@ -201,10 +201,18 @@ public class ScreenshotSaverWindow : EditorWindow {
 		window.TryLoadProperties();
 	}
 	
-    ScreenshotSaverWindow () {
-        Instance = this;
-        EditorApplication.update += GameUpdate;
-    }
+	// Subscribed here rather than in the constructor, which runs on every construction/deserialization and never
+	// unsubscribed, so GameUpdate piled up and kept closed windows alive.
+	void OnEnable () {
+		Instance = this;
+		EditorApplication.update -= GameUpdate;
+		EditorApplication.update += GameUpdate;
+	}
+
+	void OnDisable () {
+		EditorApplication.update -= GameUpdate;
+		if(Instance == this) Instance = null;
+	}
 
 	public void TryLoadProperties () {
 		if(properties != null) return;
@@ -240,6 +248,7 @@ public class ScreenshotSaverWindow : EditorWindow {
 	}
 
     static void GameUpdate () {
+		if(Instance == null) return;
 		Instance.TryLoadProperties();
 		if(!Application.isPlaying || ScreenshotCapturer.capturingScreenshot || Instance.cameras.Count == 0) return;
 		// KeyDown never works here. This is nice in some ways since you can hold to make a movie!

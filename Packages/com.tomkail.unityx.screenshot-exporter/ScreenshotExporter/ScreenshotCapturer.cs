@@ -81,6 +81,14 @@ public class ScreenshotCapturer {
 	
 	public delegate void OnCompleteScreenshotCaptureEvent (Texture2D screenshot);
 	public static event OnCompleteScreenshotCaptureEvent OnCompleteScreenshotCapture;
+
+	// Exiting play mode mid-capture destroys the runner before capturingScreenshot is cleared, which without domain reload
+	// would block every later capture. Subscribers from the previous session are dropped too.
+	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+	static void ResetStatics () {
+		_capturingScreenshot = false;
+		OnCompleteScreenshotCapture = null;
+	}
 	
 	public static void CaptureScreenshot(ScreenshotCapturerProperties properties) {
 		RunCoroutine(CaptureScreenshotCoroutine(properties));

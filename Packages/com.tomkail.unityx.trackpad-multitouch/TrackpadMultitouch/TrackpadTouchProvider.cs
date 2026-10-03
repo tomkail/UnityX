@@ -163,7 +163,9 @@ public class TrackpadTouchProvider : MonoBehaviour {
 
     void OnDisable() {
         EndAllTouches();
-        TrackpadMultitouchNative.TP_Stop();
+        // Only release the native refcount if TP_Start took one; a failed start doesn't, and stopping anyway would
+        // release another provider's reference. The refcount lives for the whole editor process.
+        if (running) TrackpadMultitouchNative.TP_Stop();
         running = false;
         status = "stopped";
         if (_touchscreen != null) { InputSystem.RemoveDevice(_touchscreen); _touchscreen = null; }

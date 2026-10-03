@@ -161,6 +161,19 @@ public class ScreenX {
 		PlayerLoop.SetPlayerLoop(playerLoop);
 	}
 
+	// Without domain reload, subscribers from the previous play session (often destroyed MonoBehaviours) and DPI overrides
+	// would carry over. Not using [AutoStaticsCleanup] style field resets because that would zero the screen properties.
+	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+	static void ResetStatics () {
+		OnScreenSizeChange = null;
+		OnOrientationChange = null;
+		usingCustomDPI = false;
+		customDPI = defaultDPI;
+		StoreWidthAndHeight();
+		CalculateScreenSizeProperties();
+		lastScreenOrientation = Screen.orientation;
+	}
+
 	static void Update () {
 		// #if UNITY_EDITOR
 		// gameViewDpiMultiplierDirty = true;
