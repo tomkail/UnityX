@@ -15,7 +15,7 @@ namespace UnityX.HexGrid {
 /// </remarks>
 // Serialization: BCL [DataContract]/[DataMember] (no serializer dependency) persist only q and r, as {"q":..,"r":..}.
 [Serializable, System.Runtime.Serialization.DataContract]
-public struct HexCoord : IEquatable<HexCoord> {
+public partial struct HexCoord : IEquatable<HexCoord> {
 	/// <summary>
 	/// Position on the q axis.
 	/// </summary>
@@ -312,9 +312,10 @@ public struct HexCoord : IEquatable<HexCoord> {
 	/// Mirror across a cubic axis.
 	/// </summary>
 	/// <remarks>
-	/// The cubic axes are "diagonal" to the hexagons, passing through two opposite corners.
+	/// The cubic axes are "diagonal" to the hexagons, passing through two opposite corners: axis a passes
+	/// through corners (2-a) and (5-a). <see cref="MirrorThroughCorners"/> takes the corner index directly.
 	/// </remarks>
-	/// <param name="axis">A corner index through which the axis passes.</param>
+	/// <param name="axis">Cubic axis 0..2 (cyclically constrained).</param>
 	/// <returns>A new <see cref="Settworks.Hexagons.HexCoord"/> representing this one after mirroring.</returns>
 	public HexCoord Mirror(int axis = 1) {
 		if (this == zero) return this;
@@ -327,20 +328,16 @@ public struct HexCoord : IEquatable<HexCoord> {
 	/// <summary>
 	/// Scale as a vector, truncating result.
 	/// </summary>
-	/// <returns>This <see cref="Settworks.Hexagons.HexCoord"/> after scaling.</returns>
+	/// <returns>A new <see cref="HexCoord"/>; this one is unchanged.</returns>
 	public HexCoord Scale(float factor) {
-		q = (int)(q * factor);
-		r = (int)(r * factor);
-		return this;
+		return new HexCoord((int)(q * factor), (int)(r * factor));
 	}
 	/// <summary>
 	/// Scale as a vector.
 	/// </summary>
-	/// <returns>This <see cref="Settworks.Hexagons.HexCoord"/> after scaling.</returns>
+	/// <returns>A new <see cref="HexCoord"/>; this one is unchanged.</returns>
 	public HexCoord Scale(int factor) {
-		q *= factor;
-		r *= factor;
-		return this;
+		return new HexCoord(q * factor, r * factor);
 	}
 
 	/// <summary>
