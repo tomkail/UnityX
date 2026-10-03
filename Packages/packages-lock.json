@@ -77,6 +77,12 @@
       "source": "embedded",
       "dependencies": {}
     },
+    "com.tomkail.unityx.gradient-renderer": {
+      "version": "file:com.tomkail.unityx.gradient-renderer",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.tomkail.unityx.grid": {
       "version": "file:com.tomkail.unityx.grid",
       "depth": 0,
@@ -131,6 +137,7 @@
         "com.tomkail.unityx.core": "2.0.0",
         "com.tomkail.unityx.easing": "2.0.0",
         "com.tomkail.unityx.geometry": "2.0.0",
+        "com.tomkail.unityx.pathfinding": "2.0.0",
         "com.tomkail.unityx.property-curves": "2.0.0",
         "com.tomkail.unityx.property-drawers": "2.0.0",
         "com.tomkail.unityx.slayouts": "2.0.0",
@@ -148,6 +155,12 @@
     },
     "com.tomkail.unityx.noise": {
       "version": "file:com.tomkail.unityx.noise",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.tomkail.unityx.pathfinding": {
+      "version": "file:com.tomkail.unityx.pathfinding",
       "depth": 0,
       "source": "embedded",
       "dependencies": {}
@@ -343,6 +356,34 @@
       "dependencies": {
         "com.unity.modules.uielements": "1.0.0"
       }
+    },
+    "com.unity.nuget.mono-cecil": {
+      "version": "1.11.6",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.nuget.newtonsoft-json": {
+      "version": "3.2.2",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.pipeline": {
+      "version": "0.8.0-exp.1",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.test-framework": "1.1.33",
+        "com.unity.nuget.mono-cecil": "1.11.6",
+        "com.unity.modules.uielements": "1.0.0",
+        "com.unity.modules.jsonserialize": "1.0.0",
+        "com.unity.modules.screencapture": "1.0.0",
+        "com.unity.nuget.newtonsoft-json": "3.0.2"
+      },
+      "url": "https://packages.unity.com"
     },
     "com.unity.test-framework": {
       "version": "1.7.0",
