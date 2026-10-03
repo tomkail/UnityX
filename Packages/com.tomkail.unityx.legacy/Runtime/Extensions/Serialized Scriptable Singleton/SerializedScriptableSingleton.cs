@@ -10,19 +10,41 @@ public class SerializedScriptableSingleton<T> : ScriptableObject where T : Scrip
 	static string _settingsPrefsKey;
 	public static string settingsPrefsKey {
 		get {
+			ResetIfNewSession();
 			if(_settingsPrefsKey == null)
 				_settingsPrefsKey = $"{typeof(T).Name} Settings ({Application.productName})";
 			return _settingsPrefsKey;
-		} set => _settingsPrefsKey = value;
+		}
+		set {
+			ResetIfNewSession();
+			_settingsPrefsKey = value;
+		}
 	}
-	public static event Action OnCreateOrLoad;
+
+	static Action _onCreateOrLoad;
+	public static event Action OnCreateOrLoad {
+		add { ResetIfNewSession(); _onCreateOrLoad += value; }
+		remove { ResetIfNewSession(); _onCreateOrLoad -= value; }
+	}
 
 	static T _Instance;
 	public static T Instance {
 		get {
+			ResetIfNewSession();
 			if(_Instance == null) LoadOrCreateAndSave();
 			return _Instance;
 		}
+	}
+
+	// Without domain reload these statics survive into the next play session: the instance would keep last session's runtime
+	// changes and subscribers would accumulate. Generic classes can't use [RuntimeInitializeOnLoadMethod], so compare session ids.
+	static int _session;
+	static void ResetIfNewSession () {
+		if(_session == PlaySession.id) return;
+		_session = PlaySession.id;
+		_Instance = null;
+		_onCreateOrLoad = null;
+		_settingsPrefsKey = null;
 	}
 
 	static T LoadOrCreateAndSave () {
@@ -32,12 +54,14 @@ public class SerializedScriptableSingleton<T> : ScriptableObject where T : Scrip
 	}
 
 	public static void CreateAndSave () {
+		ResetIfNewSession();
 		_Instance = CreateInstance<T>();
 		Save(_Instance);
-        if(OnCreateOrLoad != null) OnCreateOrLoad();
+        _onCreateOrLoad?.Invoke();
 	}
 	
 	public static void Save () {
+		ResetIfNewSession();
 		Save(_Instance);
     }
 
@@ -65,7 +89,7 @@ public class SerializedScriptableSingleton<T> : ScriptableObject where T : Scrip
 		_Instance = CreateInstance<T>();
 		try {
 			JsonUtility.FromJsonOverwrite(data, _Instance);
-            if(_Instance != null) if(OnCreateOrLoad != null) OnCreateOrLoad();
+            if(_Instance != null) _onCreateOrLoad?.Invoke();
 		} catch {
 			Debug.LogError("Save Data was corrupt and could not be parsed. New data created. Old data was:\n"+data);
 			CreateAndSave();
@@ -73,6 +97,7 @@ public class SerializedScriptableSingleton<T> : ScriptableObject where T : Scrip
     }
 
 	public static void Delete () {
+		ResetIfNewSession();
 		if(!Application.isEditor) PlayerPrefs.DeleteKey(settingsPrefsKey);
 		#if UNITY_EDITOR
 		else EditorPrefs.DeleteKey(settingsPrefsKey);

@@ -200,8 +200,11 @@ namespace UnityX.SLayouts {
 
 	    public static void WithoutAnimating(Action action) {
 	        SLayoutAnimation.StartPreventAnimation();
-	        action();
-	        SLayoutAnimation.EndPreventAnimation();
+	        try {
+	            action();
+	        } finally {
+	            SLayoutAnimation.EndPreventAnimation();
+	        }
 	    }
 
 		public Canvas rootCanvas {

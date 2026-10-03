@@ -18,6 +18,13 @@ namespace UnityX.AWSBuildPipeline.Editor {
 
         static bool runningPipeline;
 
+        // If a reload interrupts PerformBuild mid-await its finally never runs. Domain reload used to clear the flag;
+        // do it explicitly so the window doesn't stay disabled until the editor restarts.
+        [InitializeOnLoadMethod]
+        static void ResetRunningPipeline() {
+            runningPipeline = false;
+        }
+
         public static ServerHostedFileWindow uploadedFilesWindow;
 
         List<string> availableProfileNames;

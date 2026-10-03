@@ -97,6 +97,8 @@ namespace UnityX.SceneManagement {
 			} else if (sceneLoadMode == LoadTaskMode.UnloadSoft) {
 				// From all the scenes in this set, scan through all the active scene sets and select any scenes which aren't used in any others.
 				// A scene is only unloaded if it isn't contained by ANY of the loaded scene sets, so a scene still used by another set is kept.
+				if (RuntimeSceneSetLoader.GetLoadedSceneSets == null)
+					throw new System.InvalidOperationException("UnloadSoft needs RuntimeSceneSetLoader.GetLoadedSceneSets to be assigned so it can tell which scenes other sets still use.");
 				var loadedSceneSets = RuntimeSceneSetLoader.GetLoadedSceneSets();
 				foreach (var scenePath in sceneSetPaths) {
 					bool containedByAnySet = false;

@@ -523,8 +523,8 @@ namespace Utils.Algorithms {
 				// Loop over all possible candidates until we find the one we're looking for.
 				for (int currTestIndex = lowerBound; currTestIndex <= upperBound; ++currTestIndex) {
 					Assert.IsTrue (comparer.Compare (_sortedCandidateGraphEntries[currTestIndex], _sortedCandidateGraphEntries[findIndex]) == 0);
-					if (_sortedCandidateGraphEntries[findIndex] == candidateEntry) {
-						_sortedCandidateGraphEntries.RemoveAt(findIndex);
+					if (_sortedCandidateGraphEntries[currTestIndex] == candidateEntry) {
+						_sortedCandidateGraphEntries.RemoveAt(currTestIndex);
 						break;
 					}
 				}

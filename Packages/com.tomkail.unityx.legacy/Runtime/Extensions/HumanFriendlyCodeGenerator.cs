@@ -18,7 +18,7 @@ public static class HumanFriendlyCodeGenerator {
     public static string Generate(int numCharacters, char[] allowedCharacters) {
         var sb = new StringBuilder(numCharacters);
         for (int i = 0; i < numCharacters; i++) {
-            int randomInt32 = RandomNumberGenerator.GetInt32(0, allowedCharacters.Length - 1);
+            int randomInt32 = RandomNumberGenerator.GetInt32(0, allowedCharacters.Length);
             sb.Append(allowedCharacters[randomInt32]);
         }
         return sb.ToString();
@@ -34,18 +34,9 @@ public static class HumanFriendlyCodeGenerator {
         Random seededRandom = new Random(seed);
 
         for (int i = 0; i < numCharacters; i++) {
-            // Use seeded random to get a seed for RandomNumberGenerator
-            int subSeed = seededRandom.Next();
-            byte[] randomBytes = new byte[4];
-            BitConverter.GetBytes(subSeed).CopyTo(randomBytes, 0);
-            int randomInt32;
-            using (RandomNumberGenerator rng = RandomNumberGenerator.Create()) {
-                rng.GetBytes(randomBytes);
-                randomInt32 = BitConverter.ToInt32(randomBytes, 0) % allowedCharacters.Length;
-                if (randomInt32 < 0) randomInt32 += allowedCharacters.Length;
-            }
-
-            sb.Append(allowedCharacters[randomInt32]);
+            // Draw straight from the seeded generator. This used to fill the bytes from RandomNumberGenerator, which
+            // overwrote the seeded value, so the result was never reproducible.
+            sb.Append(allowedCharacters[seededRandom.Next(allowedCharacters.Length)]);
         }
 
         return sb.ToString();

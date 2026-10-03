@@ -7,11 +7,33 @@ namespace UnityX.SceneManagement {
     // We allow this to be found via findobjectoftype only once, when there's a chance the object hasn't had time to be woken up
     // When the instance is destroyed we allow findobjectoftype to be used again.
     // After that, all instance management is handled via awake/destroy
+    // Counts play sessions for MonoSingleton<T> (see ResetIfNewSession). Inlined copy of UnityX.Core's PlaySession.
+    static class MonoSingletonSession {
+        public static int id { get; private set; }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void BeginSession () {
+            id++;
+        }
+    }
+
     public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T> {
         static bool searched;
         static T _Instance;
+        static int _session;
+
+        // Without domain reload these statics survive into the next play session, where _Instance would be a destroyed object
+        // and searched would block a fresh search. Generic classes can't use [RuntimeInitializeOnLoadMethod], so compare session ids.
+        static void ResetIfNewSession () {
+            if(_session == MonoSingletonSession.id) return;
+            _session = MonoSingletonSession.id;
+            _Instance = null;
+            searched = false;
+        }
+
         public static T Instance {
             get {
+                ResetIfNewSession();
 #if UNITY_EDITOR
                 if(!Application.isPlaying) searched = false;
 #endif
@@ -23,9 +45,15 @@ namespace UnityX.SceneManagement {
             }
         }
 
-        public static bool IsInitialized => _Instance != null;
+        public static bool IsInitialized {
+            get {
+                ResetIfNewSession();
+                return _Instance != null;
+            }
+        }
 
         protected virtual void Awake () {
+            ResetIfNewSession();
             if(_Instance != null && _Instance != this) {
                 Debug.LogWarning($"Duplicate {typeof(T).Name} singleton on '{name}'; destroying it.", this);
                 Destroy(this);

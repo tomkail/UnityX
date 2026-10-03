@@ -155,7 +155,13 @@ public class OnGUIX : MonoBehaviour {
 //		}
 //	}
 
-	static Dictionary<object, Action> drawActions = new();
+	static readonly Dictionary<object, Action> drawActions = new();
+
+	// Callers that didn't StopDrawing before exiting play mode would otherwise draw over destroyed objects next session.
+	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+	static void ResetStatics () {
+		drawActions.Clear();
+	}
 	public static void StartDrawing (object obj, Action drawAction) {
 		if(drawActions.ContainsKey(obj)) drawActions[obj] = drawAction;
 		else drawActions.Add(obj, drawAction);

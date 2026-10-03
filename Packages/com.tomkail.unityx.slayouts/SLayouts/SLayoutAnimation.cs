@@ -38,20 +38,23 @@ namespace UnityX.SLayouts {
 
 			bool instant = _delay + _duration <= 0.0f;
 
-			if( _animAction != null ) {
-				_properties = new List<SAnimatedProperty>();
+			// Pop even if the action throws, otherwise later property changes would attach to this dead animation.
+			try {
+				if( _animAction != null ) {
+					_properties = new List<SAnimatedProperty>();
 
-				_animAction();
+					_animAction();
 
-				// Rewind animation back to beginning
-				// But only if our duration > 0
-				if( !instant ) {
-					foreach(var property in _properties)
-						property.Start();
+					// Rewind animation back to beginning
+					// But only if our duration > 0
+					if( !instant ) {
+						foreach(var property in _properties)
+							property.Start();
+					}
 				}
+			} finally {
+				_animationsBeingDefined.RemoveAt(_animationsBeingDefined.Count-1);
 			}
-
-			_animationsBeingDefined.RemoveAt(_animationsBeingDefined.Count-1);	
 
 			// Duration = zero? Done already
 			if( instant ) Done();
@@ -347,5 +350,12 @@ namespace UnityX.SLayouts {
 
 	    static bool _preventingAnim;
 		static List<SLayoutAnimation> _animationsBeingDefined;
+
+		// Without domain reload, state left behind by an exception in a previous play session would otherwise persist.
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		static void ResetStatics () {
+			_preventingAnim = false;
+			_animationsBeingDefined = null;
+		}
 	}
 }

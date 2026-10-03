@@ -27,12 +27,33 @@ public abstract class MonoInstancer<T> : MonoBehaviour where T : MonoInstancer<T
     static void InvalidateCache () => _upToDate = false;
     static void SceneOpened (UnityEngine.SceneManagement.Scene scene, UnityEditor.SceneManagement.OpenSceneMode mode) => _upToDate = false;
 #endif
-    static List<T> _all = new();
+    static readonly List<T> _all = new();
 #if UNITY_EDITOR
     static bool _upToDate = false;
+    static bool _cachedWhilePlaying;
 #endif
+    // Without domain reload _all would carry destroyed instances into the next play session (and, in the editor, back into
+    // edit mode unless CompileReset was wired up). Generic classes can't use [RuntimeInitializeOnLoadMethod], so compare session ids.
+    static int _session;
+    static void ResetIfStale () {
+#if UNITY_EDITOR
+        if(_cachedWhilePlaying != Application.isPlaying) {
+            _cachedWhilePlaying = Application.isPlaying;
+            _all.Clear();
+            _upToDate = false;
+        }
+#endif
+        if(_session == PlaySession.id) return;
+        _session = PlaySession.id;
+        _all.Clear();
+#if UNITY_EDITOR
+        _upToDate = false;
+#endif
+    }
+
     public static List<T> all {
         get {
+            ResetIfStale();
 #if UNITY_EDITOR
             if(!_upToDate) {
                 _all.Clear();
@@ -57,6 +78,7 @@ public abstract class MonoInstancer<T> : MonoBehaviour where T : MonoInstancer<T
         if(!Application.isPlaying)
             return;
 #endif
+        ResetIfStale();
         _all.Add((T)this);
     }
     protected virtual void OnDisable () {
