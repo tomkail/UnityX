@@ -9,8 +9,20 @@ using UnityEditor;
 public static class HandlesX {
 
 	#if UNITY_EDITOR
-	static HandlesX () {
+	[InitializeOnLoadMethod]
+	static void SubscribeEditorEvents () {
+		SceneView.duringSceneGui -= OnSceneView;
 		SceneView.duringSceneGui += OnSceneView;
+		AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
+		AssemblyReloadEvents.beforeAssemblyReload += UnsubscribeEditorEvents;
+	}
+
+	// Editor events outlive script assemblies, so unsubscribe before a code reload or the old handler keeps firing alongside the new one.
+	static void UnsubscribeEditorEvents () {
+		SceneView.duringSceneGui -= OnSceneView;
+		AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
+		// Nothing will destroy meshes still waiting for a scene view draw once this code is gone.
+		OnSceneView(null);
 	}
 
 	static void OnSceneView (SceneView sceneView) {

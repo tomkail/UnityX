@@ -10,9 +10,6 @@ using Object = UnityEngine.Object;
 /// <summary>
 /// Provides callbacks for more specific selection events.
 /// </summary>
-#if UNITY_EDITOR
-[InitializeOnLoad]
-#endif
 public static class SelectionX {
     #if UNITY_EDITOR
 	const string editorPrefsPath = "SelectionXLastSelection";
@@ -46,8 +43,18 @@ public static class SelectionX {
 	public static void Remove (params Object[] obj) {
 		Selection.objects = Selection.objects.Except(obj).ToArray();
 	}
-	static SelectionX () {
+	[InitializeOnLoadMethod]
+	static void SubscribeEditorEvents () {
+		Selection.selectionChanged -= SelectionChanged;
 		Selection.selectionChanged += SelectionChanged;
+		AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
+		AssemblyReloadEvents.beforeAssemblyReload += UnsubscribeEditorEvents;
+	}
+
+	// Editor events outlive script assemblies, so unsubscribe before a code reload or the old handler keeps firing alongside the new one.
+	static void UnsubscribeEditorEvents () {
+		Selection.selectionChanged -= SelectionChanged;
+		AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
 	}
 
 	static SerializedSelection CreateSerializedSelection () {

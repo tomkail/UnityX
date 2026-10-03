@@ -9,10 +9,19 @@ using UnityX.HexGrid;
 //
 // The runtime backstop (add / load / recompile) lives in WorldSpaceHexGrid.Reset/OnValidate; this catches the
 // case those miss - editing the Grid component's own dropdown, which doesn't fire the sibling's OnValidate.
-[InitializeOnLoad]
 static class HexGridLayoutGuard {
-	static HexGridLayoutGuard () {
+	[InitializeOnLoadMethod]
+	static void SubscribeEditorEvents () {
+		ObjectChangeEvents.changesPublished -= OnChangesPublished;
 		ObjectChangeEvents.changesPublished += OnChangesPublished;
+		AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
+		AssemblyReloadEvents.beforeAssemblyReload += UnsubscribeEditorEvents;
+	}
+
+	// Editor events outlive script assemblies, so unsubscribe before a code reload or the old handler keeps firing alongside the new one.
+	static void UnsubscribeEditorEvents () {
+		ObjectChangeEvents.changesPublished -= OnChangesPublished;
+		AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
 	}
 
 	static void OnChangesPublished (ref ObjectChangeEventStream stream) {

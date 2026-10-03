@@ -81,4 +81,21 @@ public static class PlayerLoopUtils {
 
         return false;
     }
+
+    // Removes every PlayerLoopSystem owned by ownerType, at any depth. Returns true if anything was removed.
+    public static bool RemoveFromPlayerLoop(Type ownerType, ref PlayerLoopSystem playerLoop) {
+        if (playerLoop.subSystemList == null) return false;
+        bool removed = false;
+        int count = 0;
+        for (int i = 0; i < playerLoop.subSystemList.Length; ++i) {
+            if (playerLoop.subSystemList[i].type == ownerType) {
+                removed = true;
+                continue;
+            }
+            removed |= RemoveFromPlayerLoop(ownerType, ref playerLoop.subSystemList[i]);
+            playerLoop.subSystemList[count++] = playerLoop.subSystemList[i];
+        }
+        if (count != playerLoop.subSystemList.Length) Array.Resize(ref playerLoop.subSystemList, count);
+        return removed;
+    }
 }

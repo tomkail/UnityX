@@ -25,6 +25,7 @@ public class PrettyTextLayout : MonoBehaviour {
         }
 #if UNITY_EDITOR
         else {
+            UnityEditor.EditorApplication.update -= DelayedCallbackRefresh;
             UnityEditor.EditorApplication.update += DelayedCallbackRefresh;
         }
 #endif

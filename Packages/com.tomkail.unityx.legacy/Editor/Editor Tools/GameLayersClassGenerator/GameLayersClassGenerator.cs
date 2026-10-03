@@ -79,6 +79,8 @@ class GameLayersAutoSync : AssetModificationProcessor {
         if(!File.Exists(GameLayersClassGenerator.className)) return paths;
         foreach(var path in paths) {
             if(path.EndsWith("TagManager.asset")) {
+                // -= first so several saves before the next editor tick only regenerate once.
+                EditorApplication.delayCall -= GameLayersClassGenerator.CreateGameLayersClass;
                 EditorApplication.delayCall += GameLayersClassGenerator.CreateGameLayersClass;
                 break;
             }

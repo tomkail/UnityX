@@ -60,6 +60,8 @@ Each of these breaks on the second play session without domain reload.
 
 ## 3. Static constructors / `[InitializeOnLoad]` / unbalanced editor event subscriptions
 
+**Done:** each site now subscribes from `[InitializeOnLoadMethod]` with `-=` before `+=`, and unsubscribes on `AssemblyReloadEvents.beforeAssemblyReload`. ScreenX installs its player loop entry explicitly (editor load and SubsystemRegistration), builds on `GetCurrentPlayerLoop()`, and removes its entry before reload (new `PlayerLoopUtils.RemoveFromPlayerLoop`). EditorSceneManagerX fills its scene lists lazily. SmartEditorWindow's flags are per-window.
+
 All need: named handler, `-=` before `+=`, and unsubscribe on `AssemblyReloadEvents.beforeAssemblyReload`. Prefer `[InitializeOnLoadMethod]` over a static constructor (CoreCLR runs cctors lazily, maybe off the main thread).
 
 | Location | Event |

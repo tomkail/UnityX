@@ -2,18 +2,15 @@ using UnityEngine;
 using UnityEditor;
 
 public class SmartEditorWindow : EditorWindow {
-	static bool _subscribed;
-	public static bool subscribed {get{return _subscribed;}}
+	// Per window: these used to be static, so every window (of every subclass) shared one flag and only the first subscribed.
+	bool _subscribed;
+	public bool subscribed {get{return _subscribed;}}
 
-	static bool _visible;
-	public static bool visible {get{return _visible;}}
+	bool _visible;
+	public bool visible {get{return _visible;}}
 	
-	
-	// Called on window create/recompile
-	protected SmartEditorWindow () {
-		TrySubscribe();
-	}
-	// Called on window create/recompile
+	// Called on window create/recompile. Not subscribing from the constructor: it runs during deserialization,
+	// where Unity APIs aren't allowed.
 	void OnEnable () {
 		TrySubscribe();
 	}

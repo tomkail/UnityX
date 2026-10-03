@@ -3,11 +3,19 @@ using UnityEditor;
 using UnityEngine;
 
 namespace UnityX.Springs.Editor {
-	[InitializeOnLoad]
 	public static class SpringContextMenuPresets {
-	    static SpringContextMenuPresets()
-	    {
+	    [InitializeOnLoadMethod]
+	    static void SubscribeEditorEvents () {
+	        EditorApplication.contextualPropertyMenu -= OnPropertyContextMenu;
 	        EditorApplication.contextualPropertyMenu += OnPropertyContextMenu;
+	        AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
+	        AssemblyReloadEvents.beforeAssemblyReload += UnsubscribeEditorEvents;
+	    }
+
+	    // Editor events outlive script assemblies, so unsubscribe before a code reload or the old handler keeps firing alongside the new one.
+	    static void UnsubscribeEditorEvents () {
+	        EditorApplication.contextualPropertyMenu -= OnPropertyContextMenu;
+	        AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
 	    }
 
 	    static IEnumerable<(string name, Spring spring)> presets {

@@ -20,9 +20,21 @@ namespace UnityX.SceneViewTools.Editor {
 			if(drawActions.ContainsKey(obj)) drawActions.Remove(obj);
 		}
 
-		static SceneGUIDrawer () {
+		[InitializeOnLoadMethod]
+		static void SubscribeEditorEvents () {
+			SceneView.duringSceneGui -= OnSceneGUI;
 			SceneView.duringSceneGui += OnSceneGUI;
+			EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
 			EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+			AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
+			AssemblyReloadEvents.beforeAssemblyReload += UnsubscribeEditorEvents;
+		}
+
+		// Editor events outlive script assemblies, so unsubscribe before a code reload or the old handler keeps firing alongside the new one.
+		static void UnsubscribeEditorEvents () {
+			SceneView.duringSceneGui -= OnSceneGUI;
+			EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+			AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
 		}
 
 		// Registered actions usually close over scene objects, which are destroyed when play mode starts or ends.

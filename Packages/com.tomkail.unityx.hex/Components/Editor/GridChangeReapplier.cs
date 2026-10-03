@@ -10,10 +10,19 @@ using UnityX.HexGrid;
 // Transform) has its properties changed, we re-derive every affected tile's transform from its stored
 // coord. Before this, changing the grid left tiles at their old world positions, which re-bucketed them
 // into different cells and scrambled the level.
-[InitializeOnLoad]
 static class GridChangeReapplier {
-	static GridChangeReapplier () {
+	[InitializeOnLoadMethod]
+	static void SubscribeEditorEvents () {
+		ObjectChangeEvents.changesPublished -= OnChangesPublished;
 		ObjectChangeEvents.changesPublished += OnChangesPublished;
+		AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
+		AssemblyReloadEvents.beforeAssemblyReload += UnsubscribeEditorEvents;
+	}
+
+	// Editor events outlive script assemblies, so unsubscribe before a code reload or the old handler keeps firing alongside the new one.
+	static void UnsubscribeEditorEvents () {
+		ObjectChangeEvents.changesPublished -= OnChangesPublished;
+		AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
 	}
 
 	static void OnChangesPublished (ref ObjectChangeEventStream stream) {
