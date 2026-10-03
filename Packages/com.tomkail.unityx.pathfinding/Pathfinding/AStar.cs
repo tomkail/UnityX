@@ -424,10 +424,11 @@ namespace Utils.Algorithms {
 			if (currEntry != null && (currEntry.bestCostVia != null || currEntry == _startEntry))
 			{
 				solutionList = new List<GraphElement> ();
+				// The cost of the whole route is the cost of reaching its last entry.
+				totalCost = currEntry.bestCostToHere;
 				while (currEntry != null)
 				{
 					solutionList.Add (currEntry.graphElement);
-					totalCost += currEntry.bestCostToHere;
 					currEntry = currEntry.bestCostVia;
 				}
 				solutionList.Reverse ();
