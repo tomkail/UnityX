@@ -68,7 +68,9 @@ public abstract class MonoInstancer<T> : MonoBehaviour where T : MonoInstancer<T
 #if UNITY_EDITOR
             if(!_upToDate) {
                 _all.Clear();
-                _all.AddRange(FindObjectsByType<T>(FindObjectsInactive.Exclude));
+                // FindObjectsInactive.Exclude only skips inactive GameObjects, so also skip disabled components.
+                foreach(var instance in FindObjectsByType<T>(FindObjectsInactive.Exclude))
+                    if(instance.isActiveAndEnabled) _all.Add(instance);
                 _upToDate = true;
             }
 #endif

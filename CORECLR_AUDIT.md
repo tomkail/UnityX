@@ -53,7 +53,6 @@ Each of these breaks on the second play session without domain reload.
 - **UIImposterRenderer**: no change needed. It already destroys its camera and canvas after every render.
 - **SAnimatedProperty pool, editor-only SelectionX and EditorSceneManagerX events**: no change. The pool clears entries before reuse and only holds this assembly's types. The editor events are meant to live as long as the editor.
 - **TempList**: left alone. Its two buffers per type keep their last contents (and so their references) until reused. They can't be cleared after use because the caller still holds the returned list.
-- **RoundRect's shared material**: left alone. Destroying it before a reload would break live components until they next re-run setup; one material per reload is the cost.
 - **EditorGUIX label widths**: left alone. It's editor GUI state with no play-session lifetime.
 
 Also fixed:
@@ -138,6 +137,10 @@ After the work above, Codex (OpenAI) did a read-only audit of `b197b1a..HEAD`. E
 | 7 | `SerializedScriptableSingleton` reset its prefs key and `OnCreateOrLoad` subscribers per session, dropping editor configuration | Fixed: only the instance resets per session |
 | 8 | `ScreenX`'s static constructor still called Screen APIs | Fixed: moved to explicit editor/runtime initialization |
 | 9 | Screenshot capture had the session reset but not the promised `try/finally` | Fixed: cameras, `RenderTexture.active`, the temporary RT and the busy flag are restored in `finally`; destroyed cameras are dropped after the wait |
-| 10 | `HideAndDontSave` resources in GLDebug, RoundRect and TrackpadTouchProviderEditor leak on code reload | Fixed for GLDebug and the trackpad inspector. RoundRect left as is (see section 2) |
+| 10 | `HideAndDontSave` resources in GLDebug, RoundRect and TrackpadTouchProviderEditor leak on code reload | Fixed: each is destroyed before reload. RoundRect also rebinds its material in `OnEnable` |
 | 11 | The TempList exemption overstated things | Doc corrected (section 2) |
 | 12 | PrettyTextLayout and GameLayersAutoSync callbacks queued at reload time | PrettyTextLayout drops its pending callback in `OnDisable`. GameLayersAutoSync's `delayCall` is one-shot and removes itself, so no change |
+
+A second Codex pass over the fix commit confirmed the fixes and raised two points, both fixed:
+- `MonoInstancer`'s edit-mode rebuild picked up disabled components, because `FindObjectsInactive.Exclude` only skips inactive GameObjects. It now keeps only `isActiveAndEnabled` instances.
+- RoundRect's material leak is now handled as described in row 10.
