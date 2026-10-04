@@ -262,11 +262,13 @@ public class HexGridSnapEditor : Editor {
 	// Sets each tile's facing to `next(current)` through its own SerializedObject, so a relative turn on a
 	// multi-selection keeps each object's own facing.
 	void SetFacing (System.Func<int, int> next, string undoName) {
+		serializedObject.ApplyModifiedProperties();
 		SetFacing(new List<HexGridSnap>(tiles), next, undoName);
+		serializedObject.Update();
 	}
 
+	// Doesn't touch this editor's serializedObject, so it's safe from OnSceneGUI; the inspector re-reads on its next Update.
 	void SetFacing (List<HexGridSnap> snaps, System.Func<int, int> next, string undoName) {
-		serializedObject.ApplyModifiedProperties();
 		Record(snaps, undoName);
 		foreach(var tile in snaps) {
 			var so = new SerializedObject(tile);
@@ -276,7 +278,6 @@ public class HexGridSnapEditor : Editor {
 			so.ApplyModifiedProperties();
 			Reapply(tile);
 		}
-		serializedObject.Update();
 	}
 
 	static void Adopt (HexGridSnap tile) {
@@ -395,7 +396,6 @@ public class HexGridSnapEditor : Editor {
 					Record(new[] { tile }, "Move to Cell");
 					tile.SnapToCoord(cell);
 					MarkChanged(tile);
-					serializedObject.Update();
 					Repaint();
 				}
 			}

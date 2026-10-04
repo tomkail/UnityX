@@ -211,7 +211,7 @@ public class WorldSpaceHexGridEditor : Editor {
 	};
 
 	void OnSceneGUI () {
-		if(!showHovered || serializedObject.isEditingMultipleObjects) return;
+		if(!showHovered || targets.Length > 1) return;
 		var hexGrid = (WorldSpaceHexGrid)target;
 		if(hexGrid == null || hexGrid.grid == null) return;
 		var evt = Event.current;
