@@ -20,6 +20,7 @@
     "packages": [
       "geometry",
       "polygon-renderer",
+      "extruded-polygon",
       "region",
       "islands",
       "grid-maps",
