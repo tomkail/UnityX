@@ -1,6 +1,7 @@
 using UnityEngine;
 
 namespace UnityX.Versioning {
+    [CreateAssetMenu(menuName = "UnityX/Current Version", fileName = nameof(CurrentVersionSO))]
     public class CurrentVersionSO : ScriptableObject {
         private static CurrentVersionSO _Instance;
 

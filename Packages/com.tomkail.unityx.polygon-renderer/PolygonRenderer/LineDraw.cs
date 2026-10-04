@@ -1,14 +1,22 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Runtime.Serialization;
 
 [System.Serializable]
+[DataContract]
 public struct StrokeGeometryAttributes {
+    [DataMember(Name = "width")]
     public float width;        // 1 if not defined
+    [DataMember(Name = "extrusion")]
     public float extrusion;        // 0 if not defined
+    [DataMember(Name = "cap")]
     public Cap cap;          // butt, round, square
+    [DataMember(Name = "join")]
     public Join join;          // bevel, round, miter
+    [DataMember(Name = "miterLimit")]
     public float miterLimit;   // for join miter, the maximum angle value to use the miter
+    [DataMember(Name = "closed")]
     public bool closed;   // whether the stroke forms a closed loop
 
     public StrokeGeometryAttributes (float width, float extrusion, Cap cap, Join join, float miterLimit, bool closed) {

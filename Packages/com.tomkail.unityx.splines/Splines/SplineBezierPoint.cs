@@ -1,15 +1,21 @@
 ﻿using UnityEngine;
+using System.Runtime.Serialization;
 
 namespace UnityX.Splines {
 	[System.Serializable]
+	[DataContract]
 	public struct SplineBezierPoint {
 
 		[SerializeField]
+		[DataMember(Name = "inControlPoint")]
 		public SplineBezierControlPoint inControlPoint;
 		[SerializeField]
+		[DataMember(Name = "outControlPoint")]
 		public SplineBezierControlPoint outControlPoint;
         
+		[DataMember(Name = "position")]
 		public Vector3 position;
+		[DataMember(Name = "rotation")]
 		public Quaternion rotation;
 		public Vector3 forward => rotation * Vector3.forward;
 
