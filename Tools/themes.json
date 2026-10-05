@@ -49,5 +49,10 @@
       "screenshot-exporter",
       "versioning"
     ]
+  },
+  "rhythm": {
+    "packages": [
+      "rhythm"
+    ]
   }
 }
