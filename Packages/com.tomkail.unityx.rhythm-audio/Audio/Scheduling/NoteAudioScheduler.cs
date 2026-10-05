@@ -8,7 +8,7 @@ namespace UnityX.Rhythm {
 	public class NoteAudioScheduler : MonoBehaviour {
 		public Conductor conductor;
 		public LaneSoundMap sounds;
-		[Tooltip("How many sounds can overlap")]
+		[Tooltip("How many sounds can overlap. Set it above the most notes that sound at once: when every voice is busy, a sound is cut short to make room.")]
 		[Min(1)] public int voiceCount = 16;
 		public AudioMixerGroup output;
 		[Tooltip("How far ahead sounds are queued, in seconds. Long enough to cover a slow frame.")]

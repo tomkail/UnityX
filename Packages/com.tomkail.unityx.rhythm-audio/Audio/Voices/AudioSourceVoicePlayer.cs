@@ -4,11 +4,13 @@ using UnityEngine;
 
 namespace UnityX.Rhythm {
 	// Plays note sounds with AudioSource.PlayScheduled from a fixed pool. An AudioSource holds one sound at a time,
-	// so a source is only reused once its sound has finished; when every source is busy, the one that finishes
-	// soonest is cut short.
+	// so a source is only reused once its sound has finished. When every source is busy, the sounding one that
+	// finishes soonest is cut short; a queued sound is only taken when nothing is sounding, since its note would
+	// never play at all.
 	public sealed class AudioSourceVoicePlayer : IVoicePlayer {
 		sealed class Channel {
 			public AudioSource source;
+			public double startDspTime;
 			public double endDspTime;
 			public int generation;
 		}
@@ -32,6 +34,7 @@ namespace UnityX.Rhythm {
 			public void Reschedule(double dspTime) {
 				if (!IsCurrent) return;
 				StartDspTime = dspTime;
+				channel.startDspTime = dspTime;
 				channel.endDspTime = dspTime + length;
 				channel.source.SetScheduledStartTime(dspTime);
 			}
@@ -68,18 +71,24 @@ namespace UnityX.Rhythm {
 			source.volume = volume * note.note.velocity;
 			source.PlayScheduled(dspTime);
 			var length = (double)clip.samples / clip.frequency;
+			channel.startDspTime = dspTime;
 			channel.endDspTime = dspTime + length;
 			return new Voice(channel, dspTime, length);
 		}
 
 		Channel FreeChannel() {
 			var now = currentDspTime();
-			Channel soonest = null;
+			Channel sounding = null;
+			Channel queued = null;
 			foreach (var channel in channels) {
 				if (channel.endDspTime <= now) return channel;
-				if (soonest == null || channel.endDspTime < soonest.endDspTime) soonest = channel;
+				if (channel.startDspTime <= now) {
+					if (sounding == null || channel.endDspTime < sounding.endDspTime) sounding = channel;
+				} else if (queued == null || channel.endDspTime < queued.endDspTime) {
+					queued = channel;
+				}
 			}
-			return soonest;
+			return sounding ?? queued;
 		}
 	}
 }

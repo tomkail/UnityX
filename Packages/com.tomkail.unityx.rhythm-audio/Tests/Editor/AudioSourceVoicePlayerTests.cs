@@ -99,6 +99,23 @@ namespace UnityX.Rhythm.Audio.Tests {
 		}
 
 		[Test]
+		public void ASoundThatHasNotStartedIsNotTakenWhileAPlayingOneCanBe() {
+			var pad = AudioClip.Create("pad", 44100, 1, 44100, false);
+			sounds.entries.Add(new LaneSoundMap.Entry { lane = 2, clip = pad });
+			var player = CreatePlayer();
+			// Started before now and rings until 100.9
+			var playing = player.Play(NoteOn(2), 99.9);
+			// Queued, and would end sooner, at 100.15
+			var queued = player.Play(NoteOn(0), 100.05);
+			player.Play(NoteOn(1), 100.1);
+			Assert.AreEqual(snare, sources[0].clip);
+			Assert.IsTrue(playing.IsFinished(now));
+			Assert.IsFalse(queued.IsFinished(now));
+			Assert.AreEqual(kick, sources[1].clip);
+			Object.DestroyImmediate(pad);
+		}
+
+		[Test]
 		public void StoppingFreesTheSource() {
 			var player = CreatePlayer();
 			var voice = player.Play(NoteOn(0), 100.2);
