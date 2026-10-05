@@ -32,9 +32,15 @@ namespace UnityX.Rhythm {
 
 		public TempoMap TempoMap {
 			get => tempoMap;
-			set => tempoMap = value ?? throw new ArgumentNullException(nameof(value));
+			set {
+				tempoMap = value ?? throw new ArgumentNullException(nameof(value));
+				WatchTempoMap();
+				if (Clock != null) OnTimelineChanged();
+			}
 		}
 
+		// The Crossed events fire on the clock, which runs audioOutputLatency ahead of what's heard. Visuals that must
+		// match the audio should use AudibleBeat, or delay by Latency.audioOutputLatency.
 		public event Action<BeatEvent> BeatCrossed;
 		public event Action<BeatEvent> BarCrossed;
 		public event Action<BeatEvent> SubdivisionCrossed;
@@ -47,12 +53,14 @@ namespace UnityX.Rhythm {
 		readonly BeatEventTracker subdivisionTracker = new(1);
 		readonly BeatEventTracker scheduledBeatTracker = new(1);
 		readonly BeatEventTracker scheduledBarTracker = new(1);
+		TempoMap watchedTempoMap;
 
 		// Called automatically in Awake with Unity's clocks. Call it yourself first to use another time source (e.g. in tests).
 		public void Initialize(IAudioTimeSource timeSource = null) {
 			if (Clock != null) Clock.TimelineChanged -= OnTimelineChanged;
 			Clock = new AudioRhythmClock(timeSource ?? new UnityAudioTimeSource(), CreateSmoother());
 			Clock.TimelineChanged += OnTimelineChanged;
+			WatchTempoMap();
 		}
 
 		void Awake() {
@@ -65,6 +73,11 @@ namespace UnityX.Rhythm {
 
 		void Update() => Tick();
 
+		void OnDestroy() {
+			if (watchedTempoMap != null) watchedTempoMap.Changed -= OnTimelineChanged;
+			watchedTempoMap = null;
+		}
+
 		// Advances the clock and raises this frame's events. Update calls it; tests call it directly.
 		public void Tick() {
 			Clock.Tick();
@@ -75,7 +88,11 @@ namespace UnityX.Rhythm {
 			beatTracker.Advance(Beat, index => BeatCrossed?.Invoke(CreateEvent(index, index)));
 			barTracker.Advance(BarPosition.bar, index => BarCrossed?.Invoke(CreateEvent(index, tempoMap.BeatAtBar((int)index))));
 			if (subdivisionsPerBeat > 0) {
-				subdivisionTracker.interval = 1.0 / subdivisionsPerBeat;
+				var interval = SubdivisionInterval;
+				if (subdivisionTracker.interval != interval) {
+					subdivisionTracker.interval = interval;
+					subdivisionTracker.Prime(Beat);
+				}
 				subdivisionTracker.Advance(Beat, index => SubdivisionCrossed?.Invoke(CreateEvent(index, index * subdivisionTracker.interval)));
 			}
 
@@ -101,21 +118,27 @@ namespace UnityX.Rhythm {
 			return new BeatEvent { index = index, beat = beat, dspTime = DspTimeAtBeat(beat), bar = tempoMap.BarAtBeat(beat) };
 		}
 
-		// Play and seek move the song position, so record the new position without reporting what was skipped
-		void OnTimelineChanged() {
-			var beat = tempoMap.BeatAtTime(Clock.SongTime);
-			var aheadBeat = Clock.IsPlaying ? BeatAtDspTime(Clock.DspTime + lookAheadTime) : beat;
-			Prime(beatTracker, beat);
-			Prime(barTracker, tempoMap.BarAtBeat(beat).bar);
-			subdivisionTracker.interval = subdivisionsPerBeat > 0 ? 1.0 / subdivisionsPerBeat : 1;
-			Prime(subdivisionTracker, beat);
-			Prime(scheduledBeatTracker, aheadBeat);
-			Prime(scheduledBarTracker, tempoMap.BarAtBeat(aheadBeat).bar);
+		double SubdivisionInterval => subdivisionsPerBeat > 0 ? 1.0 / subdivisionsPerBeat : 1;
+
+		void WatchTempoMap() {
+			if (watchedTempoMap == tempoMap) return;
+			if (watchedTempoMap != null) watchedTempoMap.Changed -= OnTimelineChanged;
+			watchedTempoMap = tempoMap;
+			watchedTempoMap.Changed += OnTimelineChanged;
 		}
 
-		static void Prime(BeatEventTracker tracker, double position) {
-			tracker.Reset();
-			tracker.Advance(position, _ => {});
+		// Play, seek and tempo map edits move the song position, so start tracking from the new position without
+		// reporting what was skipped. A beat that lands exactly on the new position still fires.
+		void OnTimelineChanged() {
+			if (Clock == null) return;
+			var beat = tempoMap.BeatAtTime(Clock.SongTime);
+			var aheadBeat = Clock.IsPlaying ? BeatAtDspTime(Clock.DspTime + lookAheadTime) : beat;
+			beatTracker.Prime(beat);
+			barTracker.Prime(tempoMap.BarAtBeat(beat).bar);
+			subdivisionTracker.interval = SubdivisionInterval;
+			subdivisionTracker.Prime(beat);
+			scheduledBeatTracker.Prime(aheadBeat);
+			scheduledBarTracker.Prime(tempoMap.BarAtBeat(aheadBeat).bar);
 		}
 
 		IClockSmoother CreateSmoother() {
