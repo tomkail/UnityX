@@ -64,6 +64,7 @@ namespace UnityX.Rhythm {
 			TimelineChanged?.Invoke();
 		}
 
+		// Discards any rate change scheduled for the future
 		public void Pause() {
 			if (!IsPlaying) return;
 			pausedSongTime = SongTime;
@@ -78,6 +79,7 @@ namespace UnityX.Rhythm {
 			Play(pausedSongTime, atDspTime);
 		}
 
+		// Discards any rate change scheduled for the future
 		public void Seek(double songTime) {
 			if (IsPlaying) {
 				Play(songTime);
@@ -89,13 +91,14 @@ namespace UnityX.Rhythm {
 
 		// Changes speed at atDspTime (default: now) without the song position jumping. Replaces any later rate changes.
 		public void SetPlaybackRate(double rate, double? atDspTime = null) {
-			if (rate <= 0) throw new ArgumentOutOfRangeException(nameof(rate), "Playback rate must be positive");
+			if (!(rate > 0) || double.IsInfinity(rate)) throw new ArgumentOutOfRangeException(nameof(rate), "Playback rate must be positive");
 			if (!IsPlaying) {
 				pausedRate = rate;
 				TimelineChanged?.Invoke();
 				return;
 			}
-			var at = Math.Max(atDspTime ?? DspTime, segments[0].dspStart);
+			// Never in the past: that would rewrite song time already reported, so the position would jump
+			var at = Math.Max(atDspTime ?? DspTime, Math.Max(DspTime, segments[0].dspStart));
 			var songAt = SongTimeAtDspTime(at);
 			segments.RemoveAll(s => s.dspStart >= at);
 			segments.Add(new Segment { dspStart = at, songStart = songAt, rate = rate });

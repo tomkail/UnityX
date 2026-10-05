@@ -111,6 +111,17 @@ namespace UnityX.Rhythm.Tests {
 		[Test]
 		public void InvalidRateThrows() {
 			Assert.Throws<System.ArgumentOutOfRangeException>(() => clock.SetPlaybackRate(0));
+			Assert.Throws<System.ArgumentOutOfRangeException>(() => clock.SetPlaybackRate(double.NaN));
+			Assert.Throws<System.ArgumentOutOfRangeException>(() => clock.SetPlaybackRate(double.PositiveInfinity));
+		}
+
+		[Test]
+		public void PastRateChangeDoesNotJump() {
+			clock.Play(0);
+			Advance(1);
+			var before = clock.SongTime;
+			clock.SetPlaybackRate(2, clock.DspTime - 0.5);
+			Assert.AreEqual(before, clock.SongTime, 1e-9);
 		}
 	}
 }

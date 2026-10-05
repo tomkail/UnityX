@@ -13,10 +13,15 @@ namespace UnityX.Rhythm {
 
 		long? lastIndex;
 		double lastPosition;
+		// Bumped by Reset, so Advance can tell when a callback re-primed the tracker
+		int generation;
 
 		public BeatEventTracker(double interval = 1) { this.interval = interval; }
 
-		public void Reset() => lastIndex = null;
+		public void Reset() {
+			lastIndex = null;
+			generation++;
+		}
 
 		// Starts tracking from a position, so the next Advance reports a grid line that sits exactly on it
 		public void Prime(double position) {
@@ -41,7 +46,12 @@ namespace UnityX.Rhythm {
 				return;
 			}
 			var first = Math.Max(lastIndex.Value + 1, index - maxCatchUp + 1);
-			for (var i = first; i <= index; i++) onCrossed(i);
+			var startGeneration = generation;
+			for (var i = first; i <= index; i++) {
+				onCrossed(i);
+				// A callback reset or re-primed us (e.g. by seeking): keep that state rather than overwriting it
+				if (generation != startGeneration) return;
+			}
 			lastIndex = index;
 			lastPosition = position;
 		}

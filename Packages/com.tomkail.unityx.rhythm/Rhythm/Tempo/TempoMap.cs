@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace UnityX.Rhythm {
@@ -64,7 +65,10 @@ namespace UnityX.Rhythm {
 		double[] pointTimes;
 
 		public TempoMap() {}
-		public TempoMap(double bpm) { tempoPoints[0] = new TempoPoint(0, bpm); }
+		public TempoMap(double bpm) {
+			ValidateBpm(bpm);
+			tempoPoints[0] = new TempoPoint(0, bpm);
+		}
 
 		public TempoMap Clone() {
 			var clone = new TempoMap();
@@ -76,7 +80,7 @@ namespace UnityX.Rhythm {
 
 		// Adds a tempo point, replacing any existing point at the same beat
 		public void SetTempo(double beat, double bpm, TempoCurve curve = TempoCurve.Step) {
-			if (bpm <= 0) throw new ArgumentOutOfRangeException(nameof(bpm), "BPM must be positive");
+			ValidateBpm(bpm);
 			Upsert(tempoPoints, new TempoPoint(beat, bpm, curve), p => p.beat);
 		}
 		public void RemoveTempoPoint(int index) {
@@ -99,6 +103,11 @@ namespace UnityX.Rhythm {
 		}
 		public void RemoveSwing(int index) { swingRegions.RemoveAt(index); MarkChanged(); }
 
+		static bool IsValidBpm(double bpm) => bpm > 0 && !double.IsInfinity(bpm);
+		static void ValidateBpm(double bpm) {
+			if (!IsValidBpm(bpm)) throw new ArgumentOutOfRangeException(nameof(bpm), "BPM must be positive and finite");
+		}
+
 		void Upsert<T>(List<T> list, T item, Func<T, double> beatOf) {
 			var beat = beatOf(item);
 			var index = list.FindIndex(x => beatOf(x) == beat);
@@ -113,13 +122,31 @@ namespace UnityX.Rhythm {
 		}
 
 		public void OnBeforeSerialize() {}
+		// Inspector and serialized data skip the Set* checks, so sanitise here. No Changed: this can run off the main thread.
 		public void OnAfterDeserialize() {
 			pointTimes = null;
-			tempoPoints.Sort((a, b) => a.beat.CompareTo(b.beat));
-			timeSignatures.Sort((a, b) => a.beat.CompareTo(b.beat));
-			swingRegions.Sort((a, b) => a.beat.CompareTo(b.beat));
+			tempoPoints ??= new List<TempoPoint>();
+			timeSignatures ??= new List<TimeSignaturePoint>();
+			swingRegions ??= new List<SwingRegion>();
+			tempoPoints.RemoveAll(p => !IsValidBpm(p.bpm) || double.IsNaN(p.beat) || double.IsInfinity(p.beat));
+			timeSignatures.RemoveAll(s => s.numerator <= 0 || s.denominator <= 0);
+			swingRegions.RemoveAll(r => !(r.subdivision > 0) || !(r.amount > 0 && r.amount < 1));
+			StableSort(tempoPoints, p => p.beat);
+			StableSort(timeSignatures, s => s.beat);
+			StableSort(swingRegions, r => r.beat);
+			// Two points at one beat would make a zero-length (divide by zero) segment; the later one wins, as with SetTempo
+			for (var i = tempoPoints.Count - 1; i > 0; i--) {
+				if (tempoPoints[i - 1].beat == tempoPoints[i].beat) tempoPoints.RemoveAt(i - 1);
+			}
 			if (tempoPoints.Count == 0) tempoPoints.Add(new TempoPoint(0, 120));
 			if (timeSignatures.Count == 0) timeSignatures.Add(new TimeSignaturePoint(0, 4, 4));
+		}
+
+		// List.Sort isn't stable, and "keep the last" needs the authored order of equal beats
+		static void StableSort<T>(List<T> list, Func<T, double> beatOf) {
+			var sorted = list.Select((item, index) => (item, index)).OrderBy(x => beatOf(x.item)).ThenBy(x => x.index).Select(x => x.item).ToList();
+			list.Clear();
+			list.AddRange(sorted);
 		}
 
 		// --- Conversions -------------------------------------------------------------------------

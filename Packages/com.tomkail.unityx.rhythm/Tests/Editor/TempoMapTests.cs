@@ -136,5 +136,25 @@ namespace UnityX.Rhythm.Tests {
 			Assert.AreEqual(0.5, map.Swing(0.5), 1e-9);
 			Assert.AreEqual(1.75, map.Swing(1.5), 1e-9);
 		}
+
+		[Test]
+		public void ConstructorRejectsInvalidBpm() {
+			Assert.Throws<System.ArgumentOutOfRangeException>(() => new TempoMap(0));
+			Assert.Throws<System.ArgumentOutOfRangeException>(() => new TempoMap(-60));
+			Assert.Throws<System.ArgumentOutOfRangeException>(() => new TempoMap(double.NaN));
+			Assert.Throws<System.ArgumentOutOfRangeException>(() => new TempoMap(double.PositiveInfinity));
+		}
+
+		[Test]
+		public void DeserializationSanitisesBadData() {
+			const string json = "{\"tempoPoints\":[{\"beat\":0,\"bpm\":120,\"curve\":0},{\"beat\":0,\"bpm\":90,\"curve\":1},{\"beat\":4,\"bpm\":0,\"curve\":0}]," +
+				"\"timeSignatures\":[{\"beat\":0,\"numerator\":4,\"denominator\":4}]," +
+				"\"swingRegions\":[{\"beat\":0,\"subdivision\":0.5,\"amount\":1.5}]}";
+			var map = UnityEngine.JsonUtility.FromJson<TempoMap>(json);
+			Assert.AreEqual(1, map.TempoPoints.Count);
+			Assert.AreEqual(90, map.TempoPoints[0].bpm, 1e-9, "Keeps the last point at a beat");
+			Assert.AreEqual(0, map.SwingRegions.Count);
+			Assert.IsFalse(double.IsNaN(map.TimeAtBeat(4)) || double.IsInfinity(map.TimeAtBeat(4)));
+		}
 	}
 }

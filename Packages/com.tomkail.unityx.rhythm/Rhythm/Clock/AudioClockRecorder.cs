@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using UnityEngine;
 
@@ -28,6 +29,8 @@ namespace UnityX.Rhythm {
 
 		// Records a labelled moment, e.g. when a MIDI note arrived, on the same timeline
 		public void Mark(string label, double realtime) {
+			// The trace format is one line per entry
+			label = label?.Replace('\r', ' ').Replace('\n', ' ');
 			trace?.marks.Add((realtime, label));
 		}
 
@@ -35,9 +38,15 @@ namespace UnityX.Rhythm {
 
 		public void Save() {
 			if (trace == null || trace.samples.Count == 0) return;
-			LastSavedPath = Path.Combine(Application.persistentDataPath, fileName);
-			File.WriteAllText(LastSavedPath, trace.Serialize());
-			Debug.Log($"Saved clock trace to {LastSavedPath}");
+			var path = Path.Combine(Application.persistentDataPath, fileName);
+			try {
+				File.WriteAllText(path, trace.Serialize());
+			} catch (Exception e) when (e is IOException || e is UnauthorizedAccessException) {
+				Debug.LogError($"Couldn't save clock trace to {path}: {e.Message}");
+				return;
+			}
+			LastSavedPath = path;
+			Debug.Log($"Saved clock trace to {path}");
 		}
 	}
 }

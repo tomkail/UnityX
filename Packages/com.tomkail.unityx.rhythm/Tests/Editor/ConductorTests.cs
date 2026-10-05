@@ -169,6 +169,114 @@ namespace UnityX.Rhythm.Tests {
 		}
 
 		[Test]
+		public void SeekingFromABeatHandlerDoesNotFlood() {
+			var beats = new List<long>();
+			var bars = new List<long>();
+			conductor.BeatCrossed += e => {
+				beats.Add(e.index);
+				if (e.index == 2) conductor.Clock.Seek(conductor.TempoMap.TimeAtBeat(32.5));
+			};
+			conductor.BarCrossed += e => bars.Add(e.index);
+			conductor.Clock.Play(0);
+			Run(1.5);
+			CollectionAssert.AreEqual(new long[] { 0, 1, 2 }, beats.GetRange(0, 3));
+			Assert.Greater(beats.Count, 3, "Carries on after the seek");
+			for (var i = 3; i < beats.Count; i++) Assert.GreaterOrEqual(beats[i], 33, $"Beat {beats[i]} was skipped by the seek");
+			for (var i = 1; i < bars.Count; i++) Assert.Greater(bars[i], bars[i - 1], "Bars are monotonic");
+			Assert.IsFalse(bars.Exists(b => b >= 1 && b <= 7), "No flood of the skipped bars");
+		}
+
+		[Test]
+		public void LoopingBackFromABarHandlerReportsTheRestart() {
+			var beats = new List<long>();
+			var bars = new List<long>();
+			var looped = false;
+			conductor.BeatCrossed += e => beats.Add(e.index);
+			// Only loop once, so the run can reach beat 5
+			conductor.BarCrossed += e => {
+				bars.Add(e.index);
+				if (e.index == 1 && !looped) {
+					looped = true;
+					conductor.Clock.Seek(0);
+				}
+			};
+			conductor.Clock.Play(0);
+			for (var frame = 0; frame < 600 && !(looped && conductor.Beat > 5); frame++) Run(1 / 60.0);
+			Assert.IsTrue(looped);
+			CollectionAssert.AreEqual(new long[] { 0, 1, 0, 1 }, bars);
+			// Seeking exactly onto beat 0 fires it again
+			CollectionAssert.AreEqual(new long[] { 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 5 }, beats);
+		}
+
+		[Test]
+		public void PlayFromZeroSchedulesBeatZero() {
+			var beats = new List<BeatEvent>();
+			var bars = new List<BeatEvent>();
+			conductor.BeatScheduled += beats.Add;
+			conductor.BarScheduled += bars.Add;
+			conductor.Clock.Play(0);
+			Run(1 / 60.0);
+			var beat = beats.Find(e => e.index == 0);
+			var bar = bars.Find(e => e.index == 0);
+			Assert.IsTrue(beats.Exists(e => e.index == 0), "Beat 0 scheduled");
+			Assert.IsTrue(bars.Exists(e => e.index == 0), "Bar 0 scheduled");
+			Assert.AreEqual(conductor.DspTimeAtBeat(0), beat.dspTime, 1e-9);
+			Assert.AreEqual(conductor.DspTimeAtBeat(0), bar.dspTime, 1e-9);
+		}
+
+		[Test]
+		public void SeekingJustBeforeABeatStillSchedulesIt() {
+			conductor.lookAheadTime = 0.1;
+			var beats = new List<BeatEvent>();
+			conductor.BeatScheduled += beats.Add;
+			conductor.Clock.Play(0.1);
+			Run(0.1);
+			conductor.Clock.Seek(conductor.TempoMap.TimeAtBeat(60) - 0.05);
+			Run(1 / 60.0);
+			Assert.IsTrue(beats.Exists(e => e.index == 60), "Beat 60 scheduled");
+			Assert.AreEqual(conductor.DspTimeAtBeat(60), beats.Find(e => e.index == 60).dspTime, 1e-9);
+		}
+
+		[Test]
+		public void TimelineChangedFiresForClockAndTempoChanges() {
+			var count = 0;
+			conductor.TimelineChanged += () => count++;
+			conductor.Clock.Play(0);
+			conductor.TempoMap.SetTempo(0, 90);
+			conductor.TempoMap = new TempoMap(100);
+			conductor.Clock.SetPlaybackRate(0.5);
+			Assert.AreEqual(4, count);
+		}
+
+		[Test]
+		public void RateChangeKeepsBeatsInOrder() {
+			var beats = new List<long>();
+			conductor.BeatCrossed += e => beats.Add(e.index);
+			conductor.Clock.Play(0);
+			Run(1.1);
+			CollectionAssert.AreEqual(new long[] { 0, 1, 2 }, beats);
+			conductor.Clock.SetPlaybackRate(2);
+			Run(1);
+			for (var i = 1; i < beats.Count; i++) Assert.AreEqual(beats[i - 1] + 1, beats[i], "Consecutive beats");
+			Assert.GreaterOrEqual(beats[beats.Count - 1], 5);
+		}
+
+		[Test]
+		public void ReenablingSubdivisionsDoesNotFlood() {
+			conductor.subdivisionsPerBeat = 2;
+			var subdivisions = new List<long>();
+			conductor.SubdivisionCrossed += e => subdivisions.Add(e.index);
+			conductor.Clock.Play(0);
+			Run(0.6);
+			conductor.subdivisionsPerBeat = 0;
+			Run(1);
+			var before = subdivisions.Count;
+			conductor.subdivisionsPerBeat = 2;
+			Run(1 / 60.0);
+			Assert.LessOrEqual(subdivisions.Count - before, 1);
+		}
+
+		[Test]
 		public void BeatPhaseMeasuresDistanceToTheGrid() {
 			conductor.Clock.Play(0);
 			Run(0.1);
