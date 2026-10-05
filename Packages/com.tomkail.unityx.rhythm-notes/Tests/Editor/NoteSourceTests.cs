@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace UnityX.Rhythm.Notes.Tests {
@@ -109,6 +111,32 @@ namespace UnityX.Rhythm.Notes.Tests {
 			// 0.3 / 0.1 is 2.9999999999999996 in doubles
 			Assert.AreEqual(0.3, Query(grid, 0.30000000000000004 - 1e-17, 0.35)[0].Beat, 1e-12);
 			Assert.AreEqual(3, Query(grid, 0.3, 0.35)[0].id.repeat);
+		}
+
+		[Test]
+		public void BeatGridPlaysNothingForANaNWindowStart() {
+			CollectionAssert.IsEmpty(Query(new BeatGrid(1), double.NaN, 4));
+		}
+
+		[Test]
+		public void NonFiniteWindowsPlayNothingAndFinish() {
+			var sources = new INoteSource[] { new BeatGrid(1), new Pattern(4, new[] { new Note(0), new Note(2, 0, 1) }) };
+			var windows = new[] { (0.0, double.PositiveInfinity), (0.0, double.NaN), (double.NaN, 4.0), (double.NaN, double.NaN), (double.NegativeInfinity, double.PositiveInfinity) };
+			foreach (var source in sources) {
+				foreach (var (start, end) in windows) {
+					var results = new List<NoteInstance>();
+					// On another thread, so a regression fails the test instead of hanging the run
+					var query = Task.Run(() => source.GetNotes(start, end, results));
+					Assert.IsTrue(query.Wait(TimeSpan.FromSeconds(5)), $"{source.GetType().Name} didn't finish for [{start}, {end})");
+					CollectionAssert.IsEmpty(results, $"{source.GetType().Name} for [{start}, {end})");
+				}
+			}
+		}
+
+		[Test]
+		public void PatternSkipsNotesWithoutALength() {
+			var pattern = new Pattern(4, new[] { new Note(0, 0, double.NaN), new Note(1) });
+			CollectionAssert.AreEqual(new[] { 1.0, 5.0 }, Query(pattern, 0, 8).Select(n => n.Beat));
 		}
 	}
 }

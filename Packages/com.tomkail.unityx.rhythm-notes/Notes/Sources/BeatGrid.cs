@@ -42,6 +42,8 @@ namespace UnityX.Rhythm {
 		public void NotifyChanged() => Changed?.Invoke();
 
 		public void GetNotes(double startBeat, double endBeat, List<NoteInstance> results) {
+			// An endless or NaN window would never stop stepping
+			if (!(endBeat > startBeat) || double.IsInfinity(endBeat) || double.IsNaN(startBeat)) return;
 			if (!(interval > 0) || double.IsInfinity(interval)) return;
 			// One step early, then filter, so rounding in the division can't skip a note exactly on startBeat
 			var first = Math.Max(0, (long)Math.Ceiling((startBeat - offset) / interval) - 1);

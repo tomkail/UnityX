@@ -46,16 +46,22 @@ namespace UnityX.Rhythm {
 		public Pattern Clone() => new(lengthInBeats, notes);
 
 		public void GetNotes(double startBeat, double endBeat, List<NoteInstance> results) {
+			// An endless or NaN window would never stop looping
+			if (!(endBeat > startBeat) || double.IsInfinity(endBeat) || double.IsNaN(startBeat)) return;
 			// Bad inspector data plays nothing rather than looping forever
 			if (notes.Count == 0 || !(lengthInBeats > 0) || double.IsInfinity(lengthInBeats) || endBeat <= 0) return;
 			var longest = 0.0;
-			foreach (var note in notes) longest = Math.Max(longest, note.length);
+			foreach (var note in notes) {
+				if (!double.IsNaN(note.length)) longest = Math.Max(longest, note.length);
+			}
 			var firstRepeat = Math.Max(0, (long)Math.Floor((startBeat - longest) / lengthInBeats));
 			var lastRepeat = (long)Math.Floor(endBeat / lengthInBeats);
 			for (var repeat = firstRepeat; repeat <= lastRepeat; repeat++) {
 				var offset = repeat * lengthInBeats;
 				foreach (var note in notes) {
-					if (note.beat < 0 || note.beat >= lengthInBeats) continue;
+					// A NaN length is bad inspector data, like a beat outside the loop, so it's skipped the same way rather
+					// than guessed at. It would also have no end for the scheduler to see pass.
+					if (note.beat < 0 || note.beat >= lengthInBeats || double.IsNaN(note.length)) continue;
 					var placed = note;
 					placed.beat = offset + note.beat;
 					if (!placed.Overlaps(startBeat, endBeat)) continue;
