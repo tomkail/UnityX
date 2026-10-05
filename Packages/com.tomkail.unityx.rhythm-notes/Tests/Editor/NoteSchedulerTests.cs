@@ -62,6 +62,20 @@ namespace UnityX.Rhythm.Notes.Tests {
 		}
 
 		[Test]
+		public void AHoldCutAtItsRegionEndPasses() {
+			var arrangement = new Arrangement();
+			arrangement.Add(new Chart(new[] { new Note(3, 0, 2) }), 0, 4);
+			scheduler.Source = arrangement;
+			song.clock.Play(0);
+			// Song time 3s is beat 6: the window starts at beat 5, past the region end at 4
+			Run(3);
+			Assert.AreEqual(1, entered.Count);
+			Assert.AreEqual(1, exited.Count);
+			Assert.AreEqual(3, exited[0].note.Beat);
+			Assert.AreEqual(NoteExitReason.Passed, exited[0].reason);
+		}
+
+		[Test]
 		public void PausingKeepsTheWindow() {
 			song.clock.Play(0);
 			Run(1);

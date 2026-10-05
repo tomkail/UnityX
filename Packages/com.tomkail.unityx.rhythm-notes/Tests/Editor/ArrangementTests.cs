@@ -73,6 +73,17 @@ namespace UnityX.Rhythm.Notes.Tests {
 		}
 
 		[Test]
+		public void HoldsAreCutAtTheRegionEnd() {
+			var arrangement = new Arrangement();
+			arrangement.Add(new Chart(new[] { new Note(3, 0, 2) }), 0, 4);
+			var notes = Query(arrangement, 3.5, 4);
+			Assert.AreEqual(1, notes.Count);
+			Assert.AreEqual(3, notes[0].Beat);
+			Assert.AreEqual(1, notes[0].note.length);
+			Assert.AreEqual(4, notes[0].EndBeat);
+		}
+
+		[Test]
 		public void RegionsMustEndAfterTheyStart() {
 			var arrangement = new Arrangement();
 			Assert.Throws<System.ArgumentOutOfRangeException>(() => arrangement.Add(new Pattern(1), 4, 4));

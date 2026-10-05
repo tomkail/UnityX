@@ -77,10 +77,15 @@ namespace UnityX.Rhythm {
 				if (end <= startBeat) continue;
 				regionNotes.Clear();
 				region.Source.GetNotes(startBeat - region.StartBeat, end - region.StartBeat, regionNotes);
+				var regionLength = region.EndBeat - region.StartBeat;
 				foreach (var note in regionNotes) {
-					// Only notes that start inside the region; a hold may carry on past its end
+					// Only notes that start inside the region. A hold is cut at the region's end, so it has ended by the time
+					// the window leaves the region and the scheduler sees it pass rather than vanish.
 					if (note.Beat < 0) continue;
-					results.Add(note.Offset(region.StartBeat).WithId(note.id.WithSource(region.Id)));
+					var placed = note.note;
+					placed.beat += region.StartBeat;
+					placed.length = Math.Min(placed.length, regionLength - note.Beat);
+					results.Add(new NoteInstance(note.id.WithSource(region.Id), placed));
 				}
 			}
 		}
