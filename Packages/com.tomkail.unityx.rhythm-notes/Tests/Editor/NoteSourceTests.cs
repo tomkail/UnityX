@@ -108,8 +108,10 @@ namespace UnityX.Rhythm.Notes.Tests {
 		[Test]
 		public void BeatGridDoesNotSkipANoteOnTheWindowStart() {
 			var grid = new BeatGrid(0.1);
+			// Step 3 is at 3 * 0.1 = 0.30000000000000004, and dividing that by 0.1 gives 3.0000000000000004, which
+			// rounds up past step 3
+			Assert.AreEqual(0.3, Query(grid, 0.30000000000000004, 0.35)[0].Beat, 1e-12);
 			// 0.3 / 0.1 is 2.9999999999999996 in doubles
-			Assert.AreEqual(0.3, Query(grid, 0.30000000000000004 - 1e-17, 0.35)[0].Beat, 1e-12);
 			Assert.AreEqual(3, Query(grid, 0.3, 0.35)[0].id.repeat);
 		}
 

@@ -2,7 +2,7 @@ using System;
 
 namespace UnityX.Rhythm {
 	// Identifies a note across tempo, rate, swing and seek changes. It depends only on where the note is authored, so
-	// adding or removing one note never changes the IDs of the others. One note per lane per tick: duplicates are dropped.
+	// adding or removing one note never changes the IDs of the others. One note per lane per tick: the note scheduler drops duplicates.
 	public readonly struct NoteId : IEquatable<NoteId> {
 		public const int TicksPerBeat = 960;
 

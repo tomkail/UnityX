@@ -51,14 +51,21 @@ namespace UnityX.Rhythm.Notes.Tests {
 		public void TempoRateAndSwingChangesKeepNoteIds() {
 			song.clock.Play(0);
 			Run(1);
+			// The raw clock moves in whole buffers, so song time is just under 1s (beat 2): the window is beats 1 to 4
+			CollectionAssert.AreEqual(new long[] { 1, 2, 3 }, Repeats(scheduler.ActiveNotes));
 			entered.Clear();
+			exited.Clear();
 			song.TempoMap.SetTempo(2, 90);
 			song.TempoMap.SetSwing(0, 0.5, 0.6);
 			song.clock.SetPlaybackRate(0.75);
 			scheduler.Update();
-			// The window shrank in beats, so notes only left from the far end; none re-entered
+			// The window shrank to about beats 1.2 to 3.1: beat 1 fell out of the back and passed, beats 2 and 3 kept
+			// their IDs, and nothing re-entered
+			CollectionAssert.AreEqual(new long[] { 2, 3 }, Repeats(scheduler.ActiveNotes));
 			CollectionAssert.IsEmpty(entered);
-			Assert.IsTrue(exited.Where(e => e.note.Beat > 2).All(e => e.reason == NoteExitReason.Removed));
+			Assert.AreEqual(1, exited.Count);
+			Assert.AreEqual(1, exited[0].note.id.repeat);
+			Assert.AreEqual(NoteExitReason.Passed, exited[0].reason);
 		}
 
 		[Test]
