@@ -44,6 +44,7 @@
     "com.unity.pipeline": "0.8.0-exp.1"
   },
   "testables": [
+    "com.tomkail.unityx.rhythm",
     "com.tomkail.unityx.trackpad-multitouch"
   ]
 }

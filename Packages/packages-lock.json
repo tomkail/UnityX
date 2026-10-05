@@ -206,6 +206,12 @@
         "com.tomkail.unityx.geometry": "2.0.0"
       }
     },
+    "com.tomkail.unityx.rhythm": {
+      "version": "file:com.tomkail.unityx.rhythm",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.tomkail.unityx.scene-management": {
       "version": "file:com.tomkail.unityx.scene-management",
       "depth": 0,
