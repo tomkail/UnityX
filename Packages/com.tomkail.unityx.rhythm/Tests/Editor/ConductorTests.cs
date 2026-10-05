@@ -6,7 +6,7 @@ namespace UnityX.Rhythm.Tests {
 	public class ConductorTests {
 		GameObject gameObject;
 		Conductor conductor;
-		FakeAudioTimeSource source;
+		ManualAudioTimeSource source;
 
 		[SetUp]
 		public void SetUp() {
@@ -14,7 +14,7 @@ namespace UnityX.Rhythm.Tests {
 			conductor = gameObject.AddComponent<Conductor>();
 			conductor.smoothing = Conductor.SmoothingMode.Raw;
 			conductor.TempoMap = new TempoMap(120);
-			source = new FakeAudioTimeSource();
+			source = new ManualAudioTimeSource();
 			conductor.Initialize(source);
 			conductor.Tick();
 		}

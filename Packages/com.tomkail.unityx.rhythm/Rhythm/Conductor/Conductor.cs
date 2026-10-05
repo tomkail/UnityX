@@ -5,7 +5,7 @@ namespace UnityX.Rhythm {
 	// Pairs a clock with a tempo map: where we are in the music this frame, and beat/bar/subdivision events.
 	// Runs early in the frame so everything else reads this frame's position.
 	[DefaultExecutionOrder(-1000)]
-	public class Conductor : MonoBehaviour {
+	public class Conductor : MonoBehaviour, IBeatTimeline {
 		public enum SmoothingMode {
 			OffsetTracking,
 			Regression,
@@ -24,6 +24,7 @@ namespace UnityX.Rhythm {
 		public double lookAheadTime = 0.1;
 
 		public AudioRhythmClock Clock { get; private set; }
+		IRhythmClock IBeatTimeline.Clock => Clock;
 		public RhythmLatency Latency { get => latency; set => latency = value; }
 		public double SongTime => Clock.SongTime;
 		// This frame's position in authored beats

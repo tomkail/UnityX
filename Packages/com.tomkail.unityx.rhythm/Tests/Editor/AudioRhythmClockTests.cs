@@ -2,12 +2,12 @@ using NUnit.Framework;
 
 namespace UnityX.Rhythm.Tests {
 	public class AudioRhythmClockTests {
-		FakeAudioTimeSource source;
+		ManualAudioTimeSource source;
 		AudioRhythmClock clock;
 
 		[SetUp]
 		public void SetUp() {
-			source = new FakeAudioTimeSource();
+			source = new ManualAudioTimeSource();
 			// Raw keeps these tests exact; smoothing has its own tests
 			clock = new AudioRhythmClock(source, new RawClockSmoother());
 			clock.Tick();

@@ -1,8 +1,8 @@
 using System;
 
-namespace UnityX.Rhythm.Tests {
-	// A controllable audio clock: dspTime advances in whole buffers, like Unity's
-	public sealed class FakeAudioTimeSource : IAudioTimeSource {
+namespace UnityX.Rhythm {
+	// An audio clock you drive by hand, for tests and replays: dspTime advances in whole buffers, like Unity's
+	public sealed class ManualAudioTimeSource : IAudioTimeSource {
 		public double Realtime { get; set; }
 		public double BufferDuration { get; set; } = 1024 / 44100.0;
 		// Offset between the audio clock and real time

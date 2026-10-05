@@ -36,7 +36,7 @@ namespace UnityX.Rhythm.Tests {
 		[Test]
 		public void RestartsWhenTheAudioClockJumpsBackwards() {
 			foreach (IClockSmoother smoother in new IClockSmoother[] { new RawClockSmoother(), new RegressionClockSmoother(), new OffsetTrackingClockSmoother() }) {
-				var source = new FakeAudioTimeSource { DspOffset = 3600 };
+				var source = new ManualAudioTimeSource { DspOffset = 3600 };
 				double Step() { source.Advance(1 / 60.0); return smoother.Update(source.Realtime, source.DspTime, source.BufferDuration); }
 				for (var i = 0; i < 120; i++) Step();
 				var before = Step();
@@ -54,7 +54,7 @@ namespace UnityX.Rhythm.Tests {
 
 		[Test]
 		public void HoldsDuringAStallAndResyncsAfter() {
-			var source = new FakeAudioTimeSource();
+			var source = new ManualAudioTimeSource();
 			var smoother = new OffsetTrackingClockSmoother();
 			double Step(double dt) { source.Advance(dt); return smoother.Update(source.Realtime, source.DspTime, source.BufferDuration); }
 			double TrueClock() => source.Realtime + source.DspOffset - source.BufferDuration * 0.5;
