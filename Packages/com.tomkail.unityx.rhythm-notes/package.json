@@ -1,0 +1,15 @@
+{
+  "name": "com.tomkail.unityx.rhythm-notes",
+  "version": "2.0.0",
+  "displayName": "UnityX Rhythm Notes",
+  "description": "Rhythm game notes: looping patterns, charts, beat grids and live-editable arrangements with stable note IDs, and a scheduler that keeps the notes near now.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.tomkail.unityx.rhythm": "2.0.0"
+  }
+}

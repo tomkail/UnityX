@@ -212,6 +212,14 @@
       "source": "embedded",
       "dependencies": {}
     },
+    "com.tomkail.unityx.rhythm-notes": {
+      "version": "file:com.tomkail.unityx.rhythm-notes",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.tomkail.unityx.rhythm": "2.0.0"
+      }
+    },
     "com.tomkail.unityx.scene-management": {
       "version": "file:com.tomkail.unityx.scene-management",
       "depth": 0,
