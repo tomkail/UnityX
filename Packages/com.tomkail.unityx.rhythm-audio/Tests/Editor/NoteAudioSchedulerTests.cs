@@ -47,10 +47,22 @@ namespace UnityX.Rhythm.Audio.Tests {
 		public void CreatesItsVoicesAndQueuesTheClickTrack() {
 			conductor.Clock.Play(-0.1);
 			Frame();
-			Assert.AreEqual(audioScheduler.voiceCount, gameObject.GetComponents<AudioSource>().Length);
+			var voices = gameObject.transform.Find("Voices");
+			Assert.IsNotNull(voices);
+			Assert.AreEqual(audioScheduler.voiceCount, voices.GetComponents<AudioSource>().Length);
 			Assert.IsNotNull(audioScheduler.Scheduler);
 			Assert.AreEqual(1, audioScheduler.Scheduler.VoiceCount);
-			Assert.AreEqual(click, gameObject.GetComponents<AudioSource>()[0].clip);
+			Assert.AreEqual(click, voices.GetComponents<AudioSource>()[0].clip);
+		}
+
+		[Test]
+		public void ABackingTrackOnTheSameObjectGetsItsOwnAudioSource() {
+			conductor.Clock.Play(-0.1);
+			Frame();
+			var backing = gameObject.AddComponent<BackingTrack>();
+			// The pool lives on a child, so the only AudioSource here is the one BackingTrack required
+			Assert.AreEqual(1, gameObject.GetComponents<AudioSource>().Length);
+			Assert.AreEqual(gameObject.GetComponent<AudioSource>(), backing.AudioSource);
 		}
 
 		[Test]

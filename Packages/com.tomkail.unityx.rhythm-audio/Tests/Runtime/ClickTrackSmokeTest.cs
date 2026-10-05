@@ -39,7 +39,7 @@ namespace UnityX.Rhythm.Audio.Tests {
 			audioScheduler.conductor = conductor;
 			audioScheduler.sounds = sounds;
 			audioScheduler.Source = new BeatGrid(1);
-			var audioSources = gameObject.GetComponents<AudioSource>();
+			var audioSources = audioScheduler.AudioSources;
 
 			yield return null;
 			conductor.Clock.Play(-0.5);

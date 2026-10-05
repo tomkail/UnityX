@@ -1,9 +1,11 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
 
 namespace UnityX.Rhythm {
 	// Plays a note source's sounds in time with a Conductor. Set Source from code; a click track is a BeatGrid.
-	// Runs after the Conductor so it schedules against this frame's clock.
+	// Runs after the Conductor so it schedules against this frame's clock. Its AudioSources live on a child named
+	// "Voices", so another component here that needs an AudioSource, e.g. a BackingTrack, never takes one of them.
 	[DefaultExecutionOrder(-900)]
 	public class NoteAudioScheduler : MonoBehaviour {
 		public Conductor conductor;
@@ -19,6 +21,14 @@ namespace UnityX.Rhythm {
 
 		public NoteSoundScheduler Scheduler { get; private set; }
 
+		// The voice pool, created on first use
+		public IReadOnlyList<AudioSource> AudioSources {
+			get {
+				EnsureAudioSources();
+				return audioSources;
+			}
+		}
+
 		public INoteSource Source {
 			get => source;
 			set {
@@ -31,9 +41,11 @@ namespace UnityX.Rhythm {
 
 		void EnsureAudioSources() {
 			if (audioSources != null) return;
+			var voices = new GameObject("Voices");
+			voices.transform.SetParent(transform, false);
 			audioSources = new AudioSource[Mathf.Max(1, voiceCount)];
 			for (var i = 0; i < audioSources.Length; i++) {
-				var audioSource = gameObject.AddComponent<AudioSource>();
+				var audioSource = voices.AddComponent<AudioSource>();
 				audioSource.playOnAwake = false;
 				audioSource.outputAudioMixerGroup = output;
 				audioSources[i] = audioSource;
