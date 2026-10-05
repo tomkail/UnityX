@@ -4,8 +4,10 @@ using System.Collections.Generic;
 namespace UnityX.Rhythm {
 	// Queues each note's sound sample-accurately, a short time ahead of the note.
 	// - Re-times sounds that haven't started yet when the timeline changes (tempo, rate, seek).
-	// - Cancels a sound when its note is removed from the source, or when a pause or seek means it hasn't played and
-	//   now shouldn't. Never because the note scrolled past: a sound that has started rings on.
+	// - Cancels a sound that hasn't started when a pause or seek means it now shouldn't play.
+	// - A sound that has started rings on when its note scrolls past or the song jumps forward, and is cut when its
+	//   note is removed from the source or the song jumps back past it. A short jump back that leaves the note ahead
+	//   lets it play again over the old sound.
 	// Call Update once per frame, after the clock has ticked. NoteAudioScheduler does this for you.
 	public sealed class NoteSoundScheduler : IDisposable {
 		readonly IBeatTimeline timeline;
@@ -84,8 +86,15 @@ namespace UnityX.Rhythm {
 			scratch.AddRange(voices.Keys);
 			foreach (var id in scratch) {
 				var voice = voices[id];
-				if (voice.StartDspTime <= now) continue;
 				var dspTime = playing && notes.TryGetNote(id, out var note) ? timeline.DspTimeAtBeat(note.Beat) : double.NaN;
+				if (voice.StartDspTime <= now) {
+					// Already sounding but the note is ahead again, e.g. after a short seek back: let it ring and queue the note again
+					if (dspTime > now) {
+						voices.Remove(id);
+						ringing.Add(voice);
+					}
+					continue;
+				}
 				if (dspTime >= now - lateTolerance) {
 					voice.Reschedule(dspTime);
 				} else {

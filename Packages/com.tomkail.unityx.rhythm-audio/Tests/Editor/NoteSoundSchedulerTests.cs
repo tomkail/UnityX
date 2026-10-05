@@ -79,6 +79,9 @@ namespace UnityX.Rhythm.Audio.Tests {
 			scheduler.Update();
 			Assert.AreEqual(DspAtBeat(2), queued.StartDspTime, 1e-9);
 			Assert.Greater(queued.StartDspTime, song.clock.DspTime + 0.25);
+			Assert.AreEqual(1, queued.reschedules);
+			Assert.IsFalse(queued.stopped);
+			Assert.AreEqual(3, player.voices.Count);
 		}
 
 		[Test]
@@ -127,9 +130,52 @@ namespace UnityX.Rhythm.Audio.Tests {
 		}
 
 		[Test]
+		public void SeekingBackReplaysANoteThatIsStillRinging() {
+			player.length = 5;
+			song.clock.Play(0);
+			scheduler.Update();
+			// Just past beat 2 (1s), still inside the 0.1s look-behind, so seeking back doesn't make it exit
+			Run(1.05);
+			var first = player.voices.Single(v => v.note.Beat == 2);
+			song.clock.Seek(song.clock.SongTime - 0.1);
+			scheduler.Update();
+			Run(0.15);
+			Assert.AreEqual(2, player.voices.Count(v => v.note.Beat == 2));
+			Assert.IsFalse(first.stopped);
+		}
+
+		[Test]
+		public void RetimingTooLateCancels() {
+			song.clock.Play(0);
+			scheduler.Update();
+			Run(0.85);
+			var queued = player.voices.Single(v => v.note.Beat == 2);
+			// Beat 2 (1s) is now 0.05s behind: inside the look-behind, but past the late tolerance
+			song.clock.Seek(1.05);
+			scheduler.Update();
+			Assert.IsTrue(queued.stopped);
+			Assert.AreEqual(1, player.voices.Count(v => v.note.Beat == 2));
+		}
+
+		[Test]
+		public void RetimingWithinToleranceReschedules() {
+			song.clock.Play(0);
+			scheduler.Update();
+			Run(0.85);
+			var queued = player.voices.Single(v => v.note.Beat == 2);
+			// Beat 2 is now 0.01s behind, within the 0.02s late tolerance
+			song.clock.Seek(1.01);
+			scheduler.Update();
+			Assert.IsFalse(queued.stopped);
+			Assert.AreEqual(1, queued.reschedules);
+			Assert.AreEqual(DspAtBeat(2), queued.StartDspTime, 1e-9);
+			Assert.AreEqual(1, player.voices.Count(v => v.note.Beat == 2));
+		}
+
+		[Test]
 		public void LateNotesAreSkipped() {
-			// Starting 0.1s after beat 2 is too late to play it
-			song.clock.Play(1.1);
+			// Starting 0.05s after beat 2 (inside the look-behind) is too late to play it
+			song.clock.Play(1.05);
 			scheduler.Update();
 			Assert.IsFalse(player.voices.Any(v => v.note.Beat == 2));
 		}
