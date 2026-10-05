@@ -5,7 +5,8 @@ namespace UnityX.Rhythm {
 	public enum NoteExitReason {
 		// The note is behind the window: it has been and gone
 		Passed,
-		// Anything else: the source no longer has it, or a seek moved the window away from it
+		// Anything else: the source no longer has it, or a seek back moved the window away from it. A seek forward or a
+		// hitch that skips past a note gives Passed.
 		Removed
 	}
 
@@ -21,6 +22,7 @@ namespace UnityX.Rhythm {
 		readonly List<NoteInstance> found = new();
 		readonly List<NoteInstance> exited = new();
 		readonly List<NoteInstance> entered = new();
+		static readonly Comparison<NoteInstance> compareNotes = CompareNotes;
 
 		public double lookBehind = 0.25;
 		public double lookAhead = 2;
@@ -75,7 +77,7 @@ namespace UnityX.Rhythm {
 			foreach (var note in found) {
 				if (nextIds.Add(note.id)) next.Add(note);
 			}
-			next.Sort(CompareNotes);
+			next.Sort(compareNotes);
 
 			exited.Clear();
 			foreach (var note in active) {
