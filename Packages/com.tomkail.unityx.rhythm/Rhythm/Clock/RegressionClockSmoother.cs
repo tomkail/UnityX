@@ -12,10 +12,20 @@ namespace UnityX.Rhythm {
 		double lastDspChangeRealtime;
 
 		public bool IsStalled { get; private set; }
+		public double LastDiscontinuity { get; private set; }
 
-		public void Reset() { samples.Clear(); lastEstimate = double.NegativeInfinity; lastDspTime = null; IsStalled = false; }
+		public void Reset() { samples.Clear(); lastEstimate = double.NegativeInfinity; lastDspTime = null; IsStalled = false; LastDiscontinuity = 0; }
 
 		public double Update(double realtime, double dspTime, double bufferDuration) {
+			// dspTime never goes backwards on its own; when it does, the audio device restarted on a new timeline
+			if (lastDspTime.HasValue && dspTime < lastDspTime.Value) {
+				var previousEstimate = lastEstimate;
+				Reset();
+				var restarted = Update(realtime, dspTime, bufferDuration);
+				LastDiscontinuity = restarted - previousEstimate;
+				return restarted;
+			}
+			LastDiscontinuity = 0;
 			if (lastDspTime != dspTime) { lastDspTime = dspTime; lastDspChangeRealtime = realtime; }
 			IsStalled = realtime - lastDspChangeRealtime > 3 * bufferDuration;
 			samples.Enqueue((realtime, dspTime));

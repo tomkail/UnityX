@@ -34,6 +34,25 @@ namespace UnityX.Rhythm.Tests {
 		}
 
 		[Test]
+		public void RestartsWhenTheAudioClockJumpsBackwards() {
+			foreach (IClockSmoother smoother in new IClockSmoother[] { new RawClockSmoother(), new RegressionClockSmoother(), new OffsetTrackingClockSmoother() }) {
+				var source = new FakeAudioTimeSource { DspOffset = 3600 };
+				double Step() { source.Advance(1 / 60.0); return smoother.Update(source.Realtime, source.DspTime, source.BufferDuration); }
+				for (var i = 0; i < 120; i++) Step();
+				var before = Step();
+				// The audio device resets and its clock restarts near zero
+				source.DspOffset = 1 - source.Realtime;
+				var after = Step();
+				var name = smoother.GetType().Name;
+				Assert.Less(after, 10, $"{name} follows the new timeline instead of holding the old value");
+				Assert.AreEqual(after - before, smoother.LastDiscontinuity, 0.05, $"{name} reports the jump");
+				var next = Step();
+				Assert.Greater(next, after, $"{name} keeps advancing");
+				Assert.AreEqual(0, smoother.LastDiscontinuity, $"{name} reports the jump only once");
+			}
+		}
+
+		[Test]
 		public void HoldsDuringAStallAndResyncsAfter() {
 			var source = new FakeAudioTimeSource();
 			var smoother = new OffsetTrackingClockSmoother();

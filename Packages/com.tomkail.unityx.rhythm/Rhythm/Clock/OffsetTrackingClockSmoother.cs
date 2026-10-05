@@ -29,14 +29,25 @@ namespace UnityX.Rhythm {
 		double lastDspChangeRealtime;
 
 		public bool IsStalled { get; private set; }
+		public double LastDiscontinuity { get; private set; }
 		public double Offset => offset ?? 0;
 
 		public void Reset() {
 			samples.Clear(); sampleSum = 0; offset = null;
-			lastEstimate = double.NegativeInfinity; lastDspTime = null; IsStalled = false;
+			lastEstimate = double.NegativeInfinity; lastDspTime = null; IsStalled = false; LastDiscontinuity = 0;
 		}
 
 		public double Update(double realtime, double dspTime, double bufferDuration) {
+			// dspTime never goes backwards on its own; when it does, the audio device restarted on a new timeline.
+			// Start again on that timeline rather than holding the old value until dspTime catches up.
+			if (lastDspTime.HasValue && dspTime < lastDspTime.Value) {
+				var previousEstimate = lastEstimate;
+				Reset();
+				var restarted = Update(realtime, dspTime, bufferDuration);
+				LastDiscontinuity = restarted - previousEstimate;
+				return restarted;
+			}
+			LastDiscontinuity = 0;
 			if (lastDspTime != dspTime) { lastDspTime = dspTime; lastDspChangeRealtime = realtime; }
 			IsStalled = realtime - lastDspChangeRealtime > stallBuffers * bufferDuration;
 			if (IsStalled) {
@@ -49,8 +60,8 @@ namespace UnityX.Rhythm {
 			while (samples.Count > 1 && samples.Peek().realtime < realtime - window) sampleSum -= samples.Dequeue().offset;
 			var targetOffset = sampleSum / samples.Count;
 			if (offset == null) {
-				// dspTime marks the end of the latest buffer, so on average the clock sits half a buffer behind it
-				offset = sampleOffset - bufferDuration * 0.5;
+				// One sample is a rough start; the settling slew pulls it to the window average
+				offset = sampleOffset;
 				settledAtRealtime = realtime + window;
 			} else if (Math.Abs(targetOffset - offset.Value) > snapThreshold) {
 				offset = targetOffset;
