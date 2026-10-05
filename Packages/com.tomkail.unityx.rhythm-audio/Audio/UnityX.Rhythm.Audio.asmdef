@@ -1,0 +1,17 @@
+{
+    "name": "UnityX.Rhythm.Audio",
+    "rootNamespace": "UnityX.Rhythm.Audio",
+    "references": [
+        "UnityX.Rhythm",
+        "UnityX.Rhythm.Notes"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

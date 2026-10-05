@@ -1,0 +1,16 @@
+{
+  "name": "com.tomkail.unityx.rhythm-audio",
+  "version": "2.0.0",
+  "displayName": "UnityX Rhythm Audio",
+  "description": "Sample-accurate note sounds for rhythm games: schedules each note's sound ahead with PlayScheduled, re-times it on tempo and rate changes, and maps lanes to clips.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.tomkail.unityx.rhythm": "2.0.0",
+    "com.tomkail.unityx.rhythm-notes": "2.0.0"
+  }
+}
