@@ -1,0 +1,23 @@
+{
+    "name": "UnityX.Rhythm.Audio.PlayModeTests",
+    "rootNamespace": "UnityX.Rhythm.Audio.Tests",
+    "references": [
+        "UnityEngine.TestRunner",
+        "UnityX.Rhythm",
+        "UnityX.Rhythm.Notes",
+        "UnityX.Rhythm.Audio"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
