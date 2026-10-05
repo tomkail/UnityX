@@ -46,7 +46,9 @@ namespace UnityX.Rhythm.Audio.Tests {
 			var lastSongTime = double.NegativeInfinity;
 			var heard = new HashSet<long>();
 			var worstStartError = 0.0;
+			var giveUp = Time.realtimeSinceStartupAsDouble + 10;
 			while (conductor.SongTime < 2.2) {
+				if (Time.realtimeSinceStartupAsDouble > giveUp) Assert.Fail($"DSP clock did not advance: song time {conductor.SongTime:F3}s after 10s");
 				yield return null;
 				Assert.GreaterOrEqual(conductor.SongTime, lastSongTime, "Song time went backwards");
 				lastSongTime = conductor.SongTime;
