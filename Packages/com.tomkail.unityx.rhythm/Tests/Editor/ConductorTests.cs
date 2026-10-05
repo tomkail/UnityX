@@ -277,6 +277,35 @@ namespace UnityX.Rhythm.Tests {
 		}
 
 		[Test]
+		public void SeekingMidBarDoesNotReportTheBarInProgress() {
+			var crossed = new List<long>();
+			var scheduled = new List<long>();
+			conductor.BarCrossed += e => crossed.Add(e.index);
+			conductor.BarScheduled += e => scheduled.Add(e.index);
+			conductor.Clock.Play(0.1);
+			Run(0.1);
+			crossed.Clear();
+			scheduled.Clear();
+			// Beat 10 is half way through bar 2; bar 3 (beat 12) is a second away
+			conductor.Clock.Seek(conductor.TempoMap.TimeAtBeat(10));
+			Run(0.3);
+			CollectionAssert.IsEmpty(crossed);
+			CollectionAssert.IsEmpty(scheduled);
+		}
+
+		[Test]
+		public void SeekingOntoABarLineReportsIt() {
+			var crossed = new List<long>();
+			conductor.BarCrossed += e => crossed.Add(e.index);
+			conductor.Clock.Play(0.1);
+			Run(0.1);
+			crossed.Clear();
+			conductor.Clock.Seek(conductor.TempoMap.TimeAtBeat(8));
+			Run(0.3);
+			CollectionAssert.AreEqual(new long[] { 2 }, crossed);
+		}
+
+		[Test]
 		public void BeatPhaseMeasuresDistanceToTheGrid() {
 			conductor.Clock.Play(0);
 			Run(0.1);

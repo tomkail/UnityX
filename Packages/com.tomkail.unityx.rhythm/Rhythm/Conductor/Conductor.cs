@@ -104,7 +104,7 @@ namespace UnityX.Rhythm {
 			timelineChanged = false;
 			beatTracker.Advance(Beat, index => BeatCrossed?.Invoke(CreateEvent(index, index)));
 			if (timelineChanged) return;
-			barTracker.Advance(BarPosition.bar, index => BarCrossed?.Invoke(CreateEvent(index, tempoMap.BeatAtBar((int)index))));
+			barTracker.Advance(FractionalBar(BarPosition), index => BarCrossed?.Invoke(CreateEvent(index, tempoMap.BeatAtBar((int)index))));
 			if (timelineChanged) return;
 			if (subdivisionsPerBeat > 0) {
 				var interval = SubdivisionInterval;
@@ -120,7 +120,7 @@ namespace UnityX.Rhythm {
 			var aheadBeat = BeatAtDspTime(Clock.DspTime + lookAheadTime);
 			scheduledBeatTracker.Advance(aheadBeat, index => BeatScheduled?.Invoke(CreateEvent(index, index)));
 			if (timelineChanged) return;
-			scheduledBarTracker.Advance(tempoMap.BarAtBeat(aheadBeat).bar, index => BarScheduled?.Invoke(CreateEvent(index, tempoMap.BeatAtBar((int)index))));
+			scheduledBarTracker.Advance(FractionalBar(tempoMap.BarAtBeat(aheadBeat)), index => BarScheduled?.Invoke(CreateEvent(index, tempoMap.BeatAtBar((int)index))));
 		}
 
 		void UpdatePosition() {
@@ -146,6 +146,9 @@ namespace UnityX.Rhythm {
 			return new BeatEvent { index = index, beat = beat, dspTime = DspTimeAtBeat(beat), bar = tempoMap.BarAtBeat(beat) };
 		}
 
+		// Bars as a continuous position, so the trackers can tell a start exactly on a bar line from one part-way through
+		static double FractionalBar(BarPosition position) => position.bar + position.beatInBar / position.signature.BarLength;
+
 		double SubdivisionInterval => subdivisionsPerBeat > 0 ? 1.0 / subdivisionsPerBeat : 1;
 
 		void WatchTempoMap() {
@@ -163,12 +166,12 @@ namespace UnityX.Rhythm {
 			UpdatePosition();
 			var beat = Beat;
 			beatTracker.Prime(beat);
-			barTracker.Prime(BarPosition.bar);
+			barTracker.Prime(FractionalBar(BarPosition));
 			subdivisionTracker.interval = SubdivisionInterval;
 			subdivisionTracker.Prime(beat);
 			// From now rather than from the look-ahead point, so the next Tick schedules everything in the window
 			scheduledBeatTracker.Prime(beat);
-			scheduledBarTracker.Prime(BarPosition.bar);
+			scheduledBarTracker.Prime(FractionalBar(BarPosition));
 			TimelineChanged?.Invoke();
 		}
 
