@@ -112,7 +112,10 @@ namespace UnityX.Rhythm {
 				if (pair.Value.IsFinished(now)) scratch.Add(pair.Key);
 			}
 			foreach (var id in scratch) voices.Remove(id);
-			ringing.RemoveAll(voice => voice.IsFinished(now));
+			// A loop rather than RemoveAll, whose closure over now would allocate every frame
+			for (var i = ringing.Count - 1; i >= 0; i--) {
+				if (ringing[i].IsFinished(now)) ringing.RemoveAt(i);
+			}
 		}
 
 		void OnNoteExited(NoteInstance note, NoteExitReason reason) {
