@@ -40,15 +40,18 @@ namespace UnityX.Rhythm.Audio.Tests {
 			conductor.Clock.Play(-0.2);
 			yield return WaitForSongTime(conductor, 1);
 			AssertInStep(conductor, audioSource, tolerance, "after starting");
+			Assert.AreEqual(1, backing.ResyncCount, "Restarts after starting");
 
 			conductor.Clock.SetPlaybackRate(0.5);
 			yield return WaitForRealSeconds(0.6);
 			Assert.AreEqual(0.5f, audioSource.pitch);
 			AssertInStep(conductor, audioSource, tolerance, "after halving the rate");
+			Assert.AreEqual(1, backing.ResyncCount, "A rate change should follow by pitch, not restart the clip");
 
 			conductor.Clock.Seek(5);
 			yield return WaitForRealSeconds(0.6);
 			AssertInStep(conductor, audioSource, tolerance, "after seeking");
+			Assert.AreEqual(2, backing.ResyncCount, "Restarts after seeking");
 
 			conductor.Clock.Pause();
 			yield return null;
@@ -63,7 +66,11 @@ namespace UnityX.Rhythm.Audio.Tests {
 		}
 
 		static IEnumerator WaitForSongTime(Conductor conductor, double songTime) {
-			while (conductor.SongTime < songTime) yield return null;
+			var giveUp = Time.realtimeSinceStartupAsDouble + 10;
+			while (conductor.SongTime < songTime) {
+				if (Time.realtimeSinceStartupAsDouble > giveUp) Assert.Fail($"DSP clock did not advance: song time {conductor.SongTime:F3}s after 10s");
+				yield return null;
+			}
 		}
 
 		static IEnumerator WaitForRealSeconds(double seconds) {
