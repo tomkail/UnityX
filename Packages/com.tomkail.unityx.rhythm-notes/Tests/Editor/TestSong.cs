@@ -1,4 +1,3 @@
-// CircularRhythm/UnityX/Packages/com.tomkail.unityx.rhythm-notes/Tests/Editor/TestSong.cs
 namespace UnityX.Rhythm.Notes.Tests {
 	// A song on a hand-driven audio clock, without smoothing, so times in tests are exact
 	public sealed class TestSong {

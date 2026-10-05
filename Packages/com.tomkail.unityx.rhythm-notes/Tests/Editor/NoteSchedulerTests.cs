@@ -1,4 +1,3 @@
-// CircularRhythm/UnityX/Packages/com.tomkail.unityx.rhythm-notes/Tests/Editor/NoteSchedulerTests.cs
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;

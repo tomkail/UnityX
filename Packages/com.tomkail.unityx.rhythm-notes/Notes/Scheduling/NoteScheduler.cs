@@ -1,4 +1,3 @@
-// CircularRhythm/UnityX/Packages/com.tomkail.unityx.rhythm-notes/Notes/Scheduling/NoteScheduler.cs
 using System;
 using System.Collections.Generic;
 
