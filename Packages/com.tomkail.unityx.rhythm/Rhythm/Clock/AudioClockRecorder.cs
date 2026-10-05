@@ -38,11 +38,13 @@ namespace UnityX.Rhythm {
 
 		public void Save() {
 			if (trace == null || trace.samples.Count == 0) return;
-			var path = Path.Combine(Application.persistentDataPath, fileName);
+			string path = null;
 			try {
+				path = Path.Combine(Application.persistentDataPath, fileName);
 				File.WriteAllText(path, trace.Serialize());
-			} catch (Exception e) when (e is IOException || e is UnauthorizedAccessException) {
-				Debug.LogError($"Couldn't save clock trace to {path}: {e.Message}");
+			} catch (Exception e) when (e is IOException || e is UnauthorizedAccessException || e is ArgumentException) {
+				// Called from OnDisable, so never throw
+				Debug.LogError($"Couldn't save clock trace to {path ?? fileName}: {e.Message}");
 				return;
 			}
 			LastSavedPath = path;

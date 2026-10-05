@@ -306,6 +306,25 @@ namespace UnityX.Rhythm.Tests {
 		}
 
 		[Test]
+		public void SettingTheRateFromABarScheduledHandlerAppliesOnce() {
+			var scheduledCounts = new Dictionary<long, int>();
+			var timelineChanges = 0;
+			// Alternate the rate at each bar line, scheduled at the bar's exact dsp time
+			conductor.BarScheduled += e => {
+				scheduledCounts[e.index] = scheduledCounts.TryGetValue(e.index, out var n) ? n + 1 : 1;
+				conductor.Clock.SetPlaybackRate(e.index % 2 == 0 ? 2 : 0.5, e.dspTime);
+			};
+			conductor.Clock.Play(0);
+			conductor.TimelineChanged += () => timelineChanges++;
+			// Bar 1 (beat 4) is a second in at double speed
+			Run(1.5);
+			Assert.IsTrue(scheduledCounts.ContainsKey(1), "Bar 1 scheduled");
+			Assert.AreEqual(2, timelineChanges, "One rate change per bar");
+			// Each change re-raises the window once with fresh dsp times; repeating the same change does nothing
+			foreach (var pair in scheduledCounts) Assert.LessOrEqual(pair.Value, 2, $"Bar {pair.Key} scheduled {pair.Value} times");
+		}
+
+		[Test]
 		public void BeatPhaseMeasuresDistanceToTheGrid() {
 			conductor.Clock.Play(0);
 			Run(0.1);

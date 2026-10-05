@@ -93,12 +93,18 @@ namespace UnityX.Rhythm {
 		public void SetPlaybackRate(double rate, double? atDspTime = null) {
 			if (!(rate > 0) || double.IsInfinity(rate)) throw new ArgumentOutOfRangeException(nameof(rate), "Playback rate must be positive");
 			if (!IsPlaying) {
+				if (pausedRate == rate) return;
 				pausedRate = rate;
 				TimelineChanged?.Invoke();
 				return;
 			}
 			// Never in the past: that would rewrite song time already reported, so the position would jump
 			var at = Math.Max(atDspTime ?? DspTime, Math.Max(DspTime, segments[0].dspStart));
+			// Already at this rate from `at` with nothing scheduled after: nothing changes, so don't raise TimelineChanged.
+			// This lets a BeatScheduled handler set the rate at e.dspTime without re-priming every frame. The tolerance
+			// absorbs rounding in e.dspTime once the change has bent the timeline.
+			var last = segments[segments.Count - 1];
+			if (last.rate == rate && last.dspStart <= at + 1e-9) return;
 			var songAt = SongTimeAtDspTime(at);
 			segments.RemoveAll(s => s.dspStart >= at);
 			segments.Add(new Segment { dspStart = at, songStart = songAt, rate = rate });

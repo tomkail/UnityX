@@ -55,13 +55,19 @@ namespace UnityX.Rhythm {
 		[SerializeField] List<TimeSignaturePoint> timeSignatures = new() { new TimeSignaturePoint(0, 4, 4) };
 		[SerializeField] List<SwingRegion> swingRegions = new();
 
+		// The authored data, as edited by the Set*/Remove* methods and the inspector, so indices match RemoveTempoPoint etc.
+		// Inspector data can be unsorted or temporarily invalid; conversions use a sanitised copy instead.
 		public IReadOnlyList<TempoPoint> TempoPoints => tempoPoints;
 		public IReadOnlyList<TimeSignaturePoint> TimeSignatures => timeSignatures;
 		public IReadOnlyList<SwingRegion> SwingRegions => swingRegions;
 
 		public event Action Changed;
 
-		// Song time at each tempo point, built lazily
+		// Runtime copies of the authored lists: sorted, valid and never empty. Built lazily; null means rebuild.
+		List<TempoPoint> points;
+		List<TimeSignaturePoint> signatures;
+		List<SwingRegion> swings;
+		// Song time at each runtime tempo point
 		double[] pointTimes;
 
 		public TempoMap() {}
@@ -110,36 +116,51 @@ namespace UnityX.Rhythm {
 
 		void Upsert<T>(List<T> list, T item, Func<T, double> beatOf) {
 			var beat = beatOf(item);
-			var index = list.FindIndex(x => beatOf(x) == beat);
-			if (index >= 0) list[index] = item; else list.Add(item);
-			list.Sort((a, b) => beatOf(a).CompareTo(beatOf(b)));
+			// Inspector data can hold several entries at one beat; replace them all so the new one takes effect
+			list.RemoveAll(x => beatOf(x) == beat);
+			list.Add(item);
+			StableSort(list, beatOf);
 			MarkChanged();
 		}
 
 		void MarkChanged() {
-			pointTimes = null;
+			points = null;
 			Changed?.Invoke();
 		}
 
 		public void OnBeforeSerialize() {}
-		// Inspector and serialized data skip the Set* checks, so sanitise here. No Changed: this can run off the main thread.
-		public void OnAfterDeserialize() {
-			pointTimes = null;
-			tempoPoints ??= new List<TempoPoint>();
-			timeSignatures ??= new List<TimeSignaturePoint>();
-			swingRegions ??= new List<SwingRegion>();
-			tempoPoints.RemoveAll(p => !IsValidBpm(p.bpm) || double.IsNaN(p.beat) || double.IsInfinity(p.beat));
-			timeSignatures.RemoveAll(s => s.numerator <= 0 || s.denominator <= 0);
-			swingRegions.RemoveAll(r => !(r.subdivision > 0) || !(r.amount > 0 && r.amount < 1));
-			StableSort(tempoPoints, p => p.beat);
-			StableSort(timeSignatures, s => s.beat);
-			StableSort(swingRegions, r => r.beat);
+		// Leaves the authored lists exactly as serialized: the inspector round-trips edits through here, so sanitising
+		// them would fight the user mid-edit and save the result. No Changed: this can run off the main thread.
+		public void OnAfterDeserialize() => points = null;
+
+		// Inspector and serialized data skip the Set* checks, so the runtime copy drops anything invalid
+		void EnsureRuntime() {
+			if (points != null) return;
+			var newPoints = new List<TempoPoint>();
+			if (tempoPoints != null) newPoints.AddRange(tempoPoints.Where(p => IsValidBpm(p.bpm) && !double.IsNaN(p.beat) && !double.IsInfinity(p.beat)));
+			StableSort(newPoints, p => p.beat);
 			// Two points at one beat would make a zero-length (divide by zero) segment; the later one wins, as with SetTempo
-			for (var i = tempoPoints.Count - 1; i > 0; i--) {
-				if (tempoPoints[i - 1].beat == tempoPoints[i].beat) tempoPoints.RemoveAt(i - 1);
+			for (var i = newPoints.Count - 1; i > 0; i--) {
+				if (newPoints[i - 1].beat == newPoints[i].beat) newPoints.RemoveAt(i - 1);
 			}
-			if (tempoPoints.Count == 0) tempoPoints.Add(new TempoPoint(0, 120));
-			if (timeSignatures.Count == 0) timeSignatures.Add(new TimeSignaturePoint(0, 4, 4));
+			if (newPoints.Count == 0) newPoints.Add(new TempoPoint(0, 120));
+
+			var newSignatures = new List<TimeSignaturePoint>();
+			if (timeSignatures != null) newSignatures.AddRange(timeSignatures.Where(t => t.numerator > 0 && t.denominator > 0 && !double.IsNaN(t.beat) && !double.IsInfinity(t.beat)));
+			StableSort(newSignatures, t => t.beat);
+			if (newSignatures.Count == 0) newSignatures.Add(new TimeSignaturePoint(0, 4, 4));
+
+			var newSwings = new List<SwingRegion>();
+			if (swingRegions != null) newSwings.AddRange(swingRegions.Where(r => r.subdivision > 0 && !double.IsInfinity(r.subdivision) && r.amount > 0 && r.amount < 1 && !double.IsNaN(r.beat)));
+			StableSort(newSwings, r => r.beat);
+
+			signatures = newSignatures;
+			swings = newSwings;
+			points = newPoints;
+			pointTimes = new double[points.Count];
+			// Song time 0 is beat 0; before the first point the first tempo applies
+			pointTimes[0] = points[0].beat * 60 / points[0].bpm;
+			for (var i = 1; i < points.Count; i++) pointTimes[i] = pointTimes[i - 1] + SegmentDuration(i - 1, points[i].beat - points[i - 1].beat);
 		}
 
 		// List.Sort isn't stable, and "keep the last" needs the authored order of equal beats
@@ -151,21 +172,22 @@ namespace UnityX.Rhythm {
 
 		// --- Conversions -------------------------------------------------------------------------
 
-		public double TimeAtBeat(double beat) => TimeAtPerformedBeat(Swing(beat));
-		public double BeatAtTime(double time) => Unswing(PerformedBeatAtTime(time));
+		public double TimeAtBeat(double beat) { EnsureRuntime(); return TimeAtPerformedBeat(Swing(beat)); }
+		public double BeatAtTime(double time) { EnsureRuntime(); return Unswing(PerformedBeatAtTime(time)); }
 		// The musical tempo at a beat (swing doesn't change it)
-		public double BpmAtBeat(double beat) => BpmAtPerformedBeat(Swing(beat));
+		public double BpmAtBeat(double beat) { EnsureRuntime(); return BpmAtPerformedBeat(Swing(beat)); }
 
 		public BarPosition BarAtBeat(double beat) {
-			var first = timeSignatures[0];
-			if (beat < first.beat || timeSignatures.Count == 1) {
+			EnsureRuntime();
+			var first = signatures[0];
+			if (beat < first.beat || signatures.Count == 1) {
 				var barIndex = (int)Math.Floor((beat - first.beat) / first.BarLength);
 				return new BarPosition { bar = barIndex, beatInBar = beat - first.beat - barIndex * first.BarLength, signature = first };
 			}
 			var barsBefore = 0;
-			for (var i = 0; i < timeSignatures.Count; i++) {
-				var signature = timeSignatures[i];
-				var end = i + 1 < timeSignatures.Count ? timeSignatures[i + 1].beat : double.PositiveInfinity;
+			for (var i = 0; i < signatures.Count; i++) {
+				var signature = signatures[i];
+				var end = i + 1 < signatures.Count ? signatures[i + 1].beat : double.PositiveInfinity;
 				if (beat < end) {
 					var barsIn = (int)Math.Floor((beat - signature.beat) / signature.BarLength);
 					return new BarPosition { bar = barsBefore + barsIn, beatInBar = beat - signature.beat - barsIn * signature.BarLength, signature = signature };
@@ -177,13 +199,14 @@ namespace UnityX.Rhythm {
 		}
 
 		public double BeatAtBar(int bar) {
-			var first = timeSignatures[0];
-			if (bar < 0 || timeSignatures.Count == 1) return first.beat + bar * first.BarLength;
+			EnsureRuntime();
+			var first = signatures[0];
+			if (bar < 0 || signatures.Count == 1) return first.beat + bar * first.BarLength;
 			var barsBefore = 0;
-			for (var i = 0; i < timeSignatures.Count; i++) {
-				var signature = timeSignatures[i];
-				if (i + 1 == timeSignatures.Count) return signature.beat + (bar - barsBefore) * signature.BarLength;
-				var barsHere = (int)Math.Ceiling((timeSignatures[i + 1].beat - signature.beat) / signature.BarLength - 1e-9);
+			for (var i = 0; i < signatures.Count; i++) {
+				var signature = signatures[i];
+				if (i + 1 == signatures.Count) return signature.beat + (bar - barsBefore) * signature.BarLength;
+				var barsHere = (int)Math.Ceiling((signatures[i + 1].beat - signature.beat) / signature.BarLength - 1e-9);
 				if (bar < barsBefore + barsHere) return signature.beat + (bar - barsBefore) * signature.BarLength;
 				barsBefore += barsHere;
 			}
@@ -192,17 +215,9 @@ namespace UnityX.Rhythm {
 
 		// --- Tempo on the performed beat axis ---------------------------------------------------
 
-		void EnsureTimes() {
-			if (pointTimes != null && pointTimes.Length == tempoPoints.Count) return;
-			pointTimes = new double[tempoPoints.Count];
-			// Song time 0 is beat 0; before the first point the first tempo applies
-			pointTimes[0] = tempoPoints[0].beat * 60 / tempoPoints[0].bpm;
-			for (var i = 1; i < tempoPoints.Count; i++) pointTimes[i] = pointTimes[i - 1] + SegmentDuration(i - 1, tempoPoints[i].beat - tempoPoints[i - 1].beat);
-		}
-
 		// Time to advance `beats` from the start of segment i
 		double SegmentDuration(int i, double beats) {
-			var p = tempoPoints[i];
+			var p = points[i];
 			var slope = SegmentSlope(i);
 			if (Math.Abs(slope) < 1e-12) return beats * 60 / p.bpm;
 			// bpm(b) = p.bpm + slope * b, so time = integral of 60 / bpm(b) db
@@ -211,7 +226,7 @@ namespace UnityX.Rhythm {
 
 		// Beats advanced `time` seconds after the start of segment i
 		double SegmentBeats(int i, double time) {
-			var p = tempoPoints[i];
+			var p = points[i];
 			var slope = SegmentSlope(i);
 			if (Math.Abs(slope) < 1e-12) return time * p.bpm / 60;
 			return p.bpm * (Math.Exp(time * slope / 60) - 1) / slope;
@@ -219,36 +234,36 @@ namespace UnityX.Rhythm {
 
 		// BPM change per beat within segment i
 		double SegmentSlope(int i) {
-			if (tempoPoints[i].curve != TempoCurve.Linear || i + 1 >= tempoPoints.Count) return 0;
-			var next = tempoPoints[i + 1];
-			return (next.bpm - tempoPoints[i].bpm) / (next.beat - tempoPoints[i].beat);
+			if (points[i].curve != TempoCurve.Linear || i + 1 >= points.Count) return 0;
+			var next = points[i + 1];
+			return (next.bpm - points[i].bpm) / (next.beat - points[i].beat);
 		}
 
 		int SegmentAtBeat(double beat) {
 			var i = 0;
-			while (i + 1 < tempoPoints.Count && tempoPoints[i + 1].beat <= beat) i++;
+			while (i + 1 < points.Count && points[i + 1].beat <= beat) i++;
 			return i;
 		}
 
 		double TimeAtPerformedBeat(double beat) {
-			EnsureTimes();
-			if (beat <= tempoPoints[0].beat) return beat * 60 / tempoPoints[0].bpm;
+			EnsureRuntime();
+			if (beat <= points[0].beat) return beat * 60 / points[0].bpm;
 			var i = SegmentAtBeat(beat);
-			return pointTimes[i] + SegmentDuration(i, beat - tempoPoints[i].beat);
+			return pointTimes[i] + SegmentDuration(i, beat - points[i].beat);
 		}
 
 		double PerformedBeatAtTime(double time) {
-			EnsureTimes();
-			if (time <= pointTimes[0]) return time * tempoPoints[0].bpm / 60;
+			EnsureRuntime();
+			if (time <= pointTimes[0]) return time * points[0].bpm / 60;
 			var i = 0;
-			while (i + 1 < tempoPoints.Count && pointTimes[i + 1] <= time) i++;
-			return tempoPoints[i].beat + SegmentBeats(i, time - pointTimes[i]);
+			while (i + 1 < points.Count && pointTimes[i + 1] <= time) i++;
+			return points[i].beat + SegmentBeats(i, time - pointTimes[i]);
 		}
 
 		double BpmAtPerformedBeat(double beat) {
-			if (beat <= tempoPoints[0].beat) return tempoPoints[0].bpm;
+			if (beat <= points[0].beat) return points[0].bpm;
 			var i = SegmentAtBeat(beat);
-			return tempoPoints[i].bpm + SegmentSlope(i) * (beat - tempoPoints[i].beat);
+			return points[i].bpm + SegmentSlope(i) * (beat - points[i].beat);
 		}
 
 		// --- Swing -------------------------------------------------------------------------------
@@ -260,6 +275,7 @@ namespace UnityX.Rhythm {
 		public double Unswing(double performedBeat) => Warp(performedBeat, false);
 
 		double Warp(double beat, bool forward) {
+			EnsureRuntime();
 			var region = RegionAt(beat, out var regionEnd);
 			if (region == null || Math.Abs(region.Value.amount - 0.5) < 1e-12) return beat;
 			var pairLength = region.Value.subdivision * 2;
@@ -277,9 +293,9 @@ namespace UnityX.Rhythm {
 		// Pair boundaries are unchanged by the warp, so looking the region up on either axis finds the same one
 		SwingRegion? RegionAt(double beat, out double regionEnd) {
 			regionEnd = double.PositiveInfinity;
-			for (var i = swingRegions.Count - 1; i >= 0; i--) {
-				if (swingRegions[i].beat <= beat) return swingRegions[i];
-				regionEnd = swingRegions[i].beat;
+			for (var i = swings.Count - 1; i >= 0; i--) {
+				if (swings[i].beat <= beat) return swings[i];
+				regionEnd = swings[i].beat;
 			}
 			return null;
 		}

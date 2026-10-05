@@ -84,7 +84,10 @@ namespace UnityX.Rhythm {
 
 		// Inspector edits at runtime (tempo map, subdivisions, look-ahead) move the timeline
 		void OnValidate() {
-			if (Application.isPlaying && Clock != null) OnTimelineChanged();
+			if (!Application.isPlaying || Clock == null) return;
+			// Deserializing the inspector edit may have replaced the tempo map instance
+			WatchTempoMap();
+			OnTimelineChanged();
 		}
 
 		void OnDestroy() {

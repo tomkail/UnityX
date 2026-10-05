@@ -151,10 +151,19 @@ namespace UnityX.Rhythm.Tests {
 				"\"timeSignatures\":[{\"beat\":0,\"numerator\":4,\"denominator\":4}]," +
 				"\"swingRegions\":[{\"beat\":0,\"subdivision\":0.5,\"amount\":1.5}]}";
 			var map = UnityEngine.JsonUtility.FromJson<TempoMap>(json);
-			Assert.AreEqual(1, map.TempoPoints.Count);
-			Assert.AreEqual(90, map.TempoPoints[0].bpm, 1e-9, "Keeps the last point at a beat");
-			Assert.AreEqual(0, map.SwingRegions.Count);
-			Assert.IsFalse(double.IsNaN(map.TimeAtBeat(4)) || double.IsInfinity(map.TimeAtBeat(4)));
+			// The later point at beat 0 wins and the 0bpm point is ignored, so it's 90bpm throughout
+			Assert.AreEqual(4 * 60 / 90.0, map.TimeAtBeat(4), 1e-9);
+			Assert.AreEqual(8 * 60 / 90.0, map.TimeAtBeat(8), 1e-9);
+			Assert.AreEqual(90, map.BpmAtBeat(6), 1e-9);
+			Assert.AreEqual(4, map.BeatAtTime(4 * 60 / 90.0), 1e-9);
+			Assert.AreEqual(0.5, map.Swing(0.5), 1e-9, "The invalid swing region is ignored");
+			// The authored data is left as it was, so inspector edits in progress aren't lost
+			var roundTripped = UnityEngine.JsonUtility.FromJson<TempoMap>(UnityEngine.JsonUtility.ToJson(map));
+			Assert.AreEqual(3, roundTripped.TempoPoints.Count);
+			Assert.AreEqual(90, roundTripped.TempoPoints[1].bpm, 1e-9);
+			Assert.AreEqual(0, roundTripped.TempoPoints[2].bpm, 1e-9);
+			Assert.AreEqual(1, roundTripped.SwingRegions.Count);
+			Assert.AreEqual(1.5, roundTripped.SwingRegions[0].amount, 1e-9);
 		}
 	}
 }
