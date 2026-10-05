@@ -5,7 +5,7 @@ namespace UnityX.Rhythm {
 	// Sources laid out on the song timeline, editable while playing, e.g. "switch pattern at the next bar".
 	// Each region plays its source with the source's beat 0 at the region's start, and keeps the notes that start
 	// inside the region. Each region's notes get the region's ID as their NoteId.source, so the same pattern in two
-	// regions gives different notes.
+	// regions gives different notes. An Arrangement can't be a region's source: its own region IDs would collide.
 	public sealed class Arrangement : INoteSource {
 		public sealed class Region {
 			internal Region(int id, INoteSource source, double startBeat, double endBeat) {
@@ -50,6 +50,7 @@ namespace UnityX.Rhythm {
 
 		// Ends whatever is playing at beat, drops anything queued from beat onwards, and plays source from beat
 		public Region SwitchAt(double beat, INoteSource source) {
+			ValidateSource(source);
 			for (var i = regions.Count - 1; i >= 0; i--) {
 				var region = regions[i];
 				if (region.StartBeat >= beat) {
@@ -91,12 +92,17 @@ namespace UnityX.Rhythm {
 		}
 
 		Region CreateRegion(INoteSource source, double startBeat, double endBeat) {
-			if (source == null) throw new ArgumentNullException(nameof(source));
+			ValidateSource(source);
 			if (!(endBeat > startBeat)) throw new ArgumentOutOfRangeException(nameof(endBeat), "A region must end after it starts");
 			var region = new Region(nextId++, source, startBeat, endBeat);
 			regions.Add(region);
 			source.Changed += OnSourceChanged;
 			return region;
+		}
+
+		static void ValidateSource(INoteSource source) {
+			if (source == null) throw new ArgumentNullException(nameof(source));
+			if (source is Arrangement) throw new ArgumentException("An Arrangement can't be nested in another: their region IDs would collide", nameof(source));
 		}
 
 		void OnSourceChanged() => Changed?.Invoke();

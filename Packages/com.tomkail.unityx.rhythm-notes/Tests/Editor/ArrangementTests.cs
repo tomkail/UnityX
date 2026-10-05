@@ -84,6 +84,26 @@ namespace UnityX.Rhythm.Notes.Tests {
 		}
 
 		[Test]
+		public void SwitchAtANullSourceThrowsAndChangesNothing() {
+			var arrangement = new Arrangement();
+			var playing = arrangement.Add(new Pattern(1, new[] { new Note(0) }), 0);
+			arrangement.Add(new Pattern(1, new[] { new Note(0.5) }), 8);
+			Assert.Throws<System.ArgumentNullException>(() => arrangement.SwitchAt(4, null));
+			Assert.AreEqual(2, arrangement.Regions.Count);
+			Assert.AreEqual(double.PositiveInfinity, playing.EndBeat);
+		}
+
+		[Test]
+		public void ArrangementsCannotBeNested() {
+			var arrangement = new Arrangement();
+			var playing = arrangement.Add(new Pattern(1, new[] { new Note(0) }), 0);
+			Assert.Throws<System.ArgumentException>(() => arrangement.Add(new Arrangement(), 4));
+			Assert.Throws<System.ArgumentException>(() => arrangement.SwitchAt(4, new Arrangement()));
+			Assert.AreEqual(1, arrangement.Regions.Count);
+			Assert.AreEqual(double.PositiveInfinity, playing.EndBeat);
+		}
+
+		[Test]
 		public void RegionsMustEndAfterTheyStart() {
 			var arrangement = new Arrangement();
 			Assert.Throws<System.ArgumentOutOfRangeException>(() => arrangement.Add(new Pattern(1), 4, 4));
