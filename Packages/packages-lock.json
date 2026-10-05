@@ -71,6 +71,16 @@
       "source": "embedded",
       "dependencies": {}
     },
+    "com.tomkail.unityx.extruded-polygon": {
+      "version": "file:com.tomkail.unityx.extruded-polygon",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.tomkail.unityx.core": "2.0.0",
+        "com.tomkail.unityx.geometry": "2.0.0",
+        "com.tomkail.unityx.property-drawers": "2.0.0"
+      }
+    },
     "com.tomkail.unityx.geometry": {
       "version": "file:com.tomkail.unityx.geometry",
       "depth": 0,
@@ -200,7 +210,9 @@
       "version": "file:com.tomkail.unityx.scene-management",
       "depth": 0,
       "source": "embedded",
-      "dependencies": {}
+      "dependencies": {
+        "com.tomkail.unityx.core": "2.0.0"
+      }
     },
     "com.tomkail.unityx.screenshot-exporter": {
       "version": "file:com.tomkail.unityx.screenshot-exporter",
