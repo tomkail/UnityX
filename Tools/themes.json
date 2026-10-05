@@ -52,7 +52,9 @@
   },
   "rhythm": {
     "packages": [
-      "rhythm"
+      "rhythm",
+      "rhythm-notes",
+      "rhythm-audio"
     ]
   }
 }
