@@ -54,7 +54,10 @@
     "packages": [
       "rhythm",
       "rhythm-notes",
-      "rhythm-audio"
+      "rhythm-audio",
+      "rhythm-input",
+      "rhythm-input-midi",
+      "rhythm-judgement"
     ]
   }
 }
