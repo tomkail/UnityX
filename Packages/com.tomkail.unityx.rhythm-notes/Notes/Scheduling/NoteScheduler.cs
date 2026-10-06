@@ -28,6 +28,7 @@ namespace UnityX.Rhythm {
 		bool wasPlaying;
 		double lastSongTime;
 		double lastDspTime;
+		double lastRate;
 
 		public double lookBehind = 0.25;
 		public double lookAhead = 2;
@@ -47,7 +48,8 @@ namespace UnityX.Rhythm {
 		public double WindowStartBeat { get; private set; }
 		public double WindowEndBeat { get; private set; }
 		// How far song time jumped in the last Update beyond normal playback, in seconds of song: positive for a seek
-		// forward, negative for a seek back, 0 otherwise
+		// forward, negative for a seek back, 0 otherwise. A Play or Resume that starts behind the paused song time (a
+		// lead-in) is negative too: song time really did move back.
 		public double LastJump { get; private set; }
 
 		// Raised during Update, after ActiveNotes has been updated
@@ -79,16 +81,35 @@ namespace UnityX.Rhythm {
 			var rate = clock.PlaybackRate;
 			var songTime = clock.SongTime;
 			var dspTime = clock.DspTime;
-			// Where playback alone would have taken song time since the last Update. A hitch moves both, a seek only one.
-			var expectedSongTime = hasLast && wasPlaying && clock.IsPlaying ? lastSongTime + (dspTime - lastDspTime) * rate : hasLast ? lastSongTime : songTime;
-			LastJump = Math.Abs(songTime - expectedSongTime) > seekThreshold ? songTime - expectedSongTime : 0;
+			var isPlaying = clock.IsPlaying;
+			// The range playback alone could have taken song time to since the last Update. A hitch moves both, a seek
+			// only one. It's a range because a pause, resume or rate change can fall anywhere in the frame.
+			double minSongTime, maxSongTime;
+			// DSP time going back means the audio device restarted and the clock carried song time across it
+			if (!hasLast || dspTime < lastDspTime) {
+				minSongTime = maxSongTime = songTime;
+			} else {
+				var elapsed = dspTime - lastDspTime;
+				minSongTime = maxSongTime = lastSongTime;
+				if (wasPlaying && isPlaying) {
+					minSongTime += elapsed * Math.Min(lastRate, rate);
+					maxSongTime += elapsed * Math.Max(lastRate, rate);
+				} else if (wasPlaying || isPlaying) {
+					// Played for anything from none of the frame to all of it
+					maxSongTime += elapsed * (wasPlaying ? lastRate : rate);
+				}
+			}
+			LastJump = songTime > maxSongTime + seekThreshold ? songTime - maxSongTime : songTime < minSongTime - seekThreshold ? songTime - minSongTime : 0;
+			// The nearest allowed song time, so a note that would have passed under any allowed advance still passes
+			var expectedSongTime = Math.Clamp(songTime, minSongTime, maxSongTime);
 			var expectedStartBeat = tempoMap.BeatAtTime(expectedSongTime - lookBehind * rate);
 			WindowStartBeat = tempoMap.BeatAtTime(songTime - lookBehind * rate);
 			WindowEndBeat = tempoMap.BeatAtTime(songTime + lookAhead * rate);
 			hasLast = true;
-			wasPlaying = clock.IsPlaying;
+			wasPlaying = isPlaying;
 			lastSongTime = songTime;
 			lastDspTime = dspTime;
+			lastRate = rate;
 
 			found.Clear();
 			Source?.GetNotes(WindowStartBeat, WindowEndBeat, found);

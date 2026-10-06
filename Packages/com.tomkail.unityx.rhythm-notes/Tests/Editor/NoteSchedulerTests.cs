@@ -23,6 +23,11 @@ namespace UnityX.Rhythm.Notes.Tests {
 
 		void Run(double seconds) => song.Run(seconds, scheduler.Update);
 
+		void RunWithoutJumps(double seconds) => song.Run(seconds, () => {
+			scheduler.Update();
+			Assert.AreEqual(0, scheduler.LastJump);
+		});
+
 		static long[] Repeats(IEnumerable<NoteInstance> notes) => notes.Select(n => n.id.repeat).ToArray();
 
 		[Test]
@@ -121,8 +126,7 @@ namespace UnityX.Rhythm.Notes.Tests {
 		public void ReportsHowFarASeekJumped() {
 			song.clock.Play(0);
 			scheduler.Update();
-			Run(0.5);
-			Assert.AreEqual(0, scheduler.LastJump);
+			RunWithoutJumps(0.5);
 			var before = song.clock.SongTime;
 			song.clock.Seek(before + 3);
 			scheduler.Update();
@@ -130,8 +134,7 @@ namespace UnityX.Rhythm.Notes.Tests {
 			song.clock.Seek(before);
 			scheduler.Update();
 			Assert.AreEqual(-3, scheduler.LastJump, 1e-9);
-			Run(0.1);
-			Assert.AreEqual(0, scheduler.LastJump);
+			RunWithoutJumps(0.1);
 		}
 
 		[Test]
@@ -156,9 +159,10 @@ namespace UnityX.Rhythm.Notes.Tests {
 			song.clock.Pause();
 			scheduler.Update();
 			exited.Clear();
+			var songTimeBeforeTheSeek = song.clock.SongTime;
 			song.clock.Seek(5);
 			scheduler.Update();
-			Assert.AreEqual(4.5, scheduler.LastJump, 0.05);
+			Assert.AreEqual(5 - songTimeBeforeTheSeek, scheduler.LastJump, 1e-9);
 			Assert.IsTrue(exited.Count > 0 && exited.All(e => e.reason == NoteExitReason.Skipped));
 		}
 
@@ -166,17 +170,82 @@ namespace UnityX.Rhythm.Notes.Tests {
 		public void PausingResumingAndChangingRateAreNotJumps() {
 			song.clock.Play(0);
 			scheduler.Update();
-			Run(0.5);
+			RunWithoutJumps(0.5);
 			song.clock.Pause();
 			scheduler.Update();
 			Assert.AreEqual(0, scheduler.LastJump);
-			Run(1);
+			RunWithoutJumps(1);
 			song.clock.Resume();
 			scheduler.Update();
 			Assert.AreEqual(0, scheduler.LastJump);
 			song.clock.SetPlaybackRate(0.5);
-			Run(0.5);
+			RunWithoutJumps(0.5);
+		}
+
+		// In the hitch tests, song time moves from about 0.25s to 0.55s, so beat 0 (at 0s) falls out of the back
+		[Test]
+		public void PausingAfterTheClockTicksOnAHitchIsNotAJump() {
+			song.clock.Play(0);
+			scheduler.Update();
+			RunWithoutJumps(0.25);
+			exited.Clear();
+			// The paused song time includes this frame's advance
+			song.source.Advance(0.3);
+			song.clock.Tick();
+			song.clock.Pause();
+			scheduler.Update();
 			Assert.AreEqual(0, scheduler.LastJump);
+			Assert.IsTrue(exited.Count > 0 && exited.All(e => e.reason == NoteExitReason.Passed));
+		}
+
+		[Test]
+		public void ResumingBeforeTheClockTicksOnAHitchIsNotAJump() {
+			song.clock.Play(0);
+			scheduler.Update();
+			RunWithoutJumps(0.25);
+			song.clock.Pause();
+			scheduler.Update();
+			RunWithoutJumps(1);
+			exited.Clear();
+			// Resume anchors at the last tick's DSP time, so this frame's advance plays
+			song.source.Advance(0.3);
+			song.clock.Resume();
+			song.clock.Tick();
+			scheduler.Update();
+			Assert.AreEqual(0, scheduler.LastJump);
+			Assert.IsTrue(exited.Count > 0 && exited.All(e => e.reason == NoteExitReason.Passed));
+		}
+
+		[Test]
+		public void ChangingRateAfterTheClockTicksOnAHitchIsNotAJump() {
+			song.clock.Play(0);
+			scheduler.Update();
+			RunWithoutJumps(0.25);
+			exited.Clear();
+			// The frame played at the old rate, but the clock reports the new one
+			song.source.Advance(0.3);
+			song.clock.Tick();
+			song.clock.SetPlaybackRate(0.5);
+			scheduler.Update();
+			Assert.AreEqual(0, scheduler.LastJump);
+			Assert.IsTrue(exited.Count > 0 && exited.All(e => e.reason == NoteExitReason.Passed));
+		}
+
+		[Test]
+		public void AnAudioDeviceRestartIsNotAJump() {
+			song.clock.Play(0);
+			scheduler.Update();
+			RunWithoutJumps(0.5);
+			exited.Clear();
+			// The device restarts on a timeline 90 seconds earlier; the clock carries song time on across it
+			song.source.DspOffset -= 90;
+			song.source.Advance(1 / 60.0);
+			song.clock.Tick();
+			Assert.Less(song.clock.DspTime, 20);
+			scheduler.Update();
+			Assert.AreEqual(0, scheduler.LastJump);
+			RunWithoutJumps(1);
+			Assert.IsTrue(exited.Count > 0 && exited.All(e => e.reason == NoteExitReason.Passed));
 		}
 
 		[Test]
