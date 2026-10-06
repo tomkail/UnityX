@@ -211,5 +211,22 @@ namespace UnityX.Rhythm.JudgementTests {
 			rig.Run(0.3);
 			Assert.IsEmpty(rig.missed);
 		}
+
+		[Test]
+		public void AShortSeekForwardWhilePausedKeepsAnEarlyHitHit() {
+			var rig = new JudgeRig(new BeatGrid(1));
+			rig.Play(-0.2);
+			rig.Run(0.35);
+			rig.PressAtBeat(0, 1, -0.05);
+			rig.song.clock.Pause();
+			// Beat 1 (0.5s) is still ahead of its deadline (0.65s) after the seek
+			rig.song.clock.Seek(0.4);
+			rig.judge.Update();
+			rig.song.clock.Resume();
+			rig.judge.Update();
+			rig.PressAtBeat(0, 1);
+			Assert.AreEqual(1, rig.judged.Count(j => j.note.Beat == 1));
+			Assert.AreEqual(1, rig.strays.Count);
+		}
 	}
 }

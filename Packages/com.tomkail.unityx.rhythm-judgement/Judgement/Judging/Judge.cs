@@ -11,8 +11,9 @@ namespace UnityX.Rhythm {
 	//   than holdReleaseEarly before it.
 	// - A seek back reopens the notes it moved back in front of, so they can be played again.
 	// - Results are kept by NoteId, so tempo, rate and swing changes never re-judge a note.
-	// - While paused nothing is missed and presses are stray hits. A seek while paused is settled on the first Update
-	//   after playback resumes, because deadlines can't be compared until the clock is playing again.
+	// - While paused nothing is missed and presses are stray hits. Seeks made while paused are added up and settled by
+	//   their net direction on the first Update after playback resumes, because deadlines can't be compared until the
+	//   clock is playing again. Notes that entered during the pause already too late are skipped then.
 	// - Releases aren't seen while paused, so a hold that was held through a pause completes even if it was let go
 	//   during the pause.
 	// - A hitch longer than the scheduler's lookAhead brings notes in already past their deadline: those are skipped,
@@ -34,8 +35,10 @@ namespace UnityX.Rhythm {
 		readonly NoteScheduler notes;
 		readonly Dictionary<NoteId, State> states = new();
 		readonly List<IRhythmInputSource> sources = new();
-		// A seek happened while paused and hasn't been settled yet
-		bool jumpPending;
+		// The net song time jumped while paused, in seconds, settled once playback resumes
+		double pendingJump;
+		// Notes that entered while paused, whose deadline can only be checked once playback resumes
+		readonly HashSet<NoteId> enteredWhilePaused = new();
 
 		public bool anyLane;
 		// Extra time before a note counts as missed, in seconds, so a press timed inside its window but delivered a
@@ -83,25 +86,22 @@ namespace UnityX.Rhythm {
 			var clock = timeline.Clock;
 			notes.lookBehind = Math.Max(notes.lookBehind, RequiredLookBehind());
 			notes.Update();
-			var jump = notes.LastJump;
-			if (!clock.IsPlaying) {
-				// Every deadline is infinite while paused, so the jump is settled once playback resumes
-				if (jump != 0) jumpPending = true;
-				return;
-			}
+			// Every deadline is infinite while paused, so seeks made then are added up and settled once playback
+			// resumes, by their net direction
+			pendingJump += notes.LastJump;
+			if (!clock.IsPlaying) return;
 			var now = clock.DspTime;
-			if (jumpPending) {
-				// The pause may have hidden several seeks either way, so run both passes. They never touch the same
-				// note: Reopen only takes judged notes whose deadline is ahead, SkipUnreachable only open notes whose
-				// deadline has passed. This also skips notes that entered during the pause already too late.
-				jumpPending = false;
-				Reopen(now);
-				SkipUnreachable(now);
-			} else if (jump < 0) {
-				Reopen(now);
-			} else if (jump > 0) {
-				// Only in the seek's direction, so a short seek forward doesn't reopen a note that was hit early
-				SkipUnreachable(now);
+			var jump = pendingJump;
+			pendingJump = 0;
+			// Only the pass for the jump's direction, so a short seek forward doesn't reopen a note that was hit early
+			if (jump < 0) Reopen(now);
+			else if (jump > 0) SkipUnreachable(now);
+			if (enteredWhilePaused.Count > 0) {
+				// As OnNoteEntered does while playing: a note that arrived already too late was never playable
+				foreach (var note in notes.ActiveNotes) {
+					if (enteredWhilePaused.Contains(note.id) && !states.ContainsKey(note.id) && now > Deadline(note)) states[note.id] = State.Skipped;
+				}
+				enteredWhilePaused.Clear();
 			}
 			foreach (var note in notes.ActiveNotes) {
 				if (!states.TryGetValue(note.id, out var state)) {
@@ -207,8 +207,9 @@ namespace UnityX.Rhythm {
 
 		void OnNoteEntered(NoteInstance note) {
 			// A note that arrives already too late (e.g. added behind the playhead) was never playable either. While
-			// paused, a pending jump's SkipUnreachable catches these on resume.
-			if (timeline.Clock.IsPlaying && timeline.Clock.DspTime > Deadline(note)) states[note.id] = State.Skipped;
+			// paused its deadline is infinite, so it's checked on resume.
+			if (!timeline.Clock.IsPlaying) enteredWhilePaused.Add(note.id);
+			else if (timeline.Clock.DspTime > Deadline(note)) states[note.id] = State.Skipped;
 		}
 
 		void OnNoteExited(NoteInstance note, NoteExitReason reason) {
