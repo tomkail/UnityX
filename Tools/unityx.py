@@ -39,7 +39,13 @@ UNITY_PACKAGE_FOR_ASSEMBLY = {
     "Unity.TextMeshPro": ("com.unity.ugui", "2.0.0"),
     "Unity.TextMeshPro.Editor": ("com.unity.ugui", "2.0.0"),
     "Unity.InputSystem": ("com.unity.inputsystem", "1.7.0"),
+    "Minis": ("jp.keijiro.minis", "1.0.10"),
 }
+
+# Packages from outside Unity's registry need a scoped registry in the consuming project's manifest
+SCOPED_REGISTRIES = [
+    {"name": "Keijiro", "url": "https://registry.npmjs.com", "scopes": ["jp.keijiro"]},
+]
 
 
 # ---------------------------------------------------------------------------------------------- package data
@@ -123,6 +129,30 @@ def write_manifest(project, manifest):
         f.write("\n")
 
 
+def ensure_scoped_registries(manifest, pkgs, names):
+    """Adds the scoped registries the given packages' dependencies need. Returns the scopes it added."""
+    needed = []
+    for n in names:
+        for dep in pkgs[n].get("dependencies", {}):
+            for reg in SCOPED_REGISTRIES:
+                for scope in reg["scopes"]:
+                    if (dep == scope or dep.startswith(scope + ".")) and (reg, scope) not in needed:
+                        needed.append((reg, scope))
+    added = []
+    registries = manifest.setdefault("scopedRegistries", [])
+    for reg, scope in needed:
+        existing = next((r for r in registries if r.get("url", "").rstrip("/") == reg["url"].rstrip("/")), None)
+        if existing is None:
+            existing = OrderedDict([("name", reg["name"]), ("url", reg["url"]), ("scopes", [])])
+            registries.append(existing)
+        if scope not in existing.setdefault("scopes", []):
+            existing["scopes"].append(scope)
+            added.append(scope)
+    if not registries:
+        del manifest["scopedRegistries"]
+    return added
+
+
 def manifest_ref(project, name):
     rel = os.path.relpath(os.path.join(PACKAGES_DIR, name), os.path.join(project, "Packages"))
     return "file:" + rel.replace(os.sep, "/")
@@ -160,8 +190,11 @@ def cmd_add(a):
     wanted = closure(pkgs, expand(pkgs, a.packages))
     for n in wanted:
         manifest["dependencies"][n] = manifest_ref(project, n)
+    scopes = ensure_scoped_registries(manifest, pkgs, wanted)
     write_manifest(project, manifest)
     print("Added: " + ", ".join(short(n) for n in wanted))
+    if scopes:
+        print("Added scoped registries for: " + ", ".join(scopes))
 
 
 def cmd_remove(a):
@@ -193,7 +226,10 @@ def cmd_sync(a):
     added = [n for n in wanted if n not in current]
     for n in wanted:
         manifest["dependencies"][n] = manifest_ref(project, n)
+    scopes = ensure_scoped_registries(manifest, pkgs, wanted)
     write_manifest(project, manifest)
+    if scopes:
+        print("Added scoped registries for: " + ", ".join(scopes))
     print("In sync." + (" Added missing dependencies: " + ", ".join(short(n) for n in added) if added else ""))
 
 
