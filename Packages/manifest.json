@@ -46,6 +46,7 @@
   "testables": [
     "com.tomkail.unityx.rhythm",
     "com.tomkail.unityx.rhythm-audio",
+    "com.tomkail.unityx.rhythm-input",
     "com.tomkail.unityx.rhythm-notes",
     "com.tomkail.unityx.trackpad-multitouch"
   ]

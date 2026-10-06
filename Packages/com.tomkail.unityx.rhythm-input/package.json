@@ -1,0 +1,16 @@
+{
+  "name": "com.tomkail.unityx.rhythm-input",
+  "version": "2.0.0",
+  "displayName": "UnityX Rhythm Input",
+  "description": "Timestamped lane input for rhythm games: presses and releases on the audio clock from Input System actions or your own code, with input latency applied once.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.tomkail.unityx.rhythm": "2.0.0",
+    "com.unity.inputsystem": "1.7.0"
+  }
+}
