@@ -190,6 +190,24 @@ namespace UnityX.Rhythm.JudgementTests {
 		}
 
 		[Test]
+		public void BeatWindowsKeepALateNoteThroughATempoIncrease() {
+			var windows = new JudgementWindows { unit = WindowUnit.Beats };
+			windows.grades.Clear();
+			windows.grades.Add(new JudgementGrade("Hit", 0.25, 0.25));
+			var rig = new JudgeRig(new Chart(new[] { new Note(1) }), windows, 60);
+			// Beat 1's late window runs to beat 1.25 and is nearly all at 60bpm, though the playhead is already at 240bpm
+			rig.song.TempoMap.SetTempo(1.15, 240);
+			// Leaves the look-behind to the judge
+			rig.notes.lookBehind = 0;
+			rig.Play(1.16);
+			rig.Run(0.05);
+			rig.PressAtBeat(0, 1.2);
+			Assert.AreEqual(1, rig.judged.Count);
+			Assert.IsEmpty(rig.strays);
+			Assert.IsEmpty(rig.missed);
+		}
+
+		[Test]
 		public void AttachedSourcesFeedTheJudge() {
 			var rig = new JudgeRig(TwoLanes());
 			var source = new TestInputSource();
@@ -201,6 +219,29 @@ namespace UnityX.Rhythm.JudgementTests {
 			rig.judge.Detach(source);
 			source.Send(new RhythmInput(1, InputPhase.Press, 1, rig.DspAtBeat(0.5)));
 			Assert.AreEqual(1, rig.judged.Count);
+		}
+
+		[Test]
+		public void UpdatingAJudgedSchedulerFromOutsideThrows() {
+			var rig = new JudgeRig(TwoLanes());
+			Assert.AreSame(rig.judge, rig.notes.Owner);
+			Assert.Throws<System.InvalidOperationException>(rig.notes.Update);
+		}
+
+		[Test]
+		public void ASecondJudgeOnTheSameSchedulerThrows() {
+			var rig = new JudgeRig(TwoLanes());
+			Assert.Throws<System.InvalidOperationException>(() => new Judge(rig.song.timeline, rig.notes, new JudgementWindows()));
+		}
+
+		[Test]
+		public void ADisposedJudgeReleasesItsScheduler() {
+			var rig = new JudgeRig(TwoLanes());
+			rig.judge.Dispose();
+			Assert.IsNull(rig.notes.Owner);
+			Assert.DoesNotThrow(rig.notes.Update);
+			using var next = new Judge(rig.song.timeline, rig.notes, new JudgementWindows());
+			Assert.AreSame(next, rig.notes.Owner);
 		}
 
 		sealed class TestInputSource : IRhythmInputSource {

@@ -298,5 +298,42 @@ namespace UnityX.Rhythm.JudgementTests {
 			rig.judge.Update();
 			Assert.IsFalse(rig.missed.Any(n => n.id == beat2));
 		}
+
+		[Test]
+		public void PausingLateInAHitchStillMissesTheNotesThatPassedBeforeThePause() {
+			var rig = new JudgeRig(new BeatGrid(0.5));
+			rig.Play(-0.2);
+			rig.Run(0.5);
+			var missedBefore = rig.missed.Count;
+			// One frame plays from 0.3s to 0.95s and the pause lands at its end. Beats 0.5 and 1 (0.25s and 0.5s) fall
+			// out of the look-behind, and beat 1.5 (0.75s) stays in it, past its deadline (0.9s).
+			rig.song.source.Advance(0.65);
+			rig.song.clock.Tick();
+			rig.song.clock.Pause();
+			rig.judge.Update();
+			rig.Run(1);
+			rig.song.clock.Resume();
+			rig.judge.Update();
+			CollectionAssert.AreEqual(new[] { 0.5, 1.0, 1.5 }, rig.missed.Skip(missedBefore).Select(n => n.Beat));
+		}
+
+		[Test]
+		public void ATempoEditWhilePausedThatLeavesANoteJustBehindDoesNotMissIt() {
+			var rig = new JudgeRig(new BeatGrid(1));
+			rig.Play(-0.2);
+			rig.Run(1.1);
+			rig.song.clock.Pause();
+			rig.judge.Update();
+			var beat2 = rig.notes.ActiveNotes.First(n => n.Beat == 2).id;
+			Assert.IsTrue(rig.judge.IsOpen(beat2));
+			// At 170bpm beat 2 is at 0.71s: behind the playhead (0.9s), past its deadline (0.86s), inside the look-behind
+			rig.song.TempoMap.SetTempo(0, 170);
+			rig.judge.Update();
+			Assert.IsTrue(rig.notes.IsActive(beat2));
+			rig.song.clock.Resume();
+			rig.judge.Update();
+			rig.Run(0.1);
+			Assert.IsFalse(rig.missed.Any(n => n.id == beat2));
+		}
 	}
 }

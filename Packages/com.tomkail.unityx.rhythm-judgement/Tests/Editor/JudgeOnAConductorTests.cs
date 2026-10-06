@@ -11,7 +11,7 @@ namespace UnityX.Rhythm.JudgementTests {
 		[TearDown]
 		public void TearDown() {
 			Object.DestroyImmediate(gameObject);
-			Object.DestroyImmediate(windows);
+			if (windows != null) Object.DestroyImmediate(windows);
 		}
 
 		[Test]
@@ -45,6 +45,20 @@ namespace UnityX.Rhythm.JudgementTests {
 			Assert.AreEqual(1, judged.Count);
 			Assert.AreEqual("Perfect", judged[0].gradeName);
 			Assert.AreEqual(0, judged[0].timeOffset, 1e-6);
+		}
+
+		[Test]
+		public void AJudgeOnAConductorWithoutAClockDoesNothing() {
+			gameObject = new GameObject("Song");
+			// Never initialised: in edit mode its Awake doesn't run
+			var conductor = gameObject.AddComponent<Conductor>();
+			var notes = new NoteScheduler(conductor, new BeatGrid(1));
+			using var judge = new Judge(conductor, notes, new JudgementWindows());
+			var strays = 0;
+			judge.StrayHit += _ => strays++;
+			Assert.DoesNotThrow(judge.Update);
+			Assert.DoesNotThrow(() => judge.Submit(new RhythmInput(0, InputPhase.Press, 1, 0)));
+			Assert.AreEqual(0, strays);
 		}
 	}
 }

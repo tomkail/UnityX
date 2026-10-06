@@ -9,19 +9,23 @@ namespace UnityX.Rhythm {
 	//   neither hit nor missed.
 	// - Holds are judged on the press, then complete when the song reaches their end, or drop if released earlier
 	//   than holdReleaseEarly before it.
-	// - A seek back reopens the notes it moved back in front of, so they can be played again.
+	// - A seek back reopens the notes it moved back in front of, so they can be played again. That includes a note
+	//   just hit, after even a short seek back, so a practice loop can score it again.
 	// - Results are kept by NoteId, so tempo, rate and swing changes never re-judge a note.
-	// - While paused nothing is missed or completed, and presses are stray hits. On the first Update after playback
-	//   resumes, the net song time moved since the pause (seeks, scrubs, tempo edits) is settled like a single seek,
-	//   because deadlines can't be compared until the clock is playing again. Notes that entered during the pause
-	//   already too late are skipped then.
+	// - While paused nothing is missed or completed, and presses are stray hits: if you score stray hits, disable
+	//   your input sources while paused. Notes whose deadline passed before the pause, including during a long frame
+	//   that ended in it, are still missed. On the first Update after playback resumes, the net song time moved since
+	//   the pause (seeks, scrubs) is settled like a single seek, because deadlines can't be compared until the clock is
+	//   playing again. Notes that are then past their deadline (entered late, or left behind by a seek or tempo edit)
+	//   are skipped.
 	// - Keep calling Update while paused. If you skip it, the pause reads as playing time when you resume.
 	// - Releases aren't seen while paused, so a hold that was held through a pause completes even if it was let go
 	//   during the pause.
 	// - A hitch longer than the scheduler's lookAhead brings notes in already past their deadline: those are skipped,
 	//   not missed, as if the song had been seeked past them.
-	// Call Update once per frame, after the clock has ticked: it updates the NoteScheduler too. The Judge must be the
-	// only caller of its NoteScheduler's Update, because seek handling depends on seeing every LastJump.
+	// Call Update once per frame, after the clock has ticked: it updates the NoteScheduler too. The Judge claims its
+	// NoteScheduler and is the only thing that may update it, because seek handling depends on seeing every
+	// LastJump; anything else should only read its ActiveNotes and listen to its events. Dispose releases it.
 	public sealed class Judge : IDisposable {
 		enum State {
 			Hit,
@@ -37,10 +41,12 @@ namespace UnityX.Rhythm {
 		readonly NoteScheduler notes;
 		readonly Dictionary<NoteId, State> states = new();
 		readonly List<IRhythmInputSource> sources = new();
+		// Whether the clock was playing on the previous Update
 		bool wasPlaying;
-		double lastPlayingSongTime;
-		// Song time on the last playing Update before a pause, until the pause is settled on resume
+		// Where playback reached before a pause, until the pause is settled on resume
 		double? songTimeAtPause;
+		// Windows.WidestLate for this Update, which would otherwise loop over the grades for every note
+		double late;
 		// Notes that entered while paused, whose deadline can only be checked once playback resumes
 		readonly HashSet<NoteId> enteredWhilePaused = new();
 
@@ -53,6 +59,7 @@ namespace UnityX.Rhythm {
 			this.timeline = timeline ?? throw new ArgumentNullException(nameof(timeline));
 			this.notes = notes ?? throw new ArgumentNullException(nameof(notes));
 			Windows = windows ?? throw new ArgumentNullException(nameof(windows));
+			notes.Claim(this);
 			notes.NoteEntered += OnNoteEntered;
 			notes.NoteExited += OnNoteExited;
 		}
@@ -80,6 +87,7 @@ namespace UnityX.Rhythm {
 			sources.Clear();
 			notes.NoteEntered -= OnNoteEntered;
 			notes.NoteExited -= OnNoteExited;
+			notes.Release(this);
 		}
 
 		// An active note that hasn't been hit, missed or skipped
@@ -88,37 +96,48 @@ namespace UnityX.Rhythm {
 
 		public void Update() {
 			var clock = timeline.Clock;
-			notes.lookBehind = Math.Max(notes.lookBehind, RequiredLookBehind());
-			notes.Update();
+			// A Conductor that hasn't been initialised yet
+			if (clock == null) return;
+			late = Windows.WidestLate;
+			notes.lookBehind = Math.Max(notes.lookBehind, RequiredLookBehind(clock));
+			notes.Update(this);
 			if (!clock.IsPlaying) {
-				// Every deadline is infinite while paused, so how far song time moved is settled once playback resumes.
-				// It's measured from the pause rather than summed from LastJump, because a slow scrub or a tempo edit
-				// never registers as a jump.
-				if (wasPlaying) songTimeAtPause = lastPlayingSongTime;
+				if (wasPlaying) {
+					// This frame can have played right up to the pause, so the pause point is the song time now, less any
+					// seek this frame. The seek is settled on resume as part of the net move, so it's counted once.
+					var pausedAt = clock.SongTime - notes.LastJump;
+					songTimeAtPause = pausedAt;
+					MissPassedBefore(pausedAt, clock.PlaybackRate);
+				}
 				wasPlaying = false;
 				return;
 			}
 			var now = clock.DspTime;
-			var songTime = clock.SongTime;
-			var jump = notes.LastJump;
-			if (songTimeAtPause is double pausedAt) {
-				var net = songTime - pausedAt;
-				jump = Math.Abs(net) > notes.seekThreshold ? net : 0;
+			if (songTimeAtPause is double settledFrom) {
 				songTimeAtPause = null;
+				// Every deadline is infinite while paused, so how far song time moved is settled now. It's measured from the
+				// pause rather than summed from LastJump, because a slow scrub never registers as a jump. A tempo edit
+				// doesn't move song time but can still leave open notes behind the playhead, so the skip pass always runs.
+				if (clock.SongTime - settledFrom < -notes.seekThreshold) Reopen(now);
+				SkipUnreachable(now);
+			} else {
+				// Only the pass for the jump's direction, so a short seek forward doesn't reopen a note that was hit early
+				var jump = notes.LastJump;
+				if (jump < 0) Reopen(now);
+				else if (jump > 0) SkipUnreachable(now);
 			}
 			wasPlaying = true;
-			lastPlayingSongTime = songTime;
-			// Only the pass for the jump's direction, so a short seek forward doesn't reopen a note that was hit early
-			if (jump < 0) Reopen(now);
-			else if (jump > 0) SkipUnreachable(now);
+			var active = notes.ActiveNotes;
 			if (enteredWhilePaused.Count > 0) {
 				// As OnNoteEntered does while playing: a note that arrived already too late was never playable
-				foreach (var note in notes.ActiveNotes) {
+				for (var i = 0; i < active.Count; i++) {
+					var note = active[i];
 					if (enteredWhilePaused.Contains(note.id) && !states.ContainsKey(note.id) && now > Deadline(note)) states[note.id] = State.Skipped;
 				}
 				enteredWhilePaused.Clear();
 			}
-			foreach (var note in notes.ActiveNotes) {
+			for (var i = 0; i < active.Count; i++) {
+				var note = active[i];
 				if (!states.TryGetValue(note.id, out var state)) {
 					if (now > Deadline(note)) {
 						states[note.id] = State.Missed;
@@ -132,7 +151,9 @@ namespace UnityX.Rhythm {
 		}
 
 		public void Submit(RhythmInput input) {
-			if (!timeline.Clock.IsPlaying) {
+			var clock = timeline.Clock;
+			if (clock == null) return;
+			if (!clock.IsPlaying) {
 				if (input.IsPress) StrayHit?.Invoke(input);
 				return;
 			}
@@ -147,7 +168,9 @@ namespace UnityX.Rhythm {
 			NoteInstance best = default;
 			var found = false;
 			var bestOffset = 0.0;
-			foreach (var note in notes.ActiveNotes) {
+			var active = notes.ActiveNotes;
+			for (var i = 0; i < active.Count; i++) {
+				var note = active[i];
 				if (!anyLane && note.note.lane != input.lane) continue;
 				if (states.ContainsKey(note.id)) continue;
 				var offset = Offset(input.dspTime, note.Beat);
@@ -171,11 +194,14 @@ namespace UnityX.Rhythm {
 
 		// Releases outside a hold don't count against the player
 		void Release(RhythmInput input) {
-			foreach (var note in notes.ActiveNotes) {
+			var holdReleaseEarly = Windows.holdReleaseEarly;
+			var active = notes.ActiveNotes;
+			for (var i = 0; i < active.Count; i++) {
+				var note = active[i];
 				if (!anyLane && note.note.lane != input.lane) continue;
 				if (!states.TryGetValue(note.id, out var state) || state != State.Holding) continue;
 				states[note.id] = State.Hit;
-				if (Offset(input.dspTime, note.EndBeat) >= -Windows.holdReleaseEarly) HoldCompleted?.Invoke(note);
+				if (Offset(input.dspTime, note.EndBeat) >= -holdReleaseEarly) HoldCompleted?.Invoke(note);
 				else HoldDropped?.Invoke(note, input);
 				return;
 			}
@@ -190,33 +216,75 @@ namespace UnityX.Rhythm {
 
 		// When a note stops being hittable and counts as missed
 		double Deadline(NoteInstance note) {
-			var late = Windows.WidestLate;
 			var end = Windows.unit == WindowUnit.Beats ? timeline.DspTimeAtBeat(note.Beat + late) : notes.DspTimeOf(note) + late;
 			return end + missDelay;
 		}
 
+		// Deadline in song time, which unlike DSP time is still finite while paused
+		double SongTimeDeadline(NoteInstance note, double rate) {
+			var tempoMap = timeline.TempoMap;
+			return Windows.unit == WindowUnit.Beats
+				? tempoMap.TimeAtBeat(note.Beat + late) + missDelay * rate
+				: tempoMap.TimeAtBeat(note.Beat) + (late + missDelay) * rate;
+		}
+
 		// How far back the scheduler must keep notes, in seconds of playback, for every miss to be noticed
-		double RequiredLookBehind() {
-			var late = Windows.WidestLate;
+		double RequiredLookBehind(IRhythmClock clock) {
+			var seconds = late;
 			if (Windows.unit == WindowUnit.Beats) {
-				var clock = timeline.Clock;
-				var bpm = timeline.TempoMap.BpmAtBeat(timeline.CurrentBeat());
-				late = late * 60 / bpm / clock.PlaybackRate;
+				// A late window that started before a tempo increase lasts longer than the current tempo says, so it's
+				// timed at the slowest tempo across the beats a still-open note's late window can cover
+				var rate = clock.PlaybackRate;
+				var tempoMap = timeline.TempoMap;
+				var songTime = clock.SongTime;
+				var from = tempoMap.BeatAtTime(songTime - (missDelay + LookBehindMargin) * rate) - late;
+				var to = tempoMap.BeatAtTime(songTime);
+				seconds = late * 60 / SlowestBpm(tempoMap, from, to) / rate;
 			}
-			return late + missDelay + LookBehindMargin;
+			return seconds + missDelay + LookBehindMargin;
+		}
+
+		// Tempo is linear or constant between tempo points, so its minimum is at a point or an end
+		static double SlowestBpm(TempoMap tempoMap, double fromBeat, double toBeat) {
+			var slowest = Math.Min(tempoMap.BpmAtBeat(fromBeat), tempoMap.BpmAtBeat(toBeat));
+			var points = tempoMap.TempoPoints;
+			for (var i = 0; i < points.Count; i++) {
+				// Tempo points are placed on the swung beat axis
+				var beat = tempoMap.Unswing(points[i].beat);
+				if (beat > fromBeat && beat < toBeat) slowest = Math.Min(slowest, tempoMap.BpmAtBeat(beat));
+			}
+			return slowest;
 		}
 
 		// After a seek back: notes that can be played again become open, even if they were hit or missed before
 		void Reopen(double now) {
-			foreach (var note in notes.ActiveNotes) {
+			var active = notes.ActiveNotes;
+			for (var i = 0; i < active.Count; i++) {
+				var note = active[i];
 				if (Deadline(note) > now) states.Remove(note.id);
 			}
 		}
 
 		// After a seek forward: notes the song landed beyond were never playable, so they're skipped, not missed
 		void SkipUnreachable(double now) {
-			foreach (var note in notes.ActiveNotes) {
+			var active = notes.ActiveNotes;
+			for (var i = 0; i < active.Count; i++) {
+				var note = active[i];
 				if (!states.ContainsKey(note.id) && now > Deadline(note)) states[note.id] = State.Skipped;
+			}
+		}
+
+		// On the frame that pauses: notes whose deadline playback passed before the pause were missed, even though the
+		// pause makes every DSP deadline infinite. Notes that entered this frame wait for the resume check instead.
+		void MissPassedBefore(double pausedAt, double rate) {
+			var active = notes.ActiveNotes;
+			for (var i = 0; i < active.Count; i++) {
+				var note = active[i];
+				if (states.ContainsKey(note.id) || enteredWhilePaused.Contains(note.id)) continue;
+				if (pausedAt > SongTimeDeadline(note, rate)) {
+					states[note.id] = State.Missed;
+					Missed?.Invoke(note);
+				}
 			}
 		}
 
@@ -231,8 +299,9 @@ namespace UnityX.Rhythm {
 			var wasOpen = !states.TryGetValue(note.id, out var state);
 			states.Remove(note.id);
 			enteredWhilePaused.Remove(note.id);
-			// Song time only moves while paused through a seek or a tempo edit, so the note was skipped, not played
-			if (!timeline.Clock.IsPlaying) return;
+			// Song time only moves while paused through a seek or a tempo edit, so the note was skipped, not played. The
+			// frame that pauses is the exception: it can have played up to the pause, and a seek in it isn't Passed.
+			if (!timeline.Clock.IsPlaying && !wasPlaying) return;
 			// Normally caught by the deadline first; this covers a note leaving before Update saw it pass
 			if (reason == NoteExitReason.Passed && wasOpen) Missed?.Invoke(note);
 			else if (reason == NoteExitReason.Passed && state == State.Holding) HoldCompleted?.Invoke(note);
