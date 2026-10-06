@@ -139,6 +139,7 @@ def ensure_scoped_registries(manifest, pkgs, names):
                     if (dep == scope or dep.startswith(scope + ".")) and (reg, scope) not in needed:
                         needed.append((reg, scope))
     added = []
+    created = "scopedRegistries" not in manifest
     registries = manifest.setdefault("scopedRegistries", [])
     for reg, scope in needed:
         existing = next((r for r in registries if r.get("url", "").rstrip("/") == reg["url"].rstrip("/")), None)
@@ -148,7 +149,8 @@ def ensure_scoped_registries(manifest, pkgs, names):
         if scope not in existing.setdefault("scopes", []):
             existing["scopes"].append(scope)
             added.append(scope)
-    if not registries:
+    # Only undo our own setdefault: an empty list the project already had stays as it was
+    if created and not registries:
         del manifest["scopedRegistries"]
     return added
 
