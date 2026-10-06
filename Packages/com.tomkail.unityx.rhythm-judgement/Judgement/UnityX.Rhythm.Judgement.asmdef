@@ -1,0 +1,18 @@
+{
+    "name": "UnityX.Rhythm.Judgement",
+    "rootNamespace": "UnityX.Rhythm",
+    "references": [
+        "UnityX.Rhythm",
+        "UnityX.Rhythm.Notes",
+        "UnityX.Rhythm.Input"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

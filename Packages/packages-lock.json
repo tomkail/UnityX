@@ -241,6 +241,16 @@
         "jp.keijiro.minis": "1.0.10"
       }
     },
+    "com.tomkail.unityx.rhythm-judgement": {
+      "version": "file:com.tomkail.unityx.rhythm-judgement",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.tomkail.unityx.rhythm": "2.0.0",
+        "com.tomkail.unityx.rhythm-input": "2.0.0",
+        "com.tomkail.unityx.rhythm-notes": "2.0.0"
+      }
+    },
     "com.tomkail.unityx.rhythm-notes": {
       "version": "file:com.tomkail.unityx.rhythm-notes",
       "depth": 0,

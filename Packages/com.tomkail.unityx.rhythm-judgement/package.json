@@ -1,0 +1,17 @@
+{
+  "name": "com.tomkail.unityx.rhythm-judgement",
+  "version": "2.0.0",
+  "displayName": "UnityX Rhythm Judgement",
+  "description": "Judging for rhythm games: hit windows in seconds or beats, taps and holds, misses and stray hits, seek-aware results, score models and rolling performance.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.tomkail.unityx.rhythm": "2.0.0",
+    "com.tomkail.unityx.rhythm-input": "2.0.0",
+    "com.tomkail.unityx.rhythm-notes": "2.0.0"
+  }
+}
