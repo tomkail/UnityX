@@ -59,11 +59,22 @@ namespace UnityX.Rhythm.InputTests {
 			Assert.AreEqual(123.5, received[0].dspTime);
 			Assert.AreEqual(InputPhase.Release, received[0].phase);
 			Assert.AreEqual(1, received[0].velocity);
+			input.SubmitAtDspTime(1, InputPhase.Press, -0.5f, 124);
+			Assert.AreEqual(0, received[1].velocity);
 		}
 
 		[Test]
 		public void InputWithoutAConductorIsDropped() {
 			input.conductor = null;
+			input.Submit(0, InputPhase.Press, 1, 10);
+			Assert.IsEmpty(received);
+		}
+
+		[Test]
+		public void InputBeforeTheConductorHasAClockIsDropped() {
+			// Never initialised: in edit mode its Awake doesn't run
+			input.conductor = gameObject.AddComponent<Conductor>();
+			Assert.IsNull(input.conductor.Clock);
 			input.Submit(0, InputPhase.Press, 1, 10);
 			Assert.IsEmpty(received);
 		}

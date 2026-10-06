@@ -46,9 +46,6 @@ namespace UnityX.Rhythm.InputTests {
 
 			Assert.IsTrue(eventTime.HasValue, $"The press didn't perform the action (keyboard enabled {keyboard.enabled}, " +
 				$"space pressed {keyboard.spaceKey.isPressed}, focused {Application.isFocused})");
-			var difference = eventTime.Value - now;
-			Debug.Log($"Input event time minus Time.realtimeSinceStartupAsDouble: {difference:F6}s " +
-				$"(event {eventTime.Value:F6}, realtime {now:F6})");
 			Assert.AreEqual(now, eventTime.Value, 0.1);
 		}
 	}
