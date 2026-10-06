@@ -228,5 +228,75 @@ namespace UnityX.Rhythm.JudgementTests {
 			Assert.AreEqual(1, rig.judged.Count(j => j.note.Beat == 1));
 			Assert.AreEqual(1, rig.strays.Count);
 		}
+
+		// Seeks in steps no bigger than the scheduler's seekThreshold, so no single Update sees a jump
+		static void Scrub(JudgeRig rig, double to) {
+			var clock = rig.song.clock;
+			var step = to > clock.SongTime ? 0.04 : -0.04;
+			while (System.Math.Abs(to - clock.SongTime) > 1e-9) {
+				var next = System.Math.Abs(to - clock.SongTime) < 0.04 ? to : clock.SongTime + step;
+				clock.Seek(next);
+				rig.judge.Update();
+			}
+		}
+
+		[Test]
+		public void ScrubbingForwardWhilePausedDoesNotMiss() {
+			var rig = new JudgeRig(new BeatGrid(1));
+			rig.Play(-0.2);
+			rig.Run(1.2);
+			rig.song.clock.Pause();
+			rig.judge.Update();
+			Assert.IsTrue(rig.judge.IsOpen(rig.notes.ActiveNotes.First(n => n.Beat == 2).id));
+			var missedBefore = rig.missed.Count;
+			// Well past beat 2's window, and past beat 3's deadline (1.65s) while it's still in the look-behind
+			Scrub(rig, 1.7);
+			Assert.AreEqual(missedBefore, rig.missed.Count);
+			rig.song.clock.Resume();
+			rig.judge.Update();
+			rig.Run(0.2);
+			var missedAfter = rig.missed.Skip(missedBefore).ToList();
+			Assert.IsEmpty(missedAfter, string.Join(", ", missedAfter.Select(n => n.Beat)));
+		}
+
+		[Test]
+		public void ScrubbingBackWhilePausedLetsANoteBePlayedAgain() {
+			var rig = new JudgeRig(new BeatGrid(1));
+			rig.Play(-0.2);
+			rig.Run(1.0);
+			rig.PressAtBeat(0, 2);
+			rig.Run(0.3);
+			rig.song.clock.Pause();
+			rig.judge.Update();
+			var missedBefore = rig.missed.Count;
+			Scrub(rig, 0.7);
+			rig.song.clock.Resume();
+			rig.judge.Update();
+			rig.Run(0.2);
+			rig.PressAtBeat(0, 2);
+			Assert.AreEqual(2, rig.judged.Count(j => j.note.Beat == 2));
+			Assert.IsEmpty(rig.strays);
+			Assert.AreEqual(missedBefore, rig.missed.Count);
+		}
+
+		[Test]
+		public void ATempoEditWhilePausedDoesNotMiss() {
+			var rig = new JudgeRig(new BeatGrid(1));
+			rig.Play(-0.2);
+			rig.Run(1.2);
+			rig.song.clock.Pause();
+			rig.judge.Update();
+			var beat2 = rig.notes.ActiveNotes.First(n => n.Beat == 2).id;
+			Assert.IsTrue(rig.judge.IsOpen(beat2));
+			var missedBefore = rig.missed.Count;
+			// At 200bpm beat 2 is at 0.6s, behind the look-behind
+			rig.song.TempoMap.SetTempo(0, 200);
+			rig.judge.Update();
+			Assert.IsFalse(rig.notes.IsActive(beat2));
+			Assert.AreEqual(missedBefore, rig.missed.Count);
+			rig.song.clock.Resume();
+			rig.judge.Update();
+			Assert.IsFalse(rig.missed.Any(n => n.id == beat2));
+		}
 	}
 }
