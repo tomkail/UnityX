@@ -4,6 +4,10 @@ using System.Collections.Generic;
 namespace UnityX.Rhythm {
 	// How the player is doing lately: hit rate, mean accuracy and early/late bias over the last few seconds or bars,
 	// overall and per lane. For dynamic difficulty and feedback; what to do with it is up to the game.
+	// Entries are kept in song time, so the window stays put while paused and a seek back drops what's now ahead.
+	// In Seconds, window is real seconds of playing: at 0.5x it covers half as much of the song.
+	// In Bars, whole bars are counted back from the current position, and the fractional part of window uses
+	// the current bar's length.
 	public sealed class RollingPerformance : IDisposable {
 		public enum Unit {
 			Seconds,
@@ -24,7 +28,7 @@ namespace UnityX.Rhythm {
 		}
 
 		struct Entry {
-			public double dspTime;
+			public double songTime;
 			public int lane;
 			public bool hit;
 			public double accuracy;
@@ -34,7 +38,6 @@ namespace UnityX.Rhythm {
 		readonly IBeatTimeline timeline;
 		// Misses are timed at their notes, so entries aren't strictly in time order
 		readonly List<Entry> entries = new();
-		double lastWindowStart = double.NegativeInfinity;
 		Judge judge;
 
 		public double window;
@@ -65,12 +68,16 @@ namespace UnityX.Rhythm {
 		public void Dispose() => Unwatch();
 
 		public void AddHit(Judgement judgement) {
-			entries.Add(new Entry { dspTime = judgement.input.dspTime, lane = judgement.note.note.lane, hit = true, accuracy = judgement.accuracy, offset = judgement.timeOffset });
+			var clock = timeline.Clock;
+			// Never ahead of the playhead: an input stamped later in this frame than the clock's tick would otherwise
+			// be taken for one left ahead by a seek back
+			var songTime = Math.Min(clock.SongTimeAtDspTime(judgement.input.dspTime), clock.SongTime);
+			entries.Add(new Entry { songTime = songTime, lane = judgement.note.note.lane, hit = true, accuracy = judgement.accuracy, offset = judgement.timeOffset });
 		}
 
 		// Timed at the note, which is when the player should have hit it
 		public void AddMiss(NoteInstance note) {
-			entries.Add(new Entry { dspTime = timeline.DspTimeAtBeat(note.Beat), lane = note.note.lane });
+			entries.Add(new Entry { songTime = timeline.TempoMap.TimeAtBeat(note.Beat), lane = note.note.lane });
 		}
 
 		public void Clear() => entries.Clear();
@@ -79,7 +86,7 @@ namespace UnityX.Rhythm {
 		public Stats ForLane(int lane) => Collect(lane);
 
 		Stats Collect(int? lane) {
-			Prune(WindowStartDspTime());
+			Prune(WindowStart(), timeline.Clock.SongTime + 1e-6);
 			var stats = new Stats();
 			foreach (var entry in entries) {
 				if (lane.HasValue && entry.lane != lane.Value) continue;
@@ -98,27 +105,28 @@ namespace UnityX.Rhythm {
 			return stats;
 		}
 
-		void Prune(double start) {
+		// Anything after end is ahead of the playhead, so left there by a seek back
+		void Prune(double start, double end) {
 			var kept = 0;
 			for (var i = 0; i < entries.Count; i++) {
-				if (entries[i].dspTime >= start) entries[kept++] = entries[i];
+				var time = entries[i].songTime;
+				if (time >= start && time <= end) entries[kept++] = entries[i];
 			}
 			entries.RemoveRange(kept, entries.Count - kept);
 		}
 
-		double WindowStartDspTime() {
+		// In song time, which is frozen while paused, so the window stays where it was
+		double WindowStart() {
 			var clock = timeline.Clock;
-			// While paused nothing has a dsp time, so keep the window where it was
-			if (!clock.IsPlaying) return lastWindowStart;
-			if (unit == Unit.Seconds) return lastWindowStart = clock.DspTime - window;
+			if (unit == Unit.Seconds) return clock.SongTime - window * clock.PlaybackRate;
 			var tempoMap = timeline.TempoMap;
 			var position = tempoMap.BarAtBeat(timeline.CurrentBeat());
 			var bars = (int)Math.Ceiling(window);
 			// Near the start of the song the window holds everything so far
-			if (position.bar - bars < 0) return lastWindowStart = double.NegativeInfinity;
+			if (position.bar - bars < 0) return double.NegativeInfinity;
 			// Whole bars back from the current position, then forward by the part of a bar not asked for
 			var startBeat = tempoMap.BeatAtBar(position.bar - bars) + position.beatInBar + (bars - window) * position.signature.BarLength;
-			return lastWindowStart = timeline.DspTimeAtBeat(startBeat);
+			return tempoMap.TimeAtBeat(startBeat);
 		}
 	}
 }
