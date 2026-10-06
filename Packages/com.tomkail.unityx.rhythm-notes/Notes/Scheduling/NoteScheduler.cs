@@ -3,11 +3,12 @@ using System.Collections.Generic;
 
 namespace UnityX.Rhythm {
 	public enum NoteExitReason {
-		// The note is behind the window: it has been and gone
+		// The note is behind the window: it has been and gone. A hitch counts: the song kept playing.
 		Passed,
-		// Anything else: the source no longer has it, or a seek back moved the window away from it. A seek forward or a
-		// hitch that skips past a note gives Passed.
-		Removed
+		// The source no longer has it, or a seek back moved the window away from it
+		Removed,
+		// A seek forward jumped the window past it, so it was never played
+		Skipped
 	}
 
 	// Keeps the notes near now: from lookBehind seconds ago to lookAhead seconds ahead, in playback time, so at half
@@ -23,9 +24,15 @@ namespace UnityX.Rhythm {
 		readonly List<NoteInstance> exited = new();
 		readonly List<NoteInstance> entered = new();
 		static readonly Comparison<NoteInstance> compareNotes = CompareNotes;
+		bool hasLast;
+		bool wasPlaying;
+		double lastSongTime;
+		double lastDspTime;
 
 		public double lookBehind = 0.25;
 		public double lookAhead = 2;
+		// How far song time must move from where playback would have taken it to count as a seek, in seconds
+		public double seekThreshold = 0.05;
 
 		public NoteScheduler(IBeatTimeline timeline, INoteSource source = null) {
 			this.timeline = timeline ?? throw new ArgumentNullException(nameof(timeline));
@@ -39,6 +46,9 @@ namespace UnityX.Rhythm {
 		public IReadOnlyList<NoteInstance> ActiveNotes => active;
 		public double WindowStartBeat { get; private set; }
 		public double WindowEndBeat { get; private set; }
+		// How far song time jumped in the last Update beyond normal playback, in seconds of song: positive for a seek
+		// forward, negative for a seek back, 0 otherwise
+		public double LastJump { get; private set; }
 
 		// Raised during Update, after ActiveNotes has been updated
 		public event Action<NoteInstance> NoteEntered;
@@ -61,14 +71,24 @@ namespace UnityX.Rhythm {
 
 		// Infinity while paused
 		public double DspTimeOf(NoteInstance note) => timeline.DspTimeAtBeat(note.Beat);
+		public double EndDspTimeOf(NoteInstance note) => timeline.DspTimeAtBeat(note.EndBeat);
 
 		public void Update() {
 			var clock = timeline.Clock;
 			var tempoMap = timeline.TempoMap;
 			var rate = clock.PlaybackRate;
 			var songTime = clock.SongTime;
+			var dspTime = clock.DspTime;
+			// Where playback alone would have taken song time since the last Update. A hitch moves both, a seek only one.
+			var expectedSongTime = hasLast && wasPlaying && clock.IsPlaying ? lastSongTime + (dspTime - lastDspTime) * rate : hasLast ? lastSongTime : songTime;
+			LastJump = Math.Abs(songTime - expectedSongTime) > seekThreshold ? songTime - expectedSongTime : 0;
+			var expectedStartBeat = tempoMap.BeatAtTime(expectedSongTime - lookBehind * rate);
 			WindowStartBeat = tempoMap.BeatAtTime(songTime - lookBehind * rate);
 			WindowEndBeat = tempoMap.BeatAtTime(songTime + lookAhead * rate);
+			hasLast = true;
+			wasPlaying = clock.IsPlaying;
+			lastSongTime = songTime;
+			lastDspTime = dspTime;
 
 			found.Clear();
 			Source?.GetNotes(WindowStartBeat, WindowEndBeat, found);
@@ -91,8 +111,14 @@ namespace UnityX.Rhythm {
 			(active, next) = (next, active);
 			(activeIds, nextIds) = (nextIds, activeIds);
 
-			foreach (var note in exited) NoteExited?.Invoke(note, note.EndBeat < WindowStartBeat ? NoteExitReason.Passed : NoteExitReason.Removed);
+			foreach (var note in exited) NoteExited?.Invoke(note, ExitReason(note, expectedStartBeat));
 			foreach (var note in entered) NoteEntered?.Invoke(note);
+		}
+
+		NoteExitReason ExitReason(NoteInstance note, double expectedStartBeat) {
+			if (note.EndBeat >= WindowStartBeat) return NoteExitReason.Removed;
+			// Still inside where the window would have been without the jump: the seek carried it away
+			return LastJump > 0 && note.EndBeat >= expectedStartBeat ? NoteExitReason.Skipped : NoteExitReason.Passed;
 		}
 
 		static int CompareNotes(NoteInstance a, NoteInstance b) {

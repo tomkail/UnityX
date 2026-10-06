@@ -104,7 +104,7 @@ namespace UnityX.Rhythm.Notes.Tests {
 		}
 
 		[Test]
-		public void SeekingBackRemovesNotesAndSeekingForwardPassesThem() {
+		public void SeekingBackRemovesNotesAndSeekingForwardSkipsThem() {
 			song.clock.Play(10);
 			scheduler.Update();
 			exited.Clear();
@@ -114,7 +114,78 @@ namespace UnityX.Rhythm.Notes.Tests {
 			exited.Clear();
 			song.clock.Seek(10);
 			scheduler.Update();
+			Assert.IsTrue(exited.Count > 0 && exited.All(e => e.reason == NoteExitReason.Skipped));
+		}
+
+		[Test]
+		public void ReportsHowFarASeekJumped() {
+			song.clock.Play(0);
+			scheduler.Update();
+			Run(0.5);
+			Assert.AreEqual(0, scheduler.LastJump);
+			var before = song.clock.SongTime;
+			song.clock.Seek(before + 3);
+			scheduler.Update();
+			Assert.AreEqual(3, scheduler.LastJump, 1e-9);
+			song.clock.Seek(before);
+			scheduler.Update();
+			Assert.AreEqual(-3, scheduler.LastJump, 1e-9);
+			Run(0.1);
+			Assert.AreEqual(0, scheduler.LastJump);
+		}
+
+		[Test]
+		public void AHitchPassesNotesRatherThanSkippingThem() {
+			song.clock.Play(0);
+			scheduler.Update();
+			Run(0.5);
+			exited.Clear();
+			// One long frame: the song kept playing, so the notes in it were there to be played
+			song.source.Advance(1.5);
+			song.clock.Tick();
+			scheduler.Update();
+			Assert.AreEqual(0, scheduler.LastJump);
 			Assert.IsTrue(exited.Count > 0 && exited.All(e => e.reason == NoteExitReason.Passed));
+		}
+
+		[Test]
+		public void SeekingWhilePausedSkips() {
+			song.clock.Play(0);
+			scheduler.Update();
+			Run(0.5);
+			song.clock.Pause();
+			scheduler.Update();
+			exited.Clear();
+			song.clock.Seek(5);
+			scheduler.Update();
+			Assert.AreEqual(4.5, scheduler.LastJump, 0.05);
+			Assert.IsTrue(exited.Count > 0 && exited.All(e => e.reason == NoteExitReason.Skipped));
+		}
+
+		[Test]
+		public void PausingResumingAndChangingRateAreNotJumps() {
+			song.clock.Play(0);
+			scheduler.Update();
+			Run(0.5);
+			song.clock.Pause();
+			scheduler.Update();
+			Assert.AreEqual(0, scheduler.LastJump);
+			Run(1);
+			song.clock.Resume();
+			scheduler.Update();
+			Assert.AreEqual(0, scheduler.LastJump);
+			song.clock.SetPlaybackRate(0.5);
+			Run(0.5);
+			Assert.AreEqual(0, scheduler.LastJump);
+		}
+
+		[Test]
+		public void GivesHoldsTheirEndDspTime() {
+			scheduler.Source = new Chart(new[] { new Note(1, 0, 2) });
+			song.clock.Play(0);
+			var start = song.clock.DspTime;
+			scheduler.Update();
+			Assert.AreEqual(start + 1.5, scheduler.EndDspTimeOf(scheduler.ActiveNotes[0]), 1e-9);
 		}
 
 		[Test]
