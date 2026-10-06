@@ -1,4 +1,3 @@
-using System.Linq;
 using NUnit.Framework;
 
 namespace UnityX.Rhythm.JudgementTests {
@@ -21,7 +20,8 @@ namespace UnityX.Rhythm.JudgementTests {
 			rig.Run(1);
 			Assert.AreEqual(0, score.Combo);
 			Assert.AreEqual(2, score.MaxCombo);
-			Assert.GreaterOrEqual(score.Misses, 1);
+			// Beat 2; beat 3 is still ahead of its deadline
+			Assert.AreEqual(1, score.Misses);
 		}
 
 		[Test]
@@ -46,9 +46,15 @@ namespace UnityX.Rhythm.JudgementTests {
 			var watching = score.Watch(rig.judge);
 			rig.Play(-0.2);
 			rig.Run(0.1);
-			watching.Dispose();
 			rig.PressAtBeat(0, 0);
-			Assert.AreEqual(0, score.Score);
+			var scored = score.Score;
+			Assert.Greater(scored, 0);
+			watching.Dispose();
+			rig.Run(0.4);
+			rig.PressAtBeat(0, 1);
+			rig.Run(1);
+			Assert.AreEqual(scored, score.Score);
+			Assert.AreEqual(0, score.Misses);
 		}
 
 		[Test]
@@ -78,6 +84,16 @@ namespace UnityX.Rhythm.JudgementTests {
 			Assert.AreEqual(0.25, score.Score, 1e-6);
 			Assert.AreEqual(2, score.Count);
 			Assert.AreEqual(0, score.LastNoteScore);
+		}
+
+		[Test]
+		public void TimingVelocityScoreNeedsAPositiveTimingTolerance() {
+			Assert.Throws<System.ArgumentOutOfRangeException>(() => new TimingVelocityScore(0));
+			var score = new TimingVelocityScore(0.1);
+			Assert.Throws<System.ArgumentOutOfRangeException>(() => score.TimingTolerance = 0);
+			Assert.Throws<System.ArgumentOutOfRangeException>(() => score.TimingTolerance = double.NaN);
+			score.TimingTolerance = 0.2;
+			Assert.AreEqual(0.2, score.TimingTolerance);
 		}
 
 		[Test]

@@ -2,20 +2,29 @@ using System;
 
 namespace UnityX.Rhythm {
 	// Scores each note 0-1 on timing and velocity together: 1 for a hit dead on time at the note's velocity, falling
-	// to 0 as (timing error / timingTolerance, velocity error / velocityTolerance) reaches length 1. Misses score 0.
+	// to 0 as (timing error / TimingTolerance, velocity error / velocityTolerance) reaches length 1. Misses score 0.
 	// Score is the average over every note so far. A velocityTolerance of 0 ignores velocity.
 	public sealed class TimingVelocityScore : IScoreModel {
-		public double timingTolerance;
 		public WindowUnit timingUnit;
 		public double velocityTolerance;
 
 		double total;
+		double timingTolerance;
 
 		public TimingVelocityScore(double timingTolerance, WindowUnit timingUnit = WindowUnit.Seconds, double velocityTolerance = 0) {
 			if (!(timingTolerance > 0)) throw new ArgumentOutOfRangeException(nameof(timingTolerance), "Timing tolerance must be positive");
 			this.timingTolerance = timingTolerance;
 			this.timingUnit = timingUnit;
 			this.velocityTolerance = velocityTolerance;
+		}
+
+		// Divides the timing error, so it must be greater than 0
+		public double TimingTolerance {
+			get => timingTolerance;
+			set {
+				if (!(value > 0)) throw new ArgumentOutOfRangeException(nameof(value), "Timing tolerance must be positive");
+				timingTolerance = value;
+			}
 		}
 
 		public double Score => Count > 0 ? total / Count : 0;

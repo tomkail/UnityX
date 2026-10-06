@@ -105,7 +105,8 @@ namespace UnityX.Rhythm {
 			return stats;
 		}
 
-		// Anything after end is ahead of the playhead, so left there by a seek back
+		// Anything after end is ahead of the playhead, so left there by a seek back. It's dropped for good: playing
+		// forward over it again doesn't bring it back.
 		void Prune(double start, double end) {
 			var kept = 0;
 			for (var i = 0; i < entries.Count; i++) {

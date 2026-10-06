@@ -23,7 +23,7 @@ namespace UnityX.Rhythm.JudgementTests {
 
 		[Test]
 		public void EarlyAndLateCanDiffer() {
-			var windows = new JudgementWindows { grades = { } };
+			var windows = new JudgementWindows();
 			windows.grades.Clear();
 			windows.grades.Add(new JudgementGrade("Hit", 0.05, 0.15));
 			Assert.AreEqual(0, windows.GradeFor(0.12));
