@@ -7,6 +7,7 @@ namespace UnityX.Rhythm {
 	// Maps Input System actions to lanes, timed by each input event's own timestamp rather than the frame it arrived in.
 	// An action is pressed when it performs and released when it cancels, which is how Button actions behave.
 	// The Input System handles devices being plugged in and removed.
+	// Each binding is independent: binding the same action twice, or to two lanes, gives two inputs per press.
 	public class InputActionLaneInput : RhythmInputSource {
 		[Serializable]
 		public class Binding {
@@ -16,7 +17,6 @@ namespace UnityX.Rhythm {
 
 		sealed class Bound {
 			public InputAction action;
-			public int lane;
 			public bool enabledByUs;
 			public Action<InputAction.CallbackContext> pressed;
 			public Action<InputAction.CallbackContext> released;
@@ -28,6 +28,7 @@ namespace UnityX.Rhythm {
 		readonly List<(InputAction action, int lane)> codeBindings = new();
 
 		// Binds an action from code. Takes effect immediately if enabled, and survives disable and enable.
+		// Not deduplicated: binding the same action twice gives two inputs per press.
 		public void Bind(InputAction action, int lane) {
 			if (action == null) throw new ArgumentNullException(nameof(action));
 			codeBindings.Add((action, lane));
@@ -42,6 +43,7 @@ namespace UnityX.Rhythm {
 			foreach (var (action, lane) in codeBindings) Subscribe(action, lane);
 		}
 
+		// An input still held when this is disabled gets no release, since its cancel arrives after we unsubscribe
 		void OnDisable() {
 			foreach (var b in bound) {
 				b.action.performed -= b.pressed;
@@ -53,7 +55,7 @@ namespace UnityX.Rhythm {
 		}
 
 		void Subscribe(InputAction action, int lane) {
-			var b = new Bound { action = action, lane = lane };
+			var b = new Bound { action = action };
 			b.pressed = context => Submit(lane, InputPhase.Press, ReadVelocity(context), context.time);
 			b.released = context => Submit(lane, InputPhase.Release, 0, context.time);
 			action.performed += b.pressed;
@@ -65,7 +67,8 @@ namespace UnityX.Rhythm {
 			bound.Add(b);
 		}
 
-		// Analog buttons report how hard they were pressed; anything else counts as full velocity
+		// performed fires as the press threshold is crossed, so an analog button gives its pressure at that moment,
+		// not its peak. Anything else counts as full velocity.
 		static float ReadVelocity(InputAction.CallbackContext context) {
 			return context.valueType == typeof(float) ? context.ReadValue<float>() : 1;
 		}
