@@ -11,7 +11,14 @@ namespace UnityX.Rhythm {
 	//   than holdReleaseEarly before it.
 	// - A seek back reopens the notes it moved back in front of, so they can be played again.
 	// - Results are kept by NoteId, so tempo, rate and swing changes never re-judge a note.
-	// Call Update once per frame, after the clock has ticked: it updates the NoteScheduler too.
+	// - While paused nothing is missed and presses are stray hits. A seek while paused is settled on the first Update
+	//   after playback resumes, because deadlines can't be compared until the clock is playing again.
+	// - Releases aren't seen while paused, so a hold that was held through a pause completes even if it was let go
+	//   during the pause.
+	// - A hitch longer than the scheduler's lookAhead brings notes in already past their deadline: those are skipped,
+	//   not missed, as if the song had been seeked past them.
+	// Call Update once per frame, after the clock has ticked: it updates the NoteScheduler too. The Judge must be the
+	// only caller of its NoteScheduler's Update, because seek handling depends on seeing every LastJump.
 	public sealed class Judge : IDisposable {
 		enum State {
 			Hit,
@@ -27,7 +34,8 @@ namespace UnityX.Rhythm {
 		readonly NoteScheduler notes;
 		readonly Dictionary<NoteId, State> states = new();
 		readonly List<IRhythmInputSource> sources = new();
-		readonly List<NoteId> scratch = new();
+		// A seek happened while paused and hasn't been settled yet
+		bool jumpPending;
 
 		public bool anyLane;
 		// Extra time before a note counts as missed, in seconds, so a press timed inside its window but delivered a
@@ -75,10 +83,26 @@ namespace UnityX.Rhythm {
 			var clock = timeline.Clock;
 			notes.lookBehind = Math.Max(notes.lookBehind, RequiredLookBehind());
 			notes.Update();
+			var jump = notes.LastJump;
+			if (!clock.IsPlaying) {
+				// Every deadline is infinite while paused, so the jump is settled once playback resumes
+				if (jump != 0) jumpPending = true;
+				return;
+			}
 			var now = clock.DspTime;
-			if (notes.LastJump < 0) Reopen(now);
-			else if (notes.LastJump > 0) SkipUnreachable(now);
-			if (!clock.IsPlaying) return;
+			if (jumpPending) {
+				// The pause may have hidden several seeks either way, so run both passes. They never touch the same
+				// note: Reopen only takes judged notes whose deadline is ahead, SkipUnreachable only open notes whose
+				// deadline has passed. This also skips notes that entered during the pause already too late.
+				jumpPending = false;
+				Reopen(now);
+				SkipUnreachable(now);
+			} else if (jump < 0) {
+				Reopen(now);
+			} else if (jump > 0) {
+				// Only in the seek's direction, so a short seek forward doesn't reopen a note that was hit early
+				SkipUnreachable(now);
+			}
 			foreach (var note in notes.ActiveNotes) {
 				if (!states.TryGetValue(note.id, out var state)) {
 					if (now > Deadline(note)) {
@@ -169,11 +193,9 @@ namespace UnityX.Rhythm {
 
 		// After a seek back: notes that can be played again become open, even if they were hit or missed before
 		void Reopen(double now) {
-			scratch.Clear();
 			foreach (var note in notes.ActiveNotes) {
-				if (states.ContainsKey(note.id) && Deadline(note) > now) scratch.Add(note.id);
+				if (Deadline(note) > now) states.Remove(note.id);
 			}
-			foreach (var id in scratch) states.Remove(id);
 		}
 
 		// After a seek forward: notes the song landed beyond were never playable, so they're skipped, not missed
@@ -184,7 +206,8 @@ namespace UnityX.Rhythm {
 		}
 
 		void OnNoteEntered(NoteInstance note) {
-			// A note that arrives already too late (e.g. added behind the playhead) was never playable either
+			// A note that arrives already too late (e.g. added behind the playhead) was never playable either. While
+			// paused, a pending jump's SkipUnreachable catches these on resume.
 			if (timeline.Clock.IsPlaying && timeline.Clock.DspTime > Deadline(note)) states[note.id] = State.Skipped;
 		}
 

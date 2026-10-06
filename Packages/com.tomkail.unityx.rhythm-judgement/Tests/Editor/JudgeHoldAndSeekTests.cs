@@ -132,5 +132,84 @@ namespace UnityX.Rhythm.JudgementTests {
 			rig.Run(0.1);
 			Assert.IsEmpty(rig.missed);
 		}
+
+		[Test]
+		public void SeekingForwardWhilePausedDoesNotMiss() {
+			var rig = new JudgeRig(new BeatGrid(1));
+			rig.Play(-0.2);
+			rig.Run(1.2);
+			rig.song.clock.Pause();
+			var missedBefore = rig.missed.Count;
+			// Beat 6 (3.0s) ends up just behind the playhead, past its deadline but inside the look-behind
+			rig.song.clock.Seek(3.2);
+			rig.judge.Update();
+			rig.song.clock.Resume();
+			rig.judge.Update();
+			rig.Run(0.2);
+			var missedAfter = rig.missed.Skip(missedBefore).ToList();
+			Assert.IsEmpty(missedAfter, string.Join(", ", missedAfter.Select(n => n.Beat)));
+			// Playing on from there, notes are missed as normal
+			rig.Run(0.5);
+			Assert.AreEqual(7, rig.missed.Skip(missedBefore).Single().Beat);
+		}
+
+		[Test]
+		public void SeekingBackWhilePausedLetsNotesBePlayedAgain() {
+			var rig = new JudgeRig(new BeatGrid(1));
+			rig.Play(-0.2);
+			rig.Run(0.6);
+			// Beat 0 was missed; beats 1 and 2 are hit
+			rig.PressAtBeat(0, 1);
+			rig.Run(0.5);
+			rig.PressAtBeat(0, 2);
+			rig.Run(0.3);
+			CollectionAssert.AreEqual(new[] { 0.0 }, rig.missed.Select(n => n.Beat));
+			rig.song.clock.Pause();
+			// Beat 0 lands just behind the playhead, past its deadline: it mustn't be missed a second time
+			rig.song.clock.Seek(0.2);
+			rig.judge.Update();
+			rig.song.clock.Resume();
+			rig.judge.Update();
+			rig.Run(0.2);
+			rig.PressAtBeat(0, 1);
+			rig.Run(0.5);
+			rig.PressAtBeat(0, 2);
+			rig.Run(0.2);
+			CollectionAssert.AreEqual(new[] { 1.0, 2.0, 1.0, 2.0 }, rig.judged.Select(j => j.note.Beat));
+			CollectionAssert.AreEqual(new[] { 0.0 }, rig.missed.Select(n => n.Beat));
+		}
+
+		[Test]
+		public void AShortSeekForwardSkipsANoteItLandsJustBeyond() {
+			var rig = new JudgeRig(new BeatGrid(1));
+			rig.Play(-0.2);
+			rig.Run(0.25);
+			var id = rig.notes.ActiveNotes.First(n => n.Beat == 0).id;
+			Assert.IsTrue(rig.judge.IsOpen(id));
+			// Beat 0's deadline is 0.15s; at 0.22s it's past that but still inside the 0.25s look-behind
+			rig.song.clock.Seek(0.22);
+			rig.judge.Update();
+			Assert.IsTrue(rig.notes.IsActive(id));
+			Assert.IsFalse(rig.judge.IsOpen(id));
+			rig.Run(0.3);
+			Assert.IsFalse(rig.missed.Any(n => n.Beat == 0));
+		}
+
+		[Test]
+		public void AShortSeekBackReopensANoteItWasHit() {
+			var rig = new JudgeRig(new BeatGrid(1));
+			rig.Play(-0.2);
+			rig.Run(0.25);
+			rig.PressAtBeat(0, 0);
+			rig.Run(0.1);
+			// Beat 0 stays active, and its deadline (0.15s) is ahead again
+			rig.song.clock.Seek(0);
+			rig.judge.Update();
+			rig.PressAtBeat(0, 0);
+			CollectionAssert.AreEqual(new[] { 0.0, 0.0 }, rig.judged.Select(j => j.note.Beat));
+			Assert.IsEmpty(rig.strays);
+			rig.Run(0.3);
+			Assert.IsEmpty(rig.missed);
+		}
 	}
 }
