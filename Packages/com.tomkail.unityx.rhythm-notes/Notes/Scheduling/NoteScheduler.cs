@@ -13,7 +13,11 @@ namespace UnityX.Rhythm {
 
 	// Keeps the notes near now: from lookBehind seconds ago to lookAhead seconds ahead, in playback time, so at half
 	// speed the window covers half as many beats. Compares notes by NoteId, so tempo, rate, swing and seek changes only
-	// move notes in and out when they really cross the window. Call Update once per frame, after the clock has ticked.
+	// move notes in and out when they really cross the window.
+	// Call Update once per frame, after the clock has ticked, including while paused: seeks are measured between
+	// Updates, so a skipped frame makes them harder to tell from playback.
+	// Something that depends on seeing every Update, such as a Judge, can Claim the scheduler. Only its owner can then
+	// update it; everything else should only read ActiveNotes and listen to the events.
 	public sealed class NoteScheduler {
 		readonly IBeatTimeline timeline;
 		List<NoteInstance> active = new();
@@ -56,7 +60,20 @@ namespace UnityX.Rhythm {
 		public event Action<NoteInstance> NoteEntered;
 		public event Action<NoteInstance, NoteExitReason> NoteExited;
 
+		// Whatever has claimed the scheduler, or null
+		public object Owner { get; private set; }
+
 		public bool IsActive(NoteId id) => activeIds.Contains(id);
+
+		public void Claim(object owner) {
+			if (owner == null) throw new ArgumentNullException(nameof(owner));
+			if (Owner != null && !ReferenceEquals(Owner, owner)) throw new InvalidOperationException($"This NoteScheduler is already owned by a {Owner.GetType().Name}");
+			Owner = owner;
+		}
+
+		public void Release(object owner) {
+			if (ReferenceEquals(Owner, owner)) Owner = null;
+		}
 
 		public bool TryGetNote(NoteId id, out NoteInstance note) {
 			if (activeIds.Contains(id)) {
@@ -75,7 +92,13 @@ namespace UnityX.Rhythm {
 		public double DspTimeOf(NoteInstance note) => timeline.DspTimeAtBeat(note.Beat);
 		public double EndDspTimeOf(NoteInstance note) => timeline.DspTimeAtBeat(note.EndBeat);
 
-		public void Update() {
+		public void Update() => Update(null);
+
+		// caller must be the Owner, if there is one
+		public void Update(object caller) {
+			if (Owner != null && !ReferenceEquals(caller, Owner)) {
+				throw new InvalidOperationException($"This NoteScheduler is owned by its {Owner.GetType().Name}, which updates it. Views should only read ActiveNotes and listen to NoteEntered and NoteExited.");
+			}
 			var clock = timeline.Clock;
 			var tempoMap = timeline.TempoMap;
 			var rate = clock.PlaybackRate;
@@ -85,7 +108,8 @@ namespace UnityX.Rhythm {
 			// The range playback alone could have taken song time to since the last Update. A hitch moves both, a seek
 			// only one. It's a range because a pause, resume or rate change can fall anywhere in the frame.
 			double minSongTime, maxSongTime;
-			// DSP time going back means the audio device restarted and the clock carried song time across it
+			// DSP time going back means the audio device restarted and the clock carried song time across it. With
+			// nothing to measure against, a seek made in that same frame isn't seen either.
 			if (!hasLast || dspTime < lastDspTime) {
 				minSongTime = maxSongTime = songTime;
 			} else {

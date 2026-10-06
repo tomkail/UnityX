@@ -28,6 +28,7 @@ namespace UnityX.Rhythm {
 			this.timeline = timeline ?? throw new ArgumentNullException(nameof(timeline));
 			this.player = player ?? throw new ArgumentNullException(nameof(player));
 			notes = new NoteScheduler(timeline, source) { lookBehind = 0.1, lookAhead = lookAhead };
+			notes.Claim(this);
 			notes.NoteExited += OnNoteExited;
 			timeline.TimelineChanged += OnTimelineChanged;
 		}
@@ -37,13 +38,13 @@ namespace UnityX.Rhythm {
 		// How far ahead sounds are queued, in seconds. Long enough to cover a slow frame.
 		public double LookAhead { get => notes.lookAhead; set => notes.lookAhead = value; }
 
-		// The scheduler's own short window, e.g. to see what's about to sound
+		// The scheduler's own short window, e.g. to see what's about to sound. Only this updates it.
 		public NoteScheduler Notes => notes;
 
 		public int VoiceCount => voices.Count;
 
 		public void Update() {
-			notes.Update();
+			notes.Update(this);
 			var now = timeline.Clock.DspTime;
 			if (timelineChanged) {
 				timelineChanged = false;
@@ -55,6 +56,7 @@ namespace UnityX.Rhythm {
 
 		public void Dispose() {
 			notes.NoteExited -= OnNoteExited;
+			notes.Release(this);
 			timeline.TimelineChanged -= OnTimelineChanged;
 			StopAll();
 		}
@@ -69,7 +71,10 @@ namespace UnityX.Rhythm {
 		}
 
 		void QueueNewNotes(double now) {
-			foreach (var note in notes.ActiveNotes) {
+			// Indexed, because foreach over the IReadOnlyList would box its enumerator every frame
+			var active = notes.ActiveNotes;
+			for (var i = 0; i < active.Count; i++) {
+				var note = active[i];
 				if (handled.Contains(note.id)) continue;
 				var dspTime = timeline.DspTimeAtBeat(note.Beat);
 				if (dspTime > now + notes.lookAhead) continue;

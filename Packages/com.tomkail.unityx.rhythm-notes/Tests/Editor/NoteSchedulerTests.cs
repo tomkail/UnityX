@@ -232,6 +232,23 @@ namespace UnityX.Rhythm.Notes.Tests {
 		}
 
 		[Test]
+		public void IncreasingRateAfterTheClockTicksOnAHitchIsNotAJump() {
+			// At double speed the look-behind covers twice the song, so it's short enough here for beat 1 (0.5s) to pass
+			scheduler.lookBehind = 0.02;
+			song.clock.Play(0);
+			scheduler.Update();
+			RunWithoutJumps(0.25);
+			exited.Clear();
+			// The frame played at the old rate, the slow edge of what the old and new rates allow
+			song.source.Advance(0.3);
+			song.clock.Tick();
+			song.clock.SetPlaybackRate(2);
+			scheduler.Update();
+			Assert.AreEqual(0, scheduler.LastJump);
+			Assert.IsTrue(exited.Count > 0 && exited.All(e => e.reason == NoteExitReason.Passed));
+		}
+
+		[Test]
 		public void AnAudioDeviceRestartIsNotAJump() {
 			song.clock.Play(0);
 			scheduler.Update();
