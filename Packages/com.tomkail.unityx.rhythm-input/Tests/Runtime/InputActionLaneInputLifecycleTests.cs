@@ -185,5 +185,30 @@ namespace UnityX.Rhythm.InputTests {
 			laneInput.enabled = false;
 			Assert.IsFalse(assetAction.enabled);
 		}
+
+		[Test]
+		public void UnbindAfterOtherCodeDisabledTheActionKeepsItEnabledForTheInspectorBinding() {
+			asset = ScriptableObject.CreateInstance<InputActionAsset>();
+			var map = asset.AddActionMap("Gameplay");
+			var assetAction = map.AddAction("Hit", InputActionType.Button, "<Keyboard>/space");
+			reference = InputActionReference.Create(assetAction);
+			inputObject = new GameObject("Input");
+			inputObject.SetActive(false);
+			laneInput = inputObject.AddComponent<InputActionLaneInput>();
+			laneInput.conductor = conductor;
+			laneInput.InputReceived += received.Add;
+			laneInput.bindings.Add(new InputActionLaneInput.Binding { action = reference, lane = 2 });
+			inputObject.SetActive(true);
+			// Other code disables it, so the code binding enables it again and owns it too
+			assetAction.Disable();
+			laneInput.Bind(assetAction, 5);
+			laneInput.Unbind(assetAction);
+			Assert.IsTrue(assetAction.enabled);
+			Press(keyboard.spaceKey, 9.5);
+			Assert.AreEqual(1, received.Count);
+			Assert.AreEqual(2, received[0].lane);
+			laneInput.enabled = false;
+			Assert.IsFalse(assetAction.enabled);
+		}
 	}
 }

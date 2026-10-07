@@ -42,9 +42,7 @@ namespace UnityX.Rhythm {
 			if (action == null) throw new ArgumentNullException(nameof(action));
 			codeBindings.RemoveAll(b => b.action == action);
 			for (var i = bound.Count - 1; i >= 0; i--) {
-				if (bound[i].action != action || !bound[i].fromCode) continue;
-				Unsubscribe(bound[i]);
-				bound.RemoveAt(i);
+				if (bound[i].action == action && bound[i].fromCode) RemoveAt(i);
 			}
 		}
 
@@ -58,15 +56,20 @@ namespace UnityX.Rhythm {
 
 		// An input still held when this is disabled gets no release, since its cancel arrives after we unsubscribe
 		void OnDisable() {
-			foreach (var b in bound) Unsubscribe(b);
-			bound.Clear();
+			for (var i = bound.Count - 1; i >= 0; i--) RemoveAt(i);
 		}
 
-		void Unsubscribe(Bound b) {
+		void RemoveAt(int index) {
+			var b = bound[index];
+			bound.RemoveAt(index);
 			b.action.performed -= b.pressed;
 			b.action.canceled -= b.released;
 			// Leave actions other code enabled alone
-			if (b.enabledByUs) b.action.Disable();
+			if (!b.enabledByUs) return;
+			// Another binding still uses it, so it takes over disabling it when it goes
+			var other = bound.Find(o => o.action == b.action);
+			if (other != null) other.enabledByUs = true;
+			else b.action.Disable();
 		}
 
 		void Subscribe(InputAction action, int lane, bool fromCode) {
