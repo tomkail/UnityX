@@ -25,6 +25,24 @@ namespace UnityX.Rhythm.JudgementTests {
 		}
 
 		[Test]
+		public void MeanAccuracyCanAverageAScoreModelsNoteScore() {
+			var rig = new JudgeRig(new BeatGrid(1));
+			var score = new TimingVelocityScore(0.2, WindowUnit.Beats, 0.5);
+			using var performance = new RollingPerformance(rig.song.timeline, 4) { accuracyOf = score.NoteScore };
+			performance.Watch(rig.judge);
+			rig.Play(-0.2);
+			rig.Run(0.25);
+			// Dead on at the note's velocity (BeatGrid notes have velocity 1) scores 1
+			rig.Press(0, rig.DspAtBeat(0), 1);
+			rig.Run(0.5);
+			// Dead on but 0.25 too soft, half the velocity tolerance, scores 0.5
+			rig.Press(0, rig.DspAtBeat(1), 0.75f);
+			var overall = performance.Overall();
+			Assert.AreEqual(2, overall.hits);
+			Assert.AreEqual(0.75, overall.meanAccuracy, 1e-6);
+		}
+
+		[Test]
 		public void RollingPerformanceCanCountInBars() {
 			var rig = new JudgeRig(new BeatGrid(1));
 			using var performance = new RollingPerformance(rig.song.timeline, 1, RollingPerformance.Unit.Bars);

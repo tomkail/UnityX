@@ -17,7 +17,7 @@ namespace UnityX.Rhythm {
 		public struct Stats {
 			public int hits;
 			public int misses;
-			// Mean Judgement.accuracy of the hits
+			// Mean accuracy of the hits: Judgement.accuracy, or accuracyOf when set
 			public double meanAccuracy;
 			// Mean signed time offset of the hits in seconds: negative means early
 			public double meanOffset;
@@ -42,6 +42,9 @@ namespace UnityX.Rhythm {
 
 		public double window;
 		public Unit unit;
+		// What a hit counts for in meanAccuracy: Judgement.accuracy when null. Set it to a score model's per-note score,
+		// e.g. TimingVelocityScore.NoteScore, to average that instead.
+		public Func<Judgement, double> accuracyOf;
 
 		// timeline is needed to measure the window in bars, and to time misses
 		public RollingPerformance(IBeatTimeline timeline, double window, Unit unit = Unit.Seconds) {
@@ -72,7 +75,7 @@ namespace UnityX.Rhythm {
 			// Never ahead of the playhead: an input stamped later in this frame than the clock's tick would otherwise
 			// be taken for one left ahead by a seek back
 			var songTime = Math.Min(clock.SongTimeAtDspTime(judgement.input.dspTime), clock.SongTime);
-			entries.Add(new Entry { songTime = songTime, lane = judgement.note.note.lane, hit = true, accuracy = judgement.accuracy, offset = judgement.timeOffset });
+			entries.Add(new Entry { songTime = songTime, lane = judgement.note.note.lane, hit = true, accuracy = accuracyOf != null ? accuracyOf(judgement) : judgement.accuracy, offset = judgement.timeOffset });
 		}
 
 		// Timed at the note, which is when the player should have hit it
