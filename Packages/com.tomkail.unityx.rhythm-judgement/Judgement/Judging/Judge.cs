@@ -51,6 +51,8 @@ namespace UnityX.Rhythm {
 		double lastPausedDspTime;
 		// Windows.WidestLate for this Update, which would otherwise loop over the grades for every note
 		double late;
+		// How much later than its timestamp a press can arrive this Update, in real seconds
+		double lateArrival;
 		// Notes that entered while paused, whose deadline can only be checked once playback resumes
 		readonly HashSet<NoteId> enteredWhilePaused = new();
 
@@ -59,15 +61,14 @@ namespace UnityX.Rhythm {
 		// frame later still hits it
 		public double missDelay = 0.05;
 		// The input latency to allow for before a note counts as missed: with negative inputLatency, a press played inside
-		// the window arrives up to -inputLatency later. Falls back to the Conductor's current latency while null. A positive inputLatency never
-		// shortens a deadline, so input submitted at its own time is never missed early.
+		// the window arrives up to -inputLatency later. A positive inputLatency never shortens a deadline, so input
+		// submitted at its own time is never missed early. Overrides the Conductor's latency.
 		public RhythmLatency latency;
 
 		public Judge(IBeatTimeline timeline, NoteScheduler notes, JudgementWindows windows) {
 			this.timeline = timeline ?? throw new ArgumentNullException(nameof(timeline));
 			this.notes = notes ?? throw new ArgumentNullException(nameof(notes));
 			Windows = windows ?? throw new ArgumentNullException(nameof(windows));
-			if (timeline is Conductor conductor) latency = conductor.Latency;
 			notes.Claim(this);
 			notes.NoteEntered += OnNoteEntered;
 			notes.NoteExited += OnNoteExited;
@@ -108,6 +109,9 @@ namespace UnityX.Rhythm {
 			// A Conductor that hasn't been initialised yet
 			if (clock == null) return;
 			late = Windows.WidestLate;
+			// Read live, as RhythmInputSource does, so a latency the Conductor is given later still applies
+			var current = latency != null ? latency : (timeline as Conductor)?.Latency;
+			lateArrival = current != null ? Math.Max(0, -current.inputLatency) : 0;
 			notes.lookBehind = Math.Max(notes.lookBehind, RequiredLookBehind(clock));
 			notes.Update(this);
 			if (!clock.IsPlaying) {
@@ -242,26 +246,18 @@ namespace UnityX.Rhythm {
 				: dspTime - timeline.DspTimeAtBeat(noteBeat);
 		}
 
-		// How much later than its timestamp a press can arrive, in real seconds
-		double LateArrival {
-			get {
-				var current = latency != null ? latency : (timeline as Conductor)?.Latency;
-				return current != null ? Math.Max(0, -current.inputLatency) : 0;
-			}
-		}
-
 		// When a note stops being hittable and counts as missed
 		double Deadline(NoteInstance note) {
 			var end = Windows.unit == WindowUnit.Beats ? timeline.DspTimeAtBeat(note.Beat + late) : notes.DspTimeOf(note) + late;
-			return end + missDelay + LateArrival;
+			return end + missDelay + lateArrival;
 		}
 
 		// Deadline in song time, which unlike DSP time is still finite while paused
 		double SongTimeDeadline(NoteInstance note, double rate) {
 			var tempoMap = timeline.TempoMap;
 			return Windows.unit == WindowUnit.Beats
-				? tempoMap.TimeAtBeat(note.Beat + late) + (missDelay + LateArrival) * rate
-				: tempoMap.TimeAtBeat(note.Beat) + (late + missDelay + LateArrival) * rate;
+				? tempoMap.TimeAtBeat(note.Beat + late) + (missDelay + lateArrival) * rate
+				: tempoMap.TimeAtBeat(note.Beat) + (late + missDelay + lateArrival) * rate;
 		}
 
 		// How far back the scheduler must keep notes, in seconds of playback, for every miss to be noticed
@@ -273,11 +269,11 @@ namespace UnityX.Rhythm {
 				var rate = clock.PlaybackRate;
 				var tempoMap = timeline.TempoMap;
 				var songTime = clock.SongTime;
-				var from = tempoMap.BeatAtTime(songTime - (missDelay + LateArrival + LookBehindMargin) * rate) - late;
+				var from = tempoMap.BeatAtTime(songTime - (missDelay + lateArrival + LookBehindMargin) * rate) - late;
 				var to = tempoMap.BeatAtTime(songTime);
 				seconds = late * 60 / SlowestBpm(tempoMap, from, to) / rate;
 			}
-			return seconds + missDelay + LateArrival + LookBehindMargin;
+			return seconds + missDelay + lateArrival + LookBehindMargin;
 		}
 
 		// Tempo is linear or constant between tempo points, so its minimum is at a point or an end

@@ -60,5 +60,48 @@ namespace UnityX.Rhythm.JudgementTests {
 			Assert.DoesNotThrow(() => judge.Submit(new RhythmInput(0, InputPhase.Press, 1, 0)));
 			Assert.AreEqual(0, strays);
 		}
+
+		[Test]
+		public void AConductorLatencyReplacedAfterTheJudgeIsBuiltStillMovesTheMissDeadlineBack() {
+			gameObject = new GameObject("Song");
+			var conductor = gameObject.AddComponent<Conductor>();
+			conductor.smoothing = Conductor.SmoothingMode.Raw;
+			conductor.TempoMap = new TempoMap(120);
+			var before = ScriptableObject.CreateInstance<RhythmLatency>();
+			var after = ScriptableObject.CreateInstance<RhythmLatency>();
+			try {
+				conductor.Latency = before;
+				var time = new ManualAudioTimeSource();
+				conductor.Initialize(time);
+				conductor.Tick();
+				var notes = new NoteScheduler(conductor, new BeatGrid(1));
+				using var judge = new Judge(conductor, notes, new JudgementWindows());
+				var missed = new List<NoteInstance>();
+				judge.Missed += missed.Add;
+				// Inputs reach the game 0.2s after they're played
+				after.inputLatency = -0.2;
+				conductor.Latency = after;
+
+				conductor.Clock.Play(-0.2);
+				judge.Update();
+				// Beat 0's window closes at 0.1s and the miss delay ends at 0.15s, but the latency holds it open to 0.35s
+				while (conductor.Clock.SongTime < 0.3) {
+					time.Advance(1 / 60.0);
+					conductor.Tick();
+					judge.Update();
+				}
+				Assert.IsEmpty(missed);
+				while (conductor.Clock.SongTime < 0.4) {
+					time.Advance(1 / 60.0);
+					conductor.Tick();
+					judge.Update();
+				}
+				Assert.AreEqual(1, missed.Count);
+				Assert.AreEqual(0, missed[0].Beat);
+			} finally {
+				Object.DestroyImmediate(before);
+				Object.DestroyImmediate(after);
+			}
+		}
 	}
 }
