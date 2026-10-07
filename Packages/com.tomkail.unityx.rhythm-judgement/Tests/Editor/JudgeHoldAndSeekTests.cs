@@ -351,7 +351,31 @@ namespace UnityX.Rhythm.JudgementTests {
 			rig.song.clock.Pause();
 			rig.Run(1);
 			rig.song.clock.Resume();
+			rig.Run(1 / 60.0);
+			Assert.Greater(rig.song.clock.SongTime, 0.65);
+			Assert.AreEqual(1, rig.missed.Count);
+			Assert.AreEqual(1, rig.missed[0].Beat);
 			rig.Run(0.1);
+			Assert.AreEqual(1, rig.missed.Count);
+		}
+
+		[Test]
+		public void ANoteWhoseDeadlinePassesInALongResumeFrameIsMissedNotSkipped() {
+			var rig = new JudgeRig(new BeatGrid(1));
+			rig.Play(-0.2);
+			rig.Run(0.25);
+			rig.PressAtBeat(0, 0);
+			// Pauses at about 0.636s, before beat 1's deadline (0.65s), as above
+			while (rig.song.clock.SongTime < 0.63) rig.Run(1 / 60.0);
+			Assert.IsEmpty(rig.missed);
+			rig.song.clock.Pause();
+			rig.Run(1);
+			rig.song.clock.Resume();
+			// A hitch on unpause: the first frame plays further than seekThreshold, but it's playback, not a seek
+			rig.song.source.Advance(0.08);
+			rig.song.clock.Tick();
+			rig.judge.Update();
+			Assert.Greater(rig.song.clock.SongTime, 0.65);
 			Assert.AreEqual(1, rig.missed.Count);
 			Assert.AreEqual(1, rig.missed[0].Beat);
 		}

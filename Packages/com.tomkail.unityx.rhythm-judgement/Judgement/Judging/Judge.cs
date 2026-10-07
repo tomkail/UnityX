@@ -16,10 +16,10 @@ namespace UnityX.Rhythm {
 	//   your input sources while paused. Notes whose deadline passed before the pause, including during a long frame
 	//   that ended in it, are still missed. On the first Update after playback resumes, the net song time moved since
 	//   the pause (seeks, scrubs) is settled, because deadlines can't be compared until the clock is playing again. If
-	//   it moved by more than the scheduler's seekThreshold, it's settled like a single seek, and notes then past their
-	//   deadline are skipped. Otherwise only notes already past their deadline at the pause point (left behind by a
-	//   tempo edit) are skipped, and a note whose deadline passes in the first frame after resuming is missed. Notes
-	//   that entered while paused already too late are skipped either way.
+	//   it moved by more than the scheduler's seekThreshold beyond what the frame played since resuming, it's settled
+	//   like a single seek, and notes then past their deadline are skipped. Otherwise only notes already past their
+	//   deadline at the pause point (left behind by a tempo edit, or entered while paused already too late) are
+	//   skipped, and a note whose deadline passes in the first frame after resuming is missed.
 	// - Keep calling Update while paused. If you skip it, the pause reads as playing time when you resume.
 	// - Releases aren't seen while paused, so a hold that was held through a pause completes even if it was let go
 	//   during the pause.
@@ -47,6 +47,8 @@ namespace UnityX.Rhythm {
 		bool wasPlaying;
 		// Where playback reached before a pause, until the pause is settled on resume
 		double? songTimeAtPause;
+		// The DSP time on the last paused Update, where Resume anchors playback
+		double lastPausedDspTime;
 		// Windows.WidestLate for this Update, which would otherwise loop over the grades for every note
 		double late;
 		// Notes that entered while paused, whose deadline can only be checked once playback resumes
@@ -117,20 +119,32 @@ namespace UnityX.Rhythm {
 					MissPassedBefore(pausedAt, clock.PlaybackRate);
 				}
 				wasPlaying = false;
+				lastPausedDspTime = clock.DspTime;
 				return;
 			}
 			var now = clock.DspTime;
+			// Whether this Update settles a pause without a seek
+			var resumedInPlace = false;
 			if (songTimeAtPause is double settledFrom) {
 				songTimeAtPause = null;
 				// Every deadline is infinite while paused, so how far song time moved is settled now. It's measured from the
-				// pause rather than summed from LastJump, because a slow scrub never registers as a jump.
+				// pause rather than summed from LastJump, because a slow scrub never registers as a jump. What this frame
+				// played since resuming is playback, not a seek, so it's allowed for, as NoteScheduler does.
+				var rate = clock.PlaybackRate;
 				var moved = clock.SongTime - settledFrom;
-				if (moved < -notes.seekThreshold) Reopen(now);
-				// Without a seek, resuming has already played about a frame by this Update, and a note whose deadline fell in
-				// that frame was playable, so the loop below misses it. Only notes a tempo edit left behind the pause point
-				// are skipped.
-				if (Math.Abs(moved) <= notes.seekThreshold) SkipLeftBehind(settledFrom, clock.PlaybackRate);
-				else SkipUnreachable(now);
+				var played = Math.Max(0, now - lastPausedDspTime) * rate;
+				if (moved < -notes.seekThreshold) {
+					Reopen(now);
+					SkipUnreachable(now);
+				} else if (moved > played + notes.seekThreshold) {
+					SkipUnreachable(now);
+				} else {
+					// A note whose deadline fell in the resumed playback was playable, so the loop below misses it. Only
+					// notes already past their deadline at the pause point (left behind by a tempo edit, or entered late)
+					// are skipped.
+					SkipLeftBehind(settledFrom, rate);
+					resumedInPlace = true;
+				}
 			} else {
 				// Only the pass for the jump's direction, so a short seek forward doesn't reopen a note that was hit early
 				var jump = notes.LastJump;
@@ -140,10 +154,13 @@ namespace UnityX.Rhythm {
 			wasPlaying = true;
 			var active = notes.ActiveNotes;
 			if (enteredWhilePaused.Count > 0) {
-				// As OnNoteEntered does while playing: a note that arrived already too late was never playable
-				for (var i = 0; i < active.Count; i++) {
-					var note = active[i];
-					if (enteredWhilePaused.Contains(note.id) && !states.ContainsKey(note.id) && now > Deadline(note)) states[note.id] = State.Skipped;
+				// As OnNoteEntered does while playing: a note that arrived already too late was never playable. Without a
+				// seek, SkipLeftBehind has already judged that against the pause point.
+				if (!resumedInPlace) {
+					for (var i = 0; i < active.Count; i++) {
+						var note = active[i];
+						if (enteredWhilePaused.Contains(note.id) && !states.ContainsKey(note.id) && now > Deadline(note)) states[note.id] = State.Skipped;
+					}
 				}
 				enteredWhilePaused.Clear();
 			}
