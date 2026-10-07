@@ -1,5 +1,6 @@
 using System.Linq;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace UnityX.Rhythm.JudgementTests {
 	public class JudgeHoldAndSeekTests {
@@ -334,6 +335,56 @@ namespace UnityX.Rhythm.JudgementTests {
 			rig.judge.Update();
 			rig.Run(0.1);
 			Assert.IsFalse(rig.missed.Any(n => n.id == beat2));
+		}
+
+		[Test]
+		public void LateArrivingInputMovesTheMissDeadlineBack() {
+			var rig = new JudgeRig(new BeatGrid(1));
+			var latency = ScriptableObject.CreateInstance<RhythmLatency>();
+			try {
+				// Inputs reach the game 0.2s after they're played
+				latency.inputLatency = -0.2;
+				rig.judge.latency = latency;
+				rig.Play(-0.2);
+				rig.Run(0.25);
+				rig.PressAtBeat(0, 0);
+				// Beat 1 is at 0.5s. Its window closes at 0.6s and the miss delay ends at 0.65s, but a press played then
+				// arrives 0.2s later, so it isn't missed until 0.85s.
+				rig.Run(0.55);
+				Assert.IsEmpty(rig.missed);
+				// The late press, played 50ms after the beat, arrives now and is stamped back to when it was played
+				rig.Press(0, rig.DspAtBeat(1) + 0.05);
+				Assert.AreEqual(2, rig.judged.Count);
+				Assert.IsEmpty(rig.strays);
+				// Beat 2 (1s) is missed only after 1.35s
+				rig.Run(0.45);
+				Assert.IsEmpty(rig.missed);
+				rig.Run(0.35);
+				Assert.AreEqual(1, rig.missed.Count);
+				Assert.AreEqual(2, rig.missed[0].Beat);
+			} finally {
+				Object.DestroyImmediate(latency);
+			}
+		}
+
+		[Test]
+		public void EarlyArrivingInputNeverShortensTheMissDeadline() {
+			var rig = new JudgeRig(new BeatGrid(1));
+			var latency = ScriptableObject.CreateInstance<RhythmLatency>();
+			try {
+				latency.inputLatency = 0.2;
+				rig.judge.latency = latency;
+				rig.Play(-0.2);
+				rig.Run(0.25);
+				rig.PressAtBeat(0, 0);
+				// Beat 1's deadline is still 0.65s: an exact mapping would have moved it to 0.45s
+				rig.Run(0.55);
+				Assert.IsEmpty(rig.missed);
+				rig.Run(0.1);
+				Assert.AreEqual(1, rig.missed.Count);
+			} finally {
+				Object.DestroyImmediate(latency);
+			}
 		}
 	}
 }

@@ -54,11 +54,16 @@ namespace UnityX.Rhythm {
 		// Extra time before a note counts as missed, in seconds, so a press timed inside its window but delivered a
 		// frame later still hits it
 		public double missDelay = 0.05;
+		// The input latency to allow for before a note counts as missed: with negative inputLatency, a press played inside
+		// the window arrives up to -inputLatency later. Defaults to the Conductor's. A positive inputLatency never
+		// shortens a deadline, so input submitted at its own time is never missed early.
+		public RhythmLatency latency;
 
 		public Judge(IBeatTimeline timeline, NoteScheduler notes, JudgementWindows windows) {
 			this.timeline = timeline ?? throw new ArgumentNullException(nameof(timeline));
 			this.notes = notes ?? throw new ArgumentNullException(nameof(notes));
 			Windows = windows ?? throw new ArgumentNullException(nameof(windows));
+			if (timeline is Conductor conductor) latency = conductor.Latency;
 			notes.Claim(this);
 			notes.NoteEntered += OnNoteEntered;
 			notes.NoteExited += OnNoteExited;
@@ -214,18 +219,21 @@ namespace UnityX.Rhythm {
 				: dspTime - timeline.DspTimeAtBeat(noteBeat);
 		}
 
+		// How much later than its timestamp a press can arrive, in real seconds
+		double LateArrival => latency != null ? Math.Max(0, -latency.inputLatency) : 0;
+
 		// When a note stops being hittable and counts as missed
 		double Deadline(NoteInstance note) {
 			var end = Windows.unit == WindowUnit.Beats ? timeline.DspTimeAtBeat(note.Beat + late) : notes.DspTimeOf(note) + late;
-			return end + missDelay;
+			return end + missDelay + LateArrival;
 		}
 
 		// Deadline in song time, which unlike DSP time is still finite while paused
 		double SongTimeDeadline(NoteInstance note, double rate) {
 			var tempoMap = timeline.TempoMap;
 			return Windows.unit == WindowUnit.Beats
-				? tempoMap.TimeAtBeat(note.Beat + late) + missDelay * rate
-				: tempoMap.TimeAtBeat(note.Beat) + (late + missDelay) * rate;
+				? tempoMap.TimeAtBeat(note.Beat + late) + (missDelay + LateArrival) * rate
+				: tempoMap.TimeAtBeat(note.Beat) + (late + missDelay + LateArrival) * rate;
 		}
 
 		// How far back the scheduler must keep notes, in seconds of playback, for every miss to be noticed
@@ -237,11 +245,11 @@ namespace UnityX.Rhythm {
 				var rate = clock.PlaybackRate;
 				var tempoMap = timeline.TempoMap;
 				var songTime = clock.SongTime;
-				var from = tempoMap.BeatAtTime(songTime - (missDelay + LookBehindMargin) * rate) - late;
+				var from = tempoMap.BeatAtTime(songTime - (missDelay + LateArrival + LookBehindMargin) * rate) - late;
 				var to = tempoMap.BeatAtTime(songTime);
 				seconds = late * 60 / SlowestBpm(tempoMap, from, to) / rate;
 			}
-			return seconds + missDelay + LookBehindMargin;
+			return seconds + missDelay + LateArrival + LookBehindMargin;
 		}
 
 		// Tempo is linear or constant between tempo points, so its minimum is at a point or an end
