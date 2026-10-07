@@ -338,6 +338,25 @@ namespace UnityX.Rhythm.JudgementTests {
 		}
 
 		[Test]
+		public void ANoteWhoseDeadlinePassesInTheResumeFrameIsMissedNotSkipped() {
+			var rig = new JudgeRig(new BeatGrid(1));
+			rig.Play(-0.2);
+			rig.Run(0.25);
+			rig.PressAtBeat(0, 0);
+			// Beat 1's deadline is 0.65s. The test audio clock moves in whole buffers (about 0.023s), so this pauses at
+			// about 0.636s, and the first frame after resuming plays on to about 0.659s.
+			while (rig.song.clock.SongTime < 0.63) rig.Run(1 / 60.0);
+			Assert.Less(rig.song.clock.SongTime, 0.65);
+			Assert.IsEmpty(rig.missed);
+			rig.song.clock.Pause();
+			rig.Run(1);
+			rig.song.clock.Resume();
+			rig.Run(0.1);
+			Assert.AreEqual(1, rig.missed.Count);
+			Assert.AreEqual(1, rig.missed[0].Beat);
+		}
+
+		[Test]
 		public void LateArrivingInputMovesTheMissDeadlineBack() {
 			var rig = new JudgeRig(new BeatGrid(1));
 			var latency = ScriptableObject.CreateInstance<RhythmLatency>();

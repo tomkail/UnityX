@@ -15,9 +15,11 @@ namespace UnityX.Rhythm {
 	// - While paused nothing is missed or completed, and presses are stray hits: if you score stray hits, disable
 	//   your input sources while paused. Notes whose deadline passed before the pause, including during a long frame
 	//   that ended in it, are still missed. On the first Update after playback resumes, the net song time moved since
-	//   the pause (seeks, scrubs) is settled like a single seek, because deadlines can't be compared until the clock is
-	//   playing again. Notes that are then past their deadline (entered late, or left behind by a seek or tempo edit)
-	//   are skipped.
+	//   the pause (seeks, scrubs) is settled, because deadlines can't be compared until the clock is playing again. If
+	//   it moved by more than the scheduler's seekThreshold, it's settled like a single seek, and notes then past their
+	//   deadline are skipped. Otherwise only notes already past their deadline at the pause point (left behind by a
+	//   tempo edit) are skipped, and a note whose deadline passes in the first frame after resuming is missed. Notes
+	//   that entered while paused already too late are skipped either way.
 	// - Keep calling Update while paused. If you skip it, the pause reads as playing time when you resume.
 	// - Releases aren't seen while paused, so a hold that was held through a pause completes even if it was let go
 	//   during the pause.
@@ -121,10 +123,14 @@ namespace UnityX.Rhythm {
 			if (songTimeAtPause is double settledFrom) {
 				songTimeAtPause = null;
 				// Every deadline is infinite while paused, so how far song time moved is settled now. It's measured from the
-				// pause rather than summed from LastJump, because a slow scrub never registers as a jump. A tempo edit
-				// doesn't move song time but can still leave open notes behind the playhead, so the skip pass always runs.
-				if (clock.SongTime - settledFrom < -notes.seekThreshold) Reopen(now);
-				SkipUnreachable(now);
+				// pause rather than summed from LastJump, because a slow scrub never registers as a jump.
+				var moved = clock.SongTime - settledFrom;
+				if (moved < -notes.seekThreshold) Reopen(now);
+				// Without a seek, resuming has already played about a frame by this Update, and a note whose deadline fell in
+				// that frame was playable, so the loop below misses it. Only notes a tempo edit left behind the pause point
+				// are skipped.
+				if (Math.Abs(moved) <= notes.seekThreshold) SkipLeftBehind(settledFrom, clock.PlaybackRate);
+				else SkipUnreachable(now);
 			} else {
 				// Only the pass for the jump's direction, so a short seek forward doesn't reopen a note that was hit early
 				var jump = notes.LastJump;
@@ -284,6 +290,15 @@ namespace UnityX.Rhythm {
 			for (var i = 0; i < active.Count; i++) {
 				var note = active[i];
 				if (!states.ContainsKey(note.id) && now > Deadline(note)) states[note.id] = State.Skipped;
+			}
+		}
+
+		// On resume without a seek: open notes already past their deadline at the pause point were never playable
+		void SkipLeftBehind(double pausedAt, double rate) {
+			var active = notes.ActiveNotes;
+			for (var i = 0; i < active.Count; i++) {
+				var note = active[i];
+				if (!states.ContainsKey(note.id) && pausedAt > SongTimeDeadline(note, rate)) states[note.id] = State.Skipped;
 			}
 		}
 
