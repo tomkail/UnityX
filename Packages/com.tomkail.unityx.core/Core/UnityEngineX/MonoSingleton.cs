@@ -38,10 +38,15 @@ public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T
         }
     }
 
+    // True on an instance Awake destroyed as a duplicate. Destroy is deferred, so its Start and other messages can still
+    // run this frame: subclasses return early from them when this is set.
+    protected bool IsDuplicate { get; private set; }
+
     protected virtual void Awake () {
         ResetIfNewSession();
         if(_Instance != null && _Instance != this) {
             Debug.LogWarning($"Duplicate {typeof(T).Name} singleton on '{name}'; destroying it.", this);
+            IsDuplicate = true;
             Destroy(this);
             return;
         }

@@ -63,6 +63,9 @@ public class RenderTextureCreator : MonoBehaviour {
     
     public Action<RenderTexture> OnCreateRenderTexture;
 
+    // Callers like BackgroundShapeBlur refresh every frame, so a zero size would otherwise warn every frame.
+    bool warnedAboutSize;
+
     void Awake() {
 	    _renderTexture = null;
     }
@@ -74,9 +77,13 @@ public class RenderTextureCreator : MonoBehaviour {
     public void RefreshRenderTexture () {
 	    Vector2Int targetSize = calculatedTextureSize;
 	    if (targetSize.x <= 0 || targetSize.y <= 0) {
-		    Debug.LogWarning($"{GetType().Name}: Target size is {targetSize}, so not creating RenderTexture.", this);
+		    if (!warnedAboutSize) {
+			    warnedAboutSize = true;
+			    Debug.LogWarning($"{GetType().Name}: Target size is {targetSize}, so not creating RenderTexture.", this);
+		    }
 		    return;
 	    }
+	    warnedAboutSize = false;
 	    
         if(_renderTexture == null) {
             _renderTexture = new RenderTexture (targetSize.x, targetSize.y, (int)renderTextureDepth, renderTextureFormat, renderTextureReadWrite) {
