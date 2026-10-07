@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.TestTools;
 
 namespace UnityX.Rhythm.InputTests {
 	// Play mode, because OnEnable and OnDisable only run there: AddComponent enables, enabled = false disables
@@ -111,6 +112,76 @@ namespace UnityX.Rhythm.InputTests {
 			Assert.AreEqual(1, received.Count);
 			Assert.AreEqual(2, received[0].lane);
 			Assert.AreEqual(conductor.Clock.RealtimeToDspTime(9.5), received[0].dspTime, 1e-6);
+			laneInput.enabled = false;
+			Assert.IsFalse(assetAction.enabled);
+		}
+
+		[Test]
+		public void UnbindStopsInputAndDisablesWhatItEnabled() {
+			CreateLaneInput();
+			laneInput.Bind(action, 0);
+			laneInput.Bind(action, 2);
+			Assert.IsTrue(action.enabled);
+			laneInput.Unbind(action);
+			Assert.IsFalse(action.enabled);
+			action.Enable();
+			Press(keyboard.spaceKey, 9.5);
+			Assert.IsEmpty(received);
+			// And it stays unbound through a disable and enable
+			laneInput.enabled = false;
+			laneInput.enabled = true;
+			Press(keyboard.spaceKey, 9.6);
+			Assert.IsEmpty(received);
+		}
+
+		[Test]
+		public void UnbindLeavesOtherBindingsAlone() {
+			CreateLaneInput();
+			var other = new InputAction("Other", InputActionType.Button, "<Keyboard>/enter");
+			try {
+				laneInput.Bind(action, 0);
+				laneInput.Bind(other, 1);
+				laneInput.Unbind(action);
+				Press(keyboard.enterKey, 9.5);
+				Assert.AreEqual(1, received.Count);
+				Assert.AreEqual(1, received[0].lane);
+			} finally {
+				other.Dispose();
+			}
+		}
+
+		[Test]
+		public void AnActionCanBeDisposedSafelyAfterUnbind() {
+			CreateLaneInput();
+			var disposable = new InputAction("Temp", InputActionType.Button, "<Keyboard>/a");
+			laneInput.Bind(disposable, 0);
+			laneInput.Unbind(disposable);
+			disposable.Dispose();
+			laneInput.enabled = false;
+			laneInput.enabled = true;
+			LogAssert.NoUnexpectedReceived();
+		}
+
+		[Test]
+		public void UnbindKeepsAnActionEnabledWhileAnInspectorBindingStillUsesIt() {
+			asset = ScriptableObject.CreateInstance<InputActionAsset>();
+			var map = asset.AddActionMap("Gameplay");
+			var assetAction = map.AddAction("Hit", InputActionType.Button, "<Keyboard>/space");
+			reference = InputActionReference.Create(assetAction);
+			inputObject = new GameObject("Input");
+			inputObject.SetActive(false);
+			laneInput = inputObject.AddComponent<InputActionLaneInput>();
+			laneInput.conductor = conductor;
+			laneInput.InputReceived += received.Add;
+			laneInput.bindings.Add(new InputActionLaneInput.Binding { action = reference, lane = 2 });
+			// The code binding is added while inactive, so the inspector binding subscribes first and enables the action
+			laneInput.Bind(assetAction, 5);
+			inputObject.SetActive(true);
+			laneInput.Unbind(assetAction);
+			Assert.IsTrue(assetAction.enabled);
+			Press(keyboard.spaceKey, 9.5);
+			Assert.AreEqual(1, received.Count);
+			Assert.AreEqual(2, received[0].lane);
 			laneInput.enabled = false;
 			Assert.IsFalse(assetAction.enabled);
 		}

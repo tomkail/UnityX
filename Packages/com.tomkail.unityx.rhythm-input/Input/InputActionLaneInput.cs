@@ -18,6 +18,7 @@ namespace UnityX.Rhythm {
 		sealed class Bound {
 			public InputAction action;
 			public bool enabledByUs;
+			public bool fromCode;
 			public Action<InputAction.CallbackContext> pressed;
 			public Action<InputAction.CallbackContext> released;
 		}
@@ -32,30 +33,44 @@ namespace UnityX.Rhythm {
 		public void Bind(InputAction action, int lane) {
 			if (action == null) throw new ArgumentNullException(nameof(action));
 			codeBindings.Add((action, lane));
-			if (isActiveAndEnabled) Subscribe(action, lane);
+			if (isActiveAndEnabled) Subscribe(action, lane, true);
+		}
+
+		// Undoes Bind for this action, on every lane it was bound to. Call it before disposing an action you bound.
+		// Inspector bindings to the same action are left alone.
+		public void Unbind(InputAction action) {
+			if (action == null) throw new ArgumentNullException(nameof(action));
+			codeBindings.RemoveAll(b => b.action == action);
+			for (var i = bound.Count - 1; i >= 0; i--) {
+				if (bound[i].action != action || !bound[i].fromCode) continue;
+				Unsubscribe(bound[i]);
+				bound.RemoveAt(i);
+			}
 		}
 
 		void OnEnable() {
 			foreach (var binding in bindings) {
 				var action = binding.action != null ? binding.action.action : null;
-				if (action != null) Subscribe(action, binding.lane);
+				if (action != null) Subscribe(action, binding.lane, false);
 			}
-			foreach (var (action, lane) in codeBindings) Subscribe(action, lane);
+			foreach (var (action, lane) in codeBindings) Subscribe(action, lane, true);
 		}
 
 		// An input still held when this is disabled gets no release, since its cancel arrives after we unsubscribe
 		void OnDisable() {
-			foreach (var b in bound) {
-				b.action.performed -= b.pressed;
-				b.action.canceled -= b.released;
-				// Leave actions other code enabled alone
-				if (b.enabledByUs) b.action.Disable();
-			}
+			foreach (var b in bound) Unsubscribe(b);
 			bound.Clear();
 		}
 
-		void Subscribe(InputAction action, int lane) {
-			var b = new Bound { action = action };
+		void Unsubscribe(Bound b) {
+			b.action.performed -= b.pressed;
+			b.action.canceled -= b.released;
+			// Leave actions other code enabled alone
+			if (b.enabledByUs) b.action.Disable();
+		}
+
+		void Subscribe(InputAction action, int lane, bool fromCode) {
+			var b = new Bound { action = action, fromCode = fromCode };
 			b.pressed = context => Submit(lane, InputPhase.Press, ReadVelocity(context), context.time);
 			b.released = context => Submit(lane, InputPhase.Release, 0, context.time);
 			action.performed += b.pressed;
