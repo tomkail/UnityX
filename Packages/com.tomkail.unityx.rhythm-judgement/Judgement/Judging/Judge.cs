@@ -55,7 +55,7 @@ namespace UnityX.Rhythm {
 		// frame later still hits it
 		public double missDelay = 0.05;
 		// The input latency to allow for before a note counts as missed: with negative inputLatency, a press played inside
-		// the window arrives up to -inputLatency later. Defaults to the Conductor's. A positive inputLatency never
+		// the window arrives up to -inputLatency later. Falls back to the Conductor's current latency while null. A positive inputLatency never
 		// shortens a deadline, so input submitted at its own time is never missed early.
 		public RhythmLatency latency;
 
@@ -220,7 +220,12 @@ namespace UnityX.Rhythm {
 		}
 
 		// How much later than its timestamp a press can arrive, in real seconds
-		double LateArrival => latency != null ? Math.Max(0, -latency.inputLatency) : 0;
+		double LateArrival {
+			get {
+				var current = latency != null ? latency : (timeline as Conductor)?.Latency;
+				return current != null ? Math.Max(0, -current.inputLatency) : 0;
+			}
+		}
 
 		// When a note stops being hittable and counts as missed
 		double Deadline(NoteInstance note) {
