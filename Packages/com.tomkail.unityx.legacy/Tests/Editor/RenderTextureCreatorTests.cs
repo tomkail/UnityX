@@ -56,7 +56,7 @@ namespace UnityX.LegacyTests {
 			return warnings;
 		}
 
-		// Metal substitutes a 32-bit depth buffer for 24, which used to make every refresh recreate the texture
+		// Metal substitutes a 32-bit depth buffer for 24, and a substituted setting isn't a change that should recreate the texture
 		[Test]
 		public void RefreshingWithUnchangedSettingsKeepsTheTexture() {
 			creator.renderTextureDepth = RenderTextureCreator.RenderTextureDepth._24;
