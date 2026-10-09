@@ -65,6 +65,9 @@ public class RenderTextureCreator : MonoBehaviour {
 
     // Callers like BackgroundShapeBlur refresh every frame, so a zero size would otherwise warn every frame.
     bool warnedAboutSize;
+    // Not serialized, so a domain reload recreates the texture once
+    Settings? createdWith;
+    bool warnedAboutDepth;
 
     void Awake() {
 	    _renderTexture = null;
@@ -84,44 +87,67 @@ public class RenderTextureCreator : MonoBehaviour {
 		    return;
 	    }
 	    warnedAboutSize = false;
-	    
-        if(_renderTexture == null) {
-            _renderTexture = new RenderTexture (targetSize.x, targetSize.y, (int)renderTextureDepth, renderTextureFormat, renderTextureReadWrite) {
-	            name = $"RenderTextureCreator {transform.HierarchyPath()}",
-	            enableRandomWrite = enableRandomWrite,
-	            filterMode = filterMode,
-	            antiAliasing = (int)antiAliasing,
-	            hideFlags = HideFlags.HideAndDontSave
-            };
-            if(OnCreateRenderTexture != null) OnCreateRenderTexture(_renderTexture);
-        } else {
-	        var textureRequiresChange = 
-		        _renderTexture != null && 
-		        (_renderTexture.width != targetSize.x || 
-		         _renderTexture.height != targetSize.y || 
-		         _renderTexture.depth != (int)renderTextureDepth || 
-		         _renderTexture.format != renderTextureFormat || 
-		         _renderTexture.enableRandomWrite != enableRandomWrite || 
-		         _renderTexture.filterMode != filterMode ||
-		         _renderTexture.antiAliasing != (int)antiAliasing
-		        );
-	    
-	        if(textureRequiresChange) {
-		        ReleaseRenderTexture();
-		        _renderTexture.width = targetSize.x;
-		        _renderTexture.height = targetSize.y;
-		        _renderTexture.depth = (int)renderTextureDepth;
-		        _renderTexture.format = renderTextureFormat;
-		        _renderTexture.enableRandomWrite = enableRandomWrite;
-		        _renderTexture.filterMode = filterMode;
-		        _renderTexture.antiAliasing = (int)antiAliasing;
-		        _renderTexture.Create();
-		        if(OnCreateRenderTexture != null) OnCreateRenderTexture(_renderTexture);
-	        }
-        }
-        if (_renderTexture.depth != (int) renderTextureDepth) {
-	        Debug.LogWarning($"{GetType().Name}: Depth {(int)renderTextureDepth} appears not to be supported. You should change this so that the RenderTexture doesn't change each frame.", this);
-        }
+
+	    var requested = new Settings(targetSize, (int)renderTextureDepth, renderTextureFormat, renderTextureReadWrite, enableRandomWrite, filterMode, (int)antiAliasing);
+	    // Compared with what was asked for last time rather than the texture's properties, because the platform
+	    // may substitute a setting (Metal gives a 32-bit depth buffer for 24) and that would recreate it every refresh.
+	    bool settingsChanged = createdWith == null || !createdWith.Value.Equals(requested);
+	    if (_renderTexture != null && !settingsChanged && _renderTexture.IsCreated()) return;
+
+	    // The read/write mode can only be set in the constructor; anything else is changed in place so references to the texture stay valid
+	    if (_renderTexture == null || createdWith == null || createdWith.Value.readWrite != requested.readWrite) {
+		    DestroyRenderTexture();
+		    _renderTexture = new RenderTexture(targetSize.x, targetSize.y, requested.depth, renderTextureFormat, renderTextureReadWrite) {
+			    name = $"RenderTextureCreator {transform.HierarchyPath()}",
+			    enableRandomWrite = enableRandomWrite,
+			    filterMode = filterMode,
+			    antiAliasing = requested.antiAliasing,
+			    hideFlags = HideFlags.HideAndDontSave
+		    };
+	    } else if (settingsChanged) {
+		    ReleaseRenderTexture();
+		    _renderTexture.width = targetSize.x;
+		    _renderTexture.height = targetSize.y;
+		    _renderTexture.depth = requested.depth;
+		    _renderTexture.format = renderTextureFormat;
+		    _renderTexture.enableRandomWrite = enableRandomWrite;
+		    _renderTexture.filterMode = filterMode;
+		    _renderTexture.antiAliasing = requested.antiAliasing;
+	    }
+	    if (settingsChanged) {
+		    createdWith = requested;
+		    warnedAboutDepth = false;
+	    }
+	    _renderTexture.Create();
+	    if (!warnedAboutDepth && _renderTexture.depth != requested.depth) {
+		    warnedAboutDepth = true;
+		    Debug.LogWarning($"{GetType().Name}: Depth {requested.depth} isn't supported here; got {_renderTexture.depth}. Keeping it.", this);
+	    }
+	    if(OnCreateRenderTexture != null) OnCreateRenderTexture(_renderTexture);
+    }
+
+    readonly struct Settings : IEquatable<Settings> {
+	    public readonly Vector2Int size;
+	    public readonly int depth;
+	    public readonly RenderTextureFormat format;
+	    public readonly RenderTextureReadWrite readWrite;
+	    public readonly bool enableRandomWrite;
+	    public readonly FilterMode filterMode;
+	    public readonly int antiAliasing;
+
+	    public Settings(Vector2Int size, int depth, RenderTextureFormat format, RenderTextureReadWrite readWrite, bool enableRandomWrite, FilterMode filterMode, int antiAliasing) {
+		    this.size = size;
+		    this.depth = depth;
+		    this.format = format;
+		    this.readWrite = readWrite;
+		    this.enableRandomWrite = enableRandomWrite;
+		    this.filterMode = filterMode;
+		    this.antiAliasing = antiAliasing;
+	    }
+
+	    public bool Equals(Settings other) =>
+		    size == other.size && depth == other.depth && format == other.format && readWrite == other.readWrite &&
+		    enableRandomWrite == other.enableRandomWrite && filterMode == other.filterMode && antiAliasing == other.antiAliasing;
     }
 
     public void ReleaseRenderTexture () {

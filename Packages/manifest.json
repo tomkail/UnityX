@@ -53,6 +53,7 @@
     "com.unity.pipeline": "0.8.0-exp.1"
   },
   "testables": [
+    "com.tomkail.unityx.legacy",
     "com.tomkail.unityx.rhythm",
     "com.tomkail.unityx.rhythm-audio",
     "com.tomkail.unityx.rhythm-input",
