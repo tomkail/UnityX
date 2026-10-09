@@ -42,31 +42,53 @@ namespace UnityX.LegacyTests {
 			RenderTexture.active = previous;
 		}
 
+		static int CountDepthWarnings(System.Action action) {
+			int warnings = 0;
+			void Count(string message, string stackTrace, LogType type) {
+				if (type == LogType.Warning && message.Contains("Depth")) warnings++;
+			}
+			Application.logMessageReceived += Count;
+			try {
+				action();
+			} finally {
+				Application.logMessageReceived -= Count;
+			}
+			return warnings;
+		}
+
 		// Metal substitutes a 32-bit depth buffer for 24, which used to make every refresh recreate the texture
 		[Test]
 		public void RefreshingWithUnchangedSettingsKeepsTheTexture() {
 			creator.renderTextureDepth = RenderTextureCreator.RenderTextureDepth._24;
-			int warnings = 0;
-			void CountWarnings(string message, string stackTrace, LogType type) {
-				if (type == LogType.Warning && message.Contains("Depth")) warnings++;
-			}
-			Application.logMessageReceived += CountWarnings;
-			try {
+			RenderTexture texture = null;
+			int warnings = CountDepthWarnings(() => {
 				creator.RefreshRenderTexture();
-				var texture = creator.renderTexture;
+				texture = creator.renderTexture;
 				Fill(texture, Color.red);
 
 				creator.RefreshRenderTexture();
 				creator.RefreshRenderTexture();
+			});
 
-				Assert.AreEqual(1, creations);
-				Assert.AreSame(texture, creator.renderTexture);
-				Assert.IsTrue(texture.IsCreated());
-				Assert.AreEqual(Color.red, ReadPixel(texture));
-				Assert.LessOrEqual(warnings, 1);
-			} finally {
-				Application.logMessageReceived -= CountWarnings;
-			}
+			Assert.AreEqual(1, creations);
+			Assert.AreSame(texture, creator.renderTexture);
+			Assert.IsTrue(texture.IsCreated());
+			Assert.AreEqual(Color.red, ReadPixel(texture));
+			Assert.AreEqual(texture.depth != 24 ? 1 : 0, warnings);
+		}
+
+		// A full-screen creator is resized whenever the window is, which shouldn't repeat the warning
+		[Test]
+		public void ResizingDoesNotRepeatTheDepthWarning() {
+			creator.renderTextureDepth = RenderTextureCreator.RenderTextureDepth._24;
+			int warnings = CountDepthWarnings(() => {
+				creator.RefreshRenderTexture();
+				creator.renderTextureSize = new Vector2Int(128, 32);
+				creator.RefreshRenderTexture();
+			});
+
+			Assert.AreEqual(2, creations);
+			Assert.AreEqual(creator.renderTexture.depth != 24 ? 1 : 0, warnings);
 		}
 
 		[Test]

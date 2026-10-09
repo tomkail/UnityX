@@ -65,7 +65,7 @@ public class RenderTextureCreator : MonoBehaviour {
 
     // Callers like BackgroundShapeBlur refresh every frame, so a zero size would otherwise warn every frame.
     bool warnedAboutSize;
-    // Not serialized, so a domain reload recreates the texture once
+    // Not serialized on purpose: after a domain reload nothing is remembered, so the next refresh makes a new texture
     Settings? createdWith;
     bool warnedAboutDepth;
 
@@ -115,8 +115,9 @@ public class RenderTextureCreator : MonoBehaviour {
 		    _renderTexture.antiAliasing = requested.antiAliasing;
 	    }
 	    if (settingsChanged) {
+		    // Only a new depth can be substituted differently, so resizing a full-screen creator doesn't repeat the warning
+		    if (createdWith == null || createdWith.Value.depth != requested.depth) warnedAboutDepth = false;
 		    createdWith = requested;
-		    warnedAboutDepth = false;
 	    }
 	    _renderTexture.Create();
 	    if (!warnedAboutDepth && _renderTexture.depth != requested.depth) {
