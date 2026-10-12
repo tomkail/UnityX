@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Text;
+using System.Runtime.Serialization;
 
 /// <summary>
 /// General purpose bitfield with 64 bits of storage that takes an enum type.
 /// I feel like I've seen an implementation of somewhere before already but I can't remember where?
 /// </summary>
 [Serializable]
+[DataContract]
 public struct BitField<TEnum> where TEnum : struct, IConvertible // enum
 {
 	public BitField(TEnum initial) {
@@ -83,5 +85,6 @@ public struct BitField<TEnum> where TEnum : struct, IConvertible // enum
 	const int kNumBits = 64;
 
 	[UnityEngine.SerializeField]
+	[DataMember(Name = "_bits")]
 	System.UInt64 _bits;
 }

@@ -6,8 +6,20 @@ using UnityEngine;
 public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T> {
     static bool searched;
     static T _Instance;
+    static int _session;
+
+    // Without domain reload these statics survive into the next play session, where _Instance would be a destroyed object
+    // and searched would block a fresh search. Generic classes can't use [RuntimeInitializeOnLoadMethod], so compare session ids.
+    static void ResetIfNewSession () {
+        if(_session == PlaySession.id) return;
+        _session = PlaySession.id;
+        _Instance = null;
+        searched = false;
+    }
+
     public static T Instance {
         get {
+            ResetIfNewSession();
 #if UNITY_EDITOR
             if(!Application.isPlaying) searched = false;
 #endif
@@ -19,11 +31,22 @@ public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T
         }
     }
 
-    public static bool IsInitialized => _Instance != null;
+    public static bool IsInitialized {
+        get {
+            ResetIfNewSession();
+            return _Instance != null;
+        }
+    }
+
+    // True on an instance Awake destroyed as a duplicate. Destroy is deferred, so its Start and other messages can still
+    // run this frame: subclasses return early from them when this is set.
+    protected bool IsDuplicate { get; private set; }
 
     protected virtual void Awake () {
+        ResetIfNewSession();
         if(_Instance != null && _Instance != this) {
             Debug.LogWarning($"Duplicate {typeof(T).Name} singleton on '{name}'; destroying it.", this);
+            IsDuplicate = true;
             Destroy(this);
             return;
         }

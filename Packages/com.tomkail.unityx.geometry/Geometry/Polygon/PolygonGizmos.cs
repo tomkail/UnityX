@@ -14,14 +14,28 @@ namespace UnityX.Geometry {
 		#if UNITY_EDITOR
 		static readonly List<Mesh> meshes = new();
 
-		static PolygonGizmos () {
-			SceneView.duringSceneGui += _ => {
-				foreach(var mesh in meshes) {
-					if(Application.isPlaying) Object.Destroy(mesh);
-					else Object.DestroyImmediate(mesh);
-				}
-				meshes.Clear();
-			};
+		[InitializeOnLoadMethod]
+		static void SubscribeEditorEvents () {
+			SceneView.duringSceneGui -= OnSceneGUI;
+			SceneView.duringSceneGui += OnSceneGUI;
+			AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
+			AssemblyReloadEvents.beforeAssemblyReload += UnsubscribeEditorEvents;
+		}
+
+		// Editor events outlive script assemblies, so unsubscribe before a code reload or the old handler keeps firing alongside the new one.
+		static void UnsubscribeEditorEvents () {
+			SceneView.duringSceneGui -= OnSceneGUI;
+			AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
+			// Nothing will destroy meshes still waiting for a scene view draw once this code is gone.
+			OnSceneGUI(null);
+		}
+
+		static void OnSceneGUI (SceneView sceneView) {
+			foreach(var mesh in meshes) {
+				if(Application.isPlaying) Object.Destroy(mesh);
+				else Object.DestroyImmediate(mesh);
+			}
+			meshes.Clear();
 		}
 		#endif
 

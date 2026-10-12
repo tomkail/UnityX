@@ -12,7 +12,6 @@ namespace UnityEditorX.SceneManagement {
 	/// <summary>
 	/// Provides additional functions to get info about the scene structure of a unity editor project
 	/// </summary>
-	[InitializeOnLoad]
 	public static class EditorSceneManagerX {
 
 		/// <summary>
@@ -45,15 +44,24 @@ namespace UnityEditorX.SceneManagement {
 		}
 		
 		public const string sceneFileExtension = ".unity";
-		public static string[] sceneNames;
-		public static string[] scenePaths;
+		// Filled lazily rather than at editor load: [InitializeOnLoad] can run mid-import, when FindAssets may be incomplete.
+		static string[] _sceneNames;
+		static string[] _scenePaths;
+		public static string[] sceneNames {
+			get {
+				if(_sceneNames == null) Refresh();
+				return _sceneNames;
+			}
+		}
+		public static string[] scenePaths {
+			get {
+				if(_scenePaths == null) Refresh();
+				return _scenePaths;
+			}
+		}
 
 		public delegate void OnChangeSceneAssetsEvent();
 		public static event OnChangeSceneAssetsEvent OnChangeSceneAssets;
-
-		static EditorSceneManagerX () {
-			Refresh();
-		}
 
 		public static bool AnySceneDirty () {
 			for(int i = 0; i < SceneManager.loadedSceneCount; i++) {
@@ -78,8 +86,8 @@ namespace UnityEditorX.SceneManagement {
 		}
 
 		private static void Refresh () {
-			sceneNames = GetSceneNamesInProject();
-			scenePaths = GetScenePathsInProject();
+			_sceneNames = GetSceneNamesInProject();
+			_scenePaths = GetScenePathsInProject();
 
 		}
 

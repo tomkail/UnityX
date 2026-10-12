@@ -168,5 +168,11 @@ public class Prototype : MonoBehaviour {
     void OnApplicationQuit () {
         applicationQuitting = true;
     }
+
+    // OnApplicationQuit also fires on exiting play mode, so clear the flag for the next session when domain reload is off.
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetStatics () {
+        applicationQuitting = false;
+    }
     #endif
 }

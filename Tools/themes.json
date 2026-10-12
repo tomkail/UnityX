@@ -20,9 +20,11 @@
     "packages": [
       "geometry",
       "polygon-renderer",
+      "extruded-polygon",
       "region",
       "islands",
-      "grid-maps"
+      "grid-maps",
+      "hex"
     ]
   },
   "ui": {
@@ -46,6 +48,16 @@
     "packages": [
       "screenshot-exporter",
       "versioning"
+    ]
+  },
+  "rhythm": {
+    "packages": [
+      "rhythm",
+      "rhythm-notes",
+      "rhythm-audio",
+      "rhythm-input",
+      "rhythm-input-midi",
+      "rhythm-judgement"
     ]
   }
 }

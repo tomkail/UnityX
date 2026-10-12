@@ -1,0 +1,27 @@
+{
+    "name": "UnityX.Rhythm.Judgement.Tests",
+    "rootNamespace": "UnityX.Rhythm.JudgementTests",
+    "references": [
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "UnityX.Rhythm",
+        "UnityX.Rhythm.Notes",
+        "UnityX.Rhythm.Input",
+        "UnityX.Rhythm.Judgement"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

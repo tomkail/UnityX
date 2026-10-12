@@ -22,9 +22,19 @@ public class ExtendedScriptableObjectDrawer : PropertyDrawer {
 	// repaint — they could never be opened. Cleared on selection change so the cache doesn't grow.
 	static readonly Dictionary<Object, SerializedObject> serializedObjectCache = new Dictionary<Object, SerializedObject>();
 
-	static ExtendedScriptableObjectDrawer () {
+	[InitializeOnLoadMethod]
+	static void SubscribeEditorEvents () {
+		Selection.selectionChanged -= ClearCache;
 		Selection.selectionChanged += ClearCache;
-		AssemblyReloadEvents.beforeAssemblyReload += ClearCache;
+		AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
+		AssemblyReloadEvents.beforeAssemblyReload += UnsubscribeEditorEvents;
+	}
+
+	// Editor events outlive script assemblies, so unsubscribe before a code reload or the old handler keeps firing alongside the new one.
+	static void UnsubscribeEditorEvents () {
+		Selection.selectionChanged -= ClearCache;
+		AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
+		ClearCache();
 	}
 
 	static void ClearCache () {

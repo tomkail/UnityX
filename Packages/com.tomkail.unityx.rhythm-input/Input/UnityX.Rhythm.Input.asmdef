@@ -1,0 +1,17 @@
+{
+    "name": "UnityX.Rhythm.Input",
+    "rootNamespace": "UnityX.Rhythm",
+    "references": [
+        "UnityX.Rhythm",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

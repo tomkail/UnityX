@@ -1,11 +1,20 @@
 ﻿using System;
 using UnityEngine;
+using System.Runtime.Serialization;
 
 [Serializable]
+[DataContract]
 public class HSBColor {
+	// For deserializers, which need a parameterless constructor when there are several.
+	public HSBColor () {}
+
+	[DataMember(Name = "h")]
 	public float h;
+	[DataMember(Name = "s")]
 	public float s;
+	[DataMember(Name = "b")]
 	public float b;
+	[DataMember(Name = "a")]
 	public float a;
 
 	public HSBColor(float h, float s, float b, float a) {

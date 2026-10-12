@@ -18,8 +18,8 @@ namespace UnityX.AWSBuildPipeline.Editor {
 
 
         const float fileFieldHeight = 20;
-        static float extraHeight = 9;
-        static float spacing = 5;
+        const float extraHeight = 9;
+        const float spacing = 5;
 
         public static ServerHostedFileWindow Init() {
             var window = (ServerHostedFileWindow) EditorWindow.GetWindow(typeof(ServerHostedFileWindow), false, "Uploaded Files", true);

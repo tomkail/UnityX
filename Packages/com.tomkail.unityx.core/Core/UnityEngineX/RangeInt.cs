@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Runtime.Serialization;
 
 namespace UnityX {
 	/// <summary>
@@ -10,8 +11,11 @@ namespace UnityX {
 	/// with UnityEngine.RangeInt (a start+length struct) — qualify as `UnityX.RangeInt` if both are in scope.
 	/// </summary>
 	[Serializable]
+	[DataContract]
 	public struct RangeInt : IEquatable<RangeInt> {
+		[DataMember(Name = "min")]
 		public int min;
+		[DataMember(Name = "max")]
 		public int max;
 
 		public int length => max - min;

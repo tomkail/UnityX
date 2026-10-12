@@ -99,6 +99,109 @@ namespace UnityX.Islands {
 			return outline;
 		}
 
+		// One connected piece of a traced region: its outer boundary plus any holes inside it.
+		// Outer loops wind the same way as a single cell's corners; holes wind the opposite way.
+		public class OutlineShape {
+			public List<Vector2> outer;
+			public List<List<Vector2>> holes = new List<List<Vector2>>();
+		}
+
+		// Like GetOutlinePoly, but returns every boundary loop, so it handles disconnected sets and sets with holes
+		// (a ring of land around a lake comes back as one shape with one hole instead of a filled-in blob).
+		// Works on edges rather than walking cells: each cell contributes its edges in corner order, an edge shared by
+		// two cells appears once in each direction and cancels, and what's left chains into closed loops.
+		//   GetCornerPoint(coord, cornerIndex) — the position of a coord's corner.
+		//   numCorners — corners per cell (4 for squares, 6 for hexes).
+		//   weldDistance — corners closer than this are treated as the same point (corner positions computed from
+		//       neighbouring cells rarely match exactly).
+		// Limitation: where only a corner is shared (squares touching diagonally — can't happen on a hex grid) the two
+		// loops through that corner may be joined into one self-touching loop.
+		public static List<OutlineShape> GetOutlineLoops<Coord> (IEnumerable<Coord> points, Func<Coord, int, Vector2> GetCornerPoint, int numCorners, float weldDistance = 0.001f) {
+			Vector2Int Key (Vector2 p) => new Vector2Int(Mathf.RoundToInt(p.x / weldDistance), Mathf.RoundToInt(p.y / weldDistance));
+
+			// Directed boundary edges, keyed (from, to). Adding an edge whose reverse is already present cancels both.
+			var edges = new HashSet<(Vector2Int, Vector2Int)>();
+			var positions = new Dictionary<Vector2Int, Vector2>();
+			foreach(var coord in points) {
+				for(int i = 0; i < numCorners; i++) {
+					var a = GetCornerPoint(coord, i);
+					var b = GetCornerPoint(coord, (i + 1) % numCorners);
+					var ka = Key(a);
+					var kb = Key(b);
+					positions[ka] = a;
+					positions[kb] = b;
+					if(!edges.Remove((kb, ka))) edges.Add((ka, kb));
+				}
+			}
+			// Outer loops wind like a cell; holes wind the other way. Measure one cell to find out which way that is.
+			float cellWinding = 0;
+			foreach(var coord in points) {
+				var corners = new List<Vector2>();
+				for(int i = 0; i < numCorners; i++) corners.Add(GetCornerPoint(coord, i));
+				cellWinding = SignedArea(corners);
+				break;
+			}
+
+			var next = new Dictionary<Vector2Int, Vector2Int>();
+			foreach(var (from, to) in edges) next[from] = to;
+
+			// Chain edges into loops.
+			var outers = new List<List<Vector2>>();
+			var holes = new List<List<Vector2>>();
+			while(next.Count > 0) {
+				var loop = new List<Vector2>();
+				Vector2Int start = default;
+				foreach(var key in next.Keys) { start = key; break; }
+				var current = start;
+				do {
+					loop.Add(positions[current]);
+					var to = next[current];
+					next.Remove(current);
+					current = to;
+				} while(current != start && next.ContainsKey(current));
+
+				(Mathf.Sign(SignedArea(loop)) == Mathf.Sign(cellWinding) ? outers : holes).Add(loop);
+			}
+
+			// Give each hole to the smallest outer loop that contains it (an island in a lake in an island gets the inner one).
+			var shapes = new List<OutlineShape>();
+			foreach(var outer in outers) shapes.Add(new OutlineShape { outer = outer });
+			foreach(var hole in holes) {
+				OutlineShape best = null;
+				float bestArea = float.MaxValue;
+				foreach(var shape in shapes) {
+					if(!ContainsPoint(shape.outer, hole[0])) continue;
+					var area = Mathf.Abs(SignedArea(shape.outer));
+					if(area < bestArea) {
+						best = shape;
+						bestArea = area;
+					}
+				}
+				best?.holes.Add(hole);
+			}
+			return shapes;
+		}
+
+		static float SignedArea (List<Vector2> loop) {
+			float area = 0;
+			for(int i = 0; i < loop.Count; i++) {
+				var a = loop[i];
+				var b = loop[(i + 1) % loop.Count];
+				area += a.x * b.y - b.x * a.y;
+			}
+			return area * 0.5f;
+		}
+
+		// Even-odd ray cast.
+		static bool ContainsPoint (List<Vector2> loop, Vector2 p) {
+			bool inside = false;
+			for(int i = 0, j = loop.Count - 1; i < loop.Count; j = i++) {
+				if((loop[i].y > p.y) != (loop[j].y > p.y) && p.x < (loop[j].x - loop[i].x) * (p.y - loop[i].y) / (loop[j].y - loop[i].y) + loop[i].x)
+					inside = !inside;
+			}
+			return inside;
+		}
+
 		// Returns the cells forming a ring at a signed distance from the edge of `points`.
 		// outlineDistance: 0 = the edge itself, positive = outside, negative = inside (interior rings).
 		//   GetCoordsOnRing(coord, radius) — the coords at ring `radius` around `coord`.

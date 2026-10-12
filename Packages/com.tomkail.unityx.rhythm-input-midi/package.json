@@ -1,0 +1,18 @@
+{
+  "name": "com.tomkail.unityx.rhythm-input-midi",
+  "version": "2.0.0",
+  "displayName": "UnityX Rhythm Input MIDI",
+  "description": "MIDI lane input for rhythm games through Minis: maps note numbers to lanes and handles devices being plugged in and removed. Needs Keijiro's scoped registry.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.tomkail.unityx.rhythm": "2.0.0",
+    "com.tomkail.unityx.rhythm-input": "2.0.0",
+    "com.unity.inputsystem": "1.7.0",
+    "jp.keijiro.minis": "1.0.10"
+  }
+}

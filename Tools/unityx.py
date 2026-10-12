@@ -39,7 +39,13 @@ UNITY_PACKAGE_FOR_ASSEMBLY = {
     "Unity.TextMeshPro": ("com.unity.ugui", "2.0.0"),
     "Unity.TextMeshPro.Editor": ("com.unity.ugui", "2.0.0"),
     "Unity.InputSystem": ("com.unity.inputsystem", "1.7.0"),
+    "Minis": ("jp.keijiro.minis", "1.0.10"),
 }
+
+# Packages from outside Unity's registry need a scoped registry in the consuming project's manifest
+SCOPED_REGISTRIES = [
+    {"name": "Keijiro", "url": "https://registry.npmjs.com", "scopes": ["jp.keijiro"]},
+]
 
 
 # ---------------------------------------------------------------------------------------------- package data
@@ -123,6 +129,32 @@ def write_manifest(project, manifest):
         f.write("\n")
 
 
+def ensure_scoped_registries(manifest, pkgs, names):
+    """Adds the scoped registries the given packages' dependencies need. Returns the scopes it added."""
+    needed = []
+    for n in names:
+        for dep in pkgs[n].get("dependencies", {}):
+            for reg in SCOPED_REGISTRIES:
+                for scope in reg["scopes"]:
+                    if (dep == scope or dep.startswith(scope + ".")) and (reg, scope) not in needed:
+                        needed.append((reg, scope))
+    added = []
+    created = "scopedRegistries" not in manifest
+    registries = manifest.setdefault("scopedRegistries", [])
+    for reg, scope in needed:
+        existing = next((r for r in registries if r.get("url", "").rstrip("/") == reg["url"].rstrip("/")), None)
+        if existing is None:
+            existing = OrderedDict([("name", reg["name"]), ("url", reg["url"]), ("scopes", [])])
+            registries.append(existing)
+        if scope not in existing.setdefault("scopes", []):
+            existing["scopes"].append(scope)
+            added.append(scope)
+    # Only undo our own setdefault: an empty list the project already had stays as it was
+    if created and not registries:
+        del manifest["scopedRegistries"]
+    return added
+
+
 def manifest_ref(project, name):
     rel = os.path.relpath(os.path.join(PACKAGES_DIR, name), os.path.join(project, "Packages"))
     return "file:" + rel.replace(os.sep, "/")
@@ -160,8 +192,11 @@ def cmd_add(a):
     wanted = closure(pkgs, expand(pkgs, a.packages))
     for n in wanted:
         manifest["dependencies"][n] = manifest_ref(project, n)
+    scopes = ensure_scoped_registries(manifest, pkgs, wanted)
     write_manifest(project, manifest)
     print("Added: " + ", ".join(short(n) for n in wanted))
+    if scopes:
+        print("Added scoped registries for: " + ", ".join(scopes))
 
 
 def cmd_remove(a):
@@ -193,7 +228,10 @@ def cmd_sync(a):
     added = [n for n in wanted if n not in current]
     for n in wanted:
         manifest["dependencies"][n] = manifest_ref(project, n)
+    scopes = ensure_scoped_registries(manifest, pkgs, wanted)
     write_manifest(project, manifest)
+    if scopes:
+        print("Added scoped registries for: " + ", ".join(scopes))
     print("In sync." + (" Added missing dependencies: " + ", ".join(short(n) for n in added) if added else ""))
 
 
@@ -257,12 +295,28 @@ def cmd_scan(a):
                 with open(path, errors="ignore") as fh:
                     raw = fh.read()
                 code = re.sub(r"//[^\n]*|/\*.*?\*/|\"(?:\\.|[^\"\\\n])*\"", "", raw, flags=re.S)
-                for ns in set(re.findall(r"^\s*using\s+(UnityX[\w.]*)\s*;", code, re.M)):
+                # Any namespace a package declares (UnityX.*, but also e.g. Utils.Algorithms), except Unity's and
+                # System's own, which some packages extend (UnityEngine.UI) and most projects use anyway. Counts
+                # `using` (incl. `using static` and aliases, whose target may be a type inside the namespace) and
+                # fully qualified uses (`Utils.Algorithms.AStar<T>`), but not the project's own `namespace` lines.
+                refs = re.sub(r"^\s*namespace\s+[\w.]+", "", code, flags=re.M)
+                usings = set()
+                for target in re.findall(r"^\s*(?:global\s+)?using\s+(?:static\s+)?(?:\w+\s*=\s*)?([\w.]+)", refs, re.M):
+                    parts = target.split(".")
+                    for i in range(len(parts), 0, -1):  # longest declared prefix
+                        if ".".join(parts[:i]) in namespaces:
+                            usings.add(".".join(parts[:i]))
+                            break
+                usings.update(ns for ns in namespaces
+                              if re.search(r"(?<![\w.])" + re.escape(ns) + r"\.[A-Za-z_]", refs))
+                for ns in usings:
+                    if re.match(r"(UnityEngine|UnityEditor|System)(\.|$)", ns):
+                        continue
                     if ns in namespaces:
                         if namespaces[ns] in have:
                             used.add(namespaces[ns])
                         else:
-                            found.setdefault(namespaces[ns], []).append(f"using {ns} in {rel}")
+                            found.setdefault(namespaces[ns], []).append(f"{ns} in {rel}")
                 # Bare identifiers, but not member accesses (`string.Join`, `x.Region`), which otherwise match
                 # package type names; fully qualified `UnityX.A.Type` names contribute their last segment.
                 words = set(re.findall(r"(?<![\w.])[A-Z]\w+", code))
@@ -291,7 +345,7 @@ def cmd_scan(a):
             print(f"      {r}")
         if len(set(reasons)) > 3:
             print(f"      ... and {len(set(reasons)) - 3} more")
-    print("Asset references and `using UnityX...` are certain; bare type-name matches are hints.")
+    print("Asset references and package namespaces (`using UnityX...`) are certain; bare type-name matches are hints.")
     print("Add them with:  unityx add " + " ".join(short(n) for n in sorted(found)))
 
 

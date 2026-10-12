@@ -75,6 +75,12 @@ public class TrackpadTouchProvider : MonoBehaviour {
     /// <summary>Most-recently-enabled provider, for convenient access. Null when none is running.</summary>
     public static TrackpadTouchProvider active { get; private set; }
 
+    // Without domain reload a provider that skipped OnDisable would still be "active" in the next play session.
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetStatics() {
+        active = null;
+    }
+
     /// <summary>One live trackpad contact with everything the sensor reports.</summary>
     public struct TrackpadTouch {
         public int globalId;         // stable, unique across both trackpads
@@ -163,7 +169,9 @@ public class TrackpadTouchProvider : MonoBehaviour {
 
     void OnDisable() {
         EndAllTouches();
-        TrackpadMultitouchNative.TP_Stop();
+        // Only release the native refcount if TP_Start took one; a failed start doesn't, and stopping anyway would
+        // release another provider's reference. The refcount lives for the whole editor process.
+        if (running) TrackpadMultitouchNative.TP_Stop();
         running = false;
         status = "stopped";
         if (_touchscreen != null) { InputSystem.RemoveDevice(_touchscreen); _touchscreen = null; }

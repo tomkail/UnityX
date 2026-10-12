@@ -37,6 +37,16 @@ namespace UnityX.SLayouts {
 	        DestroyInstance();
 	        UnityEditor.EditorApplication.playModeStateChanged -= PlayModeStateChanged;
 	        UnityEditor.EditorApplication.playModeStateChanged += PlayModeStateChanged;
+	        UnityEditor.AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEngineEvents;
+	        UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += UnsubscribeEngineEvents;
+	    }
+
+	    // Engine events outlive script assemblies, so unsubscribe before a code reload or the old handlers keep firing
+	    // alongside the new ones.
+	    static void UnsubscribeEngineEvents () {
+	        Application.quitting -= OnApplicationQuitting;
+	        UnityEditor.EditorApplication.playModeStateChanged -= PlayModeStateChanged;
+	        UnityEditor.AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEngineEvents;
 	    }
     
 	    static void PlayModeStateChanged (UnityEditor.PlayModeStateChange playModeStateChange) {
@@ -50,6 +60,8 @@ namespace UnityX.SLayouts {
 	            if(Application.isPlaying) UnityEngine.Object.Destroy(_instance.gameObject);
 	            else UnityEngine.Object.DestroyImmediate(_instance.gameObject);
 	        }
+			// Don't rely on OnDestroy: a destroyed wrapper left here would still be a live managed reference.
+			_instance = null;
 		}
 	    #endif
 

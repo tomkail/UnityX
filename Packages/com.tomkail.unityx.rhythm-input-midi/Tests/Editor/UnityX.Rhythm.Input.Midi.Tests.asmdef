@@ -1,0 +1,26 @@
+{
+    "name": "UnityX.Rhythm.Input.Midi.Tests",
+    "rootNamespace": "UnityX.Rhythm.MidiTests",
+    "references": [
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "UnityX.Rhythm",
+        "UnityX.Rhythm.Input",
+        "UnityX.Rhythm.Input.Midi"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

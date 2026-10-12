@@ -43,3 +43,45 @@ MemoryCaptures/
 .idea/
 *.slnx
 Tools/__pycache__/
+
+# Standard Unity ignores missing above, from https://github.com/github/gitignore/blob/main/Unity.gitignore
+.utmp/
+/[Bb]uild/
+/[Bb]uilds/
+*.log
+*.blend1
+*.blend1.meta
+/[Rr]ecordings/
+/[Aa]ssets/Plugins/Editor/JetBrains*
+.vs/
+.gradle/
+.consulo/
+*.tmp
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+sysinfo.txt
+mono_crash.*
+*.apk
+*.aab
+*.unitypackage
+*.unitypackage.meta
+*.app
+crashlytics-build.properties
+InitTestScene*.unity*
+/ServerData
+/[Aa]ssets/StreamingAssets/aa*
+/[Aa]ssets/AddressableAssetsData/link.xml*
+/[Aa]ssets/Addressables_Temp*
+/[Aa]ssets/AddressableAssetsData/*/*.bin*
+/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Flow/UnitOptions.db
+/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Flow/UnitOptions.db.meta
+/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Core/Property Providers
+/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Core/Property Providers.meta
+/[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+/UIElementsSchema/
+/[Aa]ssets/[Ss]ceneDependencyCache*

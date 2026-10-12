@@ -216,4 +216,11 @@ public static class GUIGraph
         }
     }
     static Dictionary<string, Graph> _graphsByTag;
+
+    // Time.unscaledTime restarts each play session, so graphs carried over without domain reload would stop sampling
+    // until the clock passed their old lastSampleTime.
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetStatics () {
+        _graphsByTag = null;
+    }
 }

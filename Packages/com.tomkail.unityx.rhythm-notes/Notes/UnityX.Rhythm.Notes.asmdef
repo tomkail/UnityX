@@ -1,0 +1,16 @@
+{
+    "name": "UnityX.Rhythm.Notes",
+    "rootNamespace": "UnityX.Rhythm.Notes",
+    "references": [
+        "UnityX.Rhythm"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

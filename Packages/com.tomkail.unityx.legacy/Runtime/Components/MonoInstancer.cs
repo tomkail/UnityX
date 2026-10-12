@@ -15,6 +15,17 @@ public abstract class MonoInstancer<T> : MonoBehaviour where T : MonoInstancer<T
         UnityEditor.EditorApplication.hierarchyChanged += InvalidateCache;
         UnityEditor.SceneManagement.EditorSceneManager.sceneOpened -= SceneOpened;
         UnityEditor.SceneManagement.EditorSceneManager.sceneOpened += SceneOpened;
+        UnityEditor.AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
+        UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += UnsubscribeEditorEvents;
+    }
+
+    // Editor events outlive script assemblies, so unsubscribe before a code reload or the old handlers keep firing
+    // alongside the new ones.
+    static void UnsubscribeEditorEvents () {
+        UnityEditor.EditorApplication.playModeStateChanged -= PlayModeStateChanged;
+        UnityEditor.EditorApplication.hierarchyChanged -= InvalidateCache;
+        UnityEditor.SceneManagement.EditorSceneManager.sceneOpened -= SceneOpened;
+        UnityEditor.AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
     }
 
     static void PlayModeStateChanged (UnityEditor.PlayModeStateChange change) {
@@ -27,16 +38,39 @@ public abstract class MonoInstancer<T> : MonoBehaviour where T : MonoInstancer<T
     static void InvalidateCache () => _upToDate = false;
     static void SceneOpened (UnityEngine.SceneManagement.Scene scene, UnityEditor.SceneManagement.OpenSceneMode mode) => _upToDate = false;
 #endif
-    static List<T> _all = new();
+    static readonly List<T> _all = new();
 #if UNITY_EDITOR
     static bool _upToDate = false;
+    static bool _cachedWhilePlaying;
 #endif
+    // Without domain reload _all would carry destroyed instances into the next play session (and, in the editor, back into
+    // edit mode unless CompileReset was wired up). Generic classes can't use [RuntimeInitializeOnLoadMethod], so compare session ids.
+    static int _session;
+    static void ResetIfStale () {
+#if UNITY_EDITOR
+        if(_cachedWhilePlaying != Application.isPlaying) {
+            _cachedWhilePlaying = Application.isPlaying;
+            _all.Clear();
+            _upToDate = false;
+        }
+#endif
+        if(_session == PlaySession.id) return;
+        _session = PlaySession.id;
+        _all.Clear();
+#if UNITY_EDITOR
+        _upToDate = false;
+#endif
+    }
+
     public static List<T> all {
         get {
+            ResetIfStale();
 #if UNITY_EDITOR
             if(!_upToDate) {
                 _all.Clear();
-                _all.AddRange(FindObjectsByType<T>(FindObjectsInactive.Exclude));
+                // FindObjectsInactive.Exclude only skips inactive GameObjects, so also skip disabled components.
+                foreach(var instance in FindObjectsByType<T>(FindObjectsInactive.Exclude))
+                    if(instance.isActiveAndEnabled) _all.Add(instance);
                 _upToDate = true;
             }
 #endif
@@ -54,12 +88,19 @@ public abstract class MonoInstancer<T> : MonoBehaviour where T : MonoInstancer<T
     protected virtual void OnEnable () {
 #if UNITY_EDITOR
         // Don't add OnEnable in editor, because we're using Object.FindObjectsOfType already.
-        if(!Application.isPlaying)
+        // Do mark the edit-mode cache stale, so it's rebuilt on the next `all` without needing CompileReset's hooks.
+        if(!Application.isPlaying) {
+            _upToDate = false;
             return;
+        }
 #endif
+        ResetIfStale();
         _all.Add((T)this);
     }
     protected virtual void OnDisable () {
         _all.Remove((T)this);
+#if UNITY_EDITOR
+        if(!Application.isPlaying) _upToDate = false;
+#endif
     }
 }

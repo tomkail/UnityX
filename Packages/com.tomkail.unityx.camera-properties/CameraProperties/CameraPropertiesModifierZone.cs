@@ -2,7 +2,13 @@
 using UnityEngine;
 
 public class CameraPropertiesModifierZone : MonoBehaviour {
-    public static List<CameraPropertiesModifierZone> all = new List<CameraPropertiesModifierZone>();
+    public static readonly List<CameraPropertiesModifierZone> all = new List<CameraPropertiesModifierZone>();
+
+    // Without domain reload, a zone that skipped OnDisable would stay registered into the next play session.
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetStatics () {
+        all.Clear();
+    }
     public Transform target;
     [SerializeField]
     bool testStrength = false;

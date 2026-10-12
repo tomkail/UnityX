@@ -18,6 +18,13 @@ namespace UnityX.AWSBuildPipeline.Editor {
 
         static bool runningPipeline;
 
+        // If a reload interrupts PerformBuild mid-await its finally never runs, so clear the flag on load or the window
+        // stays disabled until the editor restarts.
+        [InitializeOnLoadMethod]
+        static void ResetRunningPipeline() {
+            runningPipeline = false;
+        }
+
         public static ServerHostedFileWindow uploadedFilesWindow;
 
         List<string> availableProfileNames;
@@ -171,7 +178,7 @@ namespace UnityX.AWSBuildPipeline.Editor {
             }
             try {
                 using (var s3Client = target.CreateClient()) {
-                    await s3Client.ListObjectsV2Async(new ListObjectsV2Request { BucketName = target.bucketName, Prefix = projectSettings.ServerFolderName + "/", MaxKeys = 1 });
+                    await s3Client.ListObjectsV2Async(new ListObjectsV2Request { BucketName = target.bucketName, Prefix = projectSettings.ServerFolderName + "/", MaxKeys = 1 }, AWSUtils.reloadToken);
                 }
                 connectionTestResult = "Connected to " + target.bucketName + ".";
             } catch (Exception e) {
@@ -330,6 +337,8 @@ namespace UnityX.AWSBuildPipeline.Editor {
                         Application.OpenURL(buildURL);
                     }
                 }
+            } catch (OperationCanceledException) {
+                Debug.LogWarning("Build pipeline stopped: scripts reloaded while it was uploading.");
             } catch (Exception e) {
                 Debug.LogException(e);
             } finally {

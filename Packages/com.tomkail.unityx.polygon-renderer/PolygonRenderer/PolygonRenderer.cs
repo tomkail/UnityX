@@ -50,14 +50,14 @@ public class PolygonRenderer : BasePolygonRenderer {
         var polygonRect = polygon.GetRect();
         var points = polygon.vertices;
 
-            mesh.vertices = points.Select(v => new Vector3(v.x, v.y, 0)).ToArray();
+            mesh.vertices = points.Select(v => offsetRotation * v).ToArray();
 			
             List<int> triangles = new List<int>();
             Triangulator.GenerateIndices(points, triangles);
             mesh.SetTriangles(triangles, 0);
             
             mesh.uv = RecalculateUVs(polygonRect, points);
-            mesh.colors = RecalculateColors(polygonRect, points);
+            mesh.colors = colorMode == ColorMode.Custom ? customColors : RecalculateColors(polygonRect, points);
 
 		mesh.RecalculateNormals();
 
@@ -124,7 +124,7 @@ public class PolygonRenderer : BasePolygonRenderer {
     void OnDrawGizmosSelected () {
         if(!drawDebugGizmos) return;
         var previousGizmoMatrix = Gizmos.matrix;
-        Gizmos.matrix = transform.localToWorldMatrix;
+        Gizmos.matrix = transform.localToWorldMatrix * Matrix4x4.TRS(Vector3.zero, offsetRotation, Vector3.one);
         var polygonRect = polygon.GetRect();
         PolygonRendererInternal.DrawWireRect(polygonRect);
 

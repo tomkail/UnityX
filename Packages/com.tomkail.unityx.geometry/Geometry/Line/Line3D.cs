@@ -2,10 +2,14 @@
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 [System.Serializable]
+[DataContract]
 public struct Line3D {
+	[DataMember(Name = "start")]
 	public Vector3 start;
+	[DataMember(Name = "end")]
 	public Vector3 end;
 	
 	public Vector3 direction {

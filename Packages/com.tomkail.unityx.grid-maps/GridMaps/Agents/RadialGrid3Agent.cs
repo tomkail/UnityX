@@ -17,13 +17,11 @@ public class RadialGrid3Agent : MonoBehaviour {
 		chunkPoints.Clear();
 	}
 	
-	static List<Vector3Int> entered;
-	static List<Vector3Int> exited;
 	public void Update () {
 		var newChunkPoints = worldGrid.GetPointsInRadius(transform.position, spawnRadius);
 		
 		if(!chunkPoints.SequenceEqual(newChunkPoints)) {
-			IEnumerableX.GetChanges(chunkPoints, newChunkPoints, out exited, out entered);
+			IEnumerableX.GetChanges(chunkPoints, newChunkPoints, out List<Vector3Int> exited, out List<Vector3Int> entered);
 			chunkPoints.Clear();
 			chunkPoints.AddRange(newChunkPoints);
 			if(!entered.IsEmpty()) if(OnEnterPoints != null) OnEnterPoints(entered);

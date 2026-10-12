@@ -175,7 +175,14 @@ public static class DebugX {
 		Debug.Log(message, context);
 	}
 
-	static HashSet<string> _singleLoggedMessages = new();
+	static readonly HashSet<string> _singleLoggedMessages = new();
+
+	// Without domain reload, LogOnce messages would stay silenced and a runtime debug=false would stick across play sessions.
+	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+	static void ResetStatics () {
+		_singleLoggedMessages.Clear();
+		debug = true;
+	}
 
 	/// <summary>LogMany</summary>
 	/// <param name="list">The objects to log.</param>

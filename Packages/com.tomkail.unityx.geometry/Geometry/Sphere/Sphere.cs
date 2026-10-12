@@ -3,11 +3,15 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
 namespace UnityX.Geometry {
 	[System.Serializable]
+	[DataContract]
 	public struct Sphere {
+		[DataMember(Name = "center")]
 		public Vector3 center;
+		[DataMember(Name = "radius")]
 		public float radius;
 		public float sqrRadius {
 			get {

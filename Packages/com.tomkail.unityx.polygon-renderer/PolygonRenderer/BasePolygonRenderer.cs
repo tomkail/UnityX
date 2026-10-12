@@ -59,7 +59,7 @@ public abstract class BasePolygonRenderer : MonoBehaviour {
         XZ,
     }
 
-    static Quaternion xzPlaneRotation = Quaternion.Euler(new Vector3(90,0,0));
+    static readonly Quaternion xzPlaneRotation = Quaternion.Euler(new Vector3(90,0,0));
     public Quaternion offsetRotation {
         get {
             if(plane == Plane.XY) return Quaternion.identity;

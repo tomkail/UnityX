@@ -17,8 +17,18 @@ namespace UnityX.SceneViewTools {
         // static float maxDistance = 1100;
         static float minOrthographicSizeFraction = 0.04f;
 
-        static SceneViewUtility () {
+        [UnityEditor.InitializeOnLoadMethod]
+        static void SubscribeEditorEvents () {
+            UnityEditor.SceneView.beforeSceneGui -= BeforeSceneGUI;
             UnityEditor.SceneView.beforeSceneGui += BeforeSceneGUI;
+            UnityEditor.AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
+            UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += UnsubscribeEditorEvents;
+        }
+
+        // Editor events outlive script assemblies, so unsubscribe before a code reload or the old handler keeps firing alongside the new one.
+        static void UnsubscribeEditorEvents () {
+            UnityEditor.SceneView.beforeSceneGui -= BeforeSceneGUI;
+            UnityEditor.AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
         }
 
         static void BeforeSceneGUI (UnityEditor.SceneView sceneView) {

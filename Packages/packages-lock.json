@@ -71,8 +71,24 @@
       "source": "embedded",
       "dependencies": {}
     },
+    "com.tomkail.unityx.extruded-polygon": {
+      "version": "file:com.tomkail.unityx.extruded-polygon",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.tomkail.unityx.core": "2.0.0",
+        "com.tomkail.unityx.geometry": "2.0.0",
+        "com.tomkail.unityx.property-drawers": "2.0.0"
+      }
+    },
     "com.tomkail.unityx.geometry": {
       "version": "file:com.tomkail.unityx.geometry",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.tomkail.unityx.gradient-renderer": {
+      "version": "file:com.tomkail.unityx.gradient-renderer",
       "depth": 0,
       "source": "embedded",
       "dependencies": {}
@@ -94,6 +110,12 @@
         "com.tomkail.unityx.islands": "2.0.0",
         "com.tomkail.unityx.property-drawers": "2.0.0"
       }
+    },
+    "com.tomkail.unityx.hex": {
+      "version": "file:com.tomkail.unityx.hex",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
     },
     "com.tomkail.unityx.inputs": {
       "version": "file:com.tomkail.unityx.inputs",
@@ -125,6 +147,7 @@
         "com.tomkail.unityx.core": "2.0.0",
         "com.tomkail.unityx.easing": "2.0.0",
         "com.tomkail.unityx.geometry": "2.0.0",
+        "com.tomkail.unityx.pathfinding": "2.0.0",
         "com.tomkail.unityx.property-curves": "2.0.0",
         "com.tomkail.unityx.property-drawers": "2.0.0",
         "com.tomkail.unityx.slayouts": "2.0.0",
@@ -142,6 +165,12 @@
     },
     "com.tomkail.unityx.noise": {
       "version": "file:com.tomkail.unityx.noise",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.tomkail.unityx.pathfinding": {
+      "version": "file:com.tomkail.unityx.pathfinding",
       "depth": 0,
       "source": "embedded",
       "dependencies": {}
@@ -177,11 +206,66 @@
         "com.tomkail.unityx.geometry": "2.0.0"
       }
     },
+    "com.tomkail.unityx.rhythm": {
+      "version": "file:com.tomkail.unityx.rhythm",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.tomkail.unityx.rhythm-audio": {
+      "version": "file:com.tomkail.unityx.rhythm-audio",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.tomkail.unityx.rhythm": "2.0.0",
+        "com.tomkail.unityx.rhythm-notes": "2.0.0"
+      }
+    },
+    "com.tomkail.unityx.rhythm-input": {
+      "version": "file:com.tomkail.unityx.rhythm-input",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.tomkail.unityx.rhythm": "2.0.0",
+        "com.unity.inputsystem": "1.7.0"
+      }
+    },
+    "com.tomkail.unityx.rhythm-input-midi": {
+      "version": "file:com.tomkail.unityx.rhythm-input-midi",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.tomkail.unityx.rhythm": "2.0.0",
+        "com.tomkail.unityx.rhythm-input": "2.0.0",
+        "com.unity.inputsystem": "1.7.0",
+        "jp.keijiro.minis": "1.0.10"
+      }
+    },
+    "com.tomkail.unityx.rhythm-judgement": {
+      "version": "file:com.tomkail.unityx.rhythm-judgement",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.tomkail.unityx.rhythm": "2.0.0",
+        "com.tomkail.unityx.rhythm-input": "2.0.0",
+        "com.tomkail.unityx.rhythm-notes": "2.0.0"
+      }
+    },
+    "com.tomkail.unityx.rhythm-notes": {
+      "version": "file:com.tomkail.unityx.rhythm-notes",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.tomkail.unityx.rhythm": "2.0.0"
+      }
+    },
     "com.tomkail.unityx.scene-management": {
       "version": "file:com.tomkail.unityx.scene-management",
       "depth": 0,
       "source": "embedded",
-      "dependencies": {}
+      "dependencies": {
+        "com.tomkail.unityx.core": "2.0.0"
+      }
     },
     "com.tomkail.unityx.screenshot-exporter": {
       "version": "file:com.tomkail.unityx.screenshot-exporter",
@@ -338,6 +422,34 @@
         "com.unity.modules.uielements": "1.0.0"
       }
     },
+    "com.unity.nuget.mono-cecil": {
+      "version": "1.11.6",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.nuget.newtonsoft-json": {
+      "version": "3.2.2",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.pipeline": {
+      "version": "0.8.0-exp.1",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.test-framework": "1.1.33",
+        "com.unity.nuget.mono-cecil": "1.11.6",
+        "com.unity.modules.uielements": "1.0.0",
+        "com.unity.modules.jsonserialize": "1.0.0",
+        "com.unity.modules.screencapture": "1.0.0",
+        "com.unity.nuget.newtonsoft-json": "3.0.2"
+      },
+      "url": "https://packages.unity.com"
+    },
     "com.unity.test-framework": {
       "version": "1.7.0",
       "depth": 0,
@@ -359,6 +471,23 @@
         "com.unity.modules.physics2d": "1.0.0",
         "com.unity.modules.physics": "1.0.0"
       }
+    },
+    "jp.keijiro.minis": {
+      "version": "1.0.10",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {
+        "jp.keijiro.rtmidi": "1.0.4",
+        "com.unity.inputsystem": "1.0.1"
+      },
+      "url": "https://registry.npmjs.com"
+    },
+    "jp.keijiro.rtmidi": {
+      "version": "1.0.4",
+      "depth": 2,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://registry.npmjs.com"
     },
     "com.unity.modules.accessibility": {
       "version": "1.0.0",

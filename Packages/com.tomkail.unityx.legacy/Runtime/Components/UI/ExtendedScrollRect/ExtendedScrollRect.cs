@@ -341,10 +341,12 @@ namespace UnityEngine.UI {
 			}
 		}
 
+		// Private uGUI field, looked up once rather than on every drag. Null if a uGUI version renames it.
+		static readonly FieldInfo pointerStartLocalCursorField = typeof(ScrollRect).GetField("m_PointerStartLocalCursor", BindingFlags.NonPublic | BindingFlags.Instance);
+
 		Vector2 GetAmountOfExcessMovement(PointerEventData eventData) {
-			Type type = typeof(ScrollRect);
-			FieldInfo fieldInfo = type.GetField("m_PointerStartLocalCursor", BindingFlags.NonPublic | BindingFlags.Instance);
-			var m_PointerStartLocalCursor = (Vector2)fieldInfo.GetValue(this);
+			if (pointerStartLocalCursorField == null) return Vector2.zero;
+			var m_PointerStartLocalCursor = (Vector2)pointerStartLocalCursorField.GetValue(this);
 
 			if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(viewRect, eventData.position, eventData.pressEventCamera, out var localCursor))
 				return Vector2.zero;

@@ -1,0 +1,13 @@
+{
+  "name": "com.tomkail.unityx.gradient-renderer",
+  "version": "2.0.0",
+  "displayName": "UnityX Gradient Renderer",
+  "description": "MeshRenderer components that draw linear or radial colour gradients (per-renderer colours, distances, offset and power via a MaterialPropertyBlock), with their shaders and materials.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {}
+}

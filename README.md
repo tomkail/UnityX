@@ -42,7 +42,7 @@ Cloning a project that uses UnityX: `git clone --recursive …`, or `git submodu
 | `unityx sync` | Re-add missing dependencies, fix paths (run after pulling UnityX changes that add dependencies) |
 | `unityx status` | Installed packages; how far the UnityX checkout is behind/ahead of `origin/master` |
 | `unityx update` | Pull the latest UnityX into the submodule, then `sync` |
-| `unityx scan` | Packages the project uses but hasn't installed, and installed packages nothing uses (asset GUIDs and `using UnityX…` are certain; bare type names are hints) |
+| `unityx scan` | Packages the project uses but hasn't installed, and installed packages nothing uses (asset GUIDs and package namespaces such as `using UnityX…` are certain; bare type names are hints) |
 
 Run them from inside the Unity project (or pass `--project <path>`).
 

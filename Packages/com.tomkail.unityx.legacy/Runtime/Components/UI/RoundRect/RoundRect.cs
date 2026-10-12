@@ -136,6 +136,13 @@ public class RoundRect : MaskableGraphic
         }
     }
 
+    // Also rebinds after a code reload, which destroys the shared material (see DestroySharedMaterial).
+    protected override void OnEnable()
+    {
+        base.OnEnable();
+        SetupMaterialIfNecessary();
+    }
+
     protected override void Start()
     {
         base.Start();
@@ -543,4 +550,21 @@ public class RoundRect : MaskableGraphic
     bool _roundRectOutlineParamsDirty = true;
 
     static Material _sharedMaterial = null;
+
+#if UNITY_EDITOR
+    // The material is HideAndDontSave, so nothing destroys it when this code is reloaded; the next OnEnable makes a new one.
+    [UnityEditor.InitializeOnLoadMethod]
+    static void SubscribeEditorEvents()
+    {
+        UnityEditor.AssemblyReloadEvents.beforeAssemblyReload -= DestroySharedMaterial;
+        UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += DestroySharedMaterial;
+    }
+
+    static void DestroySharedMaterial()
+    {
+        UnityEditor.AssemblyReloadEvents.beforeAssemblyReload -= DestroySharedMaterial;
+        if( _sharedMaterial != null ) DestroyImmediate(_sharedMaterial);
+        _sharedMaterial = null;
+    }
+#endif
 }

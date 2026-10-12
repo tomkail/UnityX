@@ -1,0 +1,17 @@
+{
+  "name": "com.tomkail.unityx.extruded-polygon",
+  "version": "2.0.0",
+  "displayName": "UnityX Extruded Polygon",
+  "description": "Extrudes a polygon into a mesh (caps and sides, per-vertex heights and colours), with a renderer component and Scene view polygon editing.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.tomkail.unityx.core": "2.0.0",
+    "com.tomkail.unityx.geometry": "2.0.0",
+    "com.tomkail.unityx.property-drawers": "2.0.0"
+  }
+}

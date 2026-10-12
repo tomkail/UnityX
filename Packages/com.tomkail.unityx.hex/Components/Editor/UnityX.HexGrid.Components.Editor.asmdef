@@ -1,0 +1,20 @@
+{
+    "name": "UnityX.HexGrid.Components.Editor",
+    "rootNamespace": "UnityX.HexGrid",
+    "references": [
+        "UnityX.HexGrid",
+        "UnityX.HexGrid.Components",
+        "UnityX.HexGrid.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

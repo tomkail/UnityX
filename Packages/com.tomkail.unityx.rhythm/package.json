@@ -1,0 +1,13 @@
+{
+  "name": "com.tomkail.unityx.rhythm",
+  "version": "2.0.0",
+  "displayName": "UnityX Rhythm",
+  "description": "Rhythm game foundation: audio-synced song clock with smoothing, tempo maps with ramps, time signatures and swing, playback rate, latency settings, and beat/bar events.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Tom Kail",
+    "url": "https://github.com/tomkail/UnityX"
+  },
+  "license": "MIT",
+  "dependencies": {}
+}

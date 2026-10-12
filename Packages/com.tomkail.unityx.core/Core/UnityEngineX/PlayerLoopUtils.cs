@@ -34,7 +34,8 @@ public static class PlayerLoopUtils {
 
     // Add a new PlayerLoopSystem to the PlayerLoop. Example:
     // PlayerLoopSystem playerLoop = PlayerLoop.GetDefaultPlayerLoop();
-    // Debug.Assert(PlayerLoopUtils.AddToPlayerLoop(CustomUpdate, typeof(LightgunInput), ref playerLoop, typeof(PreUpdate.NewInputUpdate), PlayerLoopUtils.AddMode.End));
+    // bool added = PlayerLoopUtils.AddToPlayerLoop(CustomUpdate, typeof(LightgunInput), ref playerLoop, typeof(PreUpdate.NewInputUpdate), PlayerLoopUtils.AddMode.End);
+    // Debug.Assert(added); // Keep the call outside Debug.Assert, which is compiled out without UNITY_ASSERTIONS.
     // PlayerLoop.SetPlayerLoop(playerLoop);
     public static bool AddToPlayerLoop(PlayerLoopSystem.UpdateFunction function, Type ownerType, ref PlayerLoopSystem playerLoop, Type playerLoopSystemType, AddMode addMode) {
         // did we find the type? e.g. EarlyUpdate/PreLateUpdate/etc.
@@ -52,15 +53,14 @@ public static class PlayerLoopUtils {
             if (addMode == AddMode.Beginning) {
                 // shift to the right, write into first array element
                 Array.Copy(playerLoop.subSystemList, 0, playerLoop.subSystemList, 1, playerLoop.subSystemList.Length - 1);
-                playerLoop.subSystemList[0].type = ownerType;
-                playerLoop.subSystemList[0].updateDelegate = function;
+                // A fresh struct, since slot 0 still holds a copy of the shifted system's sub-systems and callbacks.
+                playerLoop.subSystemList[0] = new PlayerLoopSystem { type = ownerType, updateDelegate = function };
 
             }
             // append our custom loop to the end
             else if (addMode == AddMode.End) {
                 // simply write into last array element
-                playerLoop.subSystemList[oldListLength].type = ownerType;
-                playerLoop.subSystemList[oldListLength].updateDelegate = function;
+                playerLoop.subSystemList[oldListLength] = new PlayerLoopSystem { type = ownerType, updateDelegate = function };
             }
 
             // debugging
@@ -80,5 +80,22 @@ public static class PlayerLoopUtils {
         }
 
         return false;
+    }
+
+    // Removes every PlayerLoopSystem owned by ownerType, at any depth. Returns true if anything was removed.
+    public static bool RemoveFromPlayerLoop(Type ownerType, ref PlayerLoopSystem playerLoop) {
+        if (playerLoop.subSystemList == null) return false;
+        bool removed = false;
+        int count = 0;
+        for (int i = 0; i < playerLoop.subSystemList.Length; ++i) {
+            if (playerLoop.subSystemList[i].type == ownerType) {
+                removed = true;
+                continue;
+            }
+            removed |= RemoveFromPlayerLoop(ownerType, ref playerLoop.subSystemList[i]);
+            playerLoop.subSystemList[count++] = playerLoop.subSystemList[i];
+        }
+        if (count != playerLoop.subSystemList.Length) Array.Resize(ref playerLoop.subSystemList, count);
+        return removed;
     }
 }

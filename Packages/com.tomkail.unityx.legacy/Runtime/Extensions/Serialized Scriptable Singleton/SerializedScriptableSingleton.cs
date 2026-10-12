@@ -7,6 +7,8 @@ using UnityEngine;
 // Can be thought of as a singleton reference to a scriptable object, loaded/saved to EditorPrefs (PlayerPrefs at runtime) rather than serialized to the inspector.
 // This is commonly useful for per-user settings files, especially for development debug settings.
 public class SerializedScriptableSingleton<T> : ScriptableObject where T : ScriptableObject {
+	// The key and subscribers are configuration that outlives a play session (editor code sets them once), so they
+	// aren't reset per session. Subscribers must unsubscribe themselves.
 	static string _settingsPrefsKey;
 	public static string settingsPrefsKey {
 		get {
@@ -20,9 +22,19 @@ public class SerializedScriptableSingleton<T> : ScriptableObject where T : Scrip
 	static T _Instance;
 	public static T Instance {
 		get {
+			ResetIfNewSession();
 			if(_Instance == null) LoadOrCreateAndSave();
 			return _Instance;
 		}
+	}
+
+	// Without domain reload the instance would carry last session's runtime changes into the next play session, so it's
+	// reloaded from prefs. Generic classes can't use [RuntimeInitializeOnLoadMethod], so compare session ids.
+	static int _session;
+	static void ResetIfNewSession () {
+		if(_session == PlaySession.id) return;
+		_session = PlaySession.id;
+		_Instance = null;
 	}
 
 	static T LoadOrCreateAndSave () {
@@ -32,12 +44,16 @@ public class SerializedScriptableSingleton<T> : ScriptableObject where T : Scrip
 	}
 
 	public static void CreateAndSave () {
+		ResetIfNewSession();
 		_Instance = CreateInstance<T>();
 		Save(_Instance);
-        if(OnCreateOrLoad != null) OnCreateOrLoad();
+        OnCreateOrLoad?.Invoke();
 	}
 	
 	public static void Save () {
+		ResetIfNewSession();
+		// Nothing loaded this session, so nothing has changed; saving null would overwrite the stored settings with "".
+		if(_Instance == null) return;
 		Save(_Instance);
     }
 
@@ -65,7 +81,7 @@ public class SerializedScriptableSingleton<T> : ScriptableObject where T : Scrip
 		_Instance = CreateInstance<T>();
 		try {
 			JsonUtility.FromJsonOverwrite(data, _Instance);
-            if(_Instance != null) if(OnCreateOrLoad != null) OnCreateOrLoad();
+            if(_Instance != null) OnCreateOrLoad?.Invoke();
 		} catch {
 			Debug.LogError("Save Data was corrupt and could not be parsed. New data created. Old data was:\n"+data);
 			CreateAndSave();
@@ -73,6 +89,7 @@ public class SerializedScriptableSingleton<T> : ScriptableObject where T : Scrip
     }
 
 	public static void Delete () {
+		ResetIfNewSession();
 		if(!Application.isEditor) PlayerPrefs.DeleteKey(settingsPrefsKey);
 		#if UNITY_EDITOR
 		else EditorPrefs.DeleteKey(settingsPrefsKey);

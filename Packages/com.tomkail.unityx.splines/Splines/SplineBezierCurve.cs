@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Runtime.Serialization;
 
 namespace UnityX.Splines {
 	// Arc length == NormalizedDistance
@@ -8,33 +9,49 @@ namespace UnityX.Splines {
 	/// <summary>
 	/// A single curve that forms a river spline. Calculates itself via start and end bezier points.
 	/// </summary>
+	[DataContract]
 	public class SplineBezierCurve {
+		// For deserializers, which need a parameterless constructor when there are several.
+		public SplineBezierCurve () {}
+
 		[System.NonSerialized]
 		public SplineBezierPoint startPoint;
 		[System.NonSerialized]
 		public SplineBezierPoint endPoint;
 
 		// This constant affects how precise the GetTAtNormalizedDistance function is. Higher is more precise.
+		[DataMember(Name = "numArcLengthsForArcLengthToTCalculation")]
 		public int numArcLengthsForArcLengthToTCalculation;
+		[DataMember(Name = "numArcLengthsForArcLengthToTCalculationReciprocal")]
 		public float numArcLengthsForArcLengthToTCalculationReciprocal;
 
+		[DataMember(Name = "_arcLengths")]
 		public float[] _arcLengths;
+		[DataMember(Name = "_points")]
 		public Vector3[] _points;
 		
 		// Fairly accurate tight world space bounds
+		[DataMember(Name = "bounds")]
 		public Bounds bounds = new();
+		[DataMember(Name = "length")]
 		public float length;
 
+		[DataMember(Name = "startArcLength")]
 		public float startArcLength;
+		[DataMember(Name = "endArcLength")]
 		public float endArcLength;
 
 		[SerializeField]
+		[DataMember(Name = "p0")]
 		Vector3 p0 = Vector3.zero;
 		[SerializeField]
+		[DataMember(Name = "p1")]
 		Vector3 p1 = Vector3.zero;
 		[SerializeField]
+		[DataMember(Name = "p2")]
 		Vector3 p2 = Vector3.zero;
 		[SerializeField]
+		[DataMember(Name = "p3")]
 		Vector3 p3 = Vector3.zero;
 
 		public SplineBezierCurve (SplineBezierPoint startPoint, SplineBezierPoint endPoint) {

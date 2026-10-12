@@ -59,6 +59,8 @@ public class CanvasGroupOpacityInteractionEnabler : UIBehaviour {
 
             t = t.parent;
         }
+        // Don't keep references to these components between calls.
+        m_CanvasGroupCache.Clear();
         return groupAlpha;
     }
 }

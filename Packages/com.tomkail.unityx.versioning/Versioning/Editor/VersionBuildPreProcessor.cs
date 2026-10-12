@@ -11,7 +11,14 @@ namespace UnityX.Versioning.Editor {
         public int callbackOrder => 0;
 
         public void OnPreprocessBuild(BuildReport buildReport) {
-            var versionSO = UnityX.Versioning.CurrentVersionSO.Instance;
+            // The asset is per-project state (it's rewritten on every build), so it lives in the project's own
+            // Resources folder rather than in this package. Without one, leave PlayerSettings' version alone instead
+            // of stamping the default 0.0.0.
+            var versionSO = Resources.Load<CurrentVersionSO>(nameof(CurrentVersionSO));
+            if (versionSO == null) {
+                Debug.LogWarning($"No {nameof(CurrentVersionSO)} asset in a Resources folder; the build's version numbers aren't being set from it. Create one (Assets > Create > UnityX > Current Version) to enable this.");
+                return;
+            }
 
             // Set versions in PlayerSettings
             string versionString = versionSO.version.ToBasicVersionString();

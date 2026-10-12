@@ -12,8 +12,20 @@ public static class GizmosX {
 	// Instead we store a list of all the meshes used, and clear it when the scene is drawn.
 	// Note that OnSceneGUI seems to run more frequently than meshes are added to the list, but this doesn't seem to matter.
 	#if UNITY_EDITOR
-	static GizmosX () {
+	[InitializeOnLoadMethod]
+	static void SubscribeEditorEvents () {
+		SceneView.duringSceneGui -= OnSceneView;
 		SceneView.duringSceneGui += OnSceneView;
+		AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
+		AssemblyReloadEvents.beforeAssemblyReload += UnsubscribeEditorEvents;
+	}
+
+	// Editor events outlive script assemblies, so unsubscribe before a code reload or the old handler keeps firing alongside the new one.
+	static void UnsubscribeEditorEvents () {
+		SceneView.duringSceneGui -= OnSceneView;
+		AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
+		// Nothing will destroy meshes still waiting for a scene view draw once this code is gone.
+		OnSceneView(null);
 	}
 
 	static void OnSceneView (SceneView sceneView) {
@@ -47,7 +59,14 @@ public static class GizmosX {
 		#endif
 	}
 
-	static Stack<Color> colors = new();
+	static readonly Stack<Color> colors = new();
+
+	// Entries left by a Begin without its End (e.g. after an exception) would otherwise carry into the next play session.
+	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+	static void ResetStacks () {
+		colors.Clear();
+		matrices.Clear();
+	}
 
 	public static void BeginColor (Color color) {
 		colors.Push(Gizmos.color);
@@ -58,7 +77,7 @@ public static class GizmosX {
 		Gizmos.color = colors.Pop();	
 	}
 
-	static Stack<Matrix4x4> matrices = new();
+	static readonly Stack<Matrix4x4> matrices = new();
 	public static void BeginMatrix (Matrix4x4 matrix) {
 		matrices.Push(Gizmos.matrix);
 		Gizmos.matrix = matrix;

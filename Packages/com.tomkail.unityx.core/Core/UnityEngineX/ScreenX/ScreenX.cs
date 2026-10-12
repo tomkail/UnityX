@@ -8,11 +8,8 @@ using UnityEngine.PlayerLoop;
 using Screen = UnityEngine.Device.Screen;
 
 /// <summary>
-/// Manages screen properties. Static [InitializeOnLoad] class — not a MonoBehaviour, so no GameObject is required.
+/// Manages screen properties. Static class — not a MonoBehaviour, so no GameObject is required.
 /// </summary>
-#if UNITY_EDITOR
-[InitializeOnLoad]
-#endif
 public class ScreenX {
 
 	public const float inchesToCentimeters = 2.54f;
@@ -150,15 +147,58 @@ public class ScreenX {
 	/// </summary>
 	static int lastHeight;
 	
-	static ScreenX () {
+	// Initialized from EditorInitialize and ResetStatics rather than a static constructor, which CoreCLR runs lazily
+	// (and possibly off the main thread) on first touch, where the Screen APIs can't be called.
+	static void RefreshScreenState () {
 		StoreWidthAndHeight();
 		CalculateScreenSizeProperties();
 		lastScreenOrientation = Screen.orientation;
-		
+	}
 
-		PlayerLoopSystem playerLoop = PlayerLoop.GetDefaultPlayerLoop();
-		Debug.Assert(PlayerLoopUtils.AddToPlayerLoop(Update, typeof(ScreenX), ref playerLoop, typeof(PreUpdate.NewInputUpdate), PlayerLoopUtils.AddMode.End));
+	// Builds from the current loop so other packages' systems survive, and replaces any existing ScreenX entry so
+	// re-running is safe.
+	static void AddToPlayerLoop () {
+		PlayerLoopSystem playerLoop = PlayerLoop.GetCurrentPlayerLoop();
+		PlayerLoopUtils.RemoveFromPlayerLoop(typeof(ScreenX), ref playerLoop);
+		// Not inside Debug.Assert: that call is compiled out without UNITY_ASSERTIONS, which would skip the insertion.
+		bool added = PlayerLoopUtils.AddToPlayerLoop(Update, typeof(ScreenX), ref playerLoop, typeof(PreUpdate.NewInputUpdate), PlayerLoopUtils.AddMode.End);
+		Debug.Assert(added, "ScreenX couldn't find PreUpdate.NewInputUpdate in the player loop.");
 		PlayerLoop.SetPlayerLoop(playerLoop);
+	}
+
+	static void RemoveFromPlayerLoop () {
+		PlayerLoopSystem playerLoop = PlayerLoop.GetCurrentPlayerLoop();
+		if(PlayerLoopUtils.RemoveFromPlayerLoop(typeof(ScreenX), ref playerLoop))
+			PlayerLoop.SetPlayerLoop(playerLoop);
+	}
+
+	#if UNITY_EDITOR
+	[InitializeOnLoadMethod]
+	static void EditorInitialize () {
+		RefreshScreenState();
+		AddToPlayerLoop();
+		// After a code reload the new ScreenX is a different type, so remove our entry while this code can still find it.
+		AssemblyReloadEvents.beforeAssemblyReload -= OnBeforeAssemblyReload;
+		AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload;
+	}
+
+	static void OnBeforeAssemblyReload () {
+		RemoveFromPlayerLoop();
+		AssemblyReloadEvents.beforeAssemblyReload -= OnBeforeAssemblyReload;
+	}
+	#endif
+
+	// Without domain reload, subscribers from the previous play session (often destroyed MonoBehaviours) and DPI overrides
+	// would carry over. Not using [AutoStaticsCleanup] style field resets because that would zero the screen properties.
+	// Also installs the player loop entry, which is how builds get it.
+	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+	static void ResetStatics () {
+		OnScreenSizeChange = null;
+		OnOrientationChange = null;
+		usingCustomDPI = false;
+		customDPI = defaultDPI;
+		RefreshScreenState();
+		AddToPlayerLoop();
 	}
 
 	static void Update () {

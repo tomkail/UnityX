@@ -471,7 +471,13 @@ public static class MathX {
 	// Turns a string into a value 0 - 1 in a deterministic but essentially random way
 	// </summary>
 	public static float HashString(string sourceString) {
-		return (float) Math.Abs(Math.Cos (sourceString.GetHashCode ()));
+		// FNV-1a rather than string.GetHashCode, which CoreCLR randomizes per process.
+		uint hash = 2166136261;
+		foreach(char c in sourceString) {
+			hash ^= c;
+			hash *= 16777619;
+		}
+		return (float) Math.Abs(Math.Cos ((int)hash));
 	}
 	
 	//INTERPOLATE FUNCTIONS.

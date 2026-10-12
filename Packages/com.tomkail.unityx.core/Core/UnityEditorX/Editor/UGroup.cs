@@ -11,8 +11,6 @@ using UnityEditor;
 using System.Linq;
 
 public class UGroup : EditorWindow {
-    static private GameObject groupParent;
-
     [MenuItem("Edit/Group %g", false, -999)]
     static void GroupMenu()
     {
@@ -25,7 +23,7 @@ public class UGroup : EditorWindow {
         if (currentSelection.Length == 0)
             return;
 
-		groupParent = new GameObject(name);
+		var groupParent = new GameObject(name);
 		Undo.RegisterCreatedObjectUndo(groupParent, "Created group"); // V 4.3+
 		if(Selection.activeTransform != null) {
 			groupParent.transform.SetParent(Selection.activeTransform.parent);

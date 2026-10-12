@@ -9,8 +9,20 @@ using UnityEditor;
 public static class HandlesX {
 
 	#if UNITY_EDITOR
-	static HandlesX () {
+	[InitializeOnLoadMethod]
+	static void SubscribeEditorEvents () {
+		SceneView.duringSceneGui -= OnSceneView;
 		SceneView.duringSceneGui += OnSceneView;
+		AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
+		AssemblyReloadEvents.beforeAssemblyReload += UnsubscribeEditorEvents;
+	}
+
+	// Editor events outlive script assemblies, so unsubscribe before a code reload or the old handler keeps firing alongside the new one.
+	static void UnsubscribeEditorEvents () {
+		SceneView.duringSceneGui -= OnSceneView;
+		AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
+		// Nothing will destroy meshes still waiting for a scene view draw once this code is gone.
+		OnSceneView(null);
 	}
 
 	static void OnSceneView (SceneView sceneView) {
@@ -35,7 +47,14 @@ public static class HandlesX {
 		#endif
 	}
 
-	static Stack<Color> colors = new Stack<Color>();
+	static readonly Stack<Color> colors = new Stack<Color>();
+
+	// Entries left by a Begin without its End (e.g. after an exception) would otherwise carry into the next play session.
+	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+	static void ResetStacks () {
+		colors.Clear();
+		matrices.Clear();
+	}
 	public static void BeginColor (Color color) {
 		colors.Push(Handles.color);
 		Handles.color = color;
@@ -45,7 +64,7 @@ public static class HandlesX {
 		Handles.color = colors.Pop();	
 	}
 
-	static Stack<Matrix4x4> matrices = new Stack<Matrix4x4>();
+	static readonly Stack<Matrix4x4> matrices = new Stack<Matrix4x4>();
 	public static void BeginMatrix (Matrix4x4 matrix) {
 		matrices.Push(Handles.matrix);
 		Handles.matrix = matrix;

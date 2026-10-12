@@ -57,8 +57,12 @@ namespace UnityX.Islands {
 		// recursion) avoids stack-overflow risk and, with the HashSet membership test, keeps this O(n).
 		// onValidSkip (optional) receives points that are valid but rejected by canJoin (e.g. a neighbour that
 		// belongs to a different owner) so a caller can queue them as future seeds.
+		// Neighbours are pushed in reverse so they're popped in getAdjacentPoints order: points come out in the
+		// same depth-first order as a recursive fill (and as the pre-package recursive version), which keeps
+		// callers that pick from island.points with a seeded Random reproducible.
 		protected static void FloodFill (Coord seed, HashSet<Coord> testedPoints, Func<Coord, IEnumerable<Coord>> getAdjacentPoints, Func<Coord, bool> getPointIsValid, Func<Coord, bool> canJoin, Action<Coord> addPoint, Action<Coord> onValidSkip = null) {
 			Stack<Coord> frontier = new Stack<Coord>();
+			List<Coord> adjacent = new List<Coord>();
 			frontier.Push(seed);
 			while(frontier.Count > 0) {
 				Coord point = frontier.Pop();
@@ -69,9 +73,11 @@ namespace UnityX.Islands {
 				}
 				testedPoints.Add(point);
 				addPoint(point);
+				adjacent.Clear();
 				foreach(Coord adjacentPoint in getAdjacentPoints(point)) {
-					if(!testedPoints.Contains(adjacentPoint)) frontier.Push(adjacentPoint);
+					if(!testedPoints.Contains(adjacentPoint)) adjacent.Add(adjacentPoint);
 				}
+				for(int i = adjacent.Count - 1; i >= 0; i--) frontier.Push(adjacent[i]);
 			}
 		}
 	}

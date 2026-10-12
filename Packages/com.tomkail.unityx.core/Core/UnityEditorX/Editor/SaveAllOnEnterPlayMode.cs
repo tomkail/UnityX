@@ -4,7 +4,6 @@ using UnityEditor.SceneManagement;
 /// <summary>
 /// This script saves the current project and scene (if there is one) whenever the Unity editor enters play mode.
 /// </summary>
-[InitializeOnLoad]
 public class SaveAllOnEnterPlayMode {
 	
 	[FilePath("UserSettings/SaveAllOnEnterPlayModeSettings.asset", FilePathAttribute.Location.ProjectFolder)]
@@ -23,15 +22,27 @@ public class SaveAllOnEnterPlayMode {
 		}
 	}
 
-	static SaveAllOnEnterPlayMode () {
-		EditorApplication.playModeStateChanged += state => {
-            if (state == PlayModeStateChange.ExitingEditMode && SaveAllOnEnterPlayModeSettings.instance.enabled) {
-				if(AnySceneDirty()) {
-					EditorSceneManager.SaveOpenScenes();
-				}
-				AssetDatabase.SaveAssets();
-			}	
-		};
+	[InitializeOnLoadMethod]
+	static void SubscribeEditorEvents () {
+		EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+		EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+		AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
+		AssemblyReloadEvents.beforeAssemblyReload += UnsubscribeEditorEvents;
+	}
+
+	// Editor events outlive script assemblies, so unsubscribe before a code reload or the old handler keeps firing alongside the new one.
+	static void UnsubscribeEditorEvents () {
+		EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+		AssemblyReloadEvents.beforeAssemblyReload -= UnsubscribeEditorEvents;
+	}
+
+	static void OnPlayModeStateChanged (PlayModeStateChange state) {
+		if (state == PlayModeStateChange.ExitingEditMode && SaveAllOnEnterPlayModeSettings.instance.enabled) {
+			if(AnySceneDirty()) {
+				EditorSceneManager.SaveOpenScenes();
+			}
+			AssetDatabase.SaveAssets();
+		}
 	}
 
 
