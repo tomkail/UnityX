@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 [ExecuteAlways]
@@ -8,6 +10,8 @@ public class BackgroundBlurUI : UIBehaviour {
     static readonly int WeightTextureProperty = Shader.PropertyToID("_WeightTexture");
     static readonly int StrengthProperty = Shader.PropertyToID("_Strength");
     static readonly int StepSizeProperty = Shader.PropertyToID("_StepSize");
+    static readonly int BlurSigmaProperty = Shader.PropertyToID("_BlurSigma");
+    static readonly int BlurTapRadiusProperty = Shader.PropertyToID("_BlurTapRadius");
     static Shader _shader;
     static Shader shader => _shader != null ? _shader : (_shader = Shader.Find("Hidden/BackgroundBlurUI"));
 
@@ -54,7 +58,25 @@ public class BackgroundBlurUI : UIBehaviour {
     bool initialized;
     bool _isDirty;
 
+    static readonly HashSet<BackgroundBlurUI> enabledInstances = new();
+
+    // Whether every enabled blur is drawn after its camera has finished, by a screen space overlay canvas.
+    internal static bool AllEnabledOnScreenSpaceOverlayCanvases() {
+        foreach (var instance in enabledInstances) {
+            var canvas = instance.graphic != null ? instance.graphic.canvas : null;
+            if (canvas == null) return false;
+            canvas = canvas.rootCanvas;
+            var isOverlay = canvas.renderMode == RenderMode.ScreenSpaceOverlay || (canvas.renderMode == RenderMode.ScreenSpaceCamera && canvas.worldCamera == null);
+            if (!isOverlay) return false;
+        }
+        return true;
+    }
+
     protected override void OnEnable () {
+        enabledInstances.Add(this);
+#if UNITYX_URP
+        if (enabledInstances.Count == 1) BackgroundBlurUIRenderPass.Register();
+#endif
         Initialize();
     }
 
@@ -75,6 +97,10 @@ public class BackgroundBlurUI : UIBehaviour {
     }
 
     protected override void OnDisable () {
+        enabledInstances.Remove(this);
+#if UNITYX_URP
+        if (enabledInstances.Count == 0) BackgroundBlurUIRenderPass.Unregister();
+#endif
         if(!initialized) return;
 
         graphic.material = null;
@@ -125,11 +151,18 @@ public class BackgroundBlurUI : UIBehaviour {
         else if(quality == Quality.High) stepSize = (int) (Mathf.Lerp(0.3f,1f,finalStrength) * blurRadius * 0.03f);
         stepSize = Mathf.Clamp(stepSize, 2, blurRadius);
         
-        GenerateWeightTexture(ref weightTexture, blurRadius, finalSigma);
         graphic.materialForRendering.SetFloat(StrengthProperty, finalStrength);
-        graphic.materialForRendering.SetInt(KernelSizeProperty, blurRadius);
-        graphic.materialForRendering.SetTexture(WeightTextureProperty, weightTexture);
-        graphic.materialForRendering.SetInt(StepSizeProperty, stepSize);
+        if (GraphicsSettings.currentRenderPipeline == null) {
+            // The built-in pipeline's shader does a separable blur of the GrabPass texture, weighted by this texture.
+            GenerateWeightTexture(ref weightTexture, blurRadius, finalSigma);
+            graphic.materialForRendering.SetInt(KernelSizeProperty, blurRadius);
+            graphic.materialForRendering.SetTexture(WeightTextureProperty, weightTexture);
+            graphic.materialForRendering.SetInt(StepSizeProperty, stepSize);
+        } else {
+            // The URP shader does a single-pass blur of a mip-mapped copy of the camera colour, (2 * tap radius + 1)^2 taps per pixel.
+            graphic.materialForRendering.SetFloat(BlurSigmaProperty, finalSigma);
+            graphic.materialForRendering.SetFloat(BlurTapRadiusProperty, quality == Quality.Low ? 2 : quality == Quality.Medium ? 4 : 6);
+        }
         graphic.SetMaterialDirty();
         graphic.enabled = finalSigma > 0; 
         _isDirty = false;

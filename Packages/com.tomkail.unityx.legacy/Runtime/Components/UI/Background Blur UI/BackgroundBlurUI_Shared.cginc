@@ -18,6 +18,7 @@ struct v2f
     UNITY_VERTEX_OUTPUT_STEREO
 
     float4 uvgrab : TEXCOORD3;
+    float4 screenPos : TEXCOORD4;
 };
 
 v2f vert(appdata_t v)
@@ -55,6 +56,7 @@ v2f vert(appdata_t v)
     #endif
     OUT.uvgrab.xy = (float2(OUT.vertex.x, OUT.vertex.y*scale) + OUT.vertex.w) * 0.5;
     OUT.uvgrab.zw = OUT.vertex.zw;
+    OUT.screenPos = ComputeScreenPos(OUT.vertex);
     OUT.texcoord = TRANSFORM_TEX(v.texcoord, _MainTex);
     
     return OUT;
