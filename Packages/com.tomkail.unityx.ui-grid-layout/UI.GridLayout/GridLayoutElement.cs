@@ -146,6 +146,8 @@ namespace UnityX.UI {
 
 		public virtual float minWidth => m_Width;
 		public virtual float minHeight => m_Height;
+		public virtual float maxWidth => float.PositiveInfinity;
+		public virtual float maxHeight => float.PositiveInfinity;
 		public virtual float preferredWidth => m_Width;
 		public virtual float preferredHeight => m_Height;
 		public virtual float flexibleWidth => -1;

@@ -69,6 +69,8 @@ public class RoundRectPolygonUI : UIBehaviour, ILayoutElement {
     
     public virtual float minWidth { get { return m_MinWidth; } }
     public virtual float minHeight { get { return m_MinHeight; } }
+    public virtual float maxWidth { get { return float.PositiveInfinity; } }
+    public virtual float maxHeight { get { return float.PositiveInfinity; } }
     public virtual float preferredWidth { get { return m_PreferredWidth; } }
     public virtual float preferredHeight { get { return m_PreferredHeight; } }
 

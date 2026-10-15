@@ -135,6 +135,7 @@ namespace UnityEngine.UI.Extensions {
         public virtual void CalculateLayoutInputVertical() { }
 
         public virtual float minWidth { get { return 0; } }
+        public virtual float maxWidth { get { return float.PositiveInfinity; } }
 
         public virtual float preferredWidth
         {
@@ -147,6 +148,7 @@ namespace UnityEngine.UI.Extensions {
         public virtual float flexibleWidth { get { return -1; } }
 
         public virtual float minHeight { get { return 0; } }
+        public virtual float maxHeight { get { return float.PositiveInfinity; } }
         
         public virtual float preferredHeight
         {
