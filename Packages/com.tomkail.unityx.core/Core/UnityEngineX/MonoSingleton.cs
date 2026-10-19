@@ -6,10 +6,15 @@ using UnityEngine;
 public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T> {
     static bool searched;
     static T _Instance;
+#if UNITY_EDITOR
+    static int searchedInPlay;
+#endif
     public static T Instance {
         get {
 #if UNITY_EDITOR
-            if(!Application.isPlaying) searched = false;
+            // When the editor doesn't reload scripts on Play, a search from the last play doesn't count.
+            if(!Application.isPlaying || searchedInPlay != MonoSingletonPlays.count) searched = false;
+            searchedInPlay = MonoSingletonPlays.count;
 #endif
             if(!searched && _Instance == null) {
                 _Instance = FindAnyObjectByType<T>(FindObjectsInactive.Include);
@@ -40,3 +45,12 @@ public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T
         searched = false;
     }
 }
+
+#if UNITY_EDITOR
+// Counts plays, so MonoSingleton can tell one play from the next.
+static class MonoSingletonPlays {
+    public static int count;
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void OnPlay () => count++;
+}
+#endif
