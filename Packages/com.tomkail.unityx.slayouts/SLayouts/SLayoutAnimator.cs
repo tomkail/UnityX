@@ -52,6 +52,9 @@ namespace UnityX.SLayouts {
 	    static void PlayModeStateChanged (UnityEditor.PlayModeStateChange playModeStateChange) {
 			// Application.quitting also fires when leaving play mode; edit mode may use the animator again.
 			if(playModeStateChange == UnityEditor.PlayModeStateChange.EnteredEditMode) quitting = false;
+			// EnteredPlayMode fires after the first frame's Start, so destroying here would drop animations the game just began.
+			// The edit mode instance is already gone by then (ExitingEditMode, and CompileReset).
+			if(playModeStateChange == UnityEditor.PlayModeStateChange.EnteredPlayMode) return;
 			DestroyInstance();
 	    }
 	
