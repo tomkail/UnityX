@@ -28,6 +28,9 @@ namespace UnityX.SLayouts {
 	    }
     
 	    static void PlayModeStateChanged (UnityEditor.PlayModeStateChange playModeStateChange) {
+			// EnteredPlayMode fires after the first frame's Start, so destroying here would drop animations the game just began.
+			// The edit mode instance is already gone by then (ExitingEditMode, and CompileReset).
+			if(playModeStateChange == UnityEditor.PlayModeStateChange.EnteredPlayMode) return;
 			DestroyInstance();
 	    }
 	
